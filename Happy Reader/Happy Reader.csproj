@@ -1,0 +1,335 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{662ACC6B-35BE-4F7A-B876-0E1764DCAED6}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>Happy_Reader</RootNamespace>
+    <AssemblyName>Happy Reader</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;LOGVERBOSE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Happy Reader Debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Happy Reader Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Runtime.Remoting" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.ValueTuple, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.3.1\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="AddEntryControl.xaml.cs">
+      <DependentUpon>AddEntryControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Database\Database.cs" />
+    <Compile Include="Database\Entry.cs" />
+    <Compile Include="Database\Game.cs" />
+    <Compile Include="Database\GameFile.cs" />
+    <Compile Include="Database\UserGame.cs" />
+    <Compile Include="Database\User.cs" />
+    <Compile Include="Database\HappyReaderDatabase.cs" />
+    <Compile Include="HookInfo.cs" />
+    <Compile Include="Interop\ContextFactory.cs" />
+    <Compile Include="Interop\DefaultContextFactory.cs" />
+    <Compile Include="Interop\ext\MyContext.cs" />
+    <Compile Include="Interop\ext\MyContextFactory.cs" />
+    <Compile Include="Interop\HookParam.cs" />
+    <Compile Include="Interop\TextHook.cs" />
+    <Compile Include="Interop\TextHookContext.cs" />
+    <Compile Include="Interop\TextHookInterop.cs" />
+    <Compile Include="Interop\TextHookInteropCompat.cs" />
+    <Compile Include="Interop\UserHook.cs" />
+    <Compile Include="MainWindowViewModel.cs" />
+    <Compile Include="Migrations\201707152009424_EntryForVNR.cs" />
+    <Compile Include="Migrations\201707152009424_EntryForVNR.Designer.cs">
+      <DependentUpon>201707152009424_EntryForVNR.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201707152013567_UpdateTimeNullable.cs" />
+    <Compile Include="Migrations\201707152013567_UpdateTimeNullable.Designer.cs">
+      <DependentUpon>201707152013567_UpdateTimeNullable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201707152038452_RoleStringNotRequired.cs" />
+    <Compile Include="Migrations\201707152038452_RoleStringNotRequired.Designer.cs">
+      <DependentUpon>201707152038452_RoleStringNotRequired.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201707152049453_RemoveFKUserGame.cs" />
+    <Compile Include="Migrations\201707152049453_RemoveFKUserGame.Designer.cs">
+      <DependentUpon>201707152049453_RemoveFKUserGame.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201707152242224_AdjustedGameForXml.cs" />
+    <Compile Include="Migrations\201707152242224_AdjustedGameForXml.Designer.cs">
+      <DependentUpon>201707152242224_AdjustedGameForXml.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201707152253409_RemovedIdentities.cs" />
+    <Compile Include="Migrations\201707152253409_RemovedIdentities.Designer.cs">
+      <DependentUpon>201707152253409_RemovedIdentities.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201707152336539_RemoveFKGame.cs" />
+    <Compile Include="Migrations\201707152336539_RemoveFKGame.Designer.cs">
+      <DependentUpon>201707152336539_RemoveFKGame.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201707161033045_ModifyUser.cs" />
+    <Compile Include="Migrations\201707161033045_ModifyUser.Designer.cs">
+      <DependentUpon>201707161033045_ModifyUser.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201707161058329_ModifyUsers2.cs" />
+    <Compile Include="Migrations\201707161058329_ModifyUsers2.Designer.cs">
+      <DependentUpon>201707161058329_ModifyUsers2.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201707161059483_ModifyUsers3.cs" />
+    <Compile Include="Migrations\201707161059483_ModifyUsers3.Designer.cs">
+      <DependentUpon>201707161059483_ModifyUsers3.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201707161102111_ChangeUserIdentity.cs" />
+    <Compile Include="Migrations\201707161102111_ChangeUserIdentity.Designer.cs">
+      <DependentUpon>201707161102111_ChangeUserIdentity.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201707161116257_ChangeGamesToUserGames.cs" />
+    <Compile Include="Migrations\201707161116257_ChangeGamesToUserGames.Designer.cs">
+      <DependentUpon>201707161116257_ChangeGamesToUserGames.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201707161224073_AddGameItem.cs" />
+    <Compile Include="Migrations\201707161224073_AddGameItem.Designer.cs">
+      <DependentUpon>201707161224073_AddGameItem.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201707161406251_GameItemReady.cs" />
+    <Compile Include="Migrations\201707161406251_GameItemReady.Designer.cs">
+      <DependentUpon>201707161406251_GameItemReady.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201707161507061_RemoveRoleProxyTable.cs" />
+    <Compile Include="Migrations\201707161507061_RemoveRoleProxyTable.Designer.cs">
+      <DependentUpon>201707161507061_RemoveRoleProxyTable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201707161535095_AddedGameFiles.cs" />
+    <Compile Include="Migrations\201707161535095_AddedGameFiles.Designer.cs">
+      <DependentUpon>201707161535095_AddedGameFiles.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201707161539169_AddGameId.cs" />
+    <Compile Include="Migrations\201707161539169_AddGameId.Designer.cs">
+      <DependentUpon>201707161539169_AddGameId.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="NativeMethods.cs" />
+    <Compile Include="OutputWindow.xaml.cs">
+      <DependentUpon>OutputWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Annotations.cs" />
+    <Compile Include="Properties\SessionSettings.cs" />
+    <Compile Include="RoleProxy.cs" />
+    <Compile Include="StaticMethods.cs" />
+    <Compile Include="Translator.cs" />
+    <Compile Include="Win32.cs" />
+    <Page Include="AddEntryControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Page Include="OutputWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Migrations\201707152009424_EntryForVNR.resx">
+      <DependentUpon>201707152009424_EntryForVNR.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201707152013567_UpdateTimeNullable.resx">
+      <DependentUpon>201707152013567_UpdateTimeNullable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201707152038452_RoleStringNotRequired.resx">
+      <DependentUpon>201707152038452_RoleStringNotRequired.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201707152049453_RemoveFKUserGame.resx">
+      <DependentUpon>201707152049453_RemoveFKUserGame.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201707152242224_AdjustedGameForXml.resx">
+      <DependentUpon>201707152242224_AdjustedGameForXml.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201707152253409_RemovedIdentities.resx">
+      <DependentUpon>201707152253409_RemovedIdentities.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201707152336539_RemoveFKGame.resx">
+      <DependentUpon>201707152336539_RemoveFKGame.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201707161033045_ModifyUser.resx">
+      <DependentUpon>201707161033045_ModifyUser.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201707161058329_ModifyUsers2.resx">
+      <DependentUpon>201707161058329_ModifyUsers2.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201707161059483_ModifyUsers3.resx">
+      <DependentUpon>201707161059483_ModifyUsers3.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201707161102111_ChangeUserIdentity.resx">
+      <DependentUpon>201707161102111_ChangeUserIdentity.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201707161116257_ChangeGamesToUserGames.resx">
+      <DependentUpon>201707161116257_ChangeGamesToUserGames.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201707161224073_AddGameItem.resx">
+      <DependentUpon>201707161224073_AddGameItem.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201707161406251_GameItemReady.resx">
+      <DependentUpon>201707161406251_GameItemReady.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201707161507061_RemoveRoleProxyTable.resx">
+      <DependentUpon>201707161507061_RemoveRoleProxyTable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201707161535095_AddedGameFiles.resx">
+      <DependentUpon>201707161535095_AddedGameFiles.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201707161539169_AddGameId.resx">
+      <DependentUpon>201707161539169_AddGameId.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="Config\bannedprocesses.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HRGoogleTranslate\HRGoogleTranslate.csproj">
+      <Project>{e78de42e-834a-4baa-8e7f-c876d2be8a01}</Project>
+      <Name>HRGoogleTranslate</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Database\FindDuplicateEntries.sql" />
+    <Content Include="Database\ReturnVNRStyleEntries.sql" />
+    <Content Include="Libraries\IHF.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Libraries\IHF_compat.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Libraries\IHF_DLL.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Libraries\ithwrapper.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Libraries\ithwrapper_compat.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Libraries\ITH_Engine.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Libraries\ITH_TLS.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Libraries\vnrcli.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Libraries\vnrclixp.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Libraries\vnreng.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Libraries\vnrengxp.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /y /d  "$(ProjectDir)Libraries\*.dll" "$(ProjectDir)$(OutDir)"</PostBuildEvent>
+  </PropertyGroup>
+</Project>

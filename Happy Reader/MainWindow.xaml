@@ -1,0 +1,45 @@
+﻿<Window x:Class="Happy_Reader.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:happyReader="clr-namespace:Happy_Reader"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="350" Width="595.5" Loaded="Window_Loaded">
+    <Window.DataContext>
+        <happyReader:MainWindowViewModel />
+    </Window.DataContext>
+    <Grid Background="#FF2E4876">
+        <TabControl Margin="10">
+            <TabItem Header="Main">
+                <Grid Background="#FFC9E1F5">
+                    <DataGrid ItemsSource="{Binding ContextsList}" Margin="10,10,105,64" AutoGenerateColumns="False">
+                        <DataGrid.Columns>
+                            <DataGridCheckBoxColumn Header="Allowed" Binding="{Binding Allowed}"/>
+                            <DataGridTextColumn Binding="{Binding ContextId, StringFormat=\{0:x\}}" IsReadOnly="True" Header="Context"/>
+                            <DataGridTextColumn Binding="{Binding DisplayText}"  IsReadOnly="True" Header="Text" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <Button Content="Debug Inject" Margin="0,10,10,0" VerticalAlignment="Top" Click="DebugInject_Click" HorizontalAlignment="Right" Width="90"/>
+                    <Button Content="Add Userhook" HorizontalAlignment="Right" Margin="0,35,10,0" Width="90" Click="AddUserhook" Height="22" VerticalAlignment="Top"/>
+                    <TextBox x:Name="UserTb" HorizontalAlignment="Left" Margin="10,0,0,10" TextWrapping="Wrap" Width="120" Height="23" VerticalAlignment="Bottom"/>
+                    <Label Content="User:" HorizontalAlignment="Left" Margin="10,0,0,38" VerticalAlignment="Bottom"/>
+                    <TextBox x:Name="GameTb" HorizontalAlignment="Left" Margin="169,0,0,10" TextWrapping="Wrap" Width="120" Height="23" VerticalAlignment="Bottom"/>
+                    <Label Content="Game:" HorizontalAlignment="Left" Margin="169,0,0,38" Height="26" VerticalAlignment="Bottom"/>
+                    <Button Content="Save" HorizontalAlignment="Left" Margin="297,0,0,10" Width="75" Click="SaveSettings" Height="20" VerticalAlignment="Bottom"/>
+                    <Label x:Name="SaveSettingsReplyLabel" Content="" Margin="377,0,55,10" Height="26" VerticalAlignment="Bottom"/>
+                    <ComboBox x:Name="ProcessCb" Margin="0,62,10,0" VerticalAlignment="Top" ItemsSource="{Binding ProcessList}" HorizontalAlignment="Right" Width="90"/>
+                    <Button Content="Hook" HorizontalAlignment="Left" Margin="462,89,0,0" VerticalAlignment="Top" Width="45" Click="HookToProcess"/>
+                    <Button Content="Ban" HorizontalAlignment="Left" Margin="512,89,0,0" VerticalAlignment="Top" Width="40" Click="BanProcess"/>
+                </Grid>
+            </TabItem>
+            <TabItem IsSelected="True" Header="Entries">
+                <Grid>
+                    <DataGrid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding EntriesList}" Margin="0,25,0,0" />
+                    <CheckBox Content="Game-only" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="{Binding Path=OnlyGameEntries, Mode=TwoWay}"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+    </Grid>
+</Window>
