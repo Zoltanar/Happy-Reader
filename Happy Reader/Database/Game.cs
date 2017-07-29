@@ -1,11 +1,19 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Happy_Reader.Database
 {
+    // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
     public class Game
     {
+        public Game()
+        {
+            // ReSharper disable once VirtualMemberCallInConstructor
+            Hooks = new HashSet<GameHook>();
+        }
+
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public long Id { get; set; }
         public DateTime Timestamp { get; set; }
@@ -27,5 +35,8 @@ namespace Happy_Reader.Database
         public bool Okazu { get; set; }
         // ReSharper disable once InconsistentNaming
         public string SDArtists { get; set; }
+
+        // ReSharper disable once MemberCanBeProtected.Global
+        public virtual ICollection<GameHook> Hooks { get; set; }
     }
 }

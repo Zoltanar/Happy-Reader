@@ -18,13 +18,13 @@ namespace HRGoogleTranslate
             }
         }
 #endif
-        public static void Translate(StringBuilder text)
+        public static void Translate(StringBuilder text, string fromLanguage = "en", string toLanguage = "ja")
         {
 #if NOTRANSLATION
             text.Clear();
             text.Append("Translation is blocked.");
 #else
-            var response = Client.TranslateText(text.ToString(), "en", "ja");
+            var response = Client.TranslateText(text.ToString(), fromLanguage, toLanguage);
             text.Clear();
             text.Append(
             string.IsNullOrWhiteSpace(response?.TranslatedText)

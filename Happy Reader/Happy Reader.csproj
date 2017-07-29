@@ -170,6 +170,10 @@
     <Compile Include="Migrations\201707161539169_AddGameId.Designer.cs">
       <DependentUpon>201707161539169_AddGameId.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201707291308480_GameHookAdded.cs" />
+    <Compile Include="Migrations\201707291308480_GameHookAdded.Designer.cs">
+      <DependentUpon>201707291308480_GameHookAdded.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="NativeMethods.cs" />
     <Compile Include="OutputWindow.xaml.cs">
@@ -180,6 +184,7 @@
     <Compile Include="RoleProxy.cs" />
     <Compile Include="StaticMethods.cs" />
     <Compile Include="Translator.cs" />
+    <Compile Include="Database\GameHook.cs" />
     <Compile Include="Win32.cs" />
     <Page Include="AddEntryControl.xaml">
       <SubType>Designer</SubType>
@@ -266,6 +271,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201707161539169_AddGameId.resx">
       <DependentUpon>201707161539169_AddGameId.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201707291308480_GameHookAdded.resx">
+      <DependentUpon>201707291308480_GameHookAdded.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

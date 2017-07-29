@@ -15,11 +15,11 @@ using static Happy_Reader.StaticMethods;
 
 namespace Happy_Reader
 {
-    class MainWindowViewModel
+    internal class MainWindowViewModel
     {
         private User _user;
-        private Game _game;
-        private readonly HappyReaderDatabase _data = new HappyReaderDatabase();
+        public Game Game { get; private set; }
+        public HappyReaderDatabase Data { get; private set; } = new HappyReaderDatabase();
 
         public ObservableCollection<HookInfo> ContextsList { get; }
         public ObservableCollection<ComboBoxItem> ProcessList { get; }
@@ -44,7 +44,7 @@ namespace Happy_Reader
 
         private void SetEntries()
         {
-            var items = OnlyGameEntries ? (string.IsNullOrWhiteSpace(_game.Series) ? GetGameOnlyItems() : GetSeriesOnlyItems()) : GetItems();
+            var items = OnlyGameEntries ? (string.IsNullOrWhiteSpace(Game.Series) ? GetGameOnlyItems() : GetSeriesOnlyItems()) : GetItems();
             EntriesList.Clear();
             foreach (var item in items)
             {
@@ -53,10 +53,10 @@ namespace Happy_Reader
 
             IQueryable<dynamic> GetItems()
             {
-                var entryItems = from i in _data.Entries
-                                 from user in _data.Users
+                var entryItems = from i in Data.Entries
+                                 from user in Data.Users
                                  where i.UserId == user.Id
-                                 from game in _data.Games
+                                 from game in Data.Games
                                  where i.GameId == game.Id
                                  select new
                                  {
@@ -74,11 +74,11 @@ namespace Happy_Reader
             }
             IQueryable<dynamic> GetGameOnlyItems()
             {
-                var entryItems = from i in _data.Entries
-                                 where i.GameId == _game.Id
-                                 from user in _data.Users
+                var entryItems = from i in Data.Entries
+                                 where i.GameId == Game.Id
+                                 from user in Data.Users
                                  where i.UserId == user.Id
-                                 from game in _data.Games
+                                 from game in Data.Games
                                  where i.GameId == game.Id
                                  select new
                                  {
@@ -96,12 +96,12 @@ namespace Happy_Reader
             }
             IQueryable<dynamic> GetSeriesOnlyItems()
             {
-                var series = _data.Games.Where(i => i.Series == _game.Series).Select(i => i.Id).ToList();
-                var entryItems = from i in _data.Entries
+                var series = Data.Games.Where(i => i.Series == Game.Series).Select(i => i.Id).ToList();
+                var entryItems = from i in Data.Entries
                                  where series.Contains(i.GameId.Value)
-                                 from user in _data.Users
+                                 from user in Data.Users
                                  where i.UserId == user.Id
-                                 from game in _data.Games
+                                 from game in Data.Games
                                  where i.GameId == game.Id
                                  select new
                                  {
@@ -126,6 +126,7 @@ namespace Happy_Reader
             ProcessList = new ObservableCollection<ComboBoxItem>();
             SetProcesses();
             SetEntries();
+            HookInfo.SaveAllowedStatus += SaveAllowedStatus;
         }
 
         private void SetProcesses()
@@ -155,14 +156,14 @@ namespace Happy_Reader
                 response = "Game name is required.";
                 return false;
             }
-            _user = _data.GetUser(user);
+            _user = Data.GetUser(user);
             if (_user == null)
             {
                 response = "User not found.";
                 return false;
             }
-            _game = _data.GetGameByName(game);
-            if (_game == null)
+            Game = Data.GetGameByName(game);
+            if (Game == null)
             {
                 response = "User not found.";
                 return false;
@@ -173,8 +174,8 @@ namespace Happy_Reader
 
         public string Translate(string currentText)
         {
-            if (_user == null || _game == null) return "User or Game is null.";
-            return _data.Translate(_user, "en", _game, currentText);
+            if (_user == null || Game == null) return "User or Game is null.";
+            return Data.Translate(_user, "en", Game, currentText);
         }
 
         public bool SetGame(string filename)
@@ -185,39 +186,39 @@ namespace Happy_Reader
                 {
                     byte[] hash = md5.ComputeHash(filestream);
                     var hashHex = GetHashString(hash);
-                    var gameFile = _data.GameFiles.SingleOrDefault(i => i.MD5 == hashHex);
+                    var gameFile = Data.GameFiles.SingleOrDefault(i => i.MD5 == hashHex);
                     if (gameFile == null || gameFile.GameId == 0)
                     {
-                        _game = _data.Games.FirstOrDefault(i => i.Title == _hookedProcess.MainWindowTitle);
-                        if (_game == null) CreateAndSetNewGame(_hookedProcess.MainWindowTitle);
+                        Game = Data.Games.FirstOrDefault(i => i.Title == _hookedProcess.MainWindowTitle);
+                        if (Game == null) CreateAndSetNewGame(_hookedProcess.MainWindowTitle);
                         if (gameFile == null)
                         {
-                            gameFile = new GameFile {GameId = _game.Id, MD5 = hashHex};
-                            _data.GameFiles.Add(gameFile);
+                            gameFile = new GameFile {GameId = Game.Id, MD5 = hashHex};
+                            Data.GameFiles.Add(gameFile);
                         }
-                        else gameFile.GameId = _game.Id;
-                        _data.SaveChanges();
+                        else gameFile.GameId = Game.Id;
+                        Data.SaveChanges();
                     }
                     else
                     {
-                        _game = _data.Games.FirstOrDefault(i => i.Id == gameFile.GameId);
+                        Game = Data.Games.FirstOrDefault(i => i.Id == gameFile.GameId);
                     }
                     
                 }
             }
-            return _game != null;
+            return Game != null;
 
             void CreateAndSetNewGame(string name)
             {
-                _game = new Game
+                Game = new Game
                 {
                     Title = name,
                     Timestamp = DateTime.UtcNow,
                     Wiki = "HRCreated",
-                    Id = _data.Games.Max(i=>i.Id)+1
+                    Id = Data.Games.Max(i=>i.Id)+1
                 };
-                _data.Games.Add(_game);
-                _data.SaveChanges();
+                Data.Games.Add(Game);
+                Data.SaveChanges();
             }
         }
 
@@ -256,6 +257,29 @@ namespace Happy_Reader
             ConnectSuccess();
             if(_outputWindow == null) _outputWindow = new OutputWindow();
             SetGame(process.MainModule.FileName);
+            foreach (var hook in Game.Hooks)
+            {
+                ContextsList.Add(new HookInfo(hook.Context,hook.Name,PrintSentence, hook.Allowed));
+            }
+        }
+
+        private void SaveAllowedStatus(object sender, AllowedStatusEventArgs args)
+        {
+            var hook = Data.GameHooks.SingleOrDefault(i => i.GameId == Game.Id && i.Context == args.ContextId);
+            if (hook == null)
+            {
+                hook = new GameHook
+                {
+                    Allowed = args.Allowed,
+                    Context = args.ContextId,
+                    GameId = Game.Id,
+                    Name = args.Name
+                };
+                Data.GameHooks.Add(hook);
+            }
+            else hook.Allowed = args.Allowed;
+            Data.SaveChanges();
+
         }
 
         private void ConnectSuccess()

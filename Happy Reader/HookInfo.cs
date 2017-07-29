@@ -9,7 +9,8 @@ namespace Happy_Reader
 {
     public class HookInfo : INotifyPropertyChanged
     {
-        public HookInfo(int contextId, string name, ElapsedEventHandler timerAction)
+        public static event SaveAllowedStatusEvent SaveAllowedStatus;
+        public HookInfo(int contextId, string name, ElapsedEventHandler timerAction, bool allowed = false)
         {
             ContextId = contextId;
             Timer = new NamedTimer
@@ -21,6 +22,7 @@ namespace Happy_Reader
             Text = new StringBuilder(100);
             Name = name;
             Parts = new List<string>();
+            Allowed = allowed;
         }
 
         public List<string> Parts { get; }
@@ -56,6 +58,7 @@ namespace Happy_Reader
             {
                 _allowed = value;
                 OnPropertyChanged();
+                SaveAllowedStatus?.Invoke(this, new AllowedStatusEventArgs(ContextId, Allowed, Name));
             }
         }
 
@@ -79,6 +82,23 @@ namespace Happy_Reader
         }
 
         public override string ToString() => $"{ContextId} - {Name}";
+    }
+
+    public delegate void SaveAllowedStatusEvent(object sender, AllowedStatusEventArgs args);
+
+    public class AllowedStatusEventArgs
+    {
+        public AllowedStatusEventArgs(int contextId, bool allowed, string name)
+        {
+            ContextId = contextId;
+            Allowed = allowed;
+            Name = name;
+        }
+
+        public int ContextId { get; }
+        public bool Allowed { get; }
+        public string Name { get; }
+
     }
 
     public class NamedTimer : Timer

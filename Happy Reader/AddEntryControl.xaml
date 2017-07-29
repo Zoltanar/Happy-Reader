@@ -6,6 +6,65 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
-            
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+        </Grid.RowDefinitions>
+        <DockPanel Height="30" LastChildFill="True" Grid.Row="0">
+            <Label Content="Game" Width="80"/>
+            <TextBox x:Name="GameTb" IsReadOnly="True"/>
+        </DockPanel>
+        <DockPanel Height="30" LastChildFill="True" Grid.Row="1" >
+            <Label Content="Type" Width="80" />
+            <ComboBox x:Name="TypeCb"/>
+        </DockPanel>
+        <DockPanel Height="30" LastChildFill="True" Grid.Row="2" >
+            <Label Content="Role" Width="80" />
+            <TextBox x:Name="RoleTb" />
+        </DockPanel>
+        <DockPanel Height="30" LastChildFill="True" Grid.Row="3" >
+            <Label Content="Input" Width="80" />
+            <TextBox x:Name="InputTb" />
+        </DockPanel>
+        <DockPanel Height="30" LastChildFill="True" Grid.Row="4">
+            <Label Content="Output" Width="80"/>
+            <TextBox x:Name="OutputTb" />
+        </DockPanel>
+        <DockPanel Height="30" LastChildFill="True" Grid.Row="5">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="0.25*" />
+                    <ColumnDefinition Width="0.4*" />
+                    <ColumnDefinition Width="0.25*" />
+                    <ColumnDefinition Width="0.25*" />
+                </Grid.ColumnDefinitions>
+                <CheckBox x:Name="PrivateChb" Content="Private" VerticalAlignment="Center"  Height="Auto" Width="Auto" Grid.Column="0" />
+                <CheckBox x:Name="SeriesSpecificChb" Content="Series-Specific" VerticalAlignment="Center" Height="Auto" Width="Auto" Grid.Column="1" />
+                <CheckBox x:Name="RegexChb" Content="Regex" VerticalAlignment="Center"  Height="Auto" Width="Auto" Grid.Column="2" />
+                <CheckBox x:Name="EnabledChb" Content="Enabled" VerticalAlignment="Center" Height="Auto" Width="Auto" Grid.Column="3" />
+            </Grid>
+        </DockPanel>
+        <DockPanel Height="30" LastChildFill="True" Grid.Row="6">
+            <Label Content="Comment" Width="80"/>
+            <TextBox x:Name="CommentTb" />
+        </DockPanel>
+        <DockPanel Height="30" Grid.Row="7">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="0.5*" />
+                    <ColumnDefinition Width="0.2*" />
+                    <ColumnDefinition Width="0.5*" />
+                </Grid.ColumnDefinitions>
+            <Button Content="Add Entry" Grid.Column="0" Click="AddEntry_Click"/>
+                <Button Content="Cancel" Grid.Column="2" Click="Cancel_Click" />
+                </Grid>
+        </DockPanel>
     </Grid>
 </UserControl>
+

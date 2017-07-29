@@ -73,6 +73,18 @@ namespace Happy_Reader
             if (process == null) return;
             _viewModel.Hook(process);
         }
+
+        private void AddEntry_Click(object sender, RoutedEventArgs e)
+        {
+            if (MainTabControl.Items.Count > 2) return;
+            var tabItem = new TabItem
+            {
+                Header = "Add Entry",
+                Name = "AddEntryControl",
+                Content = new AddEntryControl()
+            };
+            MainTabControl.Items.Add(tabItem);
+        }
     }
 }
 
