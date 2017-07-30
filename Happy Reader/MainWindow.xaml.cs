@@ -81,7 +81,7 @@ namespace Happy_Reader
             {
                 Header = "Add Entry",
                 Name = "AddEntryControl",
-                Content = new AddEntryControl()
+                Content = new AddEntryControl(_viewModel)
             };
             MainTabControl.Items.Add(tabItem);
         }

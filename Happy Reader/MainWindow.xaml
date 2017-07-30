@@ -17,6 +17,7 @@
                         <DataGrid.Columns>
                             <DataGridCheckBoxColumn Header="Allowed" Binding="{Binding Allowed}"/>
                             <DataGridTextColumn Binding="{Binding ContextId, StringFormat=\{0:x\}}" IsReadOnly="True" Header="Context"/>
+                            <DataGridTextColumn Binding="{Binding Name}" IsReadOnly="True" Header="Name"/>
                             <DataGridTextColumn Binding="{Binding DisplayText}"  IsReadOnly="True" Header="Text" Width="*"/>
                         </DataGrid.Columns>
                     </DataGrid>

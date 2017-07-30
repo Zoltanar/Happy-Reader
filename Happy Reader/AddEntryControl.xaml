@@ -15,6 +15,7 @@
             <RowDefinition Height="1*" />
             <RowDefinition Height="1*" />
             <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
         </Grid.RowDefinitions>
         <DockPanel Height="30" LastChildFill="True" Grid.Row="0">
             <Label Content="Game" Width="80"/>
@@ -64,6 +65,9 @@
             <Button Content="Add Entry" Grid.Column="0" Click="AddEntry_Click"/>
                 <Button Content="Cancel" Grid.Column="2" Click="Cancel_Click" />
                 </Grid>
+        </DockPanel>
+        <DockPanel Height="30" LastChildFill="True" Grid.Row="8">
+            <Label x:Name="ResponseLabel" Width="Auto"/>
         </DockPanel>
     </Grid>
 </UserControl>

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Happy_Reader.Database;
 using static Happy_Reader.StaticMethods;
+#if LOGVERBOSE
+using System.Diagnostics;
+#endif
 
 namespace Happy_Reader
 {
@@ -13,17 +15,18 @@ namespace Happy_Reader
         //TODO add regex to all stages
 
         private static readonly object TranslateLock = new object();//("translate-lock-123");
+        private static readonly HappyReaderDatabase Data = new HappyReaderDatabase();
 
-        public static string Translate(this HappyReaderDatabase data, User user, string language, Game game, string input)
+        public static string Translate(User user, string language, Game game, string input)
         {
             //Debug.WriteLine($"'{input}' > 'Debug: Not translating.'");
             //return "Debug: Not translating.";
             lock (TranslateLock)
             {
                 var sb = new StringBuilder(input);
-                var gamesInSeries = game.Series == null
+                long[] gamesInSeries = game.Series == null
                     ? new[] { game.Id }
-                    : data.Games.Where(g => g.Series == game.Series).Select(gg => gg.Id).ToArray();
+                    : Data.Games.Where(g => g.Series == game.Series).Select(gg => gg.Id).ToArray();
 #if LOGVERBOSE
                 var generalEntries = data.Entries.Where(e =>
                         //entry is private and belongs to user, or is not private
@@ -43,30 +46,34 @@ namespace Happy_Reader
                 Debug.WriteLine(
                     $"General entries: {generalEntries.Count()}. Specific entries: {specificEntries.Count()}");
 #else
-            var entries = data.Entries.Where(e =>
-                    //entry is private and belongs to user, or is not private
-                    ((e.Private && e.UserId == user.Id) || !e.Private) &&
-                    //entry is either for all games, or for a game in the series (or the game itself)
-                    (e.GameId == null || !e.SeriesSpecific || gamesInSeries.Contains(e.GameId.Value)) &&
-                    //entry is either for the language or for all languages
-                    (e.ToLanguage == language || e.ToLanguage == null)).OrderBy(i => i.Id).ToArray();
+                Entry[] entries = Data.Entries.Where(e =>
+                        //entry is private and belongs to user, or is not private
+                        ((e.Private && e.UserId == user.Id) || !e.Private) &&
+                        //entry is either for all games, or for a game in the series (or the game itself)
+                        (e.GameId == null || !e.SeriesSpecific || gamesInSeries.Contains(e.GameId.Value)) &&
+                        //entry is either for the language or for all languages
+                        (e.ToLanguage == language || e.ToLanguage == null)).OrderBy(i => i.Id).ToArray();
 #endif
                 //process in stages
+#if LOGVERBOSE
                 Debug.WriteLine($"Stage 0: {sb}");
+#endif
                 TranslateStageOne(sb, entries);
                 TranslateStageTwo(sb, entries);
                 TranslateStageThree(sb, entries);
                 IEnumerable<Entry> usefulEntriesWithProxies;
                 try
                 {
-                    usefulEntriesWithProxies = TranslateStageFour(sb, entries, data);
+                    usefulEntriesWithProxies = TranslateStageFour(sb, entries, Data);
                 }
                 catch (Exception ex)
                 {
                     throw new Exception("Error in TranslateStageFour, see inner", ex);
                 }
                 HRGoogleTranslate.GoogleTranslate.Translate(sb);
+#if LOGVERBOSE
                 Debug.WriteLine($"Stage 5: {sb}");
+#endif
                 TranslateStageSix(sb, usefulEntriesWithProxies);
                 TranslateStageSeven(sb, entries);
                 return sb.ToString();

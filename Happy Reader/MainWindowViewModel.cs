@@ -17,9 +17,9 @@ namespace Happy_Reader
 {
     internal class MainWindowViewModel
     {
-        private User _user;
+        public User User { get; private set; }
         public Game Game { get; private set; }
-        public HappyReaderDatabase Data { get; private set; } = new HappyReaderDatabase();
+        public HappyReaderDatabase Data { get; } = new HappyReaderDatabase();
 
         public ObservableCollection<HookInfo> ContextsList { get; }
         public ObservableCollection<ComboBoxItem> ProcessList { get; }
@@ -156,8 +156,8 @@ namespace Happy_Reader
                 response = "Game name is required.";
                 return false;
             }
-            _user = Data.GetUser(user);
-            if (_user == null)
+            User = Data.GetUser(user);
+            if (User == null)
             {
                 response = "User not found.";
                 return false;
@@ -174,8 +174,8 @@ namespace Happy_Reader
 
         public string Translate(string currentText)
         {
-            if (_user == null || Game == null) return "User or Game is null.";
-            return Data.Translate(_user, "en", Game, currentText);
+            if (User == null || Game == null) return "User or Game is null.";
+            return Translator.Translate(User, "en", Game, currentText);
         }
 
         public bool SetGame(string filename)
@@ -202,20 +202,21 @@ namespace Happy_Reader
                     else
                     {
                         Game = Data.Games.FirstOrDefault(i => i.Id == gameFile.GameId);
+                        if (Game == null) CreateAndSetNewGame(_hookedProcess.MainWindowTitle, gameFile.GameId);
                     }
                     
                 }
             }
             return Game != null;
 
-            void CreateAndSetNewGame(string name)
+            void CreateAndSetNewGame(string name, long id = 0)
             {
                 Game = new Game
                 {
                     Title = name,
                     Timestamp = DateTime.UtcNow,
                     Wiki = "HRCreated",
-                    Id = Data.Games.Max(i=>i.Id)+1
+                    Id = id == 0 ? Data.Games.Max(i=>i.Id)+1 : id
                 };
                 Data.Games.Add(Game);
                 Data.SaveChanges();
@@ -256,16 +257,21 @@ namespace Happy_Reader
             if(!TextHook.instance.connect(_hookedProcess.Id)) /* TODO log error*/ return;
             ConnectSuccess();
             if(_outputWindow == null) _outputWindow = new OutputWindow();
-            SetGame(process.MainModule.FileName);
+            var gameSet = SetGame(process.MainModule.FileName);
+            if(!gameSet) throw new Exception("Couldn't set or create game.");
+
             foreach (var hook in Game.Hooks)
             {
                 ContextsList.Add(new HookInfo(hook.Context,hook.Name,PrintSentence, hook.Allowed));
             }
         }
 
+        private object _dataLock = new object();
         private void SaveAllowedStatus(object sender, AllowedStatusEventArgs args)
         {
-            var hook = Data.GameHooks.SingleOrDefault(i => i.GameId == Game.Id && i.Context == args.ContextId);
+            lock(_dataLock)
+            {
+                var hook = Data.GameHooks.SingleOrDefault(i => i.GameId == Game.Id && i.Context == args.ContextId);
             if (hook == null)
             {
                 hook = new GameHook
@@ -279,6 +285,7 @@ namespace Happy_Reader
             }
             else hook.Allowed = args.Allowed;
             Data.SaveChanges();
+            }
 
         }
 
