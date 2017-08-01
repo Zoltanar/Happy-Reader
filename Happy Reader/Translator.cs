@@ -17,7 +17,7 @@ namespace Happy_Reader
         private static readonly object TranslateLock = new object();//("translate-lock-123");
         private static readonly HappyReaderDatabase Data = new HappyReaderDatabase();
 
-        public static string Translate(User user, string language, Game game, string input)
+        public static string Translate(User user, Game game, string input)
         {
             //Debug.WriteLine($"'{input}' > 'Debug: Not translating.'");
             //return "Debug: Not translating.";
@@ -41,7 +41,7 @@ namespace Happy_Reader
                         //entry is series specific and is for a game in series
                         e.SeriesSpecific && gamesInSeries.Contains(e.GameId.Value) &&
                         //entry is either for the language or for all languages
-                        (e.ToLanguage == language || e.ToLanguage == null));
+                        (e.ToLanguage == "en" || e.ToLanguage == "ja"));
                 var entries = generalEntries.Concat(specificEntries).OrderBy(i => i.Id).ToArray();
                 Debug.WriteLine(
                     $"General entries: {generalEntries.Count()}. Specific entries: {specificEntries.Count()}");
@@ -51,8 +51,8 @@ namespace Happy_Reader
                         ((e.Private && e.UserId == user.Id) || !e.Private) &&
                         //entry is either for all games, or for a game in the series (or the game itself)
                         (e.GameId == null || !e.SeriesSpecific || gamesInSeries.Contains(e.GameId.Value)) &&
-                        //entry is either for the language or for all languages
-                        (e.ToLanguage == language || e.ToLanguage == null)).OrderBy(i => i.Id).ToArray();
+                        //entry is either for the language or for all languages (assigned as ja)
+                        (e.ToLanguage == "en" || e.ToLanguage == "ja")).OrderBy(i => i.Id).ToArray();
 #endif
                 //process in stages
 #if LOGVERBOSE

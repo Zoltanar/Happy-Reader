@@ -1,4 +1,3 @@
-Remove Languages other than English to new table in database (to be ignored but saved)
 Implement Japanese>Romaji Translation
 Allow moving output window and save coordinates.
 Don't parse brackets and handle 'name [message]' properly

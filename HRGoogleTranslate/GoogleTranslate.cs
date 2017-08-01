@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Concurrent;
+using System.IO;
 using System.Text;
 using Google.Cloud.Translation.V2;
 
@@ -7,6 +8,7 @@ namespace HRGoogleTranslate
     public static class GoogleTranslate
     {
 #if !NOTRANSLATION
+        private static readonly ConcurrentDictionary<string, Translation> Cache = new ConcurrentDictionary<string, Translation>();
         private const string GoogleCredential = @"C:\Google\hrtranslate-credential.json";
 
         private static readonly TranslationClient Client;
@@ -18,18 +20,28 @@ namespace HRGoogleTranslate
             }
         }
 #endif
-        public static void Translate(StringBuilder text, string fromLanguage = "en", string toLanguage = "ja")
+        public static void Translate(StringBuilder text)
         {
 #if NOTRANSLATION
             text.Clear();
             text.Append("Translation is blocked.");
 #else
-            var response = Client.TranslateText(text.ToString(), fromLanguage, toLanguage);
+            var input = text.ToString();
+            if (Cache.ContainsKey(input))
+            {
+                text.Clear();
+                text.Append(Cache[input].Output);
+                return;
+            }
+            var response = Client.TranslateText(text.ToString(), "ja", "en");
             text.Clear();
-            text.Append(
-            string.IsNullOrWhiteSpace(response?.TranslatedText)
-                ? "Failed to translate"
-                : response.TranslatedText);
+            if (!string.IsNullOrWhiteSpace(response?.TranslatedText))
+            {
+                text.Append(response.TranslatedText);
+                Cache[input] = new Translation(input, response.TranslatedText);
+            }
+            else text.Append("Failed to translate");
+
 #endif
         }
     }

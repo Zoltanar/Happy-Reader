@@ -175,7 +175,7 @@ namespace Happy_Reader
         public string Translate(string currentText)
         {
             if (User == null || Game == null) return "User or Game is null.";
-            return Translator.Translate(User, "en", Game, currentText);
+            return Translator.Translate(User, Game, currentText);
         }
 
         public bool SetGame(string filename)
