@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
+using System.Xml;
 using Happy_Reader.Database;
 using static Happy_Reader.StaticMethods;
 #if LOGVERBOSE
 using System.Diagnostics;
 #endif
+using OriginalTextObject = System.Collections.Generic.List<(string Original, string Romaji)>;
 
 namespace Happy_Reader
 {
@@ -17,7 +21,7 @@ namespace Happy_Reader
         private static readonly object TranslateLock = new object();//("translate-lock-123");
         private static readonly HappyReaderDatabase Data = new HappyReaderDatabase();
 
-        public static string Translate(User user, Game game, string input)
+        public static string Translate(User user, Game game, string input, out OriginalTextObject originalText)
         {
             //Debug.WriteLine($"'{input}' > 'Debug: Not translating.'");
             //return "Debug: Not translating.";
@@ -60,6 +64,7 @@ namespace Happy_Reader
 #endif
                 TranslateStageOne(sb, entries);
                 TranslateStageTwo(sb, entries);
+                originalText = GetRomaji(sb);
                 TranslateStageThree(sb, entries);
                 IEnumerable<Entry> usefulEntriesWithProxies;
                 try
@@ -80,6 +85,46 @@ namespace Happy_Reader
             }
         }
 
+        private const string RomajiConverterUrl = "http://www.kawa.net/works/ajax/romanize/romanize.cgi";
+
+        public static OriginalTextObject GetRomaji(StringBuilder sb)
+        {
+            var pairs = new List<(string Original, string Romaji)>();
+            var request = WebRequest.Create($"{RomajiConverterUrl}?mode=japanese&ie=UTF-8&q={WebUtility.UrlEncode(sb.ToString())}");
+            request.Method = "GET";
+            var response = request.GetResponse();
+            string romaji;
+            using (var stream = response.GetResponseStream())
+            {
+                if (stream == null)
+                {
+                    pairs.Add(("Failed to get romaji",null));
+                    return pairs;
+                }
+
+                var reader = new StreamReader(stream);
+                romaji = reader.ReadToEnd();
+            }
+            var xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(romaji);
+            var nodes = xmlDoc.SelectNodes("ul/li/span");
+            if (nodes == null)
+            {
+                pairs.Add(("Failed to get romaji", null));
+                return pairs;
+            }
+            foreach (XmlNode node in nodes)
+            {
+                pairs.Add((node.InnerText, node.Attributes?["title"]?.Value));
+            }
+            return pairs;
+        }
+
+        /// <summary>
+        /// Replace entries of type Game.
+        /// </summary>
+        /// <param name="sb"></param>
+        /// <param name="entries"></param>
         private static void TranslateStageOne(StringBuilder sb, Entry[] entries)
         {
             foreach (var entry in entries.Where(i => i.Type == EntryType.Game)) sb.LogReplace(entry.Input, entry.Output, entry.Id);
@@ -145,14 +190,14 @@ namespace Happy_Reader
                     continue;
                 }
                 var roleString = entry.RoleString ?? (entry.Type == EntryType.Name ? "m" : "n"); //m default for name, n default for translation
-                var proxy = proxies[roleString].Proxies.Dequeue();//proxies.FirstOrDefault(p => p.Role == roleString);
+                var proxy = proxies[roleString].Proxies.Count == 0 ? default(RoleProxy) : proxies[roleString].Proxies.Dequeue();//proxies.FirstOrDefault(p => p.Role == roleString);
                 proxies[roleString].Count++;
-                proxy.FullRoleString = $"[[{roleString}#{proxies[roleString].Count}]]";
                 if (proxy.Equals(default(RoleProxy)))
                 {
                     LogToConsole("No proxy available, stopping translate.");
                     throw new Exception("Error - no proxy available.");
                 }
+                proxy.FullRoleString = $"[[{roleString}#{proxies[roleString].Count}]]";
                 entry.AssignedProxy = proxy;
                 sb.LogReplace(entry.Input, entry.AssignedProxy.FullRoleString, entry.Id);
             }

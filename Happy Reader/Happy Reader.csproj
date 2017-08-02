@@ -57,11 +57,14 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.ValueTuple, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.3.1\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
     </Reference>
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Windows.Presentation" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -174,6 +177,10 @@
     <Compile Include="Migrations\201707291308480_GameHookAdded.Designer.cs">
       <DependentUpon>201707291308480_GameHookAdded.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201708022249099_AddedCachedTranslations.cs" />
+    <Compile Include="Migrations\201708022249099_AddedCachedTranslations.Designer.cs">
+      <DependentUpon>201708022249099_AddedCachedTranslations.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="NativeMethods.cs" />
     <Compile Include="OutputWindow.xaml.cs">
@@ -183,9 +190,12 @@
     <Compile Include="Properties\SessionSettings.cs" />
     <Compile Include="RoleProxy.cs" />
     <Compile Include="StaticMethods.cs" />
+    <Compile Include="TranslationItem.cs" />
     <Compile Include="Translator.cs" />
     <Compile Include="Database\GameHook.cs" />
     <Compile Include="Win32.cs" />
+    <Compile Include="WinForms\WebBrowserOverlayWF.cs" />
+    <Compile Include="WinForms\Win32.cs" />
     <Page Include="AddEntryControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -274,6 +284,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201707291308480_GameHookAdded.resx">
       <DependentUpon>201707291308480_GameHookAdded.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201708022249099_AddedCachedTranslations.resx">
+      <DependentUpon>201708022249099_AddedCachedTranslations.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

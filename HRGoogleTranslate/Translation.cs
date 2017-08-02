@@ -1,12 +1,16 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HRGoogleTranslate
 {
-    internal struct Translation
+    public class Translation
     {
-        public readonly string Input;
-        public readonly string Output;
-        public readonly DateTime Timestamp;
+
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+        public string Input { get; set; }
+        public string Output { get; set; }
+        public DateTime Timestamp { get; set; }
 
         public Translation(string input, string output)
         {
@@ -14,5 +18,7 @@ namespace HRGoogleTranslate
             Output = output;
             Timestamp = DateTime.UtcNow;
         }
+
+        public Translation() { }
     }
 }

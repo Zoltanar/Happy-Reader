@@ -78,6 +78,13 @@ namespace Happy_Reader.Properties
         }
 #pragma warning restore IDE1006 // Naming Styles
 
+        internal static void SetGameWindowCoords(double left, double top, double width, double height)
+        {
+            //TODO SetGameCoords
+            //get usergame
+            //save coords to db or local and save to db on session end
+        }
+
 
     }
 }

@@ -17,6 +17,7 @@ namespace Happy_Reader
 
         public MainWindow()
         {
+
             InitializeComponent();
             UserTb.Text = "zolty";
             GameTb.Text = "Ikusa Megami VERITA";
@@ -34,6 +35,9 @@ namespace Happy_Reader
                 _hWndNextViewer = Win32.SetClipboardViewer(source.Handle); // set this window as a viewer
             }*/
             SaveSettings(null, null);
+            /*var outputForm = new OutputWindow();
+            outputForm.Show();
+            outputForm.SetTextDebug();*/
         }
 
         private void SaveSettings(object sender, RoutedEventArgs e)
@@ -52,7 +56,6 @@ namespace Happy_Reader
             process.WaitForInputIdle(5000);
             _viewModel.Hook(process);
         }
-
 
 
         private void AddUserhook(object sender, RoutedEventArgs e)
@@ -84,6 +87,11 @@ namespace Happy_Reader
                 Content = new AddEntryControl(_viewModel)
             };
             MainTabControl.Items.Add(tabItem);
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            _viewModel.Closing();
         }
     }
 }

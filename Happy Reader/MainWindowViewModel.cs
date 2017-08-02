@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Data.Entity;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -12,6 +13,7 @@ using Happy_Reader.Database;
 using Happy_Reader.Interop;
 using Happy_Reader.Properties;
 using static Happy_Reader.StaticMethods;
+using OriginalTextObject = System.Collections.Generic.List<(string Original, string Romaji)>;
 
 namespace Happy_Reader
 {
@@ -29,6 +31,7 @@ namespace Happy_Reader
 
         private bool _onlyGameEntries;
         private bool _eventsSetUp;
+        private bool _closingDone;
         private Process _hookedProcess;
 
         public bool OnlyGameEntries
@@ -126,7 +129,21 @@ namespace Happy_Reader
             ProcessList = new ObservableCollection<ComboBoxItem>();
             SetProcesses();
             SetEntries();
+            Data.CachedTranslations.Load();
+            HRGoogleTranslate.GoogleTranslate.LoadCache(Data.CachedTranslations.Local);
             HookInfo.SaveAllowedStatus += SaveAllowedStatus;
+            Application.Current.Exit += SaveCacheOnExit;
+        }
+
+        public void SaveCacheOnExit(object sender, ExitEventArgs args)
+        {
+            if (_closingDone) return;
+            foreach (var translation in HRGoogleTranslate.GoogleTranslate.GetCache())
+            {
+                if (Data.CachedTranslations.Local.Contains(translation)) continue;
+                Data.CachedTranslations.Add(translation);
+            }
+            Data.SaveChanges();
         }
 
         private void SetProcesses()
@@ -172,10 +189,13 @@ namespace Happy_Reader
             return true;
         }
 
-        public string Translate(string currentText)
+        public string Translate(string currentText, out OriginalTextObject originalText)
         {
+            originalText = new OriginalTextObject();
             if (User == null || Game == null) return "User or Game is null.";
-            return Translator.Translate(User, Game, currentText);
+            var output = Translator.Translate(User, Game, currentText, out OriginalTextObject original);
+            originalText = original;
+            return output;
         }
 
         public bool SetGame(string filename)
@@ -331,7 +351,7 @@ namespace Happy_Reader
             }
         }
 
-        private void SetOutputText(string character, string text)
+        private void SetOutputText(TranslationItem translationItem)
         {
             var windowHandle = _hookedProcess.MainWindowHandle;
             var rct = new NativeMethods.RECT();
@@ -340,20 +360,7 @@ namespace Happy_Reader
             {
                 _outputWindow.SetLocation(rct.Left, rct.Bottom, rct.Right - rct.Left);
                 _outputWindow.Show();
-                _outputWindow.SetText(character, text);
-            });
-        }
-
-        private void SetOutputText(string text)
-        {
-            var windowHandle = _hookedProcess.MainWindowHandle;
-            NativeMethods.RECT rct = new NativeMethods.RECT();
-            NativeMethods.GetWindowRect(windowHandle, ref rct);
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                _outputWindow.SetLocation(rct.Left, rct.Bottom, rct.Right - rct.Left);
-                _outputWindow.Show();
-                _outputWindow.SetText(text);
+                _outputWindow.SetText(translationItem);
             });
         }
 
@@ -363,11 +370,22 @@ namespace Happy_Reader
             timer.Stop();
             var context = ContextsList.Single(i => i.ContextId == timer.Context);
             context.DisplayText = context.Text.ToString();
-            var translated = Translate(context.Text.ToString());
-            Console.WriteLine($"[{context.ContextId:x}]{context.Name}: {context.Text} > {translated}");
-            if (context.Parts.Count == 2) SetOutputText(context.Parts[0], context.Parts[1]);
-            else SetOutputText($"[{context.ContextId:x}]{context.Name}: {translated}");
+            var translated = Translate(context.Text.ToString(), out OriginalTextObject originalText);
+            Console.WriteLine($@"[{context.ContextId:x}]{context.Name}: {context.Text} > {translated}");
+            SetOutputText(new TranslationItem(context,originalText, translated));
             context.ClearText();
         }
+
+        public void Closing()
+        {
+            foreach (var translation in HRGoogleTranslate.GoogleTranslate.GetCache())
+            {
+                if (Data.CachedTranslations.Local.Contains(translation)) continue;
+                Data.CachedTranslations.Add(translation);
+            }
+            Data.SaveChanges();
+            _outputWindow.Close();
+            _closingDone = true;
+        }
     }
-}
+} 

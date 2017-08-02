@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Google.Cloud.Translation.V2;
@@ -9,6 +10,7 @@ namespace HRGoogleTranslate
     {
 #if !NOTRANSLATION
         private static readonly ConcurrentDictionary<string, Translation> Cache = new ConcurrentDictionary<string, Translation>();
+        private static readonly HashSet<string> UntouchedStrings = new HashSet<string>();
         private const string GoogleCredential = @"C:\Google\hrtranslate-credential.json";
 
         private static readonly TranslationClient Client;
@@ -18,7 +20,25 @@ namespace HRGoogleTranslate
             {
                 Client = TranslationClient.Create(Google.Apis.Auth.OAuth2.GoogleCredential.FromStream(stream));
             }
+            BuildUntouchedStrings();
         }
+
+        private static void BuildUntouchedStrings()
+        {
+            UntouchedStrings.Clear();
+            UntouchedStrings.Add("");
+        }
+
+        public static void LoadCache(IEnumerable<Translation> translations)
+        {
+            Cache.Clear();
+            foreach (var translation in translations)
+            {
+                Cache.TryAdd(translation.Input, translation);
+            }
+        }
+
+        public static IEnumerable<Translation> GetCache() => Cache.Values;
 #endif
         public static void Translate(StringBuilder text)
         {
@@ -26,14 +46,17 @@ namespace HRGoogleTranslate
             text.Clear();
             text.Append("Translation is blocked.");
 #else
+            if (UntouchedStrings.Contains(text.ToString())) return;
             var input = text.ToString();
             if (Cache.ContainsKey(input))
             {
+                System.Diagnostics.Debug.WriteLine($"HRTranslate.Google - Getting string from cache, input: {input}");
                 text.Clear();
                 text.Append(Cache[input].Output);
                 return;
             }
-            var response = Client.TranslateText(text.ToString(), "ja", "en");
+            System.Diagnostics.Debug.WriteLine($"HRTranslate.Google - Getting string from API, input: {input}");
+            var response = Client.TranslateText(text.ToString(), "en", "ja", TranslationModel.Base);
             text.Clear();
             if (!string.IsNullOrWhiteSpace(response?.TranslatedText))
             {
