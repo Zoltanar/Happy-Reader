@@ -13,6 +13,7 @@ namespace Happy_Reader.WinForms
             public readonly int X;
             public readonly int Y;
 
+            // ReSharper disable once UnusedMember.Global
             public POINT(int x, int y)
             {
                 X = x;

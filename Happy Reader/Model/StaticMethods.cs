@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Happy_Apps_Core;
 using Happy_Reader.Properties;
 using Newtonsoft.Json;
 
@@ -13,13 +14,8 @@ namespace Happy_Reader
 {
     public static class StaticMethods
     {
-#if DEBUG
-        private const string BannedProcessesJson = @"..\Release\Config\bannedprocesses.json";
-        private const string ConfigFolder = @"..\Release\Config";
-#else
-        private const string BannedProcessesJson = @"Config\bannedprocesses.json";
-        private const string ConfigFolder = @"Config";
-#endif
+        private const string ConfigFolder = StaticHelpers.StoredDataFolder + @"HRConfig\";
+        private const string BannedProcessesJson = ConfigFolder + "bannedprocesses.json";
         public static SessionSettings Session { get; private set; }
         private static readonly List<string> BannedProcesses;
 

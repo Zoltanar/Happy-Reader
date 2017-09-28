@@ -10,7 +10,7 @@ namespace Happy_Reader.Database
 
         // ReSharper disable once InconsistentNaming
         public string MD5 { get; set; }
-
+        
         public long GameId { get; set; }
     }
 }

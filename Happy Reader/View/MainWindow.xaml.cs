@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using Happy_Reader.Interop;
 using static Happy_Reader.StaticMethods;
@@ -24,20 +28,11 @@ namespace Happy_Reader
             _viewModel = (MainWindowViewModel)DataContext;
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            /*var wih = new WindowInteropHelper(this);
-            //var hWndSource = HwndSource.FromHwnd(wih.Handle);
-            //var source = hWndSource;
-            if (source != null)
-            {
-                source.AddHook(WinProc); // start processing window messages
-                _hWndNextViewer = Win32.SetClipboardViewer(source.Handle); // set this window as a viewer
-            }*/
+            await _viewModel.Loaded();
             SaveSettings(null, null);
-            /*var outputForm = new OutputWindow();
-            outputForm.Show();
-            outputForm.SetTextDebug();*/
+            GameResponseLabel.Content = "Finished loading.";
         }
 
         private void SaveSettings(object sender, RoutedEventArgs e)
@@ -93,6 +88,33 @@ namespace Happy_Reader
         {
             _viewModel.Closing();
         }
+
+        private void DropFileOnGamesTab(object sender, DragEventArgs e)
+        {
+            string file = (e.Data.GetData(DataFormats.FileDrop) as string[])?.First();
+            if (string.IsNullOrWhiteSpace(file)) return;
+            var ext = Path.GetExtension(file);
+            if (!ext.Equals(".exe", StringComparison.OrdinalIgnoreCase))
+            {
+                GameResponseLabel.Content = "Dragged file isn't an executable.";
+                return;
+            }
+            GameResponseLabel.Content = $"Dragged file was {Path.GetFileName(file)}";
+            var titledImage = _viewModel.AddGameFile(file);
+            if (titledImage == null) return;
+            ((IList<TitledImage>) GameFiles.ItemsSource).Add(titledImage);
+        }
+
+        private void GameFiles_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var item = GameFiles.SelectedItem as TitledImage;
+            var filePath = item?.FilePath;
+            if (string.IsNullOrWhiteSpace(filePath)) return;
+            var process = StartProcess(filePath);
+            if (process == null) return;
+            _viewModel.Hook(process);
+        }
+        
     }
 }
 

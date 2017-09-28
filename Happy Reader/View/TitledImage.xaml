@@ -1,0 +1,25 @@
+﻿<UserControl x:Class="Happy_Reader.TitledImage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" >
+    <Border Background="Salmon">
+        <Grid Width="160" Height="190">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="160"/>
+                <RowDefinition Height="30"/>
+            </Grid.RowDefinitions>
+            <!-- ReSharper disable once Xaml.PathError -->
+            <Image x:Name="Image" Source="Resources/no-image.gif" Grid.Row="0" Width="160" Height="160"/>
+            <Viewbox Grid.Row="1">
+                <TextBlock x:Name="Title" Text="Title"  VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            </Viewbox>
+        </Grid>
+    </Border>
+    <UserControl.ContextMenu>
+        <ContextMenu>
+            <MenuItem Header="See Details" Click="GameDetails"></MenuItem>
+        </ContextMenu>
+    </UserControl.ContextMenu>
+</UserControl>

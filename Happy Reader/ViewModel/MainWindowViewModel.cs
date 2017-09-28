@@ -6,14 +6,17 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using Happy_Reader.Database;
 using Happy_Reader.Interop;
 using Happy_Reader.Properties;
+using Happy_Apps_Core;
 using static Happy_Reader.StaticMethods;
 using OriginalTextObject = System.Collections.Generic.List<(string Original, string Romaji)>;
+using static Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Reader
 {
@@ -129,8 +132,6 @@ namespace Happy_Reader
             ProcessList = new ObservableCollection<ComboBoxItem>();
             SetProcesses();
             SetEntries();
-            Data.CachedTranslations.Load();
-            HRGoogleTranslate.GoogleTranslate.LoadCache(Data.CachedTranslations.Local);
             HookInfo.SaveAllowedStatus += SaveAllowedStatus;
             Application.Current.Exit += SaveCacheOnExit;
         }
@@ -213,7 +214,7 @@ namespace Happy_Reader
                         if (Game == null) CreateAndSetNewGame(_hookedProcess.MainWindowTitle);
                         if (gameFile == null)
                         {
-                            gameFile = new GameFile {GameId = Game.Id, MD5 = hashHex};
+                            gameFile = new GameFile { GameId = Game.Id, MD5 = hashHex };
                             Data.GameFiles.Add(gameFile);
                         }
                         else gameFile.GameId = Game.Id;
@@ -224,7 +225,7 @@ namespace Happy_Reader
                         Game = Data.Games.FirstOrDefault(i => i.Id == gameFile.GameId);
                         if (Game == null) CreateAndSetNewGame(_hookedProcess.MainWindowTitle, gameFile.GameId);
                     }
-                    
+
                 }
             }
             return Game != null;
@@ -236,7 +237,7 @@ namespace Happy_Reader
                     Title = name,
                     Timestamp = DateTime.UtcNow,
                     Wiki = "HRCreated",
-                    Id = id == 0 ? Data.Games.Max(i=>i.Id)+1 : id
+                    Id = id == 0 ? Data.Games.Max(i => i.Id) + 1 : id
                 };
                 Data.Games.Add(Game);
                 Data.SaveChanges();
@@ -274,37 +275,37 @@ namespace Happy_Reader
             _hookedProcess = process;
             if (_hookedProcess == null) throw new Exception("Process was not started.");
             _hookedProcess.WaitForInputIdle(5000);
-            if(!TextHook.instance.connect(_hookedProcess.Id)) /* TODO log error*/ return;
+            if (!TextHook.instance.connect(_hookedProcess.Id)) /* TODO log error*/ return;
             ConnectSuccess();
-            if(_outputWindow == null) _outputWindow = new OutputWindow();
+            if (_outputWindow == null) _outputWindow = new OutputWindow();
             var gameSet = SetGame(process.MainModule.FileName);
-            if(!gameSet) throw new Exception("Couldn't set or create game.");
+            if (!gameSet) throw new Exception("Couldn't set or create game.");
 
             foreach (var hook in Game.Hooks)
             {
-                ContextsList.Add(new HookInfo(hook.Context,hook.Name,PrintSentence, hook.Allowed));
+                ContextsList.Add(new HookInfo(hook.Context, hook.Name, PrintSentence, hook.Allowed));
             }
         }
 
         private object _dataLock = new object();
         private void SaveAllowedStatus(object sender, AllowedStatusEventArgs args)
         {
-            lock(_dataLock)
+            lock (_dataLock)
             {
                 var hook = Data.GameHooks.SingleOrDefault(i => i.GameId == Game.Id && i.Context == args.ContextId);
-            if (hook == null)
-            {
-                hook = new GameHook
+                if (hook == null)
                 {
-                    Allowed = args.Allowed,
-                    Context = args.ContextId,
-                    GameId = Game.Id,
-                    Name = args.Name
-                };
-                Data.GameHooks.Add(hook);
-            }
-            else hook.Allowed = args.Allowed;
-            Data.SaveChanges();
+                    hook = new GameHook
+                    {
+                        Allowed = args.Allowed,
+                        Context = args.ContextId,
+                        GameId = Game.Id,
+                        Name = args.Name
+                    };
+                    Data.GameHooks.Add(hook);
+                }
+                else hook.Allowed = args.Allowed;
+                Data.SaveChanges();
             }
 
         }
@@ -339,12 +340,12 @@ namespace Happy_Reader
             HookInfo GetOrCreateContext(HookInfo hookInfo)
             {
                 HookInfo result;
-                lock(_gccLock)
+                lock (_gccLock)
                 {
                     result = ContextsList.SingleOrDefault(i => i.ContextId == hookInfo.ContextId);
-                if (result != null) return result;
-                if (hookInfo.Name.Equals("UserHook", StringComparison.OrdinalIgnoreCase)) hookInfo.Allowed = true;
-                Application.Current.Dispatcher.Invoke(() => ContextsList.Add(hookInfo));
+                    if (result != null) return result;
+                    if (hookInfo.Name.Equals("UserHook", StringComparison.OrdinalIgnoreCase)) hookInfo.Allowed = true;
+                    Application.Current.Dispatcher.Invoke(() => ContextsList.Add(hookInfo));
                 }
                 result = hookInfo;
                 return result;
@@ -372,7 +373,7 @@ namespace Happy_Reader
             context.DisplayText = context.Text.ToString();
             var translated = Translate(context.Text.ToString(), out OriginalTextObject originalText);
             Console.WriteLine($@"[{context.ContextId:x}]{context.Name}: {context.Text} > {translated}");
-            SetOutputText(new TranslationItem(context,originalText, translated));
+            SetOutputText(new TranslationItem(context, originalText, translated));
             context.ClearText();
         }
 
@@ -384,8 +385,198 @@ namespace Happy_Reader
                 Data.CachedTranslations.Add(translation);
             }
             Data.SaveChanges();
-            _outputWindow.Close();
+            _outputWindow?.Close();
             _closingDone = true;
         }
+
+        public TitledImage AddGameFile(string file)
+        {
+            ListedVN[] fileResults = LocalDatabase.VNList.Where(VNDatabase.ListVNByNameOrAliasFunc(Path.GetFileNameWithoutExtension(file))).ToArray();
+            ListedVN[] folderResults = {};
+            ListedVN vn = null;
+            if (fileResults.Length == 1)
+            {
+                vn = fileResults.First();
+            }
+            else
+            {
+                folderResults = LocalDatabase.VNList.Where(VNDatabase.ListVNByNameOrAliasFunc(Directory.GetParent(file).Name)).ToArray();
+                if (folderResults.Length == 1) vn = folderResults.First();
+            }
+            if (vn != null)
+            {
+                var userGame = new UserGame(file, vn);
+                Data.UserGames.Add(userGame);
+                Data.SaveChanges();
+                return new TitledImage(file, userGame);
+            }
+            if (folderResults.Length + fileResults.Length == 0)
+            {
+                //TODO ask user which of the results is the correct one
+                return null;
+            }
+            return null;
+        }
+
+        /* Logic to find title in VNDB based on executable/folder/window name.
+        public TitledImage GetTitledImage(UserGame game, string[] allExecutables)
+        {
+            var filePath = allExecutables.FirstOrDefault(exe => exe.EndsWith($"{game.FolderName}\\{game.FileName}"));
+            if (filePath == null)
+            {
+                var results = allExecutables.Where(exe => exe.EndsWith(game.FileName)).ToArray();
+                if (results.Length > 1) { }
+                filePath = results.FirstOrDefault();
+                if (filePath == null)
+                {
+                    results = allExecutables.Where(exe => Directory.GetParent(exe).Name == game.FolderName).ToArray();
+                    if (results.Length > 1) { }
+                    filePath = results.FirstOrDefault();
+                    if (filePath == null) return null;
+                }
+            }
+            ListedVN vn = GetVNFromUserGame(game);
+            if (vn == null)
+            {
+
+                vn = GetVNFromUserGameFromAPI(game);
+                if (vn == null) return null;
+            }
+            game.VNID = vn.VNID;
+            game.FilePath = filePath;
+            return new TitledImage(game.FileName, vn);
+        }
+
+        private ListedVN GetVNFromUserGameFromAPI(UserGame game)
+        {
+            var vn = SearchThroughAPI(game.WindowName);
+            if (vn != null) return vn;
+            vn = SearchThroughAPI(game.FolderName);
+            if (vn != null) return vn;
+            vn = SearchThroughAPI(game.UserDefinedName);
+            return vn;
+
+            ListedVN SearchThroughAPI(string searchString)
+            {
+                int[] result = null;
+                var task = Task.Run(async () => { result = await Conn.SearchByNameOrAlias(searchString); });
+                task.Wait();
+                if (result == null) return null;
+                var results = LocalDatabase.VNList.Where(x => result.Contains(x.VNID)).ToArray();
+                //var results = LocalDatabase.ListVNByNameOrAlias(game.WindowName).ToArray();
+                if (results.Length > 1)
+                {
+                    switch (results.Length)
+                    {
+                        case 12: return results[6];
+                        default: return results.Last();
+                    }
+                }
+                return results.FirstOrDefault();
+            }
+        }
+
+        private ListedVN GetVNFromUserGame(UserGame game)
+        {
+            var exeName = Path.GetFileNameWithoutExtension(game.FileName);
+            var vn = GetVNFromString(exeName);
+            if (vn != null) return vn;
+            var folderName = game.FolderName;
+            vn = GetVNFromString(folderName);
+            if (vn != null) return vn;
+            var windowName = game.WindowName;
+            vn = GetVNFromString(windowName);
+            if (vn != null) return vn;
+            vn = GetVNFromString(windowName, removeSpaceOnKanjiTitle: true);
+            if (vn != null) return vn;
+            vn = GetVNFromString(windowName.Replace("特典ストーリー", ""));
+            if (vn != null) return vn;
+            var windowNameReplacedExclamationMarks = game.WindowName.Replace('！', '!');
+            vn = GetVNFromString(windowNameReplacedExclamationMarks);
+            if (vn != null) return vn;
+            var userDefinedName = game.UserDefinedName;
+            vn = GetVNFromString(userDefinedName);
+            if (vn != null) return vn;
+            vn = GetVNFromStringStartsWith(game.WindowName);
+            if (vn != null) return vn;
+            vn = GetVNFromStringStartsWith(game.UserDefinedName);
+            return vn;
+
+            ListedVN GetVNFromString(string name, bool replaceTilde = false, bool removeSpaceOnKanjiTitle = false)
+            {
+                if (name == null) return null;
+                if (replaceTilde) name = name.Replace('～', '~');
+                var results = LocalDatabase.VNList.Where(vnItem =>
+                    vnItem.Title.Equals(name, StringComparison.OrdinalIgnoreCase) ||
+                    (removeSpaceOnKanjiTitle ? vnItem.KanjiTitle.Replace(" ", "").Equals(name) : vnItem.KanjiTitle.Equals(name)) ||
+                    vnItem.Aliases.Split('\n').Contains(name)).ToArray();
+                if (results.Length > 1) { }
+                if (results.Any()) return results.First();
+                if (name.EndsWith("HD"))
+                {
+                    var hdRemovedName = name.Substring(0, name.Length - 2);
+                    results = LocalDatabase.VNList.Where(vnItem =>
+                        vnItem.Title.Equals(hdRemovedName, StringComparison.OrdinalIgnoreCase) || vnItem.KanjiTitle.Equals(hdRemovedName) ||
+                        vnItem.Aliases.Split('\n').Contains(hdRemovedName)).ToArray();
+                    if (results.Length > 1) { }
+                    if (results.Any()) return results.First();
+                }
+                if (name.EndsWith("体験版"))
+                {
+                    var trialEditionRemovedName = name.Substring(0, name.Length - 3);
+                    results = LocalDatabase.VNList.Where(vnItem =>
+                        vnItem.Title.Equals(trialEditionRemovedName, StringComparison.OrdinalIgnoreCase) || vnItem.KanjiTitle.Equals(trialEditionRemovedName) ||
+                        vnItem.Aliases.Split('\n').Contains(trialEditionRemovedName)).ToArray();
+                    if (results.Length > 1) { }
+                    if (results.Any()) return results.First();
+                }
+                if (!results.Any() && !replaceTilde) return GetVNFromString(name, replaceTilde: true);
+                return results.FirstOrDefault();
+            }
+
+            ListedVN GetVNFromStringStartsWith(string name)
+            {
+                if (name == null) return null;
+                var results = LocalDatabase.VNList.Where(vnItem =>
+                    vnItem.Title.StartsWith(name, StringComparison.OrdinalIgnoreCase) || vnItem.KanjiTitle.StartsWith(name) ||
+                    vnItem.Aliases.Split('\n').Any(x => x.StartsWith(name))).ToArray();
+                if (results.Length > 1)
+                {
+                    return results.Last();
+                }
+                if (results.Any()) return results.First();
+                return results.FirstOrDefault();
+            }
+        }
+        */
+
+        public ObservableCollection<TitledImage> UserGameItems { get; set; } = new ObservableCollection<TitledImage>();
+
+        public async Task Loaded()
+        {
+            await Task.Run(() =>
+            {
+                Data.CachedTranslations.Load();
+                HRGoogleTranslate.GoogleTranslate.LoadCache(Data.CachedTranslations.Local);
+                DumpFiles.Load();
+                LocalDatabase = new VNDatabase(@"C:\Users\Gusty\Documents\VNPC-By Zoltanar\Visual Novel Database\Visual Novel Database\bin\x64\Release\Stored Data\Happy-Search-Local-DB.sqlite");
+                LocalDatabase.Open();
+                LocalDatabase.GetAllTitles(47063); //todo allow any userid
+                LocalDatabase.Close();
+                Conn = new VndbConnection(null, null, null);
+                Conn.Login(ClientName, ClientVersion);
+            });
+            foreach (var game in Data.UserGames)
+            {
+                game.VN = game.VNID != null ? LocalDatabase.VNList.SingleOrDefault(x => x.VNID == game.VNID) : GetNotFoundVN(game);
+                var ti = new TitledImage(game.FilePath, game);
+                UserGameItems.Add(ti);
+            }
+        }
+
+        private ListedVN GetNotFoundVN(UserGame game)
+        {
+            return new ListedVN(game.UserDefinedName ?? game.FileName);
+        }
     }
-} 
+}

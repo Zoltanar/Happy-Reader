@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using static Happy_Reader.StaticMethods;
 
 //ReSharper disableAll
+#pragma warning disable IDE1006 // Naming Styles
 namespace Happy_Reader.Interop
 {
     class TextHook
