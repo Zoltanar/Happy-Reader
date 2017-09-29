@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Data.Entity;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,15 +14,15 @@ using System.Windows;
 using System.Windows.Controls;
 using Happy_Reader.Database;
 using Happy_Reader.Interop;
-using Happy_Reader.Properties;
 using Happy_Apps_Core;
 using static Happy_Reader.StaticMethods;
 using OriginalTextObject = System.Collections.Generic.List<(string Original, string Romaji)>;
 using static Happy_Apps_Core.StaticHelpers;
+using JetBrains.Annotations;
 
 namespace Happy_Reader
 {
-    internal class MainWindowViewModel
+    internal class MainWindowViewModel : INotifyPropertyChanged
     {
         public User User { get; private set; }
         public Game Game { get; private set; }
@@ -29,6 +31,16 @@ namespace Happy_Reader
         public ObservableCollection<HookInfo> ContextsList { get; }
         public ObservableCollection<ComboBoxItem> ProcessList { get; }
         public ObservableCollection<dynamic> EntriesList { get; }
+        private string _statusText;
+        public string StatusText
+        {
+            get => _statusText;
+            set
+            {
+                _statusText = value;
+                OnPropertyChanged();
+            }
+        }
 
         private OutputWindow _outputWindow;
 
@@ -287,7 +299,7 @@ namespace Happy_Reader
             }
         }
 
-        private object _dataLock = new object();
+        private readonly object _dataLock = new object();
         private void SaveAllowedStatus(object sender, AllowedStatusEventArgs args)
         {
             lock (_dataLock)
@@ -392,7 +404,7 @@ namespace Happy_Reader
         public TitledImage AddGameFile(string file)
         {
             ListedVN[] fileResults = LocalDatabase.VNList.Where(VNDatabase.ListVNByNameOrAliasFunc(Path.GetFileNameWithoutExtension(file))).ToArray();
-            ListedVN[] folderResults = {};
+            ListedVN[] folderResults = { };
             ListedVN vn = null;
             if (fileResults.Length == 1)
             {
@@ -554,29 +566,43 @@ namespace Happy_Reader
 
         public async Task Loaded()
         {
+            StatusText = "Loading Cached Translations...";
             await Task.Run(() =>
             {
                 Data.CachedTranslations.Load();
                 HRGoogleTranslate.GoogleTranslate.LoadCache(Data.CachedTranslations.Local);
+                StatusText = "Loading Dumpfiles...";
                 DumpFiles.Load();
+                StatusText = "Loading VN Database...";
                 LocalDatabase = new VNDatabase(@"C:\Users\Gusty\Documents\VNPC-By Zoltanar\Visual Novel Database\Visual Novel Database\bin\x64\Release\Stored Data\Happy-Search-Local-DB.sqlite");
                 LocalDatabase.Open();
                 LocalDatabase.GetAllTitles(47063); //todo allow any userid
                 LocalDatabase.Close();
+                StatusText = "Opening VNDB Connection...";
                 Conn = new VndbConnection(null, null, null);
                 Conn.Login(ClientName, ClientVersion);
             });
-            foreach (var game in Data.UserGames)
+            StatusText = "Loading User Games...";
+            foreach (var game in Data.UserGames.OrderBy(x=>x.VNID ?? 0))
             {
                 game.VN = game.VNID != null ? LocalDatabase.VNList.SingleOrDefault(x => x.VNID == game.VNID) : GetNotFoundVN(game);
                 var ti = new TitledImage(game.FilePath, game);
                 UserGameItems.Add(ti);
             }
+            StatusText = "Loading finished.";
         }
 
         private ListedVN GetNotFoundVN(UserGame game)
         {
             return new ListedVN(game.UserDefinedName ?? game.FileName);
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

@@ -31,8 +31,6 @@ namespace Happy_Reader
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             await _viewModel.Loaded();
-            SaveSettings(null, null);
-            GameResponseLabel.Content = "Finished loading.";
         }
 
         private void SaveSettings(object sender, RoutedEventArgs e)

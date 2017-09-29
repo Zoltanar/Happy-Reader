@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Timers;
-using Happy_Reader.Properties;
+using JetBrains.Annotations;
 
 namespace Happy_Reader
 {
