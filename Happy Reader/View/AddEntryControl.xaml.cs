@@ -46,8 +46,8 @@ namespace Happy_Reader
                 Comment = CommentTb.Text,
                 UserId = _mainViewModel.User.Id
             };
-            _mainViewModel.Data.Entries.Add(entry);
-            _mainViewModel.Data.SaveChanges();
+            StaticMethods.Data.Entries.Add(entry);
+            StaticMethods.Data.SaveChanges();
             ResponseLabel.Content = $@"Entry was added (id {entry.Id}).";
             _entryAlreadyAdded = true;
 

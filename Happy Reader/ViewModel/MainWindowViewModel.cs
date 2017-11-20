@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
@@ -26,7 +27,6 @@ namespace Happy_Reader
     {
         public User User { get; private set; }
         public Game Game { get; private set; }
-        public HappyReaderDatabase Data { get; } = new HappyReaderDatabase();
 
         public ObservableCollection<HookInfo> ContextsList { get; }
         public ObservableCollection<ComboBoxItem> ProcessList { get; }
@@ -403,7 +403,8 @@ namespace Happy_Reader
 
         public TitledImage AddGameFile(string file)
         {
-            ListedVN[] fileResults = LocalDatabase.VNList.Where(VNDatabase.ListVNByNameOrAliasFunc(Path.GetFileNameWithoutExtension(file))).ToArray();
+            var filename = Path.GetFileNameWithoutExtension(file);
+            ListedVN[] fileResults = LocalDatabase.VNList.Where(VNDatabase.ListVNByNameOrAliasFunc(filename)).ToArray();
             ListedVN[] folderResults = { };
             ListedVN vn = null;
             if (fileResults.Length == 1)
@@ -420,11 +421,12 @@ namespace Happy_Reader
                 var userGame = new UserGame(file, vn);
                 Data.UserGames.Add(userGame);
                 Data.SaveChanges();
-                return new TitledImage(file, userGame);
+                return new TitledImage(userGame);
             }
             if (folderResults.Length + fileResults.Length == 0)
             {
                 //TODO ask user which of the results is the correct one
+                //vn = fileResults[0];
                 return null;
             }
             return null;
@@ -586,23 +588,39 @@ namespace Happy_Reader
             foreach (var game in Data.UserGames.OrderBy(x=>x.VNID ?? 0))
             {
                 game.VN = game.VNID != null ? LocalDatabase.VNList.SingleOrDefault(x => x.VNID == game.VNID) : GetNotFoundVN(game);
-                var ti = new TitledImage(game.FilePath, game);
+                var ti = new TitledImage(game);
                 UserGameItems.Add(ti);
             }
             StatusText = "Loading finished.";
+            var monitor = new Thread(MonitorStart);
+            monitor.Start();
         }
 
-        private ListedVN GetNotFoundVN(UserGame game)
+        private void MonitorStart()
         {
-            return new ListedVN(game.UserDefinedName ?? game.FileName);
+            while (true)
+            {
+                foreach (var process in Process.GetProcesses().Where(x=>!ProcessIsBanned(x.ProcessName)))
+                {
+                    if(process.Is64BitProcess()) continue;
+                    try
+                    {
+                        var userGame =
+                            Data.UserGames.FirstOrDefault(x => x.FilePath.Equals(process.MainModule.FileName));
+                        if (userGame == null || userGame.Process != null) continue;
+                        userGame.Process = process;
+                    }
+                    catch (Win32Exception) { }
+                }
+                Thread.Sleep(5000);
+            }
         }
+
+        private ListedVN GetNotFoundVN(UserGame game) => new ListedVN(game.UserDefinedName ?? game.FileName);
 
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

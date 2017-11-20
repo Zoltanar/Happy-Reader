@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Happy_Apps_Core;
+using Happy_Reader.Database;
 using Happy_Reader.Properties;
 using Newtonsoft.Json;
 
@@ -18,6 +21,7 @@ namespace Happy_Reader
         private const string BannedProcessesJson = ConfigFolder + "bannedprocesses.json";
         public static SessionSettings Session { get; private set; }
         private static readonly List<string> BannedProcesses;
+        public static HappyReaderDatabase Data { get; } = new HappyReaderDatabase();
 
         static StaticMethods()
         {
@@ -31,7 +35,7 @@ namespace Happy_Reader
             catch (Exception)
             {
                 //TODO log error
-                
+
             }
             finally
             {
@@ -102,7 +106,7 @@ namespace Happy_Reader
             return Process.Start(pi);
         }
 
-        public static TValue GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dictionary,TKey key, TValue value)
+        public static TValue GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue value)
         {
             if (!dictionary.ContainsKey(key)) dictionary.Add(key, value);
             try
@@ -131,9 +135,25 @@ namespace Happy_Reader
 
         private static void SaveBannedProcesses()
         {
-            File.WriteAllText(BannedProcessesJson,JsonConvert.SerializeObject(BannedProcesses, Formatting.Indented));
+            File.WriteAllText(BannedProcessesJson, JsonConvert.SerializeObject(BannedProcesses, Formatting.Indented));
         }
 
         public static bool ProcessIsBanned(string processName) => BannedProcesses.Contains(processName);
+
+        public static bool Is64BitProcess(this Process process)
+        {
+            if (!Environment.Is64BitOperatingSystem) return false;
+            bool isWow64Process;
+            try
+            {
+                if (!NativeMethods.IsWow64Process(process.Handle, out isWow64Process))
+                {
+                    var error = Marshal.GetLastWin32Error();
+                    return true;
+                }
+            }
+            catch (Win32Exception) { return true; }
+            return !isWow64Process;
+        }
     }
 }

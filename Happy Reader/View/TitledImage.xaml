@@ -2,19 +2,50 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:database="clr-namespace:Happy_Reader.Database"
              mc:Ignorable="d" >
+    <UserControl.DataContext>
+        <database:UserGame/>
+    </UserControl.DataContext>
+    <UserControl.Resources>
+        <Style x:Key="ToggleButtonStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="IsEnabled" Value="False"></Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border Name="Border" BorderBrush="Black" BorderThickness="2" Background="Red">
+                            <Viewbox>
+                                <TextBlock Name="TextBlock" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Text="OFF"></TextBlock>
+                            </Viewbox>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Background" TargetName="Border" Value="LimeGreen"/>
+                                <Setter Property="Text" TargetName="TextBlock" Value="ON"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
     <Border Background="Salmon">
-        <Grid Width="160" Height="190">
+        <Grid Width="160" Height="220">
             <Grid.RowDefinitions>
                 <RowDefinition Height="160"/>
+                <RowDefinition Height="30"/>
                 <RowDefinition Height="30"/>
             </Grid.RowDefinitions>
             <!-- ReSharper disable once Xaml.PathError -->
             <Image x:Name="Image" Source="Resources/no-image.gif" Grid.Row="0" Width="160" Height="160"/>
             <Viewbox Grid.Row="1">
-                <TextBlock x:Name="Title" Text="Title"  VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                <TextBlock Text="{Binding FileName}"  VerticalAlignment="Center" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
             </Viewbox>
+            <Viewbox Grid.Row="2" Margin="0,0,48,0">
+                <TextBlock Text="{Binding TimeOpen, StringFormat=hh\':\'mm}"  VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            </Viewbox>
+            <ToggleButton Margin="112,5,0,0" Grid.Row="2" Style="{StaticResource ToggleButtonStyle}" IsChecked="{Binding IsRunning, Mode=OneWay}"/>
         </Grid>
     </Border>
     <UserControl.ContextMenu>
@@ -23,3 +54,4 @@
         </ContextMenu>
     </UserControl.ContextMenu>
 </UserControl>
+

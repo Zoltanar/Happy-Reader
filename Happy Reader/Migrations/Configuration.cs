@@ -9,7 +9,7 @@ namespace Happy_Reader.Migrations
     {
         public Configuration()
         {
-            AutomaticMigrationsEnabled = false;
+            AutomaticMigrationsEnabled = true;
         }
 
         protected override void Seed(Happy_Reader.Database.HappyReaderDatabase context)

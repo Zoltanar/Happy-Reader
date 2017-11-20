@@ -145,6 +145,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="View\AddEntryControl.xaml.cs">
       <DependentUpon>AddEntryControl.xaml</DependentUpon>
     </Compile>
@@ -166,87 +167,6 @@
     <Compile Include="Interop\TextHookInteropCompat.cs" />
     <Compile Include="Interop\UserHook.cs" />
     <Compile Include="ViewModel\MainWindowViewModel.cs" />
-    <Compile Include="Migrations\201707152009424_EntryForVNR.cs" />
-    <Compile Include="Migrations\201707152009424_EntryForVNR.Designer.cs">
-      <DependentUpon>201707152009424_EntryForVNR.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201707152013567_UpdateTimeNullable.cs" />
-    <Compile Include="Migrations\201707152013567_UpdateTimeNullable.Designer.cs">
-      <DependentUpon>201707152013567_UpdateTimeNullable.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201707152038452_RoleStringNotRequired.cs" />
-    <Compile Include="Migrations\201707152038452_RoleStringNotRequired.Designer.cs">
-      <DependentUpon>201707152038452_RoleStringNotRequired.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201707152049453_RemoveFKUserGame.cs" />
-    <Compile Include="Migrations\201707152049453_RemoveFKUserGame.Designer.cs">
-      <DependentUpon>201707152049453_RemoveFKUserGame.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201707152242224_AdjustedGameForXml.cs" />
-    <Compile Include="Migrations\201707152242224_AdjustedGameForXml.Designer.cs">
-      <DependentUpon>201707152242224_AdjustedGameForXml.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201707152253409_RemovedIdentities.cs" />
-    <Compile Include="Migrations\201707152253409_RemovedIdentities.Designer.cs">
-      <DependentUpon>201707152253409_RemovedIdentities.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201707152336539_RemoveFKGame.cs" />
-    <Compile Include="Migrations\201707152336539_RemoveFKGame.Designer.cs">
-      <DependentUpon>201707152336539_RemoveFKGame.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201707161033045_ModifyUser.cs" />
-    <Compile Include="Migrations\201707161033045_ModifyUser.Designer.cs">
-      <DependentUpon>201707161033045_ModifyUser.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201707161058329_ModifyUsers2.cs" />
-    <Compile Include="Migrations\201707161058329_ModifyUsers2.Designer.cs">
-      <DependentUpon>201707161058329_ModifyUsers2.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201707161059483_ModifyUsers3.cs" />
-    <Compile Include="Migrations\201707161059483_ModifyUsers3.Designer.cs">
-      <DependentUpon>201707161059483_ModifyUsers3.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201707161102111_ChangeUserIdentity.cs" />
-    <Compile Include="Migrations\201707161102111_ChangeUserIdentity.Designer.cs">
-      <DependentUpon>201707161102111_ChangeUserIdentity.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201707161116257_ChangeGamesToUserGames.cs" />
-    <Compile Include="Migrations\201707161116257_ChangeGamesToUserGames.Designer.cs">
-      <DependentUpon>201707161116257_ChangeGamesToUserGames.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201707161224073_AddGameItem.cs" />
-    <Compile Include="Migrations\201707161224073_AddGameItem.Designer.cs">
-      <DependentUpon>201707161224073_AddGameItem.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201707161406251_GameItemReady.cs" />
-    <Compile Include="Migrations\201707161406251_GameItemReady.Designer.cs">
-      <DependentUpon>201707161406251_GameItemReady.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201707161507061_RemoveRoleProxyTable.cs" />
-    <Compile Include="Migrations\201707161507061_RemoveRoleProxyTable.Designer.cs">
-      <DependentUpon>201707161507061_RemoveRoleProxyTable.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201707161535095_AddedGameFiles.cs" />
-    <Compile Include="Migrations\201707161535095_AddedGameFiles.Designer.cs">
-      <DependentUpon>201707161535095_AddedGameFiles.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201707161539169_AddGameId.cs" />
-    <Compile Include="Migrations\201707161539169_AddGameId.Designer.cs">
-      <DependentUpon>201707161539169_AddGameId.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201707291308480_GameHookAdded.cs" />
-    <Compile Include="Migrations\201707291308480_GameHookAdded.Designer.cs">
-      <DependentUpon>201707291308480_GameHookAdded.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201708022249099_AddedCachedTranslations.cs" />
-    <Compile Include="Migrations\201708022249099_AddedCachedTranslations.Designer.cs">
-      <DependentUpon>201708022249099_AddedCachedTranslations.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201709071911072_AddedFieldsToUserGame.cs" />
-    <Compile Include="Migrations\201709071911072_AddedFieldsToUserGame.Designer.cs">
-      <DependentUpon>201709071911072_AddedFieldsToUserGame.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Model\NativeMethods.cs" />
     <Compile Include="View\OutputWindow.xaml.cs">
       <DependentUpon>OutputWindow.xaml</DependentUpon>
@@ -309,66 +229,6 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <EmbeddedResource Include="Migrations\201707152009424_EntryForVNR.resx">
-      <DependentUpon>201707152009424_EntryForVNR.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201707152013567_UpdateTimeNullable.resx">
-      <DependentUpon>201707152013567_UpdateTimeNullable.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201707152038452_RoleStringNotRequired.resx">
-      <DependentUpon>201707152038452_RoleStringNotRequired.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201707152049453_RemoveFKUserGame.resx">
-      <DependentUpon>201707152049453_RemoveFKUserGame.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201707152242224_AdjustedGameForXml.resx">
-      <DependentUpon>201707152242224_AdjustedGameForXml.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201707152253409_RemovedIdentities.resx">
-      <DependentUpon>201707152253409_RemovedIdentities.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201707152336539_RemoveFKGame.resx">
-      <DependentUpon>201707152336539_RemoveFKGame.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201707161033045_ModifyUser.resx">
-      <DependentUpon>201707161033045_ModifyUser.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201707161058329_ModifyUsers2.resx">
-      <DependentUpon>201707161058329_ModifyUsers2.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201707161059483_ModifyUsers3.resx">
-      <DependentUpon>201707161059483_ModifyUsers3.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201707161102111_ChangeUserIdentity.resx">
-      <DependentUpon>201707161102111_ChangeUserIdentity.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201707161116257_ChangeGamesToUserGames.resx">
-      <DependentUpon>201707161116257_ChangeGamesToUserGames.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201707161224073_AddGameItem.resx">
-      <DependentUpon>201707161224073_AddGameItem.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201707161406251_GameItemReady.resx">
-      <DependentUpon>201707161406251_GameItemReady.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201707161507061_RemoveRoleProxyTable.resx">
-      <DependentUpon>201707161507061_RemoveRoleProxyTable.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201707161535095_AddedGameFiles.resx">
-      <DependentUpon>201707161535095_AddedGameFiles.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201707161539169_AddGameId.resx">
-      <DependentUpon>201707161539169_AddGameId.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201707291308480_GameHookAdded.resx">
-      <DependentUpon>201707291308480_GameHookAdded.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201708022249099_AddedCachedTranslations.resx">
-      <DependentUpon>201708022249099_AddedCachedTranslations.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201709071911072_AddedFieldsToUserGame.resx">
-      <DependentUpon>201709071911072_AddedFieldsToUserGame.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
