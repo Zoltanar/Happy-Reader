@@ -145,6 +145,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Database\Log.cs" />
+    <Compile Include="Migrations\201711201812156_addlogs.cs" />
+    <Compile Include="Migrations\201711201812156_addlogs.Designer.cs">
+      <DependentUpon>201711201812156_addlogs.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="View\AddEntryControl.xaml.cs">
       <DependentUpon>AddEntryControl.xaml</DependentUpon>
@@ -229,6 +234,9 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <EmbeddedResource Include="Migrations\201711201812156_addlogs.resx">
+      <DependentUpon>201711201812156_addlogs.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

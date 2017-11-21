@@ -20,6 +20,7 @@ namespace Happy_Reader.Database
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<GameHook> GameHooks { get; set; }
         public virtual DbSet<Translation> CachedTranslations { get; set; }
+        public virtual DbSet<Log> Logs { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

@@ -148,6 +148,7 @@ namespace Happy_Reader
             {
                 if (!NativeMethods.IsWow64Process(process.Handle, out isWow64Process))
                 {
+                    // ReSharper disable once UnusedVariable
                     var error = Marshal.GetLastWin32Error();
                     return true;
                 }

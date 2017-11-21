@@ -65,6 +65,7 @@ namespace Happy_Reader.Database
             {
                 _process = value;
                 OnPropertyChanged(nameof(IsRunning));
+                OnPropertyChanged(nameof(TimeOpen));
                 if (value == null) return;
                 _runningTime = Stopwatch.StartNew();
                 _process.Exited += ProcessExited;
@@ -72,10 +73,16 @@ namespace Happy_Reader.Database
             }
         }
 
+        [NotMapped]
+        public object DisplayName => UserDefinedName ?? VN?.Title ?? FileName;
+
         private void ProcessExited(object sender, EventArgs e)
         {
+            _runningTime.Stop();
             TimeOpen += _runningTime.Elapsed;
             Process = null;
+            var log = Log.NewTimePlayedLog(Id, _runningTime.Elapsed);
+            StaticMethods.Data.Logs.Add(log);
             StaticMethods.Data.SaveChanges();
         }
 
