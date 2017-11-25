@@ -28,9 +28,14 @@ namespace Happy_Reader
         public User User { get; private set; }
         public Game Game { get; private set; }
 
+#pragma warning disable 67
+        public NotificationEventHandler NotificationEvent;
+#pragma warning restore 67
         public ObservableCollection<HookInfo> ContextsList { get; }
         public ObservableCollection<ComboBoxItem> ProcessList { get; }
         public ObservableCollection<dynamic> EntriesList { get; }
+        public ObservableCollection<TitledImage> UserGameItems { get; set; } = new ObservableCollection<TitledImage>();
+
         private string _statusText;
         public string StatusText
         {
@@ -147,7 +152,7 @@ namespace Happy_Reader
             HookInfo.SaveAllowedStatus += SaveAllowedStatus;
             Application.Current.Exit += SaveCacheOnExit;
         }
-
+        
         public void SaveCacheOnExit(object sender, ExitEventArgs args)
         {
             if (_closingDone) return;
@@ -418,7 +423,7 @@ namespace Happy_Reader
             }
             if (vn != null)
             {
-                var userGame = new UserGame(file, vn);
+                var userGame = new UserGame(file, vn){Id = Data.UserGames.Max(x=>x.Id)+1};
                 Data.UserGames.Add(userGame);
                 Data.SaveChanges();
                 return new TitledImage(userGame);
@@ -432,177 +437,47 @@ namespace Happy_Reader
             return null;
         }
 
-        /* Logic to find title in VNDB based on executable/folder/window name.
-        public TitledImage GetTitledImage(UserGame game, string[] allExecutables)
-        {
-            var filePath = allExecutables.FirstOrDefault(exe => exe.EndsWith($"{game.FolderName}\\{game.FileName}"));
-            if (filePath == null)
-            {
-                var results = allExecutables.Where(exe => exe.EndsWith(game.FileName)).ToArray();
-                if (results.Length > 1) { }
-                filePath = results.FirstOrDefault();
-                if (filePath == null)
-                {
-                    results = allExecutables.Where(exe => Directory.GetParent(exe).Name == game.FolderName).ToArray();
-                    if (results.Length > 1) { }
-                    filePath = results.FirstOrDefault();
-                    if (filePath == null) return null;
-                }
-            }
-            ListedVN vn = GetVNFromUserGame(game);
-            if (vn == null)
-            {
-
-                vn = GetVNFromUserGameFromAPI(game);
-                if (vn == null) return null;
-            }
-            game.VNID = vn.VNID;
-            game.FilePath = filePath;
-            return new TitledImage(game.FileName, vn);
-        }
-
-        private ListedVN GetVNFromUserGameFromAPI(UserGame game)
-        {
-            var vn = SearchThroughAPI(game.WindowName);
-            if (vn != null) return vn;
-            vn = SearchThroughAPI(game.FolderName);
-            if (vn != null) return vn;
-            vn = SearchThroughAPI(game.UserDefinedName);
-            return vn;
-
-            ListedVN SearchThroughAPI(string searchString)
-            {
-                int[] result = null;
-                var task = Task.Run(async () => { result = await Conn.SearchByNameOrAlias(searchString); });
-                task.Wait();
-                if (result == null) return null;
-                var results = LocalDatabase.VNList.Where(x => result.Contains(x.VNID)).ToArray();
-                //var results = LocalDatabase.ListVNByNameOrAlias(game.WindowName).ToArray();
-                if (results.Length > 1)
-                {
-                    switch (results.Length)
-                    {
-                        case 12: return results[6];
-                        default: return results.Last();
-                    }
-                }
-                return results.FirstOrDefault();
-            }
-        }
-
-        private ListedVN GetVNFromUserGame(UserGame game)
-        {
-            var exeName = Path.GetFileNameWithoutExtension(game.FileName);
-            var vn = GetVNFromString(exeName);
-            if (vn != null) return vn;
-            var folderName = game.FolderName;
-            vn = GetVNFromString(folderName);
-            if (vn != null) return vn;
-            var windowName = game.WindowName;
-            vn = GetVNFromString(windowName);
-            if (vn != null) return vn;
-            vn = GetVNFromString(windowName, removeSpaceOnKanjiTitle: true);
-            if (vn != null) return vn;
-            vn = GetVNFromString(windowName.Replace("特典ストーリー", ""));
-            if (vn != null) return vn;
-            var windowNameReplacedExclamationMarks = game.WindowName.Replace('！', '!');
-            vn = GetVNFromString(windowNameReplacedExclamationMarks);
-            if (vn != null) return vn;
-            var userDefinedName = game.UserDefinedName;
-            vn = GetVNFromString(userDefinedName);
-            if (vn != null) return vn;
-            vn = GetVNFromStringStartsWith(game.WindowName);
-            if (vn != null) return vn;
-            vn = GetVNFromStringStartsWith(game.UserDefinedName);
-            return vn;
-
-            ListedVN GetVNFromString(string name, bool replaceTilde = false, bool removeSpaceOnKanjiTitle = false)
-            {
-                if (name == null) return null;
-                if (replaceTilde) name = name.Replace('～', '~');
-                var results = LocalDatabase.VNList.Where(vnItem =>
-                    vnItem.Title.Equals(name, StringComparison.OrdinalIgnoreCase) ||
-                    (removeSpaceOnKanjiTitle ? vnItem.KanjiTitle.Replace(" ", "").Equals(name) : vnItem.KanjiTitle.Equals(name)) ||
-                    vnItem.Aliases.Split('\n').Contains(name)).ToArray();
-                if (results.Length > 1) { }
-                if (results.Any()) return results.First();
-                if (name.EndsWith("HD"))
-                {
-                    var hdRemovedName = name.Substring(0, name.Length - 2);
-                    results = LocalDatabase.VNList.Where(vnItem =>
-                        vnItem.Title.Equals(hdRemovedName, StringComparison.OrdinalIgnoreCase) || vnItem.KanjiTitle.Equals(hdRemovedName) ||
-                        vnItem.Aliases.Split('\n').Contains(hdRemovedName)).ToArray();
-                    if (results.Length > 1) { }
-                    if (results.Any()) return results.First();
-                }
-                if (name.EndsWith("体験版"))
-                {
-                    var trialEditionRemovedName = name.Substring(0, name.Length - 3);
-                    results = LocalDatabase.VNList.Where(vnItem =>
-                        vnItem.Title.Equals(trialEditionRemovedName, StringComparison.OrdinalIgnoreCase) || vnItem.KanjiTitle.Equals(trialEditionRemovedName) ||
-                        vnItem.Aliases.Split('\n').Contains(trialEditionRemovedName)).ToArray();
-                    if (results.Length > 1) { }
-                    if (results.Any()) return results.First();
-                }
-                if (!results.Any() && !replaceTilde) return GetVNFromString(name, replaceTilde: true);
-                return results.FirstOrDefault();
-            }
-
-            ListedVN GetVNFromStringStartsWith(string name)
-            {
-                if (name == null) return null;
-                var results = LocalDatabase.VNList.Where(vnItem =>
-                    vnItem.Title.StartsWith(name, StringComparison.OrdinalIgnoreCase) || vnItem.KanjiTitle.StartsWith(name) ||
-                    vnItem.Aliases.Split('\n').Any(x => x.StartsWith(name))).ToArray();
-                if (results.Length > 1)
-                {
-                    return results.Last();
-                }
-                if (results.Any()) return results.First();
-                return results.FirstOrDefault();
-            }
-        }
-        */
-
-        public ObservableCollection<TitledImage> UserGameItems { get; set; } = new ObservableCollection<TitledImage>();
-
         public async Task Loaded()
         {
+            Stopwatch watch = Stopwatch.StartNew();
+            TimeSpan dumpfilesLoadTime = new TimeSpan();
             StatusText = "Loading Cached Translations...";
             await Task.Run(() =>
             {
                 Data.CachedTranslations.Load();
                 HRGoogleTranslate.GoogleTranslate.LoadCache(Data.CachedTranslations.Local);
                 StatusText = "Loading Dumpfiles...";
+                var s1 = watch.Elapsed;
                 DumpFiles.Load();
-                StatusText = "Loading VN Database...";
-                LocalDatabase = new VNDatabase(@"C:\Users\Gusty\Documents\VNPC-By Zoltanar\Visual Novel Database\Visual Novel Database\bin\x64\Release\Stored Data\Happy-Search-Local-DB.sqlite");
-                LocalDatabase.Open();
-                LocalDatabase.GetAllTitles(47063); //todo allow any userid
-                LocalDatabase.Close();
+                dumpfilesLoadTime = s1 - watch.Elapsed;
+                Settings.UserID = 47063;
+                Settings.Username = "zolty";
+                LocalDatabase = new VNDatabase(@"C:\Users\Gusty\Documents\VNPC-By Zoltanar\Visual Novel Database\HappySearchObjectClasses\Database\Test.sqlite");
+
                 StatusText = "Opening VNDB Connection...";
                 Conn = new VndbConnection(null, null, null);
                 Conn.Login(ClientName, ClientVersion);
             });
             StatusText = "Loading User Games...";
-            foreach (var game in Data.UserGames.OrderBy(x=>x.VNID ?? 0))
+            foreach (var game in Data.UserGames.OrderBy(x => x.VNID ?? 0))
             {
                 game.VN = game.VNID != null ? LocalDatabase.VNList.SingleOrDefault(x => x.VNID == game.VNID) : GetNotFoundVN(game);
                 var ti = new TitledImage(game);
                 UserGameItems.Add(ti);
             }
             StatusText = "Loading finished.";
-            var monitor = new Thread(MonitorStart);
+            var monitor = new Thread(MonitorStart) { IsBackground = true };
             monitor.Start();
+            NotificationEvent.Invoke(this, $"Took {watch.Elapsed:ss\\:fff} (Dumpfiles took {dumpfilesLoadTime:ss\\:fff})", "Loading complete.");
         }
 
         private void MonitorStart()
         {
             while (true)
             {
-                foreach (var process in Process.GetProcesses().Where(x=>!ProcessIsBanned(x.ProcessName)))
+                foreach (var process in Process.GetProcesses().Where(x => !ProcessIsBanned(x.ProcessName)))
                 {
-                    if(process.Is64BitProcess()) continue;
+                    if (process.Is64BitProcess()) continue;
                     try
                     {
                         var userGame =

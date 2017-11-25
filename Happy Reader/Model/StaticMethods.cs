@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using Happy_Apps_Core;
 using Happy_Reader.Database;
 using Happy_Reader.Properties;
 using Newtonsoft.Json;
@@ -17,7 +16,9 @@ namespace Happy_Reader
 {
     public static class StaticMethods
     {
-        private const string ConfigFolder = StaticHelpers.StoredDataFolder + @"HRConfig\";
+        public delegate void NotificationEventHandler(object sender, string message, string title = null);
+
+        private const string ConfigFolder = "Config\\";
         private const string BannedProcessesJson = ConfigFolder + "bannedprocesses.json";
         public static SessionSettings Session { get; private set; }
         private static readonly List<string> BannedProcesses;

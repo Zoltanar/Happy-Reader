@@ -32,14 +32,14 @@ namespace Happy_Reader
                     ? new[] { game.Id }
                     : Data.Games.Where(g => g.Series == game.Series).Select(gg => gg.Id).ToArray();
 #if LOGVERBOSE
-                var generalEntries = data.Entries.Where(e =>
+                var generalEntries = Data.Entries.Where(e =>
                         //entry is private and belongs to user, or is not private
                         ((e.Private && e.UserId == user.Id) || !e.Private) &&
                         //entry is not series specific
                         !e.SeriesSpecific &&
                         //entry is either for the language or for all languages
-                        (e.ToLanguage == language || e.ToLanguage == null));
-                var specificEntries = data.Entries.Where(e =>
+                        (e.ToLanguage == "ja" || e.ToLanguage == null));
+                var specificEntries = Data.Entries.Where(e =>
                         //entry is private and belongs to user, or is not private
                         ((e.Private && e.UserId == user.Id) || !e.Private) &&
                         //entry is series specific and is for a game in series

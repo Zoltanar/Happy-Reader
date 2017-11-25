@@ -1,0 +1,296 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="enter_vn_title" xml:space="preserve">
+    <value>Enter VN title</value>
+  </data>
+  <data name="no_list_found" xml:space="preserve">
+    <value>No list found.</value>
+  </data>
+  <data name="loading" xml:space="preserve">
+    <value>Loading...</value>
+  </data>
+  <data name="log_in_success" xml:space="preserve">
+    <value>Logged In</value>
+  </data>
+  <data name="ps_query_error" xml:space="preserve">
+    <value>PS Query Error</value>
+  </data>
+  <data name="no_items_selected" xml:space="preserve">
+    <value>No items selected.</value>
+  </data>
+  <data name="no_results" xml:space="preserve">
+    <value>No results.</value>
+  </data>
+  <data name="gptm_query_error" xml:space="preserve">
+    <value>GPTM Query Error</value>
+  </data>
+  <data name="enter_producer_name" xml:space="preserve">
+    <value>Enter Producer Name.</value>
+  </data>
+  <data name="visual_novel_information" xml:space="preserve">
+    <value>Visual Novel Information</value>
+  </data>
+  <data name="dbstats_error" xml:space="preserve">
+    <value>DBS Error while requesting information. Response: </value>
+  </data>
+  <data name="enter_user_id" xml:space="preserve">
+    <value>Enter User ID</value>
+  </data>
+  <data name="must_be_integer" xml:space="preserve">
+    <value>Must be integer</value>
+  </data>
+  <data name="are_you_sure" xml:space="preserve">
+    <value>Are you sure?</value>
+  </data>
+  <data name="query_error" xml:space="preserve">
+    <value>Query Error</value>
+  </data>
+  <data name="log_in_failure" xml:space="preserve">
+    <value>Failed Log In</value>
+  </data>
+  <data name="vn_query_error" xml:space="preserve">
+    <value>VN Query Error</value>
+  </data>
+  <data name="ulr_query_error" xml:space="preserve">
+    <value>ULR Query Error</value>
+  </data>
+  <data name="gul_query_error" xml:space="preserve">
+    <value>GetUserList Query Error</value>
+  </data>
+  <data name="svn_query_error" xml:space="preserve">
+    <value>Single VN Query Error</value>
+  </data>
+  <data name="vn_updated" xml:space="preserve">
+    <value>Updated just now.</value>
+  </data>
+  <data name="filter_saved" xml:space="preserve">
+    <value>Filter saved.</value>
+  </data>
+  <data name="filter_cleared" xml:space="preserve">
+    <value>Filter cleared.</value>
+  </data>
+  <data name="sp_query_error" xml:space="preserve">
+    <value>SP Query Error</value>
+  </data>
+  <data name="enter_year" xml:space="preserve">
+    <value>Enter year.</value>
+  </data>
+  <data name="uptr_query_error" xml:space="preserve">
+    <value>UPTR Query Error</value>
+  </data>
+  <data name="upt_query_error" xml:space="preserve">
+    <value>UPT Query Error</value>
+  </data>
+  <data name="get_new_fp_titles_confirm" xml:space="preserve">
+    <value>Are you sure you wish to do this?
+This may take a while if you have a lot of favorite producers...</value>
+  </data>
+  <data name="get_new_fp_titles_success" xml:space="preserve">
+    <value>Got new titles from all favorite producers.</value>
+  </data>
+  <data name="update_fp_titles_success" xml:space="preserve">
+    <value>Updated all favorite producer titles.</value>
+  </data>
+  <data name="filter_deleted" xml:space="preserve">
+    <value>Filter Deleted</value>
+  </data>
+  <data name="update_custom_filter" xml:space="preserve">
+    <value>This may take a while depending on how many titles will be found.
+Are you sure?</value>
+  </data>
+  <data name="gvl_query_error" xml:space="preserve">
+    <value>GetVoteList Query Error</value>
+  </data>
+  <data name="gwl_query_error" xml:space="preserve">
+    <value>GetWishList Query Error</value>
+  </data>
+  <data name="updated_urt" xml:space="preserve">
+    <value>Finished Updating URT</value>
+  </data>
+  <data name="connection_failed" xml:space="preserve">
+    <value>Failed to connect to VNDB.</value>
+  </data>
+  <data name="about_text" xml:space="preserve">
+    <value>"{0} (Version {1}, for VNDB API {2})\nBy Zoltanar (https://vndb.org/u47063/)\nBuilt from onkelsam's app \"Visual Novel Database\" https://vndb.org/t3599.48 \nwho used fredthebarber's app for handling connection and queries https://vndb.org/t3599.41"</value>
+  </data>
+  <data name="cus_query_error" xml:space="preserve">
+    <value>ChangeUserlistStatus Query Error</value>
+  </data>
+  <data name="cv_query_error" xml:space="preserve">
+    <value>ChangeVote Query Error</value>
+  </data>
+  <data name="cws_query_error" xml:space="preserve">
+    <value>ChangeWishlistStatus Query Error</value>
+  </data>
+  <data name="enter_username_password" xml:space="preserve">
+    <value>Enter Username and Password</value>
+  </data>
+  <data name="userid_only_numbers" xml:space="preserve">
+    <value>UserID must contain only numbers</value>
+  </data>
+  <data name="_username_only_alphanumeric" xml:space="preserve">
+    <value>Username can only consist of alphanumeric characters.</value>
+  </data>
+  <data name="error_wrong_password_or_server" xml:space="preserve">
+    <value>Error - Wrong password or possibly server error.</value>
+  </data>
+  <data name="gsvn_query_error" xml:space="preserve">
+    <value>GetSingleVN Query Error</value>
+  </data>
+  <data name="gyt_query_error" xml:space="preserve">
+    <value>GetYearTitles Query Error</value>
+  </data>
+  <data name="gurt_success" xml:space="preserve">
+    <value>Got User Related Titles</value>
+  </data>
+  <data name="item_changed" xml:space="preserve">
+    <value>Item changed.</value>
+  </data>
+  <data name="dbs_unknown_error" xml:space="preserve">
+    <value>Unknown DBS Error</value>
+  </data>
+  <data name="already_logged_in" xml:space="preserve">
+    <value>Already logged in.</value>
+  </data>
+  <data name="login_unknown_error" xml:space="preserve">
+    <value>Unknown Login Error</value>
+  </data>
+  <data name="set_userid_first" xml:space="preserve">
+    <value>You must set your UserID first.</value>
+  </data>
+  <data name="cvns_query_error" xml:space="preserve">
+    <value>ChangeVNStatus Query Error</value>
+  </data>
+  <data name="gmvn_query_error" xml:space="preserve">
+    <value>GetMultipleVN Query Error</value>
+  </data>
+  <data name="usvn_query_error" xml:space="preserve">
+    <value>UpdateSingleVN Query Error</value>
+  </data>
+  <data name="ask_overwrite" xml:space="preserve">
+    <value>Do you wish to overwrite?</value>
+  </data>
+  <data name="valid_vote_error" xml:space="preserve">
+    <value>Valid votes are between 1 and 10.</value>
+  </data>
+  <data name="Confirm_Action" xml:space="preserve">
+    <value>Confirm Action</value>
+  </data>
+</root>

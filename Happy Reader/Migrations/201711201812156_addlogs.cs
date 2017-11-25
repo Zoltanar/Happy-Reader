@@ -1,6 +1,5 @@
 namespace Happy_Reader.Migrations
 {
-    using System;
     using System.Data.Entity.Migrations;
     
     public partial class addlogs : DbMigration

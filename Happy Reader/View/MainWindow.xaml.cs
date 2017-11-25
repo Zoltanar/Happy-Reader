@@ -5,10 +5,17 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
+using Happy_Reader.Database;
 using Happy_Reader.Interop;
+using JetBrains.Annotations;
 using static Happy_Reader.StaticMethods;
+using Application = System.Windows.Application;
+using DataFormats = System.Windows.DataFormats;
+using DragEventArgs = System.Windows.DragEventArgs;
+using NotifyIcon = System.Windows.Forms.NotifyIcon;
 
 namespace Happy_Reader
 {
@@ -18,6 +25,7 @@ namespace Happy_Reader
     public partial class MainWindow
     {
         private readonly MainWindowViewModel _viewModel;
+        private readonly NotifyIcon _trayIcon;
 
         public MainWindow()
         {
@@ -26,11 +34,31 @@ namespace Happy_Reader
             UserTb.Text = "zolty";
             GameTb.Text = "Ikusa Megami VERITA";
             _viewModel = (MainWindowViewModel)DataContext;
+            // ReSharper disable once PossibleNullReferenceException
+            Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/logo-copy.ico")).Stream;
+            _trayIcon = new NotifyIcon
+            {
+                Icon = new System.Drawing.Icon(iconStream),
+                Visible = true
+            };
+            _trayIcon.DoubleClick += delegate
+            {
+                Show();
+                WindowState = WindowState.Normal;
+            };
+            _viewModel.NotificationEvent += ShowNotification;
+            Log.NotificationEvent += ShowNotification;
+        }
+
+        protected override void OnStateChanged(EventArgs e)
+        {
+            if (WindowState == WindowState.Minimized) Hide();
+            base.OnStateChanged(e);
         }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            await _viewModel.Loaded();
+			await _viewModel.Loaded();
         }
 
         private void SaveSettings(object sender, RoutedEventArgs e)
@@ -100,7 +128,7 @@ namespace Happy_Reader
             GameResponseLabel.Content = $"Dragged file was {Path.GetFileName(file)}";
             var titledImage = _viewModel.AddGameFile(file);
             if (titledImage == null) return;
-            ((IList<TitledImage>) GameFiles.ItemsSource).Add(titledImage);
+            ((IList<TitledImage>)GameFiles.ItemsSource).Add(titledImage);
         }
 
         private void GameFiles_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -113,6 +141,15 @@ namespace Happy_Reader
             _viewModel.Hook(process);
         }
         
+        private void Debug_Button(object sender, RoutedEventArgs e)
+        {
+        }
+
+        public void ShowNotification(object sender, [NotNull]string message, string title = "Notification")
+        {
+            Console.WriteLine($"Log - {title} - {message}");
+            _trayIcon.ShowBalloonTip(5000, title, message, ToolTipIcon.Info);
+        }
     }
 }
 

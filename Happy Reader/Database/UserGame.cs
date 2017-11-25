@@ -19,7 +19,7 @@ namespace Happy_Reader.Database
             FilePath = file;
             FileName = Path.GetFileName(file);
             FolderName = Path.GetDirectoryName(file);
-            Language = vn.Languages.Originals.FirstOrDefault();
+            Language = vn.LanguagesObject.Originals.FirstOrDefault();
             VNID = vn.VNID;
             VN = vn;
         }
@@ -67,6 +67,7 @@ namespace Happy_Reader.Database
                 OnPropertyChanged(nameof(IsRunning));
                 OnPropertyChanged(nameof(TimeOpen));
                 if (value == null) return;
+                Log.NewStartedPlayingLog(Id, DateTime.Now);
                 _runningTime = Stopwatch.StartNew();
                 _process.Exited += ProcessExited;
                 _process.EnableRaisingEvents = true;

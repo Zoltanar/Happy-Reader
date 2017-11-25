@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Happy_Reader"
         x:Class="Happy_Reader.MainWindow"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="595.5" Loaded="Window_Loaded" Closing="Window_Closing">
+        Title="Happy Reader" Height="400" Width="600" Loaded="Window_Loaded" Closing="Window_Closing">
     <Window.DataContext>
         <local:MainWindowViewModel/>
     </Window.DataContext>
@@ -21,7 +21,7 @@
                             </ItemsPanelTemplate>
                         </ListBox.ItemsPanel>
                     </ListBox>
-                    <Button Content="Add Button" HorizontalAlignment="Left" Margin="10,0,0,10" Width="75" Height="38" VerticalAlignment="Bottom"/>
+                    <Button Content="Debug Button"  Click="Debug_Button"  HorizontalAlignment="Left" Margin="10,0,0,10" Width="75" Height="38" VerticalAlignment="Bottom"/>
                     <Label x:Name="GameResponseLabel" Content="{Binding StatusText}" Margin="0,0,10,10" HorizontalAlignment="Right" Width="462" Height="38" VerticalAlignment="Bottom" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"/>
                 </Grid>
             </TabItem>

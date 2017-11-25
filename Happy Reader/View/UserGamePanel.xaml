@@ -18,7 +18,7 @@
         <Label Grid.Column="0" Content="Original Title" HorizontalAlignment="Left" Margin="10,41,0,0" VerticalAlignment="Top" Width="78"/>
         <Label Grid.Column="0" Content="{Binding VN.KanjiTitle, Mode=OneWay}" Margin="93,41,10,0" VerticalAlignment="Top" Height="26" VerticalContentAlignment="Center"/>
         <Label Grid.Column="0" Content="Producer" HorizontalAlignment="Left" Margin="10,72,0,0" VerticalAlignment="Top" Width="78"/>
-        <Label Grid.Column="0" Content="{Binding VN.Producer, Mode=OneWay}" Margin="93,72,10,0" VerticalAlignment="Top" Height="26" VerticalContentAlignment="Center"/>
+        <Label Grid.Column="0" Content="{Binding VN.Producer.Name, Mode=OneWay}" Margin="93,72,10,0" VerticalAlignment="Top" Height="26" VerticalContentAlignment="Center"/>
         <Label Grid.Column="0" Content="File" HorizontalAlignment="Left" Margin="10,103,0,0" VerticalAlignment="Top" Width="78"/>
         <Label Grid.Column="0" Content="{Binding FilePath, Mode=OneWay}" Margin="93,103,99,0" VerticalAlignment="Top" Height="26" VerticalContentAlignment="Center"/>
         <Button Grid.Column="0" Content="Browse to file" Margin="0,103,10,0" HorizontalAlignment="Right" Width="84" Height="26" VerticalAlignment="Top" Click="Button_Click"/>

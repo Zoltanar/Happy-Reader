@@ -1,0 +1,45 @@
+﻿<Window
+    x:Class="Happy_Reader.NotificationWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Notification Popup" Width="300" SizeToContent="Height"
+    WindowStyle="None" AllowsTransparency="True" Background="Transparent">
+
+    <Grid RenderTransformOrigin="0,1" >
+
+        <!-- Notification area -->
+        <Border BorderThickness="1" Background="Beige" BorderBrush="Black" CornerRadius="10">
+            <StackPanel Margin="20">
+                <TextBlock TextWrapping="Wrap" Margin="5">
+                    <Bold><Run x:Name="TitleRun">Notification Title</Run></Bold>
+                    <LineBreak></LineBreak>
+                    <Run x:Name="MessageRun">Notification message.</Run>
+                </TextBlock>
+            </StackPanel>
+        </Border>
+
+        <!-- Animation -->
+        <Grid.Triggers>
+            <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                <BeginStoryboard>
+                    <Storyboard>
+                        <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)">
+                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0"/>
+                            <SplineDoubleKeyFrame KeyTime="0:0:0.5" Value="1"/>
+                        </DoubleAnimationUsingKeyFrames>
+                        <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Completed="Timeline_OnCompleted">
+                            <SplineDoubleKeyFrame KeyTime="0:0:2" Value="1"/>
+                            <SplineDoubleKeyFrame KeyTime="0:0:4" Value="0"/>
+                        </DoubleAnimationUsingKeyFrames>
+                    </Storyboard>
+                </BeginStoryboard>
+            </EventTrigger>
+        </Grid.Triggers>
+
+        <Grid.RenderTransform>
+            <ScaleTransform ScaleY="1" />
+        </Grid.RenderTransform>
+
+    </Grid>
+
+</Window>

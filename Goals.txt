@@ -1,4 +1,4 @@
 Implement Japanese>Romaji Translation
 Allow moving output window and save coordinates.
 Don't parse brackets and handle 'name [message]' properly
-cache messages.
+Turn VNDatabase into DbContext

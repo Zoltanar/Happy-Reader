@@ -27,7 +27,7 @@ namespace Happy_Reader
             //Title.Text = StaticHelpers.TruncateString(usergame.VN.Title, 30);
             var localImage = usergame.VN.StoredCover;
             if (!File.Exists(localImage)) return;
-            Uri imageUri = new Uri(localImage, UriKind.RelativeOrAbsolute);
+            Uri imageUri = new Uri(Path.GetFullPath(localImage), UriKind.Absolute);
             BitmapImage imageBitmap = new BitmapImage(imageUri);
             Image.Source = imageBitmap;
         }
