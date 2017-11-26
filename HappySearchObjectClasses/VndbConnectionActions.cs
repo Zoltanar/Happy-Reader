@@ -189,7 +189,7 @@ namespace Happy_Apps_Core
                 var vnsToBeUpserted = new List<(VNItem VN, ProducerItem Producer, VNLanguages Languages)>();
                 var producersToBeUpserted = new List<ProducerItem>();
                 await HandleVNItems(vnRoot.Items, producersToBeUpserted, vnsToBeUpserted);
-                vnsToBeUpserted.ForEach(vn => LocalDatabase.UpsertSingleVN(vn, true,false));
+                vnsToBeUpserted.ForEach(vn => LocalDatabase.UpsertSingleVN(vn, true, false));
                 producersToBeUpserted.ForEach(producer => LocalDatabase.UpsertProducer(producer, true, false));
                 LocalDatabase.SaveChanges();
                 await GetCharactersForMultipleVN(currentArray);
@@ -261,7 +261,7 @@ namespace Happy_Apps_Core
                 queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error");
                 if (!queryResult) return;
                 charRoot = JsonConvert.DeserializeObject<ResultsRoot<CharacterItem>>(LastResponse.JsonPayload);
-                foreach (var character in charRoot.Items) LocalDatabase.UpsertSingleCharacter(character,false);
+                foreach (var character in charRoot.Items) LocalDatabase.UpsertSingleCharacter(character, false);
                 LocalDatabase.SaveChanges();
                 moreResults = charRoot.More;
                 pageNo = 1;
@@ -280,7 +280,7 @@ namespace Happy_Apps_Core
                 queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error");
                 if (!queryResult) return false;
                 charRoot = JsonConvert.DeserializeObject<ResultsRoot<CharacterItem>>(LastResponse.JsonPayload);
-                foreach (var character in charRoot.Items) LocalDatabase.UpsertSingleCharacter(character,false);
+                foreach (var character in charRoot.Items) LocalDatabase.UpsertSingleCharacter(character, false);
                 LocalDatabase.SaveChanges();
                 moreResults = charRoot.More;
                 // ReSharper restore AccessToModifiedClosure
@@ -371,12 +371,12 @@ namespace Happy_Apps_Core
                     //some vns were deleted, find which ones and remove them
                     var root = vnRoot;
                     IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
-                    foreach (var deletedVN in deletedVNs) LocalDatabase.RemoveVisualNovel(deletedVN,false);
+                    foreach (var deletedVN in deletedVNs) LocalDatabase.RemoveVisualNovel(deletedVN, false);
                     LocalDatabase.SaveChanges();
                 }
                 foreach (var vnItem in vnRoot.Items)
                 {
-                    LocalDatabase.UpdateVNTagsStats(vnItem,false);
+                    LocalDatabase.UpdateVNTagsStats(vnItem, false);
                     TitlesAdded++;
                 }
                 LocalDatabase.SaveChanges();
@@ -395,25 +395,19 @@ namespace Happy_Apps_Core
         /// <returns>Returns whether it as successful.</returns>
         public async Task<bool> ChangeVNStatus(ListedVN vn, VNDatabase.ChangeType type, int statusInt, double newVoteValue = -1)
         {
-            //todo solve this mess ChangeVNStatus
-            var hasULStatus = vn.UserVN.ULStatus > UserlistStatus.None;
-            var hasWLStatus = vn.UserVN.WLStatus > WishlistStatus.None;
-            var hasVote = vn.UserVN.Vote > 0;
+            bool remove = statusInt == -1;
+            int? statusDate = null;
+            if (statusInt != -1) statusDate = (int)DateTimeToUnixTimestamp(DateTime.UtcNow);
             string queryString;
             _changeStatusAction(APIStatus.Busy);
             switch (type)
             {
                 case VNDatabase.ChangeType.UL:
-                    queryString = statusInt == -1
-                        ? $"set vnlist {vn.VNID}"
-                        : $"set vnlist {vn.VNID} {{\"status\":{statusInt}}}";
+                    queryString = statusInt == -1 ? $"set vnlist {vn.VNID}" : $"set vnlist {vn.VNID} {{\"status\":{statusInt}}}";
                     var result = await TryQuery(queryString, Resources.cvns_query_error);
                     if (!result) return false;
-                    if (hasWLStatus || hasVote)
-                        LocalDatabase.UpdateVNStatus(Settings.UserID, vn.VNID, VNDatabase.ChangeType.UL, statusInt, VNDatabase.Command.Update);
-                    else if (statusInt == -1)
-                        LocalDatabase.UpdateVNStatus(Settings.UserID, vn.VNID, VNDatabase.ChangeType.UL, statusInt, VNDatabase.Command.Delete);
-                    else LocalDatabase.UpdateVNStatus(Settings.UserID, vn.VNID, VNDatabase.ChangeType.UL, statusInt, VNDatabase.Command.New);
+                    vn.UserVN.ULStatus = remove ? null : (UserlistStatus?)statusInt;
+                    vn.UserVN.ULAdded = statusDate;
                     break;
                 case VNDatabase.ChangeType.WL:
                     queryString = statusInt == -1
@@ -421,11 +415,8 @@ namespace Happy_Apps_Core
                         : $"set wishlist {vn.VNID} {{\"priority\":{statusInt}}}";
                     result = await TryQuery(queryString, Resources.cvns_query_error);
                     if (!result) return false;
-                    if (hasULStatus || hasVote)
-                        LocalDatabase.UpdateVNStatus(Settings.UserID, vn.VNID, VNDatabase.ChangeType.WL, statusInt, VNDatabase.Command.Update);
-                    else if (statusInt == -1)
-                        LocalDatabase.UpdateVNStatus(Settings.UserID, vn.VNID, VNDatabase.ChangeType.WL, statusInt, VNDatabase.Command.Delete);
-                    else LocalDatabase.UpdateVNStatus(Settings.UserID, vn.VNID, VNDatabase.ChangeType.WL, statusInt, VNDatabase.Command.New);
+                    vn.UserVN.WLStatus = remove ? null : (WishlistStatus?)statusInt;
+                    vn.UserVN.WLAdded = statusDate;
                     break;
                 case VNDatabase.ChangeType.Vote:
                     int vote = (int)Math.Floor(newVoteValue * 10);
@@ -434,13 +425,20 @@ namespace Happy_Apps_Core
                         : $"set votelist {vn.VNID} {{\"vote\":{vote}}}";
                     result = await TryQuery(queryString, Resources.cvns_query_error);
                     if (!result) return false;
-                    if (hasULStatus || hasWLStatus)
-                        LocalDatabase.UpdateVNStatus(Settings.UserID, vn.VNID, VNDatabase.ChangeType.Vote, statusInt, VNDatabase.Command.Update, newVoteValue);
-                    else if (statusInt == -1)
-                        LocalDatabase.UpdateVNStatus(Settings.UserID, vn.VNID, VNDatabase.ChangeType.Vote, statusInt, VNDatabase.Command.Delete);
-                    else LocalDatabase.UpdateVNStatus(Settings.UserID, vn.VNID, VNDatabase.ChangeType.Vote, statusInt, VNDatabase.Command.New, newVoteValue);
+                    vn.UserVN.Vote = vote;
+                    vn.UserVN.VoteAdded = statusDate;
                     break;
             }
+
+            var hasULStatus = vn.UserVN.ULStatus > UserlistStatus.None;
+            var hasWLStatus = vn.UserVN.WLStatus > WishlistStatus.None;
+            var hasVote = vn.UserVN.Vote > 0;
+            if (!hasULStatus && !hasWLStatus && !hasVote)
+            {
+                vn.UserVNId = null;
+                LocalDatabase.UserVNList.Remove(vn.UserVN);
+            }
+            LocalDatabase.SaveChanges();
             _changeStatusAction(Status);
             return true;
         }
@@ -534,7 +532,7 @@ namespace Happy_Apps_Core
             {
                 if (LocalDatabase.ProducerList.Any(x => x.Name.Equals(prodItems[index].Name))) prodItems.RemoveAt(index);
             }
-            foreach (var producer in prodItems) LocalDatabase.UpsertProducer(producer, true,false);
+            foreach (var producer in prodItems) LocalDatabase.UpsertProducer(producer, true, false);
             LocalDatabase.SaveChanges();
             return prodItems;
 

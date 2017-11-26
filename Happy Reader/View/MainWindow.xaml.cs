@@ -58,7 +58,7 @@ namespace Happy_Reader
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-			await _viewModel.Loaded();
+            await _viewModel.Loaded();
         }
 
         private void SaveSettings(object sender, RoutedEventArgs e)
@@ -140,7 +140,7 @@ namespace Happy_Reader
             if (process == null) return;
             _viewModel.Hook(process);
         }
-        
+
         private void Debug_Button(object sender, RoutedEventArgs e)
         {
         }
@@ -149,6 +149,17 @@ namespace Happy_Reader
         {
             Console.WriteLine($"Log - {title} - {message}");
             _trayIcon.ShowBalloonTip(5000, title, message, ToolTipIcon.Info);
+        }
+
+        private void RemoveUserGame(object sender, RoutedEventArgs e)
+        {
+            if (GameFiles.SelectedItems.Count != 1)
+            {
+                GameResponseLabel.Content = "You must select 1 item.";
+                return;
+            }
+            if (!UserIsSure()) return;
+            _viewModel.RemoveUserGame((TitledImage)GameFiles.SelectedItems[0]);
         }
     }
 }

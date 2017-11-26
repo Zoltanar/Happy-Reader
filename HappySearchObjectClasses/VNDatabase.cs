@@ -107,68 +107,7 @@ namespace Happy_Apps_Core
             vn.VoteCount = vnItem.VoteCount;
             if (saveChanges) _context.SaveChanges();
         }
-
-        public void UpdateVNStatus(int userID, int vnid, ChangeType type, int statusInt, Command command, double newVoteValue = -1)
-        {
-            var uvn = _context.UserVisualNovels.SingleOrDefault(x => x.UserId == userID && x.VNID == vnid);
-            if (command == Command.Delete)
-            {
-                Debug.Assert(uvn != null, nameof(uvn) + " != null");
-                _context.UserVisualNovels.Remove(uvn);
-                SaveChanges();
-                return;
-            }
-            int? statusDate = null;
-            if (statusInt != -1) statusDate = (int)DateTimeToUnixTimestamp(DateTime.UtcNow);
-            switch (type)
-            {
-                case ChangeType.UL:
-                    switch (command)
-                    {
-                        case Command.New:
-                            uvn = new UserVN { UserId = userID, VNID = vnid, ULStatus = (UserlistStatus)statusInt, ULAdded = statusDate };
-                            _context.UserVisualNovels.Add(uvn);
-                            break;
-                        case Command.Update:
-                            Debug.Assert(uvn != null, nameof(uvn) + " != null");
-                            uvn.ULStatus = (UserlistStatus)statusInt;
-                            uvn.ULAdded = statusDate;
-                            break;
-                    }
-                    break;
-                case ChangeType.WL:
-                    switch (command)
-                    {
-                        case Command.New:
-                            uvn = new UserVN { UserId = userID, VNID = vnid, WLStatus = (WishlistStatus)statusInt, WLAdded = statusDate };
-                            _context.UserVisualNovels.Add(uvn);
-                            break;
-                        case Command.Update:
-                            Debug.Assert(uvn != null, nameof(uvn) + " != null");
-                            uvn.WLStatus = (WishlistStatus)statusInt;
-                            uvn.WLAdded = statusDate;
-                            break;
-                    }
-                    break;
-                case ChangeType.Vote:
-                    int vote = (int)Math.Abs(newVoteValue * 10);
-                    switch (command)
-                    {
-                        case Command.New:
-                            uvn = new UserVN { UserId = userID, VNID = vnid, Vote = vote, VoteAdded = statusDate };
-                            _context.UserVisualNovels.Add(uvn);
-                            break;
-                        case Command.Update:
-                            Debug.Assert(uvn != null, nameof(uvn) + " != null");
-                            uvn.Vote = vote;
-                            uvn.VoteAdded = statusDate;
-                            break;
-                    }
-                    break;
-            }
-            SaveChanges();
-        }
-
+        
         public void InsertFavoriteProducers(List<ListedProducer> addProducerList, int userid)
         {
             var user = _context.Users.Single(x => x.Id == userid);
@@ -287,8 +226,6 @@ namespace Happy_Apps_Core
         }
 
         #endregion
-
-        protected static bool PrintGetMethods;
 
         #region Other
 

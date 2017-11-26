@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Windows;
 using Happy_Reader.Database;
 using Happy_Reader.Properties;
 using Newtonsoft.Json;
@@ -156,6 +157,11 @@ namespace Happy_Reader
             }
             catch (Win32Exception) { return true; }
             return !isWow64Process;
+        }
+
+        public static bool UserIsSure(string message = "Are you sure?")
+        {
+            return MessageBox.Show(message, "Happy Reader - Confirm", MessageBoxButton.YesNo) == MessageBoxResult.Yes;
         }
     }
 }

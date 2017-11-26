@@ -22,7 +22,8 @@
                         </ListBox.ItemsPanel>
                     </ListBox>
                     <Button Content="Debug Button"  Click="Debug_Button"  HorizontalAlignment="Left" Margin="10,0,0,10" Width="75" Height="38" VerticalAlignment="Bottom"/>
-                    <Label x:Name="GameResponseLabel" Content="{Binding StatusText}" Margin="0,0,10,10" HorizontalAlignment="Right" Width="462" Height="38" VerticalAlignment="Bottom" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"/>
+                    <Label x:Name="GameResponseLabel" Content="{Binding StatusText}" Margin="0,0,10,10" HorizontalAlignment="Right" Width="386" Height="38" VerticalAlignment="Bottom" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"/>
+                    <Button Content="Remove"  Click="RemoveUserGame"  HorizontalAlignment="Left" Margin="90,0,0,10" Width="75" Height="38" VerticalAlignment="Bottom"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Main">

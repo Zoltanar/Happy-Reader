@@ -412,6 +412,7 @@ namespace Happy_Reader
             ListedVN[] fileResults = LocalDatabase.VNList.Where(VNDatabase.ListVNByNameOrAliasFunc(filename)).ToArray();
             ListedVN[] folderResults = { };
             ListedVN vn = null;
+            UserGame userGame;
             if (fileResults.Length == 1)
             {
                 vn = fileResults.First();
@@ -423,17 +424,20 @@ namespace Happy_Reader
             }
             if (vn != null)
             {
-                var userGame = new UserGame(file, vn){Id = Data.UserGames.Max(x=>x.Id)+1};
+                userGame = new UserGame(file, vn){Id = Data.UserGames.Max(x=>x.Id)+1};
                 Data.UserGames.Add(userGame);
                 Data.SaveChanges();
                 return new TitledImage(userGame);
             }
-            if (folderResults.Length + fileResults.Length == 0)
+            if (folderResults.Length + fileResults.Length > 0)
             {
                 //TODO ask user which of the results is the correct one
                 return null;
             }
-            return null;
+            userGame = new UserGame(file, null) { Id = Data.UserGames.Max(x => x.Id) + 1 };
+            Data.UserGames.Add(userGame);
+            Data.SaveChanges();
+            return new TitledImage(userGame);
         }
 
         public async Task Loaded()
@@ -460,7 +464,7 @@ namespace Happy_Reader
             StatusText = "Loading User Games...";
             foreach (var game in Data.UserGames.OrderBy(x => x.VNID ?? 0))
             {
-                game.VN = game.VNID != null ? LocalDatabase.VNList.SingleOrDefault(x => x.VNID == game.VNID) : GetNotFoundVN(game);
+                game.VN = game.VNID != null ? LocalDatabase.VNList.SingleOrDefault(x => x.VNID == game.VNID) : null;
                 var ti = new TitledImage(game);
                 UserGameItems.Add(ti);
             }
@@ -474,7 +478,8 @@ namespace Happy_Reader
         {
             while (true)
             {
-                foreach (var process in Process.GetProcesses().Where(x => !ProcessIsBanned(x.ProcessName)))
+                var processes = Process.GetProcesses().Where(x => !ProcessIsBanned(x.ProcessName));
+                foreach (var process in processes)
                 {
                     if (process.Is64BitProcess()) continue;
                     try
@@ -489,12 +494,16 @@ namespace Happy_Reader
                 Thread.Sleep(5000);
             }
         }
-
-        private ListedVN GetNotFoundVN(UserGame game) => new ListedVN(game.UserDefinedName ?? game.FileName);
-
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
         private void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        public void RemoveUserGame(TitledImage item)
+        {
+            UserGameItems.Remove(item);
+            Data.UserGames.Remove((UserGame)item.DataContext);
+            Data.SaveChanges();
+        }
     }
 }

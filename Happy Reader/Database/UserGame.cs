@@ -3,15 +3,19 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows;
+using System.Windows.Media.Imaging;
 using Happy_Apps_Core;
 using JetBrains.Annotations;
 
 namespace Happy_Reader.Database
 {
 
+    // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
     public class UserGame : INotifyPropertyChanged
     {
         public UserGame(string file, ListedVN vn)
@@ -19,8 +23,8 @@ namespace Happy_Reader.Database
             FilePath = file;
             FileName = Path.GetFileName(file);
             FolderName = Path.GetDirectoryName(file);
-            Language = vn.LanguagesObject.Originals.FirstOrDefault();
-            VNID = vn.VNID;
+            Language = vn?.LanguagesObject?.Originals?.FirstOrDefault() ?? "ja";
+            VNID = vn?.VNID;
             VN = vn;
         }
 
@@ -76,6 +80,37 @@ namespace Happy_Reader.Database
 
         [NotMapped]
         public object DisplayName => UserDefinedName ?? VN?.Title ?? FileName;
+
+        [NotMapped]
+        public BitmapImage Image
+        {
+            get
+            {
+                Bitmap image = null;
+                if (VN == null) image = Icon.ExtractAssociatedIcon(FilePath)?.ToBitmap();
+                else
+                {
+                    if (File.Exists(VN.StoredCover)) image = new Bitmap(VN.StoredCover);
+                }
+                if (image == null)
+                {
+                    // ReSharper disable once PossibleNullReferenceException
+                    Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/no-image.gif")).Stream;
+                    image = new Bitmap(iconStream);
+                }
+                using (MemoryStream memory = new MemoryStream())
+                {
+                    image.Save(memory, System.Drawing.Imaging.ImageFormat.Bmp);
+                    memory.Position = 0;
+                    BitmapImage bitmapimage = new BitmapImage();
+                    bitmapimage.BeginInit();
+                    bitmapimage.StreamSource = memory;
+                    bitmapimage.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmapimage.EndInit();
+                    return bitmapimage;
+                }
+            }
+        }
 
         private void ProcessExited(object sender, EventArgs e)
         {
