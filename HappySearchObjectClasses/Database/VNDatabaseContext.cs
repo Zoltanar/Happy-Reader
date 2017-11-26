@@ -1,4 +1,7 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using SQLite.CodeFirst;
 
 namespace Happy_Apps_Core.Database
 {
@@ -14,13 +17,34 @@ namespace Happy_Apps_Core.Database
         // If you wish to target a different database and/or database provider, modify the 'Model1' 
         // connection string in the application configuration file.
         public VNDatabaseContext() : base("name=VNDatabase")
-        { }
+        {
+        }
+
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+            Database.SetInitializer(new VNDatabaseInitializer(modelBuilder));
+        }
 
         public virtual DbSet<ListedVN> VisualNovels { get; set; }
         public virtual DbSet<ListedProducer> Producers { get; set; }
         public virtual DbSet<UserVN> UserVisualNovels { get; set; }
         public virtual DbSet<CharacterItem> Characters { get; set; }
         public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<TableDetail> TableDetails { get; set; }
+    }
+
+    public class VNDatabaseInitializer : SqliteCreateDatabaseIfNotExists<VNDatabaseContext>
+    {
+        protected override void Seed(VNDatabaseContext context)
+        {
+            context.TableDetails.Add(new TableDetail { Key = "programname", Value = "Happy Search" });
+            context.TableDetails.Add(new TableDetail { Key = "author", Value = "Zoltanar" });
+            context.TableDetails.Add(new TableDetail { Key = "projecturl", Value = "https://github.com/Zoltanar/Happy-Search" });
+            context.TableDetails.Add(new TableDetail { Key = "databaseversion", Value = "2.0.0" });
+            base.Seed(context);
+        }
+
+        public VNDatabaseInitializer(DbModelBuilder modelBuilder) : base(modelBuilder){}
     }
 
     public class User
@@ -31,8 +55,19 @@ namespace Happy_Apps_Core.Database
             FavoriteProducers = new HashSet<ListedProducer>();
         }
 
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int Id { get; set; }
 
         public virtual ICollection<ListedProducer> FavoriteProducers { get; set; }
+    }
+
+    public class TableDetail
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        public string Key { get; set; }
+
+        public string Value { get; set; }
     }
 }

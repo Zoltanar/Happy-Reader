@@ -15,6 +15,7 @@ namespace Happy_Apps_Core
 	public class CharacterItem
 	{
 		[Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
 		[Column("CharacterID")]
 		public int ID { get; set; }
 		public string Name { get; set; }

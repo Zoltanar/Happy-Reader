@@ -451,7 +451,7 @@ namespace Happy_Reader
                 dumpfilesLoadTime = s1 - watch.Elapsed;
                 Settings.UserID = 47063;
                 Settings.Username = "zolty";
-                LocalDatabase = new VNDatabase(@"C:\Users\Gusty\Documents\VNPC-By Zoltanar\Visual Novel Database\HappySearchObjectClasses\Database\Test.sqlite");
+                LocalDatabase = new VNDatabase();
 
                 StatusText = "Opening VNDB Connection...";
                 Conn = new VndbConnection(null, null, null);

@@ -70,13 +70,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\packages\EntityFramework.6.0.0\lib\net45\EntityFramework.dll</HintPath>
+      <HintPath>..\packages\EntityFramework.6.1.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\packages\EntityFramework.6.0.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <HintPath>..\packages\EntityFramework.6.1.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="SQLite.CodeFirst, Version=1.4.0.20, Culture=neutral, PublicKeyToken=eb96ba0a78d831a7, processorArchitecture=MSIL">
+      <HintPath>..\packages\SQLite.CodeFirst.1.4.0.20\lib\net45\SQLite.CodeFirst.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -119,7 +122,6 @@
     <Compile Include="ApiQuery.cs" />
     <Compile Include="CoreSettings.cs" />
     <Compile Include="Database Objects\ListedProducer.cs" />
-    <Compile Include="Database Objects\ListedSearchedProducer.cs" />
     <Compile Include="Database\UserVN.cs" />
     <Compile Include="Database\VNDatabaseContext.cs" />
     <Compile Include="DumpFiles.cs" />
@@ -128,11 +130,10 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="VNDatabaseFile.cs" />
+    <Compile Include="VNDatabase.cs" />
     <Compile Include="Database Objects\ListedVN.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StaticHelpers.cs" />
-    <Compile Include="VNDatabaseMemory.cs" />
     <Compile Include="VndbConnection.cs" />
     <Compile Include="VndbConnectionActions.cs" />
   </ItemGroup>
@@ -140,6 +141,7 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="packages.config" />
     <None Include="Program Data\Certificates\isrgrootx1.pem">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

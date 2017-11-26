@@ -43,6 +43,7 @@ namespace Happy_Apps_Core
         /// VN's ID
         /// </summary>
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int VNID { get; set; }
 
         /// <summary>
@@ -60,7 +61,7 @@ namespace Happy_Apps_Core
         /// </summary>
         public string RelDate { get; set; }
 
-        public int ProducerID { get; set; }
+        public int? ProducerID { get; set; }
 
         public virtual ListedProducer Producer { get; set; }
 

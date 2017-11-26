@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Happy_Apps_Core
+﻿namespace Happy_Apps_Core
 {
     /// <summary>
     /// From get producer commands
@@ -22,7 +20,7 @@ namespace Happy_Apps_Core
         /// <param name="producer">Producer to be converted</param>
         public static explicit operator ListedProducer(ProducerItem producer)
         {
-            return new ListedProducer(producer.Name, -1, DateTime.MinValue, producer.ID, producer.Language);
+            return new ListedProducer(producer.Name, null, producer.ID, producer.Language);
         }
 
         /// <summary>Returns a string that represents the current object.</summary>
