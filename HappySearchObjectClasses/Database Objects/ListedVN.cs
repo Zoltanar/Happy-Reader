@@ -7,6 +7,7 @@ using static Happy_Apps_Core.StaticHelpers;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Happy_Apps_Core.Database;
 
 namespace Happy_Apps_Core
 {
@@ -123,6 +124,9 @@ namespace Happy_Apps_Core
 
         public DateTime DateFullyUpdated { get; set; }
 
+        public int? UserVNId { get; set; }
+        
+        public virtual UserVN UserVN { get; set; }
         #endregion
 
         private int? _daysSinceFullyUpdated;
@@ -181,47 +185,12 @@ namespace Happy_Apps_Core
             }
 
         }
-        
+
         /// <summary>
         /// String for Length
         /// </summary>
         public string LengthString => LengthTime.GetDescription();
 
-        /// <summary>
-        /// User's userlist status of VN
-        /// </summary>
-        public UserlistStatus ULStatus { get; }
-
-        /// <summary>
-        /// Date of ULStatus change
-        /// </summary>
-        public DateTime ULAdded { get; }
-
-        /// <summary>
-        /// User's note
-        /// </summary>
-        public string ULNote { get; }
-
-        /// <summary>
-        /// User's wishlist priority of VN
-        /// -1: null, 0: high, 1: medium, 2: low, 3: blacklist
-        /// </summary>
-        public WishlistStatus WLStatus { get; }
-
-        /// <summary>
-        /// Date of WLStatus change
-        /// </summary>
-        public DateTime WLAdded { get; }
-
-        /// <summary>
-        /// User's Vote
-        /// </summary>
-        public double Vote { get; }
-
-        /// <summary>
-        /// Date of Vote change
-        /// </summary>
-        public DateTime VoteAdded { get; }
 
         /// <summary>
         /// Days since last tags/stats/traits update
@@ -256,12 +225,12 @@ namespace Happy_Apps_Core
         /// <summary>
         /// Gets blacklisted status of vn.
         /// </summary>
-        public bool Blacklisted => WLStatus == WishlistStatus.Blacklist;
+        public bool Blacklisted => UserVN.WLStatus == WishlistStatus.Blacklist;
 
         /// <summary>
         /// Gets voted status of vn.
         /// </summary>
-        public bool Voted => Vote >= 1;
+        public bool Voted => UserVN.Vote >= 1;
 
         /// <summary>Returns a string that represents the current object.</summary>
         /// <returns>A string that represents the current object.</returns>
@@ -275,17 +244,17 @@ namespace Happy_Apps_Core
         public string UserRelatedStatus()
         {
             string[] parts = { "", "", "" };
-            if (ULStatus > UserlistStatus.None)
+            if (UserVN.ULStatus > UserlistStatus.None)
             {
                 parts[0] = "Userlist: ";
-                parts[1] = ULStatus.ToString();
+                parts[1] = UserVN.ULStatus.ToString();
             }
-            else if (WLStatus > WishlistStatus.None)
+            else if (UserVN.WLStatus > WishlistStatus.None)
             {
                 parts[0] = "Wishlist: ";
-                parts[1] = WLStatus.ToString();
+                parts[1] = UserVN.WLStatus.ToString();
             }
-            if (Vote > 0) parts[2] = $" (Vote: {Vote:0.#})";
+            if (UserVN.Vote > 0) parts[2] = $" (Vote: {UserVN.Vote:0.#})";
             return string.Join(" ", parts);
         }
 
@@ -327,21 +296,21 @@ namespace Happy_Apps_Core
         public VNItem.CustomItemNotes GetCustomItemNotes()
         {
             //
-            if (ULNote.Equals("")) return new VNItem.CustomItemNotes("", new List<string>());
-            if (!ULNote.StartsWith("Notes: "))
+            if (UserVN.ULNote.Equals("")) return new VNItem.CustomItemNotes("", new List<string>());
+            if (!UserVN.ULNote.StartsWith("Notes: "))
             {
                 //escape ulnote
-                string fixedNote = ULNote.Replace("|", "(sep)");
+                string fixedNote = UserVN.ULNote.Replace("|", "(sep)");
                 fixedNote = fixedNote.Replace("Groups: ", "groups: ");
                 return new VNItem.CustomItemNotes(fixedNote, new List<string>());
             }
-            int endOfNotes = ULNote.IndexOf("|", StringComparison.InvariantCulture);
+            int endOfNotes = UserVN.ULNote.IndexOf("|", StringComparison.InvariantCulture);
             string notes;
             string groupsString;
             try
             {
-                notes = ULNote.Substring(7, endOfNotes - 7);
-                groupsString = ULNote.Substring(endOfNotes + 1 + 8);
+                notes = UserVN.ULNote.Substring(7, endOfNotes - 7);
+                groupsString = UserVN.ULNote.Substring(endOfNotes + 1 + 8);
             }
             catch (ArgumentOutOfRangeException)
             {

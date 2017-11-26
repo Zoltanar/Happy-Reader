@@ -404,9 +404,9 @@ namespace Happy_Apps_Core
         /// <returns>Returns whether it as successful.</returns>
         public async Task<bool> ChangeVNStatus(ListedVN vn, VNDatabase.ChangeType type, int statusInt, double newVoteValue = -1)
         {
-            var hasULStatus = vn.ULStatus > UserlistStatus.None;
-            var hasWLStatus = vn.WLStatus > WishlistStatus.None;
-            var hasVote = vn.Vote > 0;
+            var hasULStatus = vn.UserVN.ULStatus > UserlistStatus.None;
+            var hasWLStatus = vn.UserVN.WLStatus > WishlistStatus.None;
+            var hasVote = vn.UserVN.Vote > 0;
             string queryString;
             _changeStatusAction(APIStatus.Busy);
             switch (type)

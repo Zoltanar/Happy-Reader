@@ -122,9 +122,9 @@ namespace Happy_Apps_Core
         public static SolidBrush GetBrushFromStatuses(ListedVN vnBase)
         {
             if (vnBase == null) return null;
-            var brush = GetColorFromULStatus(vnBase.ULStatus);
+            var brush = GetColorFromULStatus(vnBase.UserVN.ULStatus);
             if (brush != null) return brush;
-            brush = GetColorFromWLStatus(vnBase.WLStatus);
+            brush = GetColorFromWLStatus(vnBase.UserVN.WLStatus);
             return brush;
         }
 

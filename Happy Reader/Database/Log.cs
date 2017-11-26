@@ -18,7 +18,6 @@ namespace Happy_Reader.Database
             Kind = kind;
             AssociatedId = associatedId;
             Data = data;
-            Console.WriteLine(GetMessage());
         }
 
         public void Notify()

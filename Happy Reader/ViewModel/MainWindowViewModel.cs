@@ -431,7 +431,6 @@ namespace Happy_Reader
             if (folderResults.Length + fileResults.Length == 0)
             {
                 //TODO ask user which of the results is the correct one
-                //vn = fileResults[0];
                 return null;
             }
             return null;

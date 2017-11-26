@@ -28,6 +28,7 @@ namespace Happy_Apps_Core
         /// </summary>
         public DbSet<ListedVN> VNList => _context.VisualNovels;
 
+        public DbSet<UserVN> UserVNList => _context.UserVisualNovels;
         /// <summary>
         /// Contains all producers in local database
         /// </summary>
@@ -38,17 +39,6 @@ namespace Happy_Apps_Core
         /// </summary>
         public DbSet<CharacterItem> CharacterList => _context.Characters;
         
-        /// <summary>
-        /// Contains all characters in local database
-        /// </summary>
-        public IQueryable<ListedVN> URTList
-        {
-            get
-            {
-                return _context.UserVisualNovels.Where(x => x.UserId == Settings.UserID).Select(x=> x.ListedVN);
-            }
-        }
-
         /// <summary>
         /// Contains all favorite producers for logged in user
         /// </summary>
@@ -68,6 +58,7 @@ namespace Happy_Apps_Core
                 return user.FavoriteProducers;
             }
         }
+
 
         #region Initialization
 
@@ -99,7 +90,7 @@ namespace Happy_Apps_Core
             LogToFile("VN Items= " + VNList.Count());
             LogToFile("Producers= " + ProducerList.Count());
             LogToFile("Characters= " + CharacterList.Count());
-            LogToFile("UserRelated Items= " + URTList.Count());
+            LogToFile("UserVN Items= " + UserVNList.Count());
         }
         
         private void InitDatabase()
@@ -828,6 +819,11 @@ END";
         }
         // ReSharper restore InconsistentNaming
         #endregion
+
+        public void SaveChanges()
+        {
+            _context.SaveChanges();
+        }
     }
 
 }
