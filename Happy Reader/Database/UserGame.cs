@@ -87,8 +87,8 @@ namespace Happy_Reader.Database
             get
             {
                 Bitmap image = null;
-                if (VN == null) image = Icon.ExtractAssociatedIcon(FilePath)?.ToBitmap();
-                else
+                if (VN == null && FilePath != null) image = Icon.ExtractAssociatedIcon(FilePath)?.ToBitmap();
+                else if(VN != null)
                 {
                     if (File.Exists(VN.StoredCover)) image = new Bitmap(VN.StoredCover);
                 }

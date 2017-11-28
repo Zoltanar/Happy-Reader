@@ -131,6 +131,8 @@ namespace Happy_Reader
             ((IList<TitledImage>)GameFiles.ItemsSource).Add(titledImage);
         }
 
+        private const bool HOOKING_ON = false;
+
         private void GameFiles_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             var item = GameFiles.SelectedItem as TitledImage;
@@ -138,7 +140,7 @@ namespace Happy_Reader
             if (string.IsNullOrWhiteSpace(filePath)) return;
             var process = StartProcess(filePath);
             if (process == null) return;
-            _viewModel.Hook(process);
+            if(HOOKING_ON) _viewModel.Hook(process);
         }
 
         private void Debug_Button(object sender, RoutedEventArgs e)

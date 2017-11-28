@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Happy_Apps_Core.Database;
 using Happy_Apps_Core.Properties;
 using Newtonsoft.Json;
 using static Happy_Apps_Core.StaticHelpers;
@@ -169,7 +170,7 @@ namespace Happy_Apps_Core
                 if (updateAll) vnsToGet = vnIDs.ToList();
                 else
                 {
-                    vnsToGet = vnIDs.Except(LocalDatabase.VNList.Select(x => x.VNID)).ToList();
+                    vnsToGet = vnIDs.Except(LocalDatabase.VisualNovels.Select(x => x.VNID)).ToList();
                     TitlesSkipped = TitlesSkipped + vnIDs.Length - vnsToGet.Count;
                 }
                 vnsToGet.Remove(0);
@@ -316,7 +317,7 @@ namespace Happy_Apps_Core
         /// <returns>Tuple of bool (indicating successful api connection) and ListedProducer (null if none found or already added)</returns>
         public async Task<(bool, ProducerItem)> GetProducer(int producerID, string errorMessage, bool update)
         {
-            if (!update && (producerID == -1 || LocalDatabase.ProducerList.Any(p => p.ID == producerID))) return (true, null);
+            if (!update && (producerID == -1 || LocalDatabase.Producers.Any(p => p.ID == producerID))) return (true, null);
             string producerQuery = $"get producer basic (id={producerID})";
             var producerResult =
                 await TryQuery(producerQuery, errorMessage);
@@ -393,7 +394,7 @@ namespace Happy_Apps_Core
         /// <param name="statusInt">The new value</param>
         /// <param name="newVoteValue">New vote value</param>
         /// <returns>Returns whether it as successful.</returns>
-        public async Task<bool> ChangeVNStatus(ListedVN vn, VNDatabase.ChangeType type, int statusInt, double newVoteValue = -1)
+        public async Task<bool> ChangeVNStatus(ListedVN vn, VisualNovelDatabase.ChangeType type, int statusInt, double newVoteValue = -1)
         {
             bool remove = statusInt == -1;
             int? statusDate = null;
@@ -402,14 +403,14 @@ namespace Happy_Apps_Core
             _changeStatusAction(APIStatus.Busy);
             switch (type)
             {
-                case VNDatabase.ChangeType.UL:
+                case VisualNovelDatabase.ChangeType.UL:
                     queryString = statusInt == -1 ? $"set vnlist {vn.VNID}" : $"set vnlist {vn.VNID} {{\"status\":{statusInt}}}";
                     var result = await TryQuery(queryString, Resources.cvns_query_error);
                     if (!result) return false;
                     vn.UserVN.ULStatus = remove ? null : (UserlistStatus?)statusInt;
                     vn.UserVN.ULAdded = statusDate;
                     break;
-                case VNDatabase.ChangeType.WL:
+                case VisualNovelDatabase.ChangeType.WL:
                     queryString = statusInt == -1
                         ? $"set wishlist {vn.VNID}"
                         : $"set wishlist {vn.VNID} {{\"priority\":{statusInt}}}";
@@ -418,7 +419,7 @@ namespace Happy_Apps_Core
                     vn.UserVN.WLStatus = remove ? null : (WishlistStatus?)statusInt;
                     vn.UserVN.WLAdded = statusDate;
                     break;
-                case VNDatabase.ChangeType.Vote:
+                case VisualNovelDatabase.ChangeType.Vote:
                     int vote = (int)Math.Floor(newVoteValue * 10);
                     queryString = statusInt == -1
                         ? $"set votelist {vn.VNID}"
@@ -436,7 +437,7 @@ namespace Happy_Apps_Core
             if (!hasULStatus && !hasWLStatus && !hasVote)
             {
                 vn.UserVNId = null;
-                LocalDatabase.UserVNList.Remove(vn.UserVN);
+                LocalDatabase.UserVisualNovels.Remove(vn.UserVN);
             }
             LocalDatabase.SaveChanges();
             _changeStatusAction(Status);
@@ -488,7 +489,7 @@ namespace Happy_Apps_Core
                 {
                     foreach (var producer in producerList)
                     {
-                        var dbProducer = LocalDatabase.ProducerList.Single(x => x.ID == producer.ID);
+                        var dbProducer = LocalDatabase.Producers.Single(x => x.ID == producer.ID);
                         dbProducer.Language = producer.Language;
                     }
                     LocalDatabase.SaveChanges();
@@ -497,7 +498,7 @@ namespace Happy_Apps_Core
             }
             foreach (var producer in producerList)
             {
-                var dbProducer = LocalDatabase.ProducerList.Single(x => x.ID == producer.ID);
+                var dbProducer = LocalDatabase.Producers.Single(x => x.ID == producer.ID);
                 dbProducer.Language = producer.Language;
             }
             LocalDatabase.SaveChanges();
@@ -530,7 +531,7 @@ namespace Happy_Apps_Core
             }
             for (int index = prodItems.Count - 1; index >= 0; index--)
             {
-                if (LocalDatabase.ProducerList.Any(x => x.Name.Equals(prodItems[index].Name))) prodItems.RemoveAt(index);
+                if (LocalDatabase.Producers.Any(x => x.Name.Equals(prodItems[index].Name))) prodItems.RemoveAt(index);
             }
             foreach (var producer in prodItems) LocalDatabase.UpsertProducer(producer, true, false);
             LocalDatabase.SaveChanges();
@@ -572,7 +573,7 @@ namespace Happy_Apps_Core
         /// </summary>
         /// <param name="urtList">list of title IDs (avoids duplicate fetching)</param>
         /// <returns>list of title IDs (avoids duplicate fetching)</returns>
-        public async Task GetUserList(List<VNDatabase.UrtListItem> urtList)
+        public async Task GetUserList(List<VisualNovelDatabase.UrtListItem> urtList)
         {
             LogToFile("Starting GetUserList");
             string userListQuery = $"get vnlist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
@@ -601,13 +602,13 @@ namespace Happy_Apps_Core
 #endif
                 var itemInlist = urtList.FirstOrDefault(vn => vn.ID == item.VN);
                 //add if it doesn't exist
-                if (itemInlist == null) urtList.Add(new VNDatabase.UrtListItem(item));
+                if (itemInlist == null) urtList.Add(new VisualNovelDatabase.UrtListItem(item));
                 //update if it already exists
                 else itemInlist.Update(item);
             }
         }
 
-        public async Task GetWishList(List<VNDatabase.UrtListItem> urtList)
+        public async Task GetWishList(List<VisualNovelDatabase.UrtListItem> urtList)
         {
             LogToFile("Starting GetWishList");
             string wishListQuery = $"get wishlist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
@@ -635,13 +636,13 @@ namespace Happy_Apps_Core
 #endif
                 var itemInlist = urtList.FirstOrDefault(vn => vn.ID == item.VN);
                 //add if it doesn't exist
-                if (itemInlist == null) urtList.Add(new VNDatabase.UrtListItem(item));
+                if (itemInlist == null) urtList.Add(new VisualNovelDatabase.UrtListItem(item));
                 //update if it already exists
                 else itemInlist.Update(item);
             }
         }
 
-        public async Task GetVoteList(List<VNDatabase.UrtListItem> urtList)
+        public async Task GetVoteList(List<VisualNovelDatabase.UrtListItem> urtList)
         {
             LogToFile("Starting GetVoteList");
             string voteListQuery = $"get votelist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
@@ -669,7 +670,7 @@ namespace Happy_Apps_Core
 #endif
                 var itemInlist = urtList.FirstOrDefault(vn => vn.ID == item.VN);
                 //add if it doesn't exist
-                if (itemInlist == null) urtList.Add(new VNDatabase.UrtListItem(item));
+                if (itemInlist == null) urtList.Add(new VisualNovelDatabase.UrtListItem(item));
                 //update if it already exists
                 else itemInlist.Update(item);
             }

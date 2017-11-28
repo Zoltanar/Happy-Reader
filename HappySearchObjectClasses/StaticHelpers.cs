@@ -14,6 +14,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Happy_Apps_Core.Database;
 using Newtonsoft.Json;
 using Timer = System.Windows.Forms.Timer;
 
@@ -105,17 +106,14 @@ namespace Happy_Apps_Core
             Directory.CreateDirectory(StoredDataFolder);
             File.Create(LogFile).Close();
         }
-
-        #region ADO Database
         
-        public static VNDatabase LocalDatabase;
+        public static VisualNovelDatabase LocalDatabase;
 
         public static bool VNIsByFavoriteProducer(ListedVN vn)
         {
             return LocalDatabase.FavoriteProducerList.Any(x => x.ID == vn.ProducerID);
         }
         
-#endregion
         /// <summary>
         /// Get brush from vn UL or WL status or null if no statuses are found.
         /// </summary>

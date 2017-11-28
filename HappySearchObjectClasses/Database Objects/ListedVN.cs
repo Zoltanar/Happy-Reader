@@ -363,7 +363,7 @@ namespace Happy_Apps_Core
         public bool MatchesSingleTrait(int id)
         {
             var allIds = DumpFiles.GetAllSubTraits(id);
-            return GetCharacters(LocalDatabase.CharacterList).Any(c => c.Traits.Any(t => allIds.Contains(t.ID)));
+            return GetCharacters(LocalDatabase.Characters).Any(c => c.Traits.Any(t => allIds.Contains(t.ID)));
         }
     }
 

@@ -1,8 +1,6 @@
 ﻿using System;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media.Imaging;
 using Happy_Reader.Database;
 
 namespace Happy_Reader
@@ -34,7 +32,7 @@ namespace Happy_Reader
         {
             var window = (MainWindow)Window.GetWindow(this);
             if(window == null) throw new NullReferenceException("MainWindow not found.");
-            var tabItem = new TabItem {Header = _viewModel.VN.Title, Content = new UserGamePanel(_viewModel)};
+            var tabItem = new TabItem {Header = _viewModel.DisplayName, Content = new UserGamePanel(_viewModel)};
             window.MainTabControl.Items.Add(tabItem);
         }
     }

@@ -123,14 +123,14 @@
     <Compile Include="CoreSettings.cs" />
     <Compile Include="Database Objects\ListedProducer.cs" />
     <Compile Include="Database\UserVN.cs" />
-    <Compile Include="Database\VNDatabaseContext.cs" />
+    <Compile Include="Database\VNDBContext.cs" />
     <Compile Include="DumpFiles.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="VNDatabase.cs" />
+    <Compile Include="Database\VisualNovelDatabase.cs" />
     <Compile Include="Database Objects\ListedVN.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StaticHelpers.cs" />

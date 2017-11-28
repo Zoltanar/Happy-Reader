@@ -16,10 +16,12 @@ using System.Windows.Controls;
 using Happy_Reader.Database;
 using Happy_Reader.Interop;
 using Happy_Apps_Core;
+using Happy_Apps_Core.Database;
 using static Happy_Reader.StaticMethods;
 using OriginalTextObject = System.Collections.Generic.List<(string Original, string Romaji)>;
 using static Happy_Apps_Core.StaticHelpers;
 using JetBrains.Annotations;
+using User = Happy_Reader.Database.User;
 
 namespace Happy_Reader
 {
@@ -409,7 +411,7 @@ namespace Happy_Reader
         public TitledImage AddGameFile(string file)
         {
             var filename = Path.GetFileNameWithoutExtension(file);
-            ListedVN[] fileResults = LocalDatabase.VNList.Where(VNDatabase.ListVNByNameOrAliasFunc(filename)).ToArray();
+            ListedVN[] fileResults = LocalDatabase.VisualNovels.Where(VisualNovelDatabase.ListVNByNameOrAliasFunc(filename)).ToArray();
             ListedVN[] folderResults = { };
             ListedVN vn = null;
             UserGame userGame;
@@ -419,7 +421,7 @@ namespace Happy_Reader
             }
             else
             {
-                folderResults = LocalDatabase.VNList.Where(VNDatabase.ListVNByNameOrAliasFunc(Directory.GetParent(file).Name)).ToArray();
+                folderResults = LocalDatabase.VisualNovels.Where(VisualNovelDatabase.ListVNByNameOrAliasFunc(Directory.GetParent(file).Name)).ToArray();
                 if (folderResults.Length == 1) vn = folderResults.First();
             }
             if (vn != null)
@@ -455,7 +457,7 @@ namespace Happy_Reader
                 dumpfilesLoadTime = s1 - watch.Elapsed;
                 Settings.UserID = 47063;
                 Settings.Username = "zolty";
-                LocalDatabase = new VNDatabase();
+                LocalDatabase = new VisualNovelDatabase();
 
                 StatusText = "Opening VNDB Connection...";
                 Conn = new VndbConnection(null, null, null);
@@ -464,7 +466,7 @@ namespace Happy_Reader
             StatusText = "Loading User Games...";
             foreach (var game in Data.UserGames.OrderBy(x => x.VNID ?? 0))
             {
-                game.VN = game.VNID != null ? LocalDatabase.VNList.SingleOrDefault(x => x.VNID == game.VNID) : null;
+                game.VN = game.VNID != null ? LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == game.VNID) : null;
                 var ti = new TitledImage(game);
                 UserGameItems.Add(ti);
             }
@@ -481,7 +483,15 @@ namespace Happy_Reader
                 var processes = Process.GetProcesses().Where(x => !ProcessIsBanned(x.ProcessName));
                 foreach (var process in processes)
                 {
-                    if (process.Is64BitProcess()) continue;
+                    try
+                    {
+                        if (process.Is64BitProcess()) continue;
+                    }
+                    catch (Exception ex)
+                    {
+                        LogToFile("MonitorStart",ex);
+                        continue;
+                    }
                     try
                     {
                         var userGame =

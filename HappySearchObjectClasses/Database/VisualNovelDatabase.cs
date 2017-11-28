@@ -1,39 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Diagnostics;
 using System.Linq;
-using Happy_Apps_Core.Database;
 using Newtonsoft.Json;
-using static Happy_Apps_Core.StaticHelpers;
 
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
 // ReSharper disable HeuristicUnreachableCode
 #pragma warning disable 162
 
 
-namespace Happy_Apps_Core
+namespace Happy_Apps_Core.Database
 {
-    public class VNDatabase
+    public partial class VisualNovelDatabase
     {
-        private readonly VNDatabaseContext _context = new VNDatabaseContext();
-
-        /// <summary>
-        /// Contains all VNs in database.
-        /// </summary>
-        public DbSet<ListedVN> VNList => _context.VisualNovels;
-
-        public DbSet<UserVN> UserVNList => _context.UserVisualNovels;
-        /// <summary>
-        /// Contains all producers in local database
-        /// </summary>
-        public DbSet<ListedProducer> ProducerList => _context.Producers;
-
-        /// <summary>
-        /// Contains all characters in local database
-        /// </summary>
-        public DbSet<CharacterItem> CharacterList => _context.Characters;
-
         /// <summary>
         /// Contains all favorite producers for logged in user
         /// </summary>
@@ -41,37 +20,23 @@ namespace Happy_Apps_Core
         {
             get
             {
-
-                var user = _context.Users.SingleOrDefault(x => x.Id == Settings.UserID);
+                var user = Users.SingleOrDefault(x => x.Id == StaticHelpers.Settings.UserID);
                 if (user == null)
                 {
-                    var nUser = new User { Id = Settings.UserID };
-                    _context.Users.Add(nUser);
-                    _context.SaveChanges();
-                    user = _context.Users.Single(x => x.Id == Settings.UserID);
+                    var nUser = new User { Id = StaticHelpers.Settings.UserID };
+                    Users.Add(nUser);
+                    SaveChanges();
+                    user = Users.Single(x => x.Id == StaticHelpers.Settings.UserID);
                 }
                 return user.FavoriteProducers;
             }
         }
-
-
-        #region Initialization
-
-        public VNDatabase()
-        {
-            LogToFile("VN Items= " + VNList.Count());
-            LogToFile("Producers= " + ProducerList.Count());
-            LogToFile("Characters= " + CharacterList.Count());
-            LogToFile("UserVN Items= " + UserVNList.Count());
-        }
-
-        #endregion
-
+        
         #region Set Methods
 
         public void AddNoteToVN(int vnid, string note, int userID)
         {
-            var uvn = _context.UserVisualNovels.Single(x => x.UserId == userID && x.VNID == vnid);
+            var uvn = UserVisualNovels.Single(x => x.UserId == userID && x.VNID == vnid);
             uvn.ULNote = note;
             SaveChanges();
         }
@@ -79,40 +44,40 @@ namespace Happy_Apps_Core
         public void AddRelationsToVN(int vnid, VNItem.RelationsItem[] relations)
         {
             var relationsString = relations.Any() ? ListToJsonArray(new List<object>(relations)) : "Empty";
-            _context.VisualNovels.Single(x => x.VNID == vnid).Relations = relationsString;
-            _context.SaveChanges();
+            VisualNovels.Single(x => x.VNID == vnid).Relations = relationsString;
+            SaveChanges();
         }
 
         public void AddScreensToVN(int vnid, VNItem.ScreenItem[] screens)
         {
             var screensString = screens.Any() ? ListToJsonArray(new List<object>(screens)) : "Empty";
-            _context.VisualNovels.Single(x => x.VNID == vnid).Screens = screensString;
-            _context.SaveChanges();
+            VisualNovels.Single(x => x.VNID == vnid).Screens = screensString;
+            SaveChanges();
         }
 
         public void AddAnimeToVN(int vnid, VNItem.AnimeItem[] anime)
         {
             var animeString = anime.Any() ? ListToJsonArray(new List<object>(anime)) : "Empty";
-            _context.VisualNovels.Single(x => x.VNID == vnid).Anime = animeString;
-            _context.SaveChanges();
+            VisualNovels.Single(x => x.VNID == vnid).Anime = animeString;
+            SaveChanges();
         }
 
         public void UpdateVNTagsStats(VNItem vnItem, bool saveChanges)
         {
             var tags = ListToJsonArray(new List<object>(vnItem.Tags));
-            var vn = _context.VisualNovels.Single(x => x.VNID == vnItem.ID);
+            var vn = VisualNovels.Single(x => x.VNID == vnItem.ID);
             vn.Tags = tags;
             vn.Popularity = vnItem.Popularity;
             vn.Rating = vnItem.Rating;
             vn.VoteCount = vnItem.VoteCount;
-            if (saveChanges) _context.SaveChanges();
+            if (saveChanges) SaveChanges();
         }
         
         public void InsertFavoriteProducers(List<ListedProducer> addProducerList, int userid)
         {
-            var user = _context.Users.Single(x => x.Id == userid);
+            var user = Users.Single(x => x.Id == userid);
             addProducerList.ForEach(user.FavoriteProducers.Add);
-            _context.SaveChanges();
+            SaveChanges();
         }
 
         /// <summary>
@@ -123,11 +88,11 @@ namespace Happy_Apps_Core
         /// <param name="saveChanges">Commit changes to database if true, if false, then make sure to save yourself after</param>
         public void UpsertProducer(ProducerItem producer, bool setDateNull, bool saveChanges)
         {
-            var dbProducer = _context.Producers.SingleOrDefault(x => x.ID == producer.ID);
+            var dbProducer = Producers.SingleOrDefault(x => x.ID == producer.ID);
             if (dbProducer == null)
             {
                 dbProducer = new ListedProducer { ID = producer.ID };
-                _context.Producers.Add(dbProducer);
+                Producers.Add(dbProducer);
             }
             dbProducer.Name = producer.Name;
             dbProducer.Language = producer.Language;
@@ -145,12 +110,12 @@ namespace Happy_Apps_Core
         {
             foreach (var item in urtList)
             {
-                var uvn = _context.UserVisualNovels.SingleOrDefault(x => x.UserId == userid && x.VNID == item.ID);
+                var uvn = UserVisualNovels.SingleOrDefault(x => x.UserId == userid && x.VNID == item.ID);
                 switch (item.Action)
                 {
                     case Command.New:
                         uvn = new UserVN { VNID = item.ID };
-                        _context.UserVisualNovels.Add(uvn);
+                        UserVisualNovels.Add(uvn);
                         goto case Command.Update;
                     case Command.Update:
                         Debug.Assert(uvn != null, nameof(uvn) + " != null");
@@ -164,7 +129,7 @@ namespace Happy_Apps_Core
                         break;
                     case Command.Delete:
                         Debug.Assert(uvn != null, nameof(uvn) + " != null");
-                        _context.UserVisualNovels.Remove(uvn);
+                        UserVisualNovels.Remove(uvn);
                         break;
                 }
                 SaveChanges();
@@ -173,25 +138,25 @@ namespace Happy_Apps_Core
 
         public void UpsertSingleCharacter(CharacterItem character, bool saveChanges)
         {
-            var dbCharacter = _context.Characters.SingleOrDefault(x => x.ID == character.ID);
+            var dbCharacter = Characters.SingleOrDefault(x => x.ID == character.ID);
             if (dbCharacter == null)
             {
                 dbCharacter = new CharacterItem { ID = character.ID };
-                _context.Characters.Add(dbCharacter);
+                Characters.Add(dbCharacter);
             }
             dbCharacter.TraitsColumn = ListToJsonArray(new List<object>(character.Traits));
             dbCharacter.VNsColumn = ListToJsonArray(new List<object>(character.VNs));
-            if (saveChanges) _context.SaveChanges();
+            if (saveChanges) SaveChanges();
         }
 
         public void UpsertSingleVN((VNItem item, ProducerItem producer, VNLanguages languages) data, bool setFullyUpdated, bool saveChanges)
         {
             var (item, producer, languages) = data;
-            var vn = _context.VisualNovels.SingleOrDefault(x => x.VNID == item.ID);
+            var vn = VisualNovels.SingleOrDefault(x => x.VNID == item.ID);
             if (vn == null)
             {
                 vn = new ListedVN() { VNID = item.ID };
-                _context.VisualNovels.Add(vn);
+                VisualNovels.Add(vn);
             }
             vn.Title = item.Title;
             vn.KanjiTitle = item.Original;
@@ -213,16 +178,16 @@ namespace Happy_Apps_Core
 
         public void RemoveFavoriteProducer(int producerID, int userid)
         {
-            _context.Users.Single(x => x.Id == userid).FavoriteProducers
-                .Remove(_context.Producers.Single(x => x.ID == producerID));
-            _context.SaveChanges();
+            Users.Single(x => x.Id == userid).FavoriteProducers
+                .Remove(Producers.Single(x => x.ID == producerID));
+            SaveChanges();
         }
 
         public void RemoveVisualNovel(int vnid, bool saveChanges)
         {
-            var vn = _context.VisualNovels.First(x => x.VNID == vnid);
-            _context.VisualNovels.Remove(vn);
-            if (saveChanges) _context.SaveChanges();
+            var vn = VisualNovels.First(x => x.VNID == vnid);
+            VisualNovels.Remove(vn);
+            if (saveChanges) SaveChanges();
         }
 
         #endregion
@@ -384,11 +349,6 @@ namespace Happy_Apps_Core
         }
 
         #endregion
-
-        public void SaveChanges()
-        {
-            _context.SaveChanges();
-        }
     }
 
 }

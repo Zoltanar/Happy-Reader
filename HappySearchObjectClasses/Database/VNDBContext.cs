@@ -2,13 +2,16 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using SQLite.CodeFirst;
+using static Happy_Apps_Core.StaticHelpers;
+using System.Linq;
+// ReSharper disable VirtualMemberCallInConstructor
 
 namespace Happy_Apps_Core.Database
 {
     using System.Data.Entity;
 
     // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
-    public class VNDatabaseContext : DbContext
+    public partial class VisualNovelDatabase : DbContext
     {
         // Your context has been configured to use a 'Model1' connection string from your application's 
         // configuration file (App.config or Web.config). By default, this connection string targets the 
@@ -16,8 +19,12 @@ namespace Happy_Apps_Core.Database
         // 
         // If you wish to target a different database and/or database provider, modify the 'Model1' 
         // connection string in the application configuration file.
-        public VNDatabaseContext() : base("name=VNDatabase")
+        public VisualNovelDatabase() : base("name=VNDatabase")
         {
+            LogToFile("Visual Novels = " + VisualNovels.Count());
+            LogToFile("Producers = " + Producers.Count());
+            LogToFile("Characters = " + Characters.Count());
+            LogToFile("User Visual Novels = " + UserVisualNovels.Count());
         }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
@@ -33,9 +40,9 @@ namespace Happy_Apps_Core.Database
         public virtual DbSet<TableDetail> TableDetails { get; set; }
     }
 
-    public class VNDatabaseInitializer : SqliteCreateDatabaseIfNotExists<VNDatabaseContext>
+    public class VNDatabaseInitializer : SqliteCreateDatabaseIfNotExists<VisualNovelDatabase>
     {
-        protected override void Seed(VNDatabaseContext context)
+        protected override void Seed(VisualNovelDatabase context)
         {
             context.TableDetails.Add(new TableDetail { Key = "programname", Value = "Happy Search" });
             context.TableDetails.Add(new TableDetail { Key = "author", Value = "Zoltanar" });
