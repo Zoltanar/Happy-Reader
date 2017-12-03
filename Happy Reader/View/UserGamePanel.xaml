@@ -24,5 +24,7 @@
         <Button Grid.Column="0" Content="Browse to file" Margin="0,103,10,0" HorizontalAlignment="Right" Width="84" Height="26" VerticalAlignment="Top" Click="Button_Click"/>
         <Border BorderBrush="Black" BorderThickness="4" Grid.Column="1" Background="#FF3EAE8F"/>
         <Image Grid.Column="1" Source="{Binding Image, Mode=OneWay}" Margin="10"/>
+        <Label Grid.Column="0" Content="User Defined Name" HorizontalAlignment="Left" Margin="10,134,0,0" VerticalAlignment="Top" Width="78"/>
+        <TextBox Grid.Column="0" x:Name="DisplayNameBox"  HorizontalAlignment="Left" Height="23" Margin="93,134,0,0" TextWrapping="Wrap" Text="{Binding UserDefinedName}" VerticalAlignment="Top" Width="128" KeyUp="SaveUsedDefinedName"/>
     </Grid>
 </UserControl>

@@ -40,7 +40,7 @@
             <!-- ReSharper disable once Xaml.PathError -->
             <Image x:Name="Image" Source="../Resources/no-image.gif" Grid.Row="0" Width="160" Height="160"/>
             <Viewbox Grid.Row="1">
-                <TextBlock Text="{Binding FileName}"  VerticalAlignment="Center" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                <TextBlock Text="{Binding DisplayName}"  VerticalAlignment="Center" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
             </Viewbox>
             <Viewbox Grid.Row="2" Margin="0,0,48,0">
                 <TextBlock Text="{Binding TimeOpen, StringFormat=hh\':\'mm}"  VerticalAlignment="Center" HorizontalAlignment="Center"/>
@@ -51,6 +51,7 @@
     <UserControl.ContextMenu>
         <ContextMenu>
             <MenuItem Header="See Details" Click="GameDetails"></MenuItem>
+            <MenuItem Header="Browse To Location" Click="BrowseToLocation"></MenuItem>
         </ContextMenu>
     </UserControl.ContextMenu>
 </UserControl>

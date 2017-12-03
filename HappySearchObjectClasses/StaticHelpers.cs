@@ -36,13 +36,7 @@ namespace Happy_Apps_Core
         public const string DefaultFiltersJson = "Program Data\\Default Files\\defaultfilters.json";
         public const string FlagsFolder = "Program Data\\Flags\\";
 
-#if HAPPYREADER
-        public const string StoredDataFolder = @"C:\Users\Gusty\Documents\VNPC-By Zoltanar\Visual Novel Database\Visual Novel Database\bin\x64\Release\Stored Data\";
-#elif DEBUG
-        public const string StoredDataFolder = "..\\Release\\Stored Data\\";
-#else
-        public const string StoredDataFolder = "Stored Data\\";
-#endif
+        public const string StoredDataFolder = @"..\..\Stored Data\"; //this is in order to use same folder for all builds (32/64 and debug/release)
 
         public const string VNImagesFolder = StoredDataFolder + "Saved Cover Images\\";
         public const string VNScreensFolder = StoredDataFolder + "Saved Screenshots\\";
@@ -477,7 +471,7 @@ namespace Happy_Apps_Core
         /// <returns>Truncated string</returns>
         public static string TruncateString(string value, int maxChars)
         {
-            if (maxChars < 4) return value;
+            if (value == null || maxChars < 4) return value;
             return value.Length <= maxChars ? value : value.Substring(0, maxChars - 3) + "...";
         }
 

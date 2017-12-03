@@ -154,7 +154,7 @@ namespace Happy_Reader
             HookInfo.SaveAllowedStatus += SaveAllowedStatus;
             Application.Current.Exit += SaveCacheOnExit;
         }
-        
+
         public void SaveCacheOnExit(object sender, ExitEventArgs args)
         {
             if (_closingDone) return;
@@ -424,9 +424,14 @@ namespace Happy_Reader
                 folderResults = LocalDatabase.VisualNovels.Where(VisualNovelDatabase.ListVNByNameOrAliasFunc(Directory.GetParent(file).Name)).ToArray();
                 if (folderResults.Length == 1) vn = folderResults.First();
             }
+            if (vn == null)
+            {
+                //todo ask user for vnid
+                //vn = LocalDatabase.VisualNovels.Where(x => x.VNID == ID);
+            }
             if (vn != null)
             {
-                userGame = new UserGame(file, vn){Id = Data.UserGames.Max(x=>x.Id)+1};
+                userGame = new UserGame(file, vn) { Id = Data.UserGames.Max(x => x.Id) + 1 };
                 Data.UserGames.Add(userGame);
                 Data.SaveChanges();
                 return new TitledImage(userGame);
@@ -444,17 +449,13 @@ namespace Happy_Reader
 
         public async Task Loaded()
         {
-            Stopwatch watch = Stopwatch.StartNew();
-            TimeSpan dumpfilesLoadTime = new TimeSpan();
             StatusText = "Loading Cached Translations...";
             await Task.Run(() =>
             {
                 Data.CachedTranslations.Load();
                 HRGoogleTranslate.GoogleTranslate.LoadCache(Data.CachedTranslations.Local);
                 StatusText = "Loading Dumpfiles...";
-                var s1 = watch.Elapsed;
                 DumpFiles.Load();
-                dumpfilesLoadTime = s1 - watch.Elapsed;
                 Settings.UserID = 47063;
                 Settings.Username = "zolty";
                 LocalDatabase = new VisualNovelDatabase();
@@ -473,35 +474,41 @@ namespace Happy_Reader
             StatusText = "Loading finished.";
             var monitor = new Thread(MonitorStart) { IsBackground = true };
             monitor.Start();
-            NotificationEvent.Invoke(this, $"Took {watch.Elapsed:ss\\:fff} (Dumpfiles took {dumpfilesLoadTime:ss\\:fff})", "Loading complete.");
+            //NotificationEvent.Invoke(this, $"Took {watch.Elapsed:ss\\:fff} (Dumpfiles took {dumpfilesLoadTime:ss\\:fff})", "Loading complete.");
         }
 
         private void MonitorStart()
         {
-            while (true)
+            NotificationEvent.Invoke(this,$"Processes to monitor: {Data.UserGameProcesses.Length}");
+            try
             {
-                var processes = Process.GetProcesses().Where(x => !ProcessIsBanned(x.ProcessName));
-                foreach (var process in processes)
+                while (true)
                 {
-                    try
+                    var processes = Process.GetProcesses();
+                    foreach (var processName in Data.UserGameProcesses)
                     {
-                        if (process.Is64BitProcess()) continue;
+                        var process = processes.FirstOrDefault(x => x.ProcessName.Equals(processName));
+                        if (process == null) continue;
+                        try
+                        {
+                            if (process.Is64BitProcess()) continue;
+                            if (process.HasExited) continue;
+                            var userGame =
+                                Data.UserGames.FirstOrDefault(x => x.FilePath.Equals(process.MainModule.FileName));
+                            if (userGame == null || userGame.Process != null) continue;
+                            userGame.Process = process;
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            continue;
+                        } //can happen if process is closed after getting reference
                     }
-                    catch (Exception ex)
-                    {
-                        LogToFile("MonitorStart",ex);
-                        continue;
-                    }
-                    try
-                    {
-                        var userGame =
-                            Data.UserGames.FirstOrDefault(x => x.FilePath.Equals(process.MainModule.FileName));
-                        if (userGame == null || userGame.Process != null) continue;
-                        userGame.Process = process;
-                    }
-                    catch (Win32Exception) { }
+                    Thread.Sleep(5000);
                 }
-                Thread.Sleep(5000);
+            }
+            catch (Exception ex)
+            {
+                NotificationEvent.Invoke(this,ex.Message,"Error in MonitorStart");
             }
         }
         public event PropertyChangedEventHandler PropertyChanged;

@@ -29,7 +29,6 @@ namespace Happy_Reader
 
         public MainWindow()
         {
-
             InitializeComponent();
             UserTb.Text = "zolty";
             GameTb.Text = "Ikusa Megami VERITA";
@@ -130,17 +129,20 @@ namespace Happy_Reader
             if (titledImage == null) return;
             ((IList<TitledImage>)GameFiles.ItemsSource).Add(titledImage);
         }
-
-        private const bool HOOKING_ON = false;
-
+        
         private void GameFiles_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             var item = GameFiles.SelectedItem as TitledImage;
-            var filePath = item?.FilePath;
-            if (string.IsNullOrWhiteSpace(filePath)) return;
-            var process = StartProcess(filePath);
-            if (process == null) return;
-            if(HOOKING_ON) _viewModel.Hook(process);
+            var userGame = (UserGame) item?.DataContext;
+            if (userGame == null) return;
+            var process = StartProcess(userGame.FilePath);
+            if (userGame.ProcessName == null)
+            {
+                var game = Data.UserGames.Single(x => x.Id == userGame.Id);
+                game.ProcessName = process.ProcessName;
+                Data.SaveChanges();
+            }
+            if(userGame.HookProcess ?? false) _viewModel.Hook(process);
         }
 
         private void Debug_Button(object sender, RoutedEventArgs e)

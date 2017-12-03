@@ -4,7 +4,6 @@ namespace Happy_Reader.Database
 {
     public class GameFile
     {
-
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public long Id { get; set; }
 

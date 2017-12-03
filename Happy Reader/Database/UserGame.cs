@@ -42,6 +42,8 @@ namespace Happy_Reader.Database
 
         public string FolderName { get; set; }
 
+        public bool? HookProcess { get; set; }
+
         public string WindowName { get; set; }
 
         public bool IgnoresRepeat { get; set; }
@@ -79,7 +81,7 @@ namespace Happy_Reader.Database
         }
 
         [NotMapped]
-        public object DisplayName => UserDefinedName ?? VN?.Title ?? FileName;
+        public object DisplayName => UserDefinedName ?? StaticHelpers.TruncateString(VN?.Title ?? Path.GetFileNameWithoutExtension(FileName),30);
 
         [NotMapped]
         public BitmapImage Image
@@ -111,6 +113,8 @@ namespace Happy_Reader.Database
                 }
             }
         }
+        
+        public string ProcessName { get; set; } 
 
         private void ProcessExited(object sender, EventArgs e)
         {
@@ -125,6 +129,12 @@ namespace Happy_Reader.Database
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        public virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        public void SaveUserDefinedName([NotNull]string text)
+        {
+            UserDefinedName = text.Trim();
+            StaticMethods.Data.SaveChanges();
+        }
     }
 }
