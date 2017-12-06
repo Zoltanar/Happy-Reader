@@ -20,52 +20,73 @@ namespace Happy_Reader
 
         private static readonly object TranslateLock = new object();//("translate-lock-123");
         private static readonly HappyReaderDatabase Data = new HappyReaderDatabase();
-
-        public static string Translate(User user, Game game, string input, out OriginalTextObject originalText)
+        
+        public static string[] TestTranslate(User user, Game game, string input, out OriginalTextObject originalText)
         {
+            var result = new string[8];
             //Debug.WriteLine($"'{input}' > 'Debug: Not translating.'");
             //return "Debug: Not translating.";
             lock (TranslateLock)
             {
                 var sb = new StringBuilder(input);
-                long[] gamesInSeries = game.Series == null
-                    ? new[] { game.Id }
-                    : Data.Games.Where(g => g.Series == game.Series).Select(gg => gg.Id).ToArray();
-#if LOGVERBOSE
-                var generalEntries = Data.Entries.Where(e =>
-                        //entry is private and belongs to user, or is not private
-                        ((e.Private && e.UserId == user.Id) || !e.Private) &&
-                        //entry is not series specific
-                        !e.SeriesSpecific &&
-                        //entry is either for the language or for all languages
-                        (e.ToLanguage == "ja" || e.ToLanguage == null));
-                var specificEntries = Data.Entries.Where(e =>
-                        //entry is private and belongs to user, or is not private
-                        ((e.Private && e.UserId == user.Id) || !e.Private) &&
-                        //entry is series specific and is for a game in series
-                        e.SeriesSpecific && gamesInSeries.Contains(e.GameId.Value) &&
-                        //entry is either for the language or for all languages
-                        (e.ToLanguage == "en" || e.ToLanguage == "ja"));
+                long[] gamesInSeries = null;
+                if (game != null)
+                {
+                    gamesInSeries = game.Series == null
+                        ? new[] { game.Id }
+                        : Data.Games.Where(g => g.Series == game.Series).Select(gg => gg.Id).ToArray();
+                }
+                Entry[] generalEntries;
+                if (user == null)
+                {
+                    generalEntries =
+                        Data.Entries.Where(e =>
+                                //entry is not private
+                                !e.Private &&
+                                //entry is not series specific
+                                !e.SeriesSpecific).ToArray();
+                }
+                else
+                {
+                    generalEntries =
+                        Data.Entries.Where(e =>
+                                //entry is not private
+                                (e.Private && e.UserId == user.Id || !e.Private) &&
+                                //entry is not series specific
+                                !e.SeriesSpecific).ToArray();
+                }
+                Entry[] specificEntries = { };
+                if (user == null && gamesInSeries != null)
+                {
+                    specificEntries = Data.Entries.Where(e =>
+                                //entry is not private
+                                !e.Private &&
+                                //entry is series specific and is for a game in series
+                                e.SeriesSpecific && gamesInSeries.Contains(e.GameId.Value)).ToArray();
+                }
+                else if (gamesInSeries != null)
+                {
+                    specificEntries = Data.Entries.Where(e =>
+                            //entry is not private
+                            (e.Private && e.UserId == user.Id || !e.Private) &&
+                            //entry is series specific and is for a game in series
+                            e.SeriesSpecific && gamesInSeries.Contains(e.GameId.Value)).ToArray();
+                }
                 var entries = generalEntries.Concat(specificEntries).OrderBy(i => i.Id).ToArray();
                 Debug.WriteLine(
-                    $"General entries: {generalEntries.Count()}. Specific entries: {specificEntries.Count()}");
-#else
-                Entry[] entries = Data.Entries.Where(e =>
-                        //entry is private and belongs to user, or is not private
-                        ((e.Private && e.UserId == user.Id) || !e.Private) &&
-                        //entry is either for all games, or for a game in the series (or the game itself)
-                        (e.GameId == null || !e.SeriesSpecific || gamesInSeries.Contains(e.GameId.Value)) &&
-                        //entry is either for the language or for all languages (assigned as ja)
-                        (e.ToLanguage == "en" || e.ToLanguage == "ja")).OrderBy(i => i.Id).ToArray();
-#endif
+                    $"General entries: {generalEntries.Length}. Specific entries: {specificEntries.Length}");
                 //process in stages
 #if LOGVERBOSE
                 Debug.WriteLine($"Stage 0: {sb}");
 #endif
+                result[0] = sb.ToString();
                 TranslateStageOne(sb, entries);
+                result[1] = sb.ToString();
                 TranslateStageTwo(sb, entries);
+                result[2] = sb.ToString();
                 originalText = GetRomaji(sb);
                 TranslateStageThree(sb, entries);
+                result[3] = sb.ToString();
                 IEnumerable<Entry> usefulEntriesWithProxies;
                 try
                 {
@@ -75,13 +96,17 @@ namespace Happy_Reader
                 {
                     throw new Exception("Error in TranslateStageFour, see inner", ex);
                 }
+                result[4] = sb.ToString();
                 HRGoogleTranslate.GoogleTranslate.Translate(sb);
 #if LOGVERBOSE
                 Debug.WriteLine($"Stage 5: {sb}");
 #endif
+                result[5] = sb.ToString();
                 TranslateStageSix(sb, usefulEntriesWithProxies);
+                result[6] = sb.ToString();
                 TranslateStageSeven(sb, entries);
-                return sb.ToString();
+                result[7] = sb.ToString();
+                return result;
             }
         }
 
@@ -98,7 +123,7 @@ namespace Happy_Reader
             {
                 if (stream == null)
                 {
-                    pairs.Add(("Failed to get romaji",null));
+                    pairs.Add(("Failed to get romaji", null));
                     return pairs;
                 }
 
@@ -167,8 +192,7 @@ namespace Happy_Reader
             foreach (var role in roles)
             {
                 if (role == null) continue;
-                Entry[] roleProxies = data.Entries.Where(i => i.Type == EntryType.Proxy && i.RoleString == role)
-                    .ToArray();
+                Entry[] roleProxies = data.Entries.Where(i => i.Type == EntryType.Proxy && i.RoleString == role).ToArray();
                 if (proxies.ContainsKey(role))
                 {
                     foreach (var roleProxy in roleProxies.Select(

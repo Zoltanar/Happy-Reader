@@ -1,0 +1,12 @@
+﻿[
+  {
+    "role": "m",
+    "input": "本田",
+    "output": "Honda"
+  },
+  {
+    "role": "m",
+    "input": "武田",
+    "output": "Takeda"
+  }
+]

@@ -26,5 +26,9 @@
         <Image Grid.Column="1" Source="{Binding Image, Mode=OneWay}" Margin="10"/>
         <Label Grid.Column="0" Content="User Defined Name" HorizontalAlignment="Left" Margin="10,134,0,0" VerticalAlignment="Top" Width="78"/>
         <TextBox Grid.Column="0" x:Name="DisplayNameBox"  HorizontalAlignment="Left" Height="23" Margin="93,134,0,0" TextWrapping="Wrap" Text="{Binding UserDefinedName}" VerticalAlignment="Top" Width="128" KeyUp="SaveUsedDefinedName"/>
+        <Label Grid.Column="0" Content="VNID" HorizontalAlignment="Left" Margin="10,165,0,0" VerticalAlignment="Top" Width="78"/>
+        <!-- ReSharper disable once InconsistentNaming -->
+        <TextBox Grid.Column="0" x:Name="VNIDNameBox"  HorizontalAlignment="Left" Height="23" Margin="93,165,0,0" TextWrapping="Wrap" Text="{Binding VNID}" VerticalAlignment="Top" Width="128" KeyUp="SaveVNID" PreviewTextInput="DigitsOnly"/>
+        <CheckBox Grid.Column="0" Content="Hook to Process" HorizontalAlignment="Left" Margin="10,193,0,0" VerticalAlignment="Top" Height="20" Width="211" IsChecked="{Binding HookToProcess}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" />
     </Grid>
 </UserControl>

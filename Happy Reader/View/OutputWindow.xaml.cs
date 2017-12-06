@@ -21,7 +21,7 @@ namespace Happy_Reader
         public void SetText(TranslationItem translationItem)
         {
             CharacterLabel.Content = translationItem.Character;
-            ContextLabel.Content = translationItem.Context;
+            ContextLabel.Content = translationItem.RightLabel;
             StringBuilder htmlBuilder = new StringBuilder();
             foreach (var pair in translationItem.OriginalText)
             {
@@ -56,6 +56,16 @@ namespace Happy_Reader
             ContextLabel.Content = "context details";
             StringBuilder htmlBuilder = new StringBuilder();
             htmlBuilder.Append(@"<h1><strong><span style=""color: #00ff00;""><ruby>皐月<rt>gogatsu/satsuki</rt></ruby> Satsuki</span></strong></h1>");
+            _webBrowser.WebBrowser.DocumentText = htmlBuilder.ToString();
+        }
+
+        public void SetTextDebug(string character, string right, string content)
+        {
+            if (!IsVisible) Show();
+            CharacterLabel.Content = character;
+            ContextLabel.Content = right;
+            StringBuilder htmlBuilder = new StringBuilder();
+            htmlBuilder.Append($@"<h1><strong><span style=""color: #00ff00;"">{content}</span></strong></h1>");
             _webBrowser.WebBrowser.DocumentText = htmlBuilder.ToString();
         }
 

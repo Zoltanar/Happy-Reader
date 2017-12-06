@@ -58,6 +58,9 @@ namespace Happy_Reader
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             await _viewModel.Loaded();
+#if DEBUG
+            _viewModel.ClipboardManager = new ClipboardManager(this);
+#endif
         }
 
         private void SaveSettings(object sender, RoutedEventArgs e)
@@ -99,7 +102,6 @@ namespace Happy_Reader
 
         private void AddEntry_Click(object sender, RoutedEventArgs e)
         {
-            if (MainTabControl.Items.Count > 2) return;
             var tabItem = new TabItem
             {
                 Header = "Add Entry",
@@ -129,11 +131,11 @@ namespace Happy_Reader
             if (titledImage == null) return;
             ((IList<TitledImage>)GameFiles.ItemsSource).Add(titledImage);
         }
-        
+
         private void GameFiles_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             var item = GameFiles.SelectedItem as TitledImage;
-            var userGame = (UserGame) item?.DataContext;
+            var userGame = (UserGame)item?.DataContext;
             if (userGame == null) return;
             var process = StartProcess(userGame.FilePath);
             if (userGame.ProcessName == null)
@@ -142,7 +144,7 @@ namespace Happy_Reader
                 game.ProcessName = process.ProcessName;
                 Data.SaveChanges();
             }
-            if(userGame.HookProcess ?? false) _viewModel.Hook(process);
+            if (userGame.HookProcess ?? false) _viewModel.HookV2(process, userGame);
         }
 
         private void Debug_Button(object sender, RoutedEventArgs e)
@@ -164,6 +166,11 @@ namespace Happy_Reader
             }
             if (!UserIsSure()) return;
             _viewModel.RemoveUserGame((TitledImage)GameFiles.SelectedItems[0]);
+        }
+
+        private void TestTranslationClick(object sender, RoutedEventArgs e)
+        {
+            _viewModel.TestTranslation();
         }
     }
 }

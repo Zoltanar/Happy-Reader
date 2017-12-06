@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Happy_Reader.Database;
@@ -12,14 +13,12 @@ namespace Happy_Reader
     public partial class UserGamePanel : UserControl
     {
         private readonly UserGame _viewModel;
-        private readonly TitledImage _parent;
 
-        public UserGamePanel(UserGame game, TitledImage parent)
+        public UserGamePanel(UserGame game)
         {
             InitializeComponent();
             DataContext = game;
             _viewModel = game;
-            _parent = parent;
         }
 
         private void Button_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -31,7 +30,19 @@ namespace Happy_Reader
         {
             if (e.Key != Key.Enter) return;
             _viewModel.SaveUserDefinedName(DisplayNameBox.Text);
-            _parent.RefreshContext();
+        }
+
+        private void SaveVNID(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            _viewModel.SaveVNID(VNIDNameBox.Text.Length == 0 ? null : (int?)int.Parse(VNIDNameBox.Text));
+        }
+
+        private static readonly Regex DigitRegex = new Regex(@"\d");
+        
+        private void DigitsOnly(object sender, TextCompositionEventArgs e)
+        {
+            if (!DigitRegex.IsMatch(e.Text)) e.Handled = true;
         }
     }
 }

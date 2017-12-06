@@ -21,6 +21,7 @@ namespace Happy_Reader
 
         private const string ConfigFolder = "Config\\";
         private const string BannedProcessesJson = ConfigFolder + "bannedprocesses.json";
+        public const string ProxiesJson = ConfigFolder + "proxies.json";
         public static SessionSettings Session { get; private set; }
         private static readonly List<string> BannedProcesses;
         public static HappyReaderDatabase Data { get; } = new HappyReaderDatabase();

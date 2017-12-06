@@ -42,6 +42,17 @@ namespace Happy_Reader.Database
 
         public string FolderName { get; set; }
 
+        [NotMapped]
+        public bool HookToProcess
+        {
+            get => HookProcess ?? false;
+            set
+            {
+                HookProcess = value;
+                StaticMethods.Data.SaveChanges();
+            }
+        }
+
         public bool? HookProcess { get; set; }
 
         public string WindowName { get; set; }
@@ -81,7 +92,7 @@ namespace Happy_Reader.Database
         }
 
         [NotMapped]
-        public object DisplayName => UserDefinedName ?? StaticHelpers.TruncateString(VN?.Title ?? Path.GetFileNameWithoutExtension(FileName),30);
+        public string DisplayName => UserDefinedName ?? StaticHelpers.TruncateString(VN?.Title ?? Path.GetFileNameWithoutExtension(FileName), 30);
 
         [NotMapped]
         public BitmapImage Image
@@ -90,7 +101,7 @@ namespace Happy_Reader.Database
             {
                 Bitmap image = null;
                 if (VN == null && FilePath != null) image = Icon.ExtractAssociatedIcon(FilePath)?.ToBitmap();
-                else if(VN != null)
+                else if (VN != null)
                 {
                     if (File.Exists(VN.StoredCover)) image = new Bitmap(VN.StoredCover);
                 }
@@ -113,8 +124,8 @@ namespace Happy_Reader.Database
                 }
             }
         }
-        
-        public string ProcessName { get; set; } 
+
+        public string ProcessName { get; set; }
 
         private void ProcessExited(object sender, EventArgs e)
         {
@@ -135,6 +146,16 @@ namespace Happy_Reader.Database
         {
             UserDefinedName = text.Trim();
             StaticMethods.Data.SaveChanges();
+            OnPropertyChanged(nameof(DisplayName));
+        }
+
+        public void SaveVNID(int? vnid)
+        {
+            VNID = vnid;
+            StaticMethods.Data.SaveChanges();
+            VN = vnid == null ? null : StaticHelpers.LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == vnid);
+            OnPropertyChanged(nameof(DisplayName));
+            OnPropertyChanged(nameof(Image));
         }
     }
 }

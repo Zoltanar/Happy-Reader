@@ -2,3 +2,4 @@ Implement Japanese>Romaji Translation
 Allow moving output window and save coordinates.
 Don't parse brackets and handle 'name [message]' properly
 save timeplayed when exiting program.
+open tab when clicking see details

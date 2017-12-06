@@ -20,5 +20,39 @@ namespace Happy_Reader
         [DllImport("kernel32.dll", SetLastError = true, CallingConvention = CallingConvention.Winapi)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool IsWow64Process([In] IntPtr processHandle, [Out, MarshalAs(UnmanagedType.Bool)] out bool wow64Process);
+
+
+        /// <summary>
+        ///     A clipboard viewer window receives the WM_CHANGECBCHAIN message when
+        ///     another window is removing itself from the clipboard viewer chain.
+        /// </summary>
+        internal const int WmChangecbchain = 0x030D;
+
+        /// <summary>
+        ///     The WM_DRAWCLIPBOARD message notifies a clipboard viewer window that
+        ///     the content of the clipboard has changed.
+        /// </summary>
+        internal const int WmDrawclipboard = 0x0308;
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        internal static extern bool ChangeClipboardChain(IntPtr hWndRemove, IntPtr hWndNewNext);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        internal static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        internal static extern IntPtr SetClipboardViewer(IntPtr hWndNewViewer);
+
+        // See http://msdn.microsoft.com/en-us/library/ms649021%28v=vs.85%29.aspx
+
+        public const int WM_CLIPBOARDUPDATE = 0x031D;
+
+        public static IntPtr HWND_MESSAGE = new IntPtr(-3);
+
+        // See http://msdn.microsoft.com/en-us/library/ms632599%28VS.85%29.aspx#message_only
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool AddClipboardFormatListener(IntPtr hwnd);
     }
 }

@@ -7,12 +7,12 @@ namespace Happy_Reader.Database
 
     public class Entry
     {
-        [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
 
         public long UserId { get; set; }
 
-        [Required(AllowEmptyStrings = true)]
+        [Required]
         public string Input { get; set; }
         
         public string Output { get; set; }
@@ -41,7 +41,7 @@ namespace Happy_Reader.Database
 
         public string ToLanguage { get; set; }
 
-        public DateTime Time { get; set; }
+        public DateTime? Time { get; set; }
 
         public DateTime? UpdateTime { get; set; }
 

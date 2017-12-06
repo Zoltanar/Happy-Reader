@@ -38,7 +38,7 @@
                 <RowDefinition Height="30"/>
             </Grid.RowDefinitions>
             <!-- ReSharper disable once Xaml.PathError -->
-            <Image x:Name="Image" Source="../Resources/no-image.gif" Grid.Row="0" Width="160" Height="160"/>
+            <Image Source="{Binding Image}" Grid.Row="0" Width="160" Height="160"/>
             <Viewbox Grid.Row="1">
                 <TextBlock Text="{Binding DisplayName}"  VerticalAlignment="Center" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
             </Viewbox>

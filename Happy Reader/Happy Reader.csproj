@@ -162,6 +162,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Database\Log.cs" />
+    <Compile Include="Model\ClipboardManager.cs" />
+    <Compile Include="ViewModel\TranslationTester.cs" />
     <Compile Include="View\AddEntryControl.xaml.cs">
       <DependentUpon>AddEntryControl.xaml</DependentUpon>
     </Compile>
@@ -199,7 +201,6 @@
     <Compile Include="Model\TranslationItem.cs" />
     <Compile Include="Model\Translator.cs" />
     <Compile Include="Database\GameHook.cs" />
-    <Compile Include="Model\Win32.cs" />
     <Compile Include="View\UserGamePanel.xaml.cs">
       <DependentUpon>UserGamePanel.xaml</DependentUpon>
     </Compile>
@@ -257,6 +258,9 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <None Include="Config\bannedprocesses.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Config\proxies.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config">

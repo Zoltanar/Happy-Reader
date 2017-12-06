@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Happy_Reader"
         x:Class="Happy_Reader.MainWindow"
         mc:Ignorable="d"
-        Title="Happy Reader" Height="400" Width="600" Loaded="Window_Loaded" Closing="Window_Closing">
+        Title="Happy Reader" Height="400" Width="556.559" Loaded="Window_Loaded" Closing="Window_Closing">
     <Window.DataContext>
         <local:MainWindowViewModel/>
     </Window.DataContext>
@@ -47,13 +47,35 @@
                     <ComboBox x:Name="ProcessCb" Margin="0,62,10,0" VerticalAlignment="Top" ItemsSource="{Binding ProcessList}" HorizontalAlignment="Right" Width="90"/>
                     <Button Content="Hook" Margin="0,89,55,0" VerticalAlignment="Top" Click="HookToProcess" HorizontalAlignment="Right" Width="45"/>
                     <Button Content="Ban" Margin="0,89,10,0" VerticalAlignment="Top" Click="BanProcess" HorizontalAlignment="Right" Width="40"/>
-                    <Button Content="Add Entry" Margin="0,114,10,0" VerticalAlignment="Top" Click="AddEntry_Click" HorizontalAlignment="Right" Width="90"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Entries">
                 <Grid>
-                    <DataGrid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding EntriesList}" Margin="0,25,0,0" />
                     <CheckBox Content="Game-only" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="{Binding OnlyGameEntries, Mode=TwoWay}"/>
+                    <Button Content="Add Entry" Margin="0,0,393,0" VerticalAlignment="Top" Click="AddEntry_Click" HorizontalAlignment="Right" Width="90"/>
+                    <DataGrid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding EntriesList}" Margin="0,25,0,0" />
+                </Grid>
+            </TabItem>
+            <TabItem Header="Test">
+                <Grid>
+                    <!--<Label Content="Original Text" Margin="10,10,957,281" HorizontalAlignment="Left" VerticalAlignment="Top"/>-->
+                    <Label Content="Original Text" Margin="10,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="120"/>
+                    <TextBox HorizontalAlignment="Left" Margin="10,45,0,0" TextWrapping="Wrap" Text="{Binding Tester.OriginalText}" Width="120" AcceptsReturn="True" AcceptsTab="True" Height="96" VerticalAlignment="Top"/>
+                    <Label Content="Stage 1" Margin="135,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="120"/>
+                    <TextBox HorizontalAlignment="Left" Margin="135,45,0,0" TextWrapping="Wrap" Text="{Binding Tester.Stage1}" Width="120" AcceptsReturn="True" AcceptsTab="True" Height="96" VerticalAlignment="Top"/>
+                    <Label Content="Stage 2" Margin="260,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="120"/>
+                    <TextBox HorizontalAlignment="Left" Margin="260,45,0,0" TextWrapping="Wrap" Text="{Binding Tester.Stage2}" Width="120" AcceptsReturn="True" AcceptsTab="True" Height="96" VerticalAlignment="Top"/>
+                    <Label Content="Stage 3" Margin="385,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="120"/>
+                    <TextBox HorizontalAlignment="Left" Margin="385,45,0,0" TextWrapping="Wrap" Text="{Binding Tester.Stage3}" Width="120" AcceptsReturn="True" AcceptsTab="True" Height="96" VerticalAlignment="Top"/>
+                    <Label Content="Stage 4" Margin="10,146,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="120"/>
+                    <TextBox HorizontalAlignment="Left" Margin="10,181,0,0" TextWrapping="Wrap" Text="{Binding Tester.Stage4}" Width="120" AcceptsReturn="True" AcceptsTab="True" Height="96" VerticalAlignment="Top"/>
+                    <Label Content="Stage 5" Margin="135,146,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="120"/>
+                    <TextBox HorizontalAlignment="Left" Margin="135,181,0,0" TextWrapping="Wrap" Text="{Binding Tester.Stage5}" Width="120" AcceptsReturn="True" AcceptsTab="True" Height="96" VerticalAlignment="Top"/>
+                    <Label Content="Stage 6" Margin="260,146,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="120"/>
+                    <TextBox HorizontalAlignment="Left" Margin="260,181,0,0" TextWrapping="Wrap" Text="{Binding Tester.Stage6}" Width="120" AcceptsReturn="True" AcceptsTab="True" Height="96" VerticalAlignment="Top"/>
+                    <Label Content="Stage 7" Margin="385,146,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="120"/>
+                    <TextBox HorizontalAlignment="Left" Margin="385,181,0,0" TextWrapping="Wrap" Text="{Binding Tester.Stage7}" Width="120" AcceptsReturn="True" AcceptsTab="True" Height="96" VerticalAlignment="Top"/>
+                    <Button Content="Test" Margin="10,282,393,10" Click="TestTranslationClick"/>
                 </Grid>
             </TabItem>
         </TabControl>

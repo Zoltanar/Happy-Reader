@@ -44,7 +44,9 @@ namespace Happy_Reader
                 Regex = RegexChb.IsChecked ?? false,
                 Disabled = !(EnabledChb.IsChecked ?? false),
                 Comment = CommentTb.Text,
-                UserId = _mainViewModel.User.Id
+                UserId = _mainViewModel.User?.Id ?? 0,
+                Time = DateTime.UtcNow,
+                Id = StaticMethods.Data.Entries.Max(x=>x.Id)+1
             };
             StaticMethods.Data.Entries.Add(entry);
             StaticMethods.Data.SaveChanges();
@@ -61,11 +63,6 @@ namespace Happy_Reader
                 if (string.IsNullOrWhiteSpace(InputTb.Text))
                 {
                     ResponseLabel.Content = @"Please type something in Input box.";
-                    return false;
-                }
-                if (_mainViewModel.User == null)
-                {
-                    ResponseLabel.Content = @"There is no active user.";
                     return false;
                 }
                 if (_mainViewModel.Game == null)

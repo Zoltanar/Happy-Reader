@@ -21,6 +21,7 @@ using static Happy_Reader.StaticMethods;
 using OriginalTextObject = System.Collections.Generic.List<(string Original, string Romaji)>;
 using static Happy_Apps_Core.StaticHelpers;
 using JetBrains.Annotations;
+using Newtonsoft.Json.Linq;
 using User = Happy_Reader.Database.User;
 
 namespace Happy_Reader
@@ -37,6 +38,7 @@ namespace Happy_Reader
         public ObservableCollection<ComboBoxItem> ProcessList { get; }
         public ObservableCollection<dynamic> EntriesList { get; }
         public ObservableCollection<TitledImage> UserGameItems { get; set; } = new ObservableCollection<TitledImage>();
+        public TranslationTester Tester { get; set; } = new TranslationTester();
 
         private string _statusText;
         public string StatusText
@@ -55,6 +57,7 @@ namespace Happy_Reader
         private bool _eventsSetUp;
         private bool _closingDone;
         private Process _hookedProcess;
+        public ClipboardManager ClipboardManager;
 
         public bool OnlyGameEntries
         {
@@ -69,7 +72,7 @@ namespace Happy_Reader
 
         private void SetEntries()
         {
-            var items = OnlyGameEntries ? (string.IsNullOrWhiteSpace(Game.Series) ? GetGameOnlyItems() : GetSeriesOnlyItems()) : GetItems();
+            var items = OnlyGameEntries && Game != null ? (string.IsNullOrWhiteSpace(Game.Series) ? GetGameOnlyItems() : GetSeriesOnlyItems()) : GetItems();
             EntriesList.Clear();
             foreach (var item in items)
             {
@@ -212,10 +215,9 @@ namespace Happy_Reader
         public string Translate(string currentText, out OriginalTextObject originalText)
         {
             originalText = new OriginalTextObject();
-            if (User == null || Game == null) return "User or Game is null.";
-            var output = Translator.Translate(User, Game, currentText, out OriginalTextObject original);
-            originalText = original;
-            return output;
+            if (Game == null) return "User or Game is null.";
+            var returned = Translator.TestTranslate(User, Game, currentText, out originalText);
+            return returned.Last();
         }
 
         public bool SetGame(string filename)
@@ -256,8 +258,8 @@ namespace Happy_Reader
                     Title = name,
                     Timestamp = DateTime.UtcNow,
                     Wiki = "HRCreated",
-                    Id = id == 0 ? Data.Games.Max(i => i.Id) + 1 : id
                 };
+                Game.Id = id == 0 && Data.Games.Any() ? Data.Games.Max(i => i.Id) + 1 : id;
                 Data.Games.Add(Game);
                 Data.SaveChanges();
             }
@@ -304,6 +306,19 @@ namespace Happy_Reader
             {
                 ContextsList.Add(new HookInfo(hook.Context, hook.Name, PrintSentence, hook.Allowed));
             }
+        }
+
+        public void HookV2([NotNull]Process process, UserGame userGame)
+        {
+            _hookedProcess = process;
+            if (_hookedProcess == null) throw new Exception("Process was not started.");
+            _hookedProcess.WaitForInputIdle(5000);
+            if (_outputWindow == null) _outputWindow = new OutputWindow();
+            var gameSet = SetGame(process.MainModule.FileName);
+            if (!gameSet) throw new Exception("Couldn't set or create game.");
+            ClipboardManager.ClipboardChanged += ClipboardChanged;
+            _hookedProcess.EnableRaisingEvents = true;
+            _hookedProcess.Exited += delegate { ClipboardManager.ClipboardChanged -= ClipboardChanged; };
         }
 
         private readonly object _dataLock = new object();
@@ -410,36 +425,29 @@ namespace Happy_Reader
 
         public TitledImage AddGameFile(string file)
         {
+            if (Data.UserGames.Select(x => x.FilePath).Contains(file)) return null; //todo pass error to frontend
+            //todo cleanup
             var filename = Path.GetFileNameWithoutExtension(file);
             ListedVN[] fileResults = LocalDatabase.VisualNovels.Where(VisualNovelDatabase.ListVNByNameOrAliasFunc(filename)).ToArray();
             ListedVN[] folderResults = { };
             ListedVN vn = null;
             UserGame userGame;
-            if (fileResults.Length == 1)
-            {
-                vn = fileResults.First();
-            }
+            if (fileResults.Length == 1) vn = fileResults.First();
             else
             {
-                folderResults = LocalDatabase.VisualNovels.Where(VisualNovelDatabase.ListVNByNameOrAliasFunc(Directory.GetParent(file).Name)).ToArray();
+                var parent = Directory.GetParent(file);
+                var folder = parent.Name.Equals("data", StringComparison.OrdinalIgnoreCase) ? Directory.GetParent(parent.FullName).Name : parent.Name;
+                folderResults = LocalDatabase.VisualNovels.Where(VisualNovelDatabase.ListVNByNameOrAliasFunc(folder)).ToArray();
                 if (folderResults.Length == 1) vn = folderResults.First();
             }
-            if (vn == null)
-            {
-                //todo ask user for vnid
-                //vn = LocalDatabase.VisualNovels.Where(x => x.VNID == ID);
-            }
+            ListedVN[] allResults = fileResults.Concat(folderResults).ToArray();
+            if (vn == null && allResults.Length > 0) vn = allResults[1];
             if (vn != null)
             {
                 userGame = new UserGame(file, vn) { Id = Data.UserGames.Max(x => x.Id) + 1 };
                 Data.UserGames.Add(userGame);
                 Data.SaveChanges();
                 return new TitledImage(userGame);
-            }
-            if (folderResults.Length + fileResults.Length > 0)
-            {
-                //TODO ask user which of the results is the correct one
-                return null;
             }
             userGame = new UserGame(file, null) { Id = Data.UserGames.Max(x => x.Id) + 1 };
             Data.UserGames.Add(userGame);
@@ -454,6 +462,9 @@ namespace Happy_Reader
             {
                 Data.CachedTranslations.Load();
                 HRGoogleTranslate.GoogleTranslate.LoadCache(Data.CachedTranslations.Local);
+                User = Data.Users.Single(x => x.Id == 0);
+                StatusText = "Populating Proxies...";
+                PopulateProxies();
                 StatusText = "Loading Dumpfiles...";
                 DumpFiles.Load();
                 Settings.UserID = 47063;
@@ -477,9 +488,28 @@ namespace Happy_Reader
             //NotificationEvent.Invoke(this, $"Took {watch.Elapsed:ss\\:fff} (Dumpfiles took {dumpfilesLoadTime:ss\\:fff})", "Loading complete.");
         }
 
+        private void PopulateProxies()
+        {
+            var array = JArray.Parse(File.ReadAllText(ProxiesJson));
+            // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
+            foreach (JObject item in array)
+            {
+                var r = item["role"].ToString();
+                var i = item["input"].ToString();
+                var o = item["output"].ToString();
+                var proxy = Data.Entries.SingleOrDefault(x => x.RoleString.Equals(r) && x.Input.Equals(i));
+                if (proxy == null)
+                {
+                    proxy = new Entry { UserId = 0, Type = EntryType.Proxy, RoleString = r, Input = i, Output = o };
+                    Data.Entries.Add(proxy);
+                    Data.SaveChanges();
+                }
+            }
+        }
+
         private void MonitorStart()
         {
-            NotificationEvent.Invoke(this,$"Processes to monitor: {Data.UserGameProcesses.Length}");
+            NotificationEvent.Invoke(this, $"Processes to monitor: {Data.UserGameProcesses.Length}");
             try
             {
                 while (true)
@@ -497,9 +527,11 @@ namespace Happy_Reader
                                 Data.UserGames.FirstOrDefault(x => x.FilePath.Equals(process.MainModule.FileName));
                             if (userGame == null || userGame.Process != null) continue;
                             userGame.Process = process;
+                            SetGame(process.MainModule.FileName);
                         }
                         catch (InvalidOperationException)
                         {
+                            // ReSharper disable once RedundantJumpStatement
                             continue;
                         } //can happen if process is closed after getting reference
                     }
@@ -508,7 +540,7 @@ namespace Happy_Reader
             }
             catch (Exception ex)
             {
-                NotificationEvent.Invoke(this,ex.Message,"Error in MonitorStart");
+                NotificationEvent.Invoke(this, ex.Message, "Error in MonitorStart");
             }
         }
         public event PropertyChangedEventHandler PropertyChanged;
@@ -521,6 +553,44 @@ namespace Happy_Reader
             UserGameItems.Remove(item);
             Data.UserGames.Remove((UserGame)item.DataContext);
             Data.SaveChanges();
+        }
+
+        public void ClipboardChanged(object sender, EventArgs e)
+        {
+            var windowHandle = _hookedProcess.MainWindowHandle;
+            var rct = new NativeMethods.RECT();
+            NativeMethods.GetWindowRect(windowHandle, ref rct);
+            _outputWindow.SetLocation(rct.Left, rct.Bottom, rct.Right - rct.Left);
+            try
+            {
+                var text = Clipboard.GetText();
+                if (string.IsNullOrWhiteSpace(text)) return;
+                bool latinOnly = System.Text.RegularExpressions.Regex.IsMatch(text, "^\\w+$");
+                if (latinOnly) return;
+                var unRepeatedString = CheckRepeatedString(text);
+                //var result = System.Text.RegularExpressions.Regex.Match(text, @".*(.+).*\1.*\1.*");
+                var translated = Translate(unRepeatedString, out OriginalTextObject originalText);
+                SetOutputText(new TranslationItem(_hookedProcess.MainWindowTitle, originalText, translated));
+            }
+            catch (Exception ex)
+            {
+                LogToFile(nameof(ClipboardChanged), ex);
+            }
+        }
+
+        private string CheckRepeatedString(string text)
+        {
+            if (text.Length % 2 != 0) return text;
+            var halfLength = text.Length / 2;
+            var p1 = text.Substring(0, halfLength);
+            var p2 = text.Substring(halfLength);
+            if (p1 == p2) return p1;
+            return text;
+        }
+
+        public void TestTranslation()
+        {
+            Tester.Test(User, Game);
         }
     }
 }
