@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Linq;
 using Kakasi.NET.Interop;
 
 namespace Happy_Reader
@@ -47,7 +45,7 @@ namespace Happy_Reader
         {
             // Set params to get Furigana
             // NOTE: Use EUC-JP encoding as the wrapper will encode/decode using it
-            if (spaces) SetParams("-Ha", "-Ja", "-s");
+            if (spaces) SetParams("-Ha", "-Ja", "-Ka", "-s");
             else SetParams("-Ha", "-Ja");
             return KakasiLib.DoKakasi(text);
         }

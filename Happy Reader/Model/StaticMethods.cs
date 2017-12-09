@@ -164,5 +164,21 @@ namespace Happy_Reader
         {
             return MessageBox.Show(message, "Happy Reader - Confirm", MessageBoxButton.YesNo) == MessageBoxResult.Yes;
         }
+
+        public static Process GetClipboardOwner()
+        {
+            var handle = NativeMethods.GetClipboardOwner();
+            if (handle == IntPtr.Zero) return null;
+            NativeMethods.GetWindowThreadProcessId(handle, out uint pid);
+            return pid == 0 ? null : Process.GetProcessById((int)pid);
+        }
+
+        public static NativeMethods.RECT GetWindowDimensions(Process process)
+        {
+            var windowHandle = process.MainWindowHandle;
+            var rct = new NativeMethods.RECT();
+            NativeMethods.GetWindowRect(windowHandle, ref rct);
+            return rct;
+        }
     }
 }

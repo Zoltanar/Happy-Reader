@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Output" Height="141.958" Width="600" ShowInTaskbar="False" WindowStyle="None" AllowsTransparency="True"  Opacity="0.5" Topmost="True" MouseLeftButtonDown="Window_MouseLeftButtonDown">
+        Title="Output" Height="196.093" Width="600" ShowInTaskbar="False" WindowStyle="None" AllowsTransparency="True"  Opacity="0.65" Topmost="True" MouseLeftButtonDown="Window_MouseLeftButtonDown">
     <Window.Background>
         <SolidColorBrush Color="Black"/>
     </Window.Background>

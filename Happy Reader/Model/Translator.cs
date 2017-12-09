@@ -4,7 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
+using Happy_Apps_Core;
 using Happy_Reader.Database;
 using static Happy_Reader.StaticMethods;
 #if LOGVERBOSE
@@ -20,131 +22,96 @@ namespace Happy_Reader
 
         private static readonly object TranslateLock = new object();//("translate-lock-123");
         private static readonly HappyReaderDatabase Data = new HappyReaderDatabase();
+
+        private static User _lastUser;
+        private static Game _lastGame;
+        private static Entry[]_lastEntries;
+        public static bool RefreshEntries = false;
         
         public static string[] TestTranslate(User user, Game game, string input, out OriginalTextObject originalText)
         {
-            var result = new string[8];
+            //var parts = input.Split("『「」』。？".ToCharArray());
             //Debug.WriteLine($"'{input}' > 'Debug: Not translating.'");
             //return "Debug: Not translating.";
             lock (TranslateLock)
             {
-                var sb = new StringBuilder(input);
-                long[] gamesInSeries = null;
-                if (game != null)
+                var item = new TranslationObject();
+                int index = 0;
+                string currentPart = "";
+                while (index < input.Length)
                 {
-                    gamesInSeries = game.Series == null
-                        ? new[] { game.Id }
-                        : Data.Games.Where(g => g.Series == game.Series).Select(gg => gg.Id).ToArray();
+                    var @char = input[index];
+                    if ("『「」』。？".Contains(@char) && currentPart.Length != 0)
+                    {
+                        item.Parts.Add((currentPart, !currentPart.All(c=> "『「」』。？".Contains(c))));
+                        item.Parts.Add((@char.ToString(), false));
+                        currentPart = "";
+                        index++;
+                        continue;
+
+                    }
+                    currentPart += @char;
+                    index++;
                 }
-                Entry[] generalEntries;
-                if (user == null)
-                {
-                    generalEntries =
-                        Data.Entries.Where(e =>
-                                //entry is not private
-                                !e.Private &&
-                                //entry is not series specific
-                                !e.SeriesSpecific).ToArray();
-                }
-                else
-                {
-                    generalEntries =
-                        Data.Entries.Where(e =>
-                                //entry is not private
-                                (e.Private && e.UserId == user.Id || !e.Private) &&
-                                //entry is not series specific
-                                !e.SeriesSpecific).ToArray();
-                }
-                Entry[] specificEntries = { };
-                if (user == null && gamesInSeries != null)
-                {
-                    specificEntries = Data.Entries.Where(e =>
-                                //entry is not private
-                                !e.Private &&
-                                //entry is series specific and is for a game in series
-                                e.SeriesSpecific && gamesInSeries.Contains(e.GameId.Value)).ToArray();
-                }
-                else if (gamesInSeries != null)
-                {
-                    specificEntries = Data.Entries.Where(e =>
+                if(currentPart.Length > 0) item.Parts.Add((currentPart, currentPart.All(c => "『「」』。？".Contains(c))));
+                if (user != _lastUser || game != _lastGame || RefreshEntries) SetEntries(user, game);
+                item.TranslateParts();
+                originalText = item.Original;
+                return item.Results;
+            }
+        }
+
+        private static void SetEntries(User user, Game game)
+        {
+            _lastUser = user;
+            _lastGame = game;
+            long[] gamesInSeries = null;
+            if (game != null)
+            {
+                gamesInSeries = game.Series == null
+                    ? new[] { game.Id }
+                    : Data.Games.Where(g => g.Series == game.Series).Select(gg => gg.Id).ToArray();
+            }
+            Entry[] generalEntries;
+            if (user == null)
+            {
+                generalEntries =
+                    Data.Entries.Where(e =>
+                            //entry is not private
+                            !e.Private &&
+                            //entry is not series specific
+                            !e.SeriesSpecific).ToArray();
+            }
+            else
+            {
+                generalEntries =
+                    Data.Entries.Where(e =>
                             //entry is not private
                             (e.Private && e.UserId == user.Id || !e.Private) &&
+                            //entry is not series specific
+                            !e.SeriesSpecific).ToArray();
+            }
+            Entry[] specificEntries = { };
+            if (user == null && gamesInSeries != null)
+            {
+                specificEntries = Data.Entries.Where(e =>
+                            //entry is not private
+                            !e.Private &&
                             //entry is series specific and is for a game in series
                             e.SeriesSpecific && gamesInSeries.Contains(e.GameId.Value)).ToArray();
-                }
-                var entries = generalEntries.Concat(specificEntries).OrderBy(i => i.Id).ToArray();
-                Debug.WriteLine(
-                    $"General entries: {generalEntries.Length}. Specific entries: {specificEntries.Length}");
-                //process in stages
-#if LOGVERBOSE
-                Debug.WriteLine($"Stage 0: {sb}");
-#endif
-                result[0] = sb.ToString();
-                TranslateStageOne(sb, entries);
-                result[1] = sb.ToString();
-                TranslateStageTwo(sb, entries);
-                result[2] = sb.ToString();
-                originalText = GetRomaji(sb);
-                TranslateStageThree(sb, entries);
-                result[3] = sb.ToString();
-                IEnumerable<Entry> usefulEntriesWithProxies;
-                try
-                {
-                    usefulEntriesWithProxies = TranslateStageFour(sb, entries, Data);
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception("Error in TranslateStageFour, see inner", ex);
-                }
-                result[4] = sb.ToString();
-                HRGoogleTranslate.GoogleTranslate.Translate(sb);
-#if LOGVERBOSE
-                Debug.WriteLine($"Stage 5: {sb}");
-#endif
-                result[5] = sb.ToString();
-                TranslateStageSix(sb, usefulEntriesWithProxies);
-                result[6] = sb.ToString();
-                TranslateStageSeven(sb, entries);
-                result[7] = sb.ToString();
-                return result;
             }
+            else if (gamesInSeries != null)
+            {
+                specificEntries = Data.Entries.Where(e =>
+                        //entry is not private
+                        (e.Private && e.UserId == user.Id || !e.Private) &&
+                        //entry is series specific and is for a game in series
+                        e.SeriesSpecific && gamesInSeries.Contains(e.GameId.Value)).ToArray();
+            }
+            _lastEntries = generalEntries.Concat(specificEntries).OrderBy(i => i.Id).ToArray();
+            Debug.WriteLine($"General entries: {generalEntries.Length}. Specific entries: {specificEntries.Length}");
         }
-
-        private const string RomajiConverterUrl = "http://www.kawa.net/works/ajax/romanize/romanize.cgi";
-
-        public static OriginalTextObject GetRomaji(StringBuilder sb)
-        {
-            var pairs = new List<(string Original, string Romaji)>();
-            var request = WebRequest.Create($"{RomajiConverterUrl}?mode=japanese&ie=UTF-8&q={WebUtility.UrlEncode(sb.ToString())}");
-            request.Method = "GET";
-            var response = request.GetResponse();
-            string romaji;
-            using (var stream = response.GetResponseStream())
-            {
-                if (stream == null)
-                {
-                    pairs.Add(("Failed to get romaji", null));
-                    return pairs;
-                }
-
-                var reader = new StreamReader(stream);
-                romaji = reader.ReadToEnd();
-            }
-            var xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(romaji);
-            var nodes = xmlDoc.SelectNodes("ul/li/span");
-            if (nodes == null)
-            {
-                pairs.Add(("Failed to get romaji", null));
-                return pairs;
-            }
-            foreach (XmlNode node in nodes)
-            {
-                pairs.Add((node.InnerText, node.Attributes?["title"]?.Value));
-            }
-            return pairs;
-        }
-
+        
         /// <summary>
         /// Replace entries of type Game.
         /// </summary>
@@ -214,14 +181,15 @@ namespace Happy_Reader
                     continue;
                 }
                 var roleString = entry.RoleString ?? (entry.Type == EntryType.Name ? "m" : "n"); //m default for name, n default for translation
-                var proxy = proxies[roleString].Proxies.Count == 0 ? default(RoleProxy) : proxies[roleString].Proxies.Dequeue();//proxies.FirstOrDefault(p => p.Role == roleString);
+                var proxy = proxies[roleString].Proxies.Count == 0 ? null : proxies[roleString].Proxies.Dequeue();//proxies.FirstOrDefault(p => p.Role == roleString);
                 proxies[roleString].Count++;
-                if (proxy.Equals(default(RoleProxy)))
+                if (proxy == null)
                 {
                     LogToConsole("No proxy available, stopping translate.");
                     throw new Exception("Error - no proxy available.");
                 }
                 proxy.FullRoleString = $"[[{roleString}#{proxies[roleString].Count}]]";
+                proxy.Id = proxies[roleString].Count;
                 entry.AssignedProxy = proxy;
                 sb.LogReplace(entry.Input, entry.AssignedProxy.FullRoleString, entry.Id);
             }
@@ -230,10 +198,7 @@ namespace Happy_Reader
 #endif
             //perform replaces involving proxies
             var entriesOnProxies = entries.Where(i => i.Type == EntryType.ProxyMod).ToArray();
-            foreach (var entry in entriesOnProxies)
-            {
-                sb.LogReplace(entry.Input, entry.Output, entry.Id);
-            }
+            TranslateStage4P1(sb, usefulEntriesWithProxies, entriesOnProxies);
 #if LOGVERBOSE
             Debug.WriteLine($"Stage 4.1: {sb}");
 #endif
@@ -245,6 +210,21 @@ namespace Happy_Reader
             Debug.WriteLine($"Stage 4.2: {sb}");
 #endif
             return usefulEntriesWithProxies;
+        }
+
+        private static void TranslateStage4P1(StringBuilder sb, List<Entry> entriesWithProxies, Entry[] entriesOnProxies)
+        {
+            foreach (var entry in entriesOnProxies)
+            {
+                var input = Regex.Replace(entry.Input, @"\[\[(.+?)]]", @"\[\[$1#(\d+)]]");
+                var matches = Regex.Matches(sb.ToString(), input);
+                foreach (Match match in matches)
+                {
+                    entriesWithProxies.Single(x => x.AssignedProxy.Id == int.Parse(match.Groups[1].Value)).AssignedProxy.ProxyMods.Add(entry);
+                }
+                var output = new Regex(@"^.*?\[\[(.+)]].*?$").Replace(entry.Output, @"[[$1#$$1]]");
+                sb.LogReplaceRegex(input, output, entry.Id);
+            }
         }
 
         private class ProxiesWithCount
@@ -259,6 +239,48 @@ namespace Happy_Reader
             }
         }
 
+        private static string[] Translate(string input, out OriginalTextObject originalText)
+        {
+            var result = new string[8];
+            var sb = new StringBuilder(input);
+            //process in stages
+#if LOGVERBOSE
+            Debug.WriteLine($"Stage 0: {sb}");
+#endif
+            result[0] = sb.ToString();
+            TranslateStageOne(sb, _lastEntries);
+            result[1] = sb.ToString();
+            TranslateStageTwo(sb, _lastEntries);
+            result[2] = sb.ToString();
+            originalText = new OriginalTextObject();
+            var romaji = Kakasi.JapaneseToRomaji(sb.ToString(), true);
+            var kana = Kakasi.JapaneseToKana(sb.ToString(), true);
+            var o = kana.Split(' ').Zip(romaji.Split(' '), (x, y) => (x, y));
+            originalText.AddRange(o);
+            TranslateStageThree(sb, _lastEntries);
+            result[3] = sb.ToString();
+            IEnumerable<Entry> usefulEntriesWithProxies;
+            try
+            {
+                usefulEntriesWithProxies = TranslateStageFour(sb, _lastEntries, Data);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error in TranslateStageFour, see inner", ex);
+            }
+            result[4] = sb.ToString();
+            HRGoogleTranslate.GoogleTranslate.Translate(sb);
+#if LOGVERBOSE
+            Debug.WriteLine($"Stage 5: {sb}");
+#endif
+            result[5] = sb.ToString();
+            TranslateStageSix(sb, usefulEntriesWithProxies);
+            result[6] = sb.ToString();
+            TranslateStageSeven(sb, _lastEntries);
+            result[7] = sb.ToString();
+            return result;
+        }
+
         /// <summary>
         /// Replace Name and Translation proxies to entry outputs.
         /// </summary>
@@ -266,7 +288,13 @@ namespace Happy_Reader
         {
             foreach (var entry in usefulEntriesWithProxies)
             {
-                sb.LogReplace(entry.AssignedProxy.Entry.Output, entry.Output, entry.Id);
+                var outputRoleString = "[[" + entry.RoleString + "]]";
+                sb.LogReplace(entry.AssignedProxy.Entry.Output, outputRoleString, entry.Id);
+                foreach (var proxyMod in entry.AssignedProxy.ProxyMods)
+                {
+                    sb.LogReplace(outputRoleString, proxyMod.Output,proxyMod.Id);
+                }
+                sb.LogReplace("[[" + entry.RoleString + "]]", entry.Output, entry.Id);
             }
 #if LOGVERBOSE
             Debug.WriteLine($"Stage 6: {sb}");
@@ -286,5 +314,46 @@ namespace Happy_Reader
         }
 
 
+        private class TranslationObject
+        {
+            private readonly List<OriginalTextObject> _partOriginals = new List<OriginalTextObject>();
+            internal List<(string Part, bool Translate)> Parts = new List<(string Part, bool Translate)>();
+            private readonly List<string[]> _partResults = new List<string[]>();
+            public readonly OriginalTextObject Original = new OriginalTextObject();
+            public readonly string[] Results = new string[8];
+
+            public void TranslateParts()
+            {
+                try
+                {
+                    foreach (var item in Parts)
+                    {
+                        if (!item.Translate)
+                        {
+                            _partResults.Add(Enumerable.Repeat(item.Part, 8).ToArray());
+                            _partOriginals.Add(new OriginalTextObject {(item.Part, null)});
+                            continue;
+                        }
+                        _partResults.Add(Translate(item.Part, out OriginalTextObject original));
+                        _partOriginals.Add(original);
+                    }
+                    for (int stage = 0; stage < 8; stage++)
+                    {
+                        var stage1 = stage;
+                        Results[stage] = string.Join("", _partResults.Select(c => c[stage1]));
+                    }
+                    foreach (OriginalTextObject originalPart in _partOriginals)
+                    {
+                        originalPart.ForEach(Original.Add);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogToConsole(ex.Message); //todo log to file
+                }
+
+            }
+        }
     }
+
 }

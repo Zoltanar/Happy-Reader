@@ -58,9 +58,7 @@ namespace Happy_Reader
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             await _viewModel.Loaded();
-#if DEBUG
-            _viewModel.ClipboardManager = new ClipboardManager(this);
-#endif
+            _viewModel.InitClipboardManager(this);
         }
 
         private void SaveSettings(object sender, RoutedEventArgs e)

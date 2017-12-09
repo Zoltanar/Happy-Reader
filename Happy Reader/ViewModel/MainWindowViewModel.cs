@@ -312,13 +312,9 @@ namespace Happy_Reader
         {
             _hookedProcess = process;
             if (_hookedProcess == null) throw new Exception("Process was not started.");
-            _hookedProcess.WaitForInputIdle(5000);
-            if (_outputWindow == null) _outputWindow = new OutputWindow();
+            if (_outputWindow == null){Application.Current.Dispatcher.Invoke(()=>_outputWindow = new OutputWindow());}
             var gameSet = SetGame(process.MainModule.FileName);
             if (!gameSet) throw new Exception("Couldn't set or create game.");
-            ClipboardManager.ClipboardChanged += ClipboardChanged;
-            _hookedProcess.EnableRaisingEvents = true;
-            _hookedProcess.Exited += delegate { ClipboardManager.ClipboardChanged -= ClipboardChanged; };
         }
 
         private readonly object _dataLock = new object();
@@ -527,9 +523,9 @@ namespace Happy_Reader
                                 Data.UserGames.FirstOrDefault(x => x.FilePath.Equals(process.MainModule.FileName));
                             if (userGame == null || userGame.Process != null) continue;
                             userGame.Process = process;
-                            SetGame(process.MainModule.FileName);
+                            HookV2(process, userGame);
                         }
-                        catch (InvalidOperationException)
+                        catch (InvalidOperationException ex)
                         {
                             // ReSharper disable once RedundantJumpStatement
                             continue;
@@ -557,16 +553,18 @@ namespace Happy_Reader
 
         public void ClipboardChanged(object sender, EventArgs e)
         {
-            var windowHandle = _hookedProcess.MainWindowHandle;
-            var rct = new NativeMethods.RECT();
-            NativeMethods.GetWindowRect(windowHandle, ref rct);
+            var cpOwner = GetClipboardOwner();
+            if (!cpOwner?.ProcessName.ToLower().Equals("ithvnr") ?? false) return;
+            if (_hookedProcess == null) return;
+            var rct = GetWindowDimensions(_hookedProcess);
             _outputWindow.SetLocation(rct.Left, rct.Bottom, rct.Right - rct.Left);
             try
             {
                 var text = Clipboard.GetText();
+                var latinOnly = new System.Text.RegularExpressions.Regex(@"[a-zA-Z0-9:/\\\\r\\n .!?,;()""]+");
                 if (string.IsNullOrWhiteSpace(text)) return;
-                bool latinOnly = System.Text.RegularExpressions.Regex.IsMatch(text, "^\\w+$");
-                if (latinOnly) return;
+                if (latinOnly.IsMatch(text)) return;
+                //var matches = latinOnly.Matches(text);
                 var unRepeatedString = CheckRepeatedString(text);
                 //var result = System.Text.RegularExpressions.Regex.Match(text, @".*(.+).*\1.*\1.*");
                 var translated = Translate(unRepeatedString, out OriginalTextObject originalText);
@@ -592,5 +590,12 @@ namespace Happy_Reader
         {
             Tester.Test(User, Game);
         }
+
+        public void InitClipboardManager(Window window)
+        {
+            ClipboardManager = new ClipboardManager(window);
+            ClipboardManager.ClipboardChanged += ClipboardChanged;
+        }
+
     }
 }

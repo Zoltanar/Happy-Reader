@@ -25,7 +25,7 @@ namespace Happy_Reader
             StringBuilder htmlBuilder = new StringBuilder();
             foreach (var pair in translationItem.OriginalText)
             {
-                if (string.IsNullOrWhiteSpace(pair.Romaji))
+                if (string.IsNullOrWhiteSpace(pair.Romaji) || pair.Original == pair.Romaji)
                 {
                     htmlBuilder.Append(pair.Original);
                 }
@@ -40,7 +40,7 @@ namespace Happy_Reader
             }
             htmlBuilder.Append("</br>");
             htmlBuilder.Append(translationItem.TranslatedText);
-            _webBrowser.WebBrowser.DocumentText = htmlBuilder.ToString();
+            _webBrowser.WebBrowser.DocumentText = "<div style=\"font-size:22px;\"> " + htmlBuilder + "</div>";
         }
 
         internal void SetLocation(int left, int bottom, int width)

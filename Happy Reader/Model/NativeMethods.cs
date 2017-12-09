@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace Happy_Reader
 {
-    static class NativeMethods
+    public static class NativeMethods
     {
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -54,5 +54,11 @@ namespace Happy_Reader
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool AddClipboardFormatListener(IntPtr hwnd);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetClipboardOwner();
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
     }
 }
