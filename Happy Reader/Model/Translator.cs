@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Xml;
-using Happy_Apps_Core;
 using Happy_Reader.Database;
 using static Happy_Reader.StaticMethods;
 #if LOGVERBOSE
@@ -20,17 +16,16 @@ namespace Happy_Reader
     {
         //TODO add regex to all stages
 
-        private static readonly object TranslateLock = new object();//("translate-lock-123");
+        private static readonly object TranslateLock = new object();
         private static readonly HappyReaderDatabase Data = new HappyReaderDatabase();
 
         private static User _lastUser;
         private static Game _lastGame;
         private static Entry[]_lastEntries;
-        public static bool RefreshEntries = false;
+        public static bool RefreshEntries;
         
         public static string[] TestTranslate(User user, Game game, string input, out OriginalTextObject originalText)
         {
-            //var parts = input.Split("『「」』。？".ToCharArray());
             //Debug.WriteLine($"'{input}' > 'Debug: Not translating.'");
             //return "Debug: Not translating.";
             lock (TranslateLock)
@@ -63,6 +58,7 @@ namespace Happy_Reader
 
         private static void SetEntries(User user, Game game)
         {
+            RefreshEntries = false;
             _lastUser = user;
             _lastGame = game;
             long[] gamesInSeries = null;
@@ -317,7 +313,7 @@ namespace Happy_Reader
         private class TranslationObject
         {
             private readonly List<OriginalTextObject> _partOriginals = new List<OriginalTextObject>();
-            internal List<(string Part, bool Translate)> Parts = new List<(string Part, bool Translate)>();
+            internal readonly List<(string Part, bool Translate)> Parts = new List<(string Part, bool Translate)>();
             private readonly List<string[]> _partResults = new List<string[]>();
             public readonly OriginalTextObject Original = new OriginalTextObject();
             public readonly string[] Results = new string[8];

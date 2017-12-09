@@ -52,6 +52,7 @@ namespace Happy_Reader
             StaticMethods.Data.SaveChanges();
             ResponseLabel.Content = $@"Entry was added (id {entry.Id}).";
             _entryAlreadyAdded = true;
+            Translator.RefreshEntries = true;
 
             bool Validate()
             {

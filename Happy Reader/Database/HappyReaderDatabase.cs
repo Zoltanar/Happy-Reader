@@ -18,7 +18,6 @@ namespace Happy_Reader.Database
         public virtual DbSet<UserGame> UserGames { get; set; }
         public virtual DbSet<GameFile> GameFiles { get; set; }
         public virtual DbSet<User> Users { get; set; }
-        public virtual DbSet<GameHook> GameHooks { get; set; }
         public virtual DbSet<Translation> CachedTranslations { get; set; }
         public virtual DbSet<Log> Logs { get; set; }
         public string[] UserGameProcesses => UserGames.Where(x => x != null).Select(x=>x.ProcessName).ToArray();

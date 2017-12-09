@@ -10,14 +10,6 @@ namespace Happy_Reader
         public string Character { get; }
         public string TranslatedText { get; }
 
-        public TranslationItem(HookInfo context, OriginalTextObject originalText, string translatedText)
-        {
-            RightLabel = $"[{context.ContextId:x}]{context.Name}";
-            OriginalText = originalText;
-            Character = "<>";
-            TranslatedText = translatedText;
-        }
-
         public TranslationItem(string rightLabel, OriginalTextObject originalText, string translatedText)
         {
             RightLabel = rightLabel;

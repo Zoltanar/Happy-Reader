@@ -10,7 +10,6 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Windows;
 using Happy_Reader.Database;
-using Happy_Reader.Properties;
 using Newtonsoft.Json;
 
 namespace Happy_Reader
@@ -22,13 +21,11 @@ namespace Happy_Reader
         private const string ConfigFolder = "Config\\";
         private const string BannedProcessesJson = ConfigFolder + "bannedprocesses.json";
         public const string ProxiesJson = ConfigFolder + "proxies.json";
-        public static SessionSettings Session { get; private set; }
         private static readonly List<string> BannedProcesses;
         public static HappyReaderDatabase Data { get; } = new HappyReaderDatabase();
 
         static StaticMethods()
         {
-            Session = new SessionSettings();
             List<string> result = null;
             try
             {
@@ -44,11 +41,6 @@ namespace Happy_Reader
             {
                 BannedProcesses = result ?? new List<string>();
             }
-        }
-
-        public static void ResetSession()
-        {
-            Session = new SessionSettings();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -122,26 +114,10 @@ namespace Happy_Reader
             }
         }
 
-
         public static TValue GetOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, TValue defaultValue = default(TValue))
         {
             return dict.TryGetValue(key, out TValue result) ? result : defaultValue;
         }
-
-        public static void BanProcess(string processName)
-        {
-            if (processName == null || BannedProcesses.Contains(processName)) return;
-            BannedProcesses.Add(processName);
-            SaveBannedProcesses();
-
-        }
-
-        private static void SaveBannedProcesses()
-        {
-            File.WriteAllText(BannedProcessesJson, JsonConvert.SerializeObject(BannedProcesses, Formatting.Indented));
-        }
-
-        public static bool ProcessIsBanned(string processName) => BannedProcesses.Contains(processName);
 
         public static bool Is64BitProcess(this Process process)
         {
@@ -161,9 +137,7 @@ namespace Happy_Reader
         }
 
         public static bool UserIsSure(string message = "Are you sure?")
-        {
-            return MessageBox.Show(message, "Happy Reader - Confirm", MessageBoxButton.YesNo) == MessageBoxResult.Yes;
-        }
+            => MessageBox.Show(message, "Happy Reader - Confirm", MessageBoxButton.YesNo) == MessageBoxResult.Yes;
 
         public static Process GetClipboardOwner()
         {

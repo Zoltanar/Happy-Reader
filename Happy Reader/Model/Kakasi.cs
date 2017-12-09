@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using Kakasi.NET.Interop;
 
 namespace Happy_Reader
 {

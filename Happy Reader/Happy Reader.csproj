@@ -174,17 +174,6 @@
     <Compile Include="Database\UserGame.cs" />
     <Compile Include="Database\User.cs" />
     <Compile Include="Database\HappyReaderDatabase.cs" />
-    <Compile Include="Model\HookInfo.cs" />
-    <Compile Include="Interop\ContextFactory.cs" />
-    <Compile Include="Interop\DefaultContextFactory.cs" />
-    <Compile Include="Interop\ext\MyContext.cs" />
-    <Compile Include="Interop\ext\MyContextFactory.cs" />
-    <Compile Include="Interop\HookParam.cs" />
-    <Compile Include="Interop\TextHook.cs" />
-    <Compile Include="Interop\TextHookContext.cs" />
-    <Compile Include="Interop\TextHookInterop.cs" />
-    <Compile Include="Interop\TextHookInteropCompat.cs" />
-    <Compile Include="Interop\UserHook.cs" />
     <Compile Include="ViewModel\MainWindowViewModel.cs" />
     <Compile Include="Model\NativeMethods.cs" />
     <Compile Include="View\NotificationWindow.xaml.cs">
@@ -193,7 +182,6 @@
     <Compile Include="View\OutputWindow.xaml.cs">
       <DependentUpon>OutputWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Properties\SessionSettings.cs" />
     <Compile Include="Model\RoleProxy.cs" />
     <Compile Include="Model\StaticMethods.cs" />
     <Compile Include="View\TitledImage.xaml.cs">
@@ -201,7 +189,6 @@
     </Compile>
     <Compile Include="Model\TranslationItem.cs" />
     <Compile Include="Model\Translator.cs" />
-    <Compile Include="Database\GameHook.cs" />
     <Compile Include="View\UserGamePanel.xaml.cs">
       <DependentUpon>UserGamePanel.xaml</DependentUpon>
     </Compile>
@@ -258,9 +245,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="Config\bannedprocesses.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="Config\proxies.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -294,24 +278,14 @@
   <ItemGroup>
     <Content Include="Database\FindDuplicateEntries.sql" />
     <Content Include="Database\ReturnVNRStyleEntries.sql" />
-    <Content Include="Libraries\IHF.dll" />
-    <Content Include="Libraries\IHF_compat.dll" />
-    <Content Include="Libraries\IHF_DLL.dll" />
-    <Content Include="Libraries\ithwrapper.dll" />
-    <Content Include="Libraries\ithwrapper_compat.dll" />
-    <Content Include="Libraries\ITH_Engine.dll" />
-    <Content Include="Libraries\ITH_TLS.dll" />
-    <Content Include="Libraries\vnrcli.dll" />
-    <Content Include="Libraries\vnrclixp.dll" />
-    <Content Include="Libraries\vnreng.dll" />
-    <Content Include="Libraries\vnrengxp.dll" />
     <Resource Include="Resources\logo-copy.ico" />
     <Resource Include="Resources\no-image.gif" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /y /d  "$(ProjectDir)Libraries\*.dll" "$(ProjectDir)$(OutDir)"</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\System.Data.SQLite.Core.1.0.106.0\build\net46\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.106.0\build\net46\System.Data.SQLite.Core.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using Happy_Reader.Properties;
 using Happy_Reader.WinForms;
 
 namespace Happy_Reader
@@ -49,30 +48,11 @@ namespace Happy_Reader
             Top = bottom;
             Width = width;
         }
-
-        public void SetTextDebug()
-        {
-            CharacterLabel.Content = "character name";
-            ContextLabel.Content = "context details";
-            StringBuilder htmlBuilder = new StringBuilder();
-            htmlBuilder.Append(@"<h1><strong><span style=""color: #00ff00;""><ruby>皐月<rt>gogatsu/satsuki</rt></ruby> Satsuki</span></strong></h1>");
-            _webBrowser.WebBrowser.DocumentText = htmlBuilder.ToString();
-        }
-
-        public void SetTextDebug(string character, string right, string content)
-        {
-            if (!IsVisible) Show();
-            CharacterLabel.Content = character;
-            ContextLabel.Content = right;
-            StringBuilder htmlBuilder = new StringBuilder();
-            htmlBuilder.Append($@"<h1><strong><span style=""color: #00ff00;"">{content}</span></strong></h1>");
-            _webBrowser.WebBrowser.DocumentText = htmlBuilder.ToString();
-        }
-
+        
         private void Window_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             DragMove();
-            SessionSettings.SetGameWindowCoords(Left, Top, Width, Height);
+            //SetGameWindowCoords(Left, Top, Width, Height);
         }
     }
 }

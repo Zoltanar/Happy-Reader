@@ -1,8 +1,10 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
+// ReSharper disable UnusedMember.Global
 
 namespace HRGoogleTranslate
 {
+
     public class Translation
     {
 
@@ -18,7 +20,7 @@ namespace HRGoogleTranslate
             Output = output;
             Timestamp = DateTime.UtcNow;
         }
-
+        
         public Translation() { }
     }
 }

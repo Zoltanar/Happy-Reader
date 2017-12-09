@@ -10,11 +10,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
 using System.Windows;
-using System.Windows.Controls;
 using Happy_Reader.Database;
-using Happy_Reader.Interop;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using static Happy_Reader.StaticMethods;
@@ -30,12 +27,8 @@ namespace Happy_Reader
     {
         public User User { get; private set; }
         public Game Game { get; private set; }
-
-#pragma warning disable 67
+        
         public NotificationEventHandler NotificationEvent;
-#pragma warning restore 67
-        public ObservableCollection<HookInfo> ContextsList { get; }
-        public ObservableCollection<ComboBoxItem> ProcessList { get; }
         public ObservableCollection<dynamic> EntriesList { get; }
         public ObservableCollection<TitledImage> UserGameItems { get; set; } = new ObservableCollection<TitledImage>();
         public TranslationTester Tester { get; set; } = new TranslationTester();
@@ -54,7 +47,6 @@ namespace Happy_Reader
         private OutputWindow _outputWindow;
 
         private bool _onlyGameEntries;
-        private bool _eventsSetUp;
         private bool _closingDone;
         private Process _hookedProcess;
         public ClipboardManager ClipboardManager;
@@ -149,12 +141,8 @@ namespace Happy_Reader
 
         public MainWindowViewModel()
         {
-            ContextsList = new ObservableCollection<HookInfo>();
             EntriesList = new ObservableCollection<dynamic>();
-            ProcessList = new ObservableCollection<ComboBoxItem>();
-            SetProcesses();
             SetEntries();
-            HookInfo.SaveAllowedStatus += SaveAllowedStatus;
             Application.Current.Exit += SaveCacheOnExit;
         }
 
@@ -167,49 +155,6 @@ namespace Happy_Reader
                 Data.CachedTranslations.Add(translation);
             }
             Data.SaveChanges();
-        }
-
-        private void SetProcesses()
-        {
-            ProcessList.Clear();
-            foreach (var process in Process.GetProcesses())
-            {
-                if (ProcessIsBanned(process.ProcessName)) continue;
-                ProcessList.Add(new ComboBoxItem
-                {
-                    Content = process.ProcessName,
-                    Tag = process
-                });
-            }
-        }
-
-
-        public bool TrySaveSettings(string user, string game, out string response)
-        {
-            if (string.IsNullOrWhiteSpace(user))
-            {
-                response = "Username is required.";
-                return false;
-            }
-            if (string.IsNullOrWhiteSpace(game))
-            {
-                response = "Game name is required.";
-                return false;
-            }
-            User = Data.GetUser(user);
-            if (User == null)
-            {
-                response = "User not found.";
-                return false;
-            }
-            Game = Data.GetGameByName(game);
-            if (Game == null)
-            {
-                response = "User not found.";
-                return false;
-            }
-            response = "Settings saved.";
-            return true;
         }
 
         public string Translate(string currentText, out OriginalTextObject originalText)
@@ -273,41 +218,7 @@ namespace Happy_Reader
 
             return sb.ToString();
         }
-
-        public void BanProcess([NotNull]string processName)
-        {
-            for (int index = ProcessList.Count - 1; index >= 0; index--)
-            {
-                if ((ProcessList[index].Tag as Process)?.ProcessName == processName) ProcessList.RemoveAt(index);
-            }
-            StaticMethods.BanProcess(processName);
-        }
-
-        public void Hook([NotNull]Process process)
-        {
-            TextHookInteropCompat.TextHookInit();
-            var res11 = TextHook.instance.init(false);
-            if (res11 == 1001)
-            {
-                TextHookInteropCompat.TextHookDisconnect();
-                var res12 = TextHook.instance.init(false);
-                if (res12 == 1001) throw new Exception("Hook already running.");
-            }
-            _hookedProcess = process;
-            if (_hookedProcess == null) throw new Exception("Process was not started.");
-            _hookedProcess.WaitForInputIdle(5000);
-            if (!TextHook.instance.connect(_hookedProcess.Id)) /* TODO log error*/ return;
-            ConnectSuccess();
-            if (_outputWindow == null) _outputWindow = new OutputWindow();
-            var gameSet = SetGame(process.MainModule.FileName);
-            if (!gameSet) throw new Exception("Couldn't set or create game.");
-
-            foreach (var hook in Game.Hooks)
-            {
-                ContextsList.Add(new HookInfo(hook.Context, hook.Name, PrintSentence, hook.Allowed));
-            }
-        }
-
+        
         public void HookV2([NotNull]Process process, UserGame userGame)
         {
             _hookedProcess = process;
@@ -316,72 +227,7 @@ namespace Happy_Reader
             var gameSet = SetGame(process.MainModule.FileName);
             if (!gameSet) throw new Exception("Couldn't set or create game.");
         }
-
-        private readonly object _dataLock = new object();
-        private void SaveAllowedStatus(object sender, AllowedStatusEventArgs args)
-        {
-            lock (_dataLock)
-            {
-                var hook = Data.GameHooks.SingleOrDefault(i => i.GameId == Game.Id && i.Context == args.ContextId);
-                if (hook == null)
-                {
-                    hook = new GameHook
-                    {
-                        Allowed = args.Allowed,
-                        Context = args.ContextId,
-                        GameId = Game.Id,
-                        Name = args.Name
-                    };
-                    Data.GameHooks.Add(hook);
-                }
-                else hook.Allowed = args.Allowed;
-                Data.SaveChanges();
-            }
-
-        }
-
-        private void ConnectSuccess()
-        {
-            if (_eventsSetUp) return;
-            _eventsSetUp = true;
-            TextHook.instance.onNewContext += ctx =>
-            {
-                ctx.onSentence += Ctx_onSentence;
-            };
-            TextHook.instance.onDisconnect += () =>
-            {
-                //webBrowser1.callScript("disconnect");
-                //TranslationForm.instance.Close();
-            };
-        }
-
-        private readonly object _gccLock = new object();
-
-        private void Ctx_onSentence(TextHookContext sender, string text)
-        {
-            var context = GetOrCreateContext(new HookInfo(sender.context, sender.name, PrintSentence));
-            if (context == null || !context.Allowed) return;
-            Debug.WriteLine($"Time {DateTime.Now:O}\t{text}");
-            context.Timer.Stop();
-            context.Timer.Start();
-            context.AddText(text);
-            context.Text.Append(text);
-
-            HookInfo GetOrCreateContext(HookInfo hookInfo)
-            {
-                HookInfo result;
-                lock (_gccLock)
-                {
-                    result = ContextsList.SingleOrDefault(i => i.ContextId == hookInfo.ContextId);
-                    if (result != null) return result;
-                    if (hookInfo.Name.Equals("UserHook", StringComparison.OrdinalIgnoreCase)) hookInfo.Allowed = true;
-                    Application.Current.Dispatcher.Invoke(() => ContextsList.Add(hookInfo));
-                }
-                result = hookInfo;
-                return result;
-            }
-        }
-
+        
         private void SetOutputText(TranslationItem translationItem)
         {
             var windowHandle = _hookedProcess.MainWindowHandle;
@@ -394,19 +240,7 @@ namespace Happy_Reader
                 _outputWindow.SetText(translationItem);
             });
         }
-
-        private void PrintSentence(object sender, ElapsedEventArgs e)
-        {
-            var timer = (NamedTimer)sender;
-            timer.Stop();
-            var context = ContextsList.Single(i => i.ContextId == timer.Context);
-            context.DisplayText = context.Text.ToString();
-            var translated = Translate(context.Text.ToString(), out OriginalTextObject originalText);
-            Console.WriteLine($@"[{context.ContextId:x}]{context.Name}: {context.Text} > {translated}");
-            SetOutputText(new TranslationItem(context, originalText, translated));
-            context.ClearText();
-        }
-
+        
         public void Closing()
         {
             foreach (var translation in HRGoogleTranslate.GoogleTranslate.GetCache())
