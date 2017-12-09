@@ -163,6 +163,7 @@
     </ApplicationDefinition>
     <Compile Include="Database\Log.cs" />
     <Compile Include="Model\ClipboardManager.cs" />
+    <Compile Include="Model\Kakasi.cs" />
     <Compile Include="ViewModel\TranslationTester.cs" />
     <Compile Include="View\AddEntryControl.xaml.cs">
       <DependentUpon>AddEntryControl.xaml</DependentUpon>
@@ -284,6 +285,10 @@
     <ProjectReference Include="..\HRGoogleTranslate\HRGoogleTranslate.csproj">
       <Project>{e78de42e-834a-4baa-8e7f-c876d2be8a01}</Project>
       <Name>HRGoogleTranslate</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Kakasi.NET.Interop\Kakasi.NET.Interop.csproj">
+      <Project>{67f3daa6-417d-4f5d-81c4-a191b04f917b}</Project>
+      <Name>Kakasi.NET.Interop</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

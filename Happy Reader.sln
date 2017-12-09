@@ -10,11 +10,14 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B62534BD-0FB1-4832-A7C7-A5543B16582F}"
 	ProjectSection(SolutionItems) = preProject
 		Goals.txt = Goals.txt
+		KakasiDocumentation.pdf = KakasiDocumentation.pdf
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Happy Apps Core", "HappySearchObjectClasses\Happy Apps Core.csproj", "{C5E4C647-35BA-4525-B78A-F2263A628A5A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Happy Reader Tests", "Happy Reader Tests\Happy Reader Tests.csproj", "{7A6BCB6F-0F0E-4B6B-BDEF-29760583601A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kakasi.NET.Interop", "Kakasi.NET.Interop\Kakasi.NET.Interop.csproj", "{67F3DAA6-417D-4F5D-81C4-A191B04F917B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -74,6 +77,18 @@ Global
 		{7A6BCB6F-0F0E-4B6B-BDEF-29760583601A}.Release|x64.Build.0 = Release|Any CPU
 		{7A6BCB6F-0F0E-4B6B-BDEF-29760583601A}.Release|x86.ActiveCfg = Release|Any CPU
 		{7A6BCB6F-0F0E-4B6B-BDEF-29760583601A}.Release|x86.Build.0 = Release|Any CPU
+		{67F3DAA6-417D-4F5D-81C4-A191B04F917B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67F3DAA6-417D-4F5D-81C4-A191B04F917B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67F3DAA6-417D-4F5D-81C4-A191B04F917B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{67F3DAA6-417D-4F5D-81C4-A191B04F917B}.Debug|x64.Build.0 = Debug|Any CPU
+		{67F3DAA6-417D-4F5D-81C4-A191B04F917B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{67F3DAA6-417D-4F5D-81C4-A191B04F917B}.Debug|x86.Build.0 = Debug|Any CPU
+		{67F3DAA6-417D-4F5D-81C4-A191B04F917B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67F3DAA6-417D-4F5D-81C4-A191B04F917B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67F3DAA6-417D-4F5D-81C4-A191B04F917B}.Release|x64.ActiveCfg = Release|Any CPU
+		{67F3DAA6-417D-4F5D-81C4-A191B04F917B}.Release|x64.Build.0 = Release|Any CPU
+		{67F3DAA6-417D-4F5D-81C4-A191B04F917B}.Release|x86.ActiveCfg = Release|Any CPU
+		{67F3DAA6-417D-4F5D-81C4-A191B04F917B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
