@@ -1,10 +1,11 @@
-﻿using System.Data.Entity;
+﻿using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using HRGoogleTranslate;
 
 namespace Happy_Reader.Database
 {
-    
+
 
     public class HappyReaderDatabase : DbContext
     {
@@ -20,7 +21,7 @@ namespace Happy_Reader.Database
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<Translation> CachedTranslations { get; set; }
         public virtual DbSet<Log> Logs { get; set; }
-        public string[] UserGameProcesses => UserGames.Where(x => x != null).Select(x=>x.ProcessName).ToArray();
+        public string[] UserGameProcesses => UserGames.Where(x => x != null).Select(x => x.ProcessName).ToArray();
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -37,6 +38,74 @@ namespace Happy_Reader.Database
         /// </summary>
         public Game GetGameByName(string name) => Games.FirstOrDefault(i => i.Title == name) ?? Games.FirstOrDefault(i => i.RomajiTitle == name);
 
+        public IEnumerable<dynamic> GetGameOnlyEntries(Game game)
+        {
+            var entryItems = from i in Entries
+                             where i.GameId == game.Id
+                             from user in Users
+                             where i.UserId == user.Id
+                             from gameItem in Games
+                             where i.GameId == gameItem.Id
+                             select new
+                             {
+                                 i.Id,
+                                 User = user.Id,
+                                 i.Type,
+                                 Game = gameItem.RomajiTitle ?? gameItem.Title,
+                                 Role = i.RoleString,
+                                 i.Input,
+                                 i.Output,
+                                 i.SeriesSpecific,
+                                 i.Private
+                             };
+            return entryItems;
+        }
+
+        public IEnumerable<dynamic> GetSeriesOnlyEntries(Game game)
+        {
+            var series = Games.Where(i => i.Series == game.Series).Select(i => i.Id).ToList();
+            var entryItems = from i in Entries
+                             where series.Contains(i.GameId.Value)
+                             from user in Users
+                             where i.UserId == user.Id
+                             from gameItem in Games
+                             where i.GameId == gameItem.Id
+                             select new
+                             {
+                                 i.Id,
+                                 User = user.Id,
+                                 i.Type,
+                                 Game = gameItem.RomajiTitle ?? gameItem.Title,
+                                 Role = i.RoleString,
+                                 i.Input,
+                                 i.Output,
+                                 i.SeriesSpecific,
+                                 i.Private
+                             };
+            return entryItems;
+        }
+
+        public IQueryable<dynamic> GetAllEntries()
+        {
+            var entryItems = from i in Entries
+                from user in Users
+                where i.UserId == user.Id
+                from game in Games
+                where i.GameId == game.Id
+                select new
+                {
+                    i.Id,
+                    User = user.Id,
+                    i.Type,
+                    Game = game.RomajiTitle ?? game.Title,
+                    Role = i.RoleString,
+                    i.Input,
+                    i.Output,
+                    i.SeriesSpecific,
+                    i.Private
+                };
+            return entryItems;
+        }
     }
 
     public enum EntryType

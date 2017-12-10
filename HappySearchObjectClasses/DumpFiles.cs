@@ -85,7 +85,7 @@ namespace Happy_Apps_Core
 
             /// <summary>Returns name of tag in the form of Root > Trait (e.g. Hair > Green)</summary>
             public override string ToString() => $"{TopmostParentName} > {Name}";
-            
+
             public void SetTopmostParent(List<WrittenTrait> plainTraits)
             {
                 if (Parents.Count == 0)
@@ -116,13 +116,25 @@ namespace Happy_Apps_Core
         /// </summary>
         public static List<WrittenTrait> PlainTraits { get; private set; }
 
+        private const int MaxTries = 5;
+
         private static bool GetNewDumpFiles()
         {
-            const int maxTries = 5;
+            bool b1 = GetTagdump();
+            //traitdump section
+            bool b2 = GetTraitdump();
+            return b1 || b2;
+        }
+
+        /// <summary>
+        /// Return true if a new file was downloaded
+        /// </summary>
+        private static bool GetTagdump()
+        {
             int tries = 0;
             bool complete = false;
             //tagdump section
-            while (!complete && tries < maxTries)
+            while (!complete && tries < MaxTries)
             {
                 if (File.Exists(TagsJsonGz)) continue;
                 tries++;
@@ -144,12 +156,23 @@ namespace Happy_Apps_Core
                 }
             }
             //load default file if new one couldnt be received or for some reason doesn't exist.
-            if (!complete || !File.Exists(TagsJson)) LoadTagdump(true);
-            else LoadTagdump();
-            //traitdump section
-            tries = 0;
-            complete = false;
-            while (!complete && tries < maxTries)
+            if (!complete || !File.Exists(TagsJson))
+            {
+                LoadTagdump(true);
+                return false;
+            }
+            LoadTagdump();
+            return true;
+        }
+
+        /// <summary>
+        /// Return true if a new file was downloaded
+        /// </summary>
+        private static bool GetTraitdump()
+        {
+            int tries = 0;
+            bool complete = false;
+            while (!complete && tries < MaxTries)
             {
                 if (File.Exists(TraitsJsonGz)) continue;
                 tries++;
@@ -174,11 +197,8 @@ namespace Happy_Apps_Core
                 LoadTraitdump(true);
                 return false;
             }
-            else
-            {
-                LoadTraitdump();
-                return true;
-            }
+            LoadTraitdump();
+            return true;
         }
 
         /// <summary>

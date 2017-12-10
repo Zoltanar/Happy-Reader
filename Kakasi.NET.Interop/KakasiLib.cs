@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Kakasi.NET.Interop
+namespace KakasiNET
 {
     /// <summary>
     /// Kakasi library wrapper, taken as is from https://github.com/linguanostra/Kakasi.NET/tree/cca815915c7f616252c40eac7d16e2e247d4b429

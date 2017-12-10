@@ -10,7 +10,6 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Windows;
 using Happy_Reader.Database;
-using Newtonsoft.Json;
 
 namespace Happy_Reader
 {
@@ -19,27 +18,19 @@ namespace Happy_Reader
         public delegate void NotificationEventHandler(object sender, string message, string title = null);
 
         private const string ConfigFolder = "Config\\";
-        private const string BannedProcessesJson = ConfigFolder + "bannedprocesses.json";
         public const string ProxiesJson = ConfigFolder + "proxies.json";
-        private static readonly List<string> BannedProcesses;
         public static HappyReaderDatabase Data { get; } = new HappyReaderDatabase();
 
         static StaticMethods()
         {
-            List<string> result = null;
             try
             {
                 Directory.CreateDirectory(ConfigFolder);
-                result = JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(BannedProcessesJson));
             }
             catch (Exception)
             {
                 //TODO log error
 
-            }
-            finally
-            {
-                BannedProcesses = result ?? new List<string>();
             }
         }
 

@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Happy Apps Core", "HappySea
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Happy Reader Tests", "Happy Reader Tests\Happy Reader Tests.csproj", "{7A6BCB6F-0F0E-4B6B-BDEF-29760583601A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kakasi.NET.Interop", "Kakasi.NET.Interop\Kakasi.NET.Interop.csproj", "{67F3DAA6-417D-4F5D-81C4-A191B04F917B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KakasiNET", "Kakasi.NET.Interop\KakasiNET.csproj", "{67F3DAA6-417D-4F5D-81C4-A191B04F917B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

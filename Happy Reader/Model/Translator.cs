@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Happy_Reader.Database;
+using HRGoogleTranslate;
 using static Happy_Reader.StaticMethods;
 #if LOGVERBOSE
 using System.Diagnostics;
@@ -24,35 +25,40 @@ namespace Happy_Reader
         private static Entry[]_lastEntries;
         public static bool RefreshEntries;
         
-        public static string[] TestTranslate(User user, Game game, string input, out OriginalTextObject originalText)
+        public static string[] Translate(User user, Game game, string input, out OriginalTextObject originalText)
         {
             //Debug.WriteLine($"'{input}' > 'Debug: Not translating.'");
             //return "Debug: Not translating.";
             lock (TranslateLock)
             {
-                var item = new TranslationObject();
-                int index = 0;
-                string currentPart = "";
-                while (index < input.Length)
+                try
                 {
-                    var @char = input[index];
-                    if ("『「」』。？".Contains(@char) && currentPart.Length != 0)
+                    Kakasi.Init();
+                    var item = new TranslationObject();
+                    int index = 0;
+                    string currentPart = "";
+                    while (index < input.Length)
                     {
-                        item.Parts.Add((currentPart, !currentPart.All(c=> "『「」』。？".Contains(c))));
-                        item.Parts.Add((@char.ToString(), false));
-                        currentPart = "";
-                        index++;
-                        continue;
+                        var @char = input[index];
+                        if ("『「」』。？".Contains(@char) && currentPart.Length != 0)
+                        {
+                            item.Parts.Add((currentPart, !currentPart.All(c => "『「」』。？".Contains(c))));
+                            item.Parts.Add((@char.ToString(), false));
+                            currentPart = "";
+                            index++;
+                            continue;
 
+                        }
+                        currentPart += @char;
+                        index++;
                     }
-                    currentPart += @char;
-                    index++;
+                    if (currentPart.Length > 0) item.Parts.Add((currentPart, currentPart.All(c => "『「」』。？".Contains(c))));
+                    if (user != _lastUser || game != _lastGame || RefreshEntries) SetEntries(user, game);
+                    item.TranslateParts();
+                    originalText = item.Original;
+                    return item.Results;
                 }
-                if(currentPart.Length > 0) item.Parts.Add((currentPart, currentPart.All(c => "『「」』。？".Contains(c))));
-                if (user != _lastUser || game != _lastGame || RefreshEntries) SetEntries(user, game);
-                item.TranslateParts();
-                originalText = item.Original;
-                return item.Results;
+                finally {Kakasi.Deinit();}
             }
         }
 
@@ -73,35 +79,27 @@ namespace Happy_Reader
             {
                 generalEntries =
                     Data.Entries.Where(e =>
-                            //entry is not private
                             !e.Private &&
-                            //entry is not series specific
                             !e.SeriesSpecific).ToArray();
             }
             else
             {
                 generalEntries =
                     Data.Entries.Where(e =>
-                            //entry is not private
                             (e.Private && e.UserId == user.Id || !e.Private) &&
-                            //entry is not series specific
                             !e.SeriesSpecific).ToArray();
             }
             Entry[] specificEntries = { };
             if (user == null && gamesInSeries != null)
             {
                 specificEntries = Data.Entries.Where(e =>
-                            //entry is not private
                             !e.Private &&
-                            //entry is series specific and is for a game in series
                             e.SeriesSpecific && gamesInSeries.Contains(e.GameId.Value)).ToArray();
             }
             else if (gamesInSeries != null)
             {
                 specificEntries = Data.Entries.Where(e =>
-                        //entry is not private
                         (e.Private && e.UserId == user.Id || !e.Private) &&
-                        //entry is series specific and is for a game in series
                         e.SeriesSpecific && gamesInSeries.Contains(e.GameId.Value)).ToArray();
             }
             _lastEntries = generalEntries.Concat(specificEntries).OrderBy(i => i.Id).ToArray();
@@ -131,8 +129,7 @@ namespace Happy_Reader
             Debug.WriteLine($"Stage 2: {sb}");
 #endif
         }
-
-
+        
         /// <summary>
         /// Replace entries of type Yomi.
         /// </summary>
@@ -143,8 +140,7 @@ namespace Happy_Reader
             Debug.WriteLine($"Stage 3: {sb}");
 #endif
         }
-
-
+        
         /// <summary>
         /// Replace entries of type Name and translation to proxies.
         /// </summary>
@@ -195,9 +191,6 @@ namespace Happy_Reader
             //perform replaces involving proxies
             var entriesOnProxies = entries.Where(i => i.Type == EntryType.ProxyMod).ToArray();
             TranslateStage4P1(sb, usefulEntriesWithProxies, entriesOnProxies);
-#if LOGVERBOSE
-            Debug.WriteLine($"Stage 4.1: {sb}");
-#endif
             foreach (var entry in usefulEntriesWithProxies)
             {
                 sb.LogReplace(entry.AssignedProxy.FullRoleString, entry.AssignedProxy.Entry.Input, entry.Id);
@@ -221,20 +214,11 @@ namespace Happy_Reader
                 var output = new Regex(@"^.*?\[\[(.+)]].*?$").Replace(entry.Output, @"[[$1#$$1]]");
                 sb.LogReplaceRegex(input, output, entry.Id);
             }
+#if LOGVERBOSE
+            Debug.WriteLine($"Stage 4.1: {sb}");
+#endif
         }
-
-        private class ProxiesWithCount
-        {
-            public Queue<RoleProxy> Proxies { get; }
-            public int Count { get; set; }
-
-            public ProxiesWithCount(IEnumerable<RoleProxy> proxies)
-            {
-                Proxies = new Queue<RoleProxy>(proxies);
-                Count = 0;
-            }
-        }
-
+        
         private static string[] Translate(string input, out OriginalTextObject originalText)
         {
             var result = new string[8];
@@ -265,7 +249,7 @@ namespace Happy_Reader
                 throw new Exception("Error in TranslateStageFour, see inner", ex);
             }
             result[4] = sb.ToString();
-            HRGoogleTranslate.GoogleTranslate.Translate(sb);
+            GoogleTranslate.Translate(sb);
 #if LOGVERBOSE
             Debug.WriteLine($"Stage 5: {sb}");
 #endif
@@ -308,7 +292,22 @@ namespace Happy_Reader
             Debug.WriteLine($"Stage 7: {sb}");
 #endif
         }
+        
+        /// <summary>
+        /// Loads cache with passed collection.
+        /// </summary>
+        public static void LoadTranslationCache(IEnumerable<Translation> cachedTranslations)
+        {
+            GoogleTranslate.LoadCache(cachedTranslations);
+        }
 
+        /// <summary>
+        /// Gets current cache in Translator.
+        /// </summary>
+        public static IEnumerable<Translation> GetCache()
+        {
+            return GoogleTranslate.GetCache();
+        }
 
         private class TranslationObject
         {
@@ -348,6 +347,18 @@ namespace Happy_Reader
                     LogToConsole(ex.Message); //todo log to file
                 }
 
+            }
+        }
+
+        private class ProxiesWithCount
+        {
+            public Queue<RoleProxy> Proxies { get; }
+            public int Count { get; set; }
+
+            public ProxiesWithCount(IEnumerable<RoleProxy> proxies)
+            {
+                Proxies = new Queue<RoleProxy>(proxies);
+                Count = 0;
             }
         }
     }

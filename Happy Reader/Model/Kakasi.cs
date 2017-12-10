@@ -1,15 +1,10 @@
 ﻿using System.Linq;
-
+using KakasiNET;
 namespace Happy_Reader
 {
     static class Kakasi
     {
         private static bool _initialized;
-        static Kakasi()
-        {
-            KakasiLib.Init();
-            _initialized = true;
-        }
 
         public static void Init()
         {

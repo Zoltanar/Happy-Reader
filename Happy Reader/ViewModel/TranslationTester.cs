@@ -28,7 +28,7 @@ namespace Happy_Reader
 
         public void Test(User user, Game game)
         {
-            var result = Translator.TestTranslate(user, game, OriginalText, out _);
+            var result = Translator.Translate(user, game, OriginalText, out _);
             Stage1 = result[1];
             Stage2 = result[2];
             Stage3 = result[3];

@@ -64,78 +64,11 @@ namespace Happy_Reader
 
         private void SetEntries()
         {
-            var items = OnlyGameEntries && Game != null ? (string.IsNullOrWhiteSpace(Game.Series) ? GetGameOnlyItems() : GetSeriesOnlyItems()) : GetItems();
+            var items = OnlyGameEntries && Game != null ? (string.IsNullOrWhiteSpace(Game.Series) ? Data.GetGameOnlyEntries(Game) : Data.GetSeriesOnlyEntries(Game)) : Data.GetAllEntries();
             EntriesList.Clear();
             foreach (var item in items)
             {
                 EntriesList.Add(item);
-            }
-
-            IQueryable<dynamic> GetItems()
-            {
-                var entryItems = from i in Data.Entries
-                                 from user in Data.Users
-                                 where i.UserId == user.Id
-                                 from game in Data.Games
-                                 where i.GameId == game.Id
-                                 select new
-                                 {
-                                     i.Id,
-                                     User = user.Id,
-                                     i.Type,
-                                     Game = game.RomajiTitle ?? game.Title,
-                                     Role = i.RoleString,
-                                     i.Input,
-                                     i.Output,
-                                     i.SeriesSpecific,
-                                     i.Private
-                                 };
-                return entryItems;
-            }
-            IQueryable<dynamic> GetGameOnlyItems()
-            {
-                var entryItems = from i in Data.Entries
-                                 where i.GameId == Game.Id
-                                 from user in Data.Users
-                                 where i.UserId == user.Id
-                                 from game in Data.Games
-                                 where i.GameId == game.Id
-                                 select new
-                                 {
-                                     i.Id,
-                                     User = user.Id,
-                                     i.Type,
-                                     Game = game.RomajiTitle ?? game.Title,
-                                     Role = i.RoleString,
-                                     i.Input,
-                                     i.Output,
-                                     i.SeriesSpecific,
-                                     i.Private
-                                 };
-                return entryItems;
-            }
-            IQueryable<dynamic> GetSeriesOnlyItems()
-            {
-                var series = Data.Games.Where(i => i.Series == Game.Series).Select(i => i.Id).ToList();
-                var entryItems = from i in Data.Entries
-                                 where series.Contains(i.GameId.Value)
-                                 from user in Data.Users
-                                 where i.UserId == user.Id
-                                 from game in Data.Games
-                                 where i.GameId == game.Id
-                                 select new
-                                 {
-                                     i.Id,
-                                     User = user.Id,
-                                     i.Type,
-                                     Game = game.RomajiTitle ?? game.Title,
-                                     Role = i.RoleString,
-                                     i.Input,
-                                     i.Output,
-                                     i.SeriesSpecific,
-                                     i.Private
-                                 };
-                return entryItems;
             }
         }
 
@@ -149,7 +82,7 @@ namespace Happy_Reader
         public void SaveCacheOnExit(object sender, ExitEventArgs args)
         {
             if (_closingDone) return;
-            foreach (var translation in HRGoogleTranslate.GoogleTranslate.GetCache())
+            foreach (var translation in Translator.GetCache())
             {
                 if (Data.CachedTranslations.Local.Contains(translation)) continue;
                 Data.CachedTranslations.Add(translation);
@@ -161,7 +94,7 @@ namespace Happy_Reader
         {
             originalText = new OriginalTextObject();
             if (Game == null) return "User or Game is null.";
-            var returned = Translator.TestTranslate(User, Game, currentText, out originalText);
+            var returned = Translator.Translate(User, Game, currentText, out originalText);
             return returned.Last();
         }
 
@@ -243,7 +176,7 @@ namespace Happy_Reader
         
         public void Closing()
         {
-            foreach (var translation in HRGoogleTranslate.GoogleTranslate.GetCache())
+            foreach (var translation in Translator.GetCache())
             {
                 if (Data.CachedTranslations.Local.Contains(translation)) continue;
                 Data.CachedTranslations.Add(translation);
@@ -291,7 +224,7 @@ namespace Happy_Reader
             await Task.Run(() =>
             {
                 Data.CachedTranslations.Load();
-                HRGoogleTranslate.GoogleTranslate.LoadCache(Data.CachedTranslations.Local);
+                Translator.LoadTranslationCache(Data.CachedTranslations.Local);
                 User = Data.Users.Single(x => x.Id == 0);
                 StatusText = "Populating Proxies...";
                 PopulateProxies();
@@ -359,11 +292,7 @@ namespace Happy_Reader
                             userGame.Process = process;
                             HookV2(process, userGame);
                         }
-                        catch (InvalidOperationException ex)
-                        {
-                            // ReSharper disable once RedundantJumpStatement
-                            continue;
-                        } //can happen if process is closed after getting reference
+                        catch (InvalidOperationException){} //can happen if process is closed after getting reference
                     }
                     Thread.Sleep(5000);
                 }
@@ -411,6 +340,19 @@ namespace Happy_Reader
         }
 
         private string CheckRepeatedString(string text)
+        {
+            //check if repeated after name
+            var firstBracket = text.IndexOfAny(new [] {'「', '『'});
+            if (firstBracket > 0)
+            {
+                var name = text.Substring(0, firstBracket);
+                var checkText = text.Substring(firstBracket);
+                return name + ReduceRepeatedString(checkText);
+            }
+            return ReduceRepeatedString(text);
+        }
+
+        private string ReduceRepeatedString(string text)
         {
             if (text.Length % 2 != 0) return text;
             var halfLength = text.Length / 2;
