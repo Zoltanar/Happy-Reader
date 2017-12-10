@@ -8,6 +8,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text.RegularExpressions;
@@ -169,7 +170,7 @@ namespace Happy_Apps_Core
             }
             catch (Exception e)
             {
-                LogToFile("Couldn't save object to file", e);
+                LogToFile(e);
             }
         }
 
@@ -185,7 +186,7 @@ namespace Happy_Apps_Core
             }
             catch (Exception e)
             {
-                LogToFile("Couldn't save object to file", e);
+                LogToFile(e);
                 returned = default(T);
             }
             return returned;
@@ -235,27 +236,27 @@ namespace Happy_Apps_Core
                 writer.WriteLine(message);
             }
         }
-
+        
         /// <summary>
         /// Print exception to Debug and write it to log file.
         /// </summary>
-        /// <param name="header">Human-given location or reason for error</param>
         /// <param name="exception">Exception to be written to file</param>
-        public static void LogToFile(string header, Exception exception)
+        /// <param name="source">Source of error, CallerMemberName by default</param>
+        public static void LogToFile(Exception exception,[CallerMemberName]string source = null)
         {
-            Debug.Print(header);
+            Debug.Print($"Source: {source}");
             Debug.Print(exception.Message);
             Debug.Print(exception.StackTrace);
-						int counter = 0;
-						while (IsFileLocked(new FileInfo(LogFile)))
-						{
-						  counter++;
-						  if (counter > 5) throw new IOException("Logfile is locked!");
-						  Thread.Sleep(25);
-						}
-						using (var writer = new StreamWriter(LogFile, true))
+            int counter = 0;
+            while (IsFileLocked(new FileInfo(LogFile)))
             {
-                writer.WriteLine(header);
+                counter++;
+                if (counter > 5) throw new IOException("Logfile is locked!");
+                Thread.Sleep(25);
+            }
+            using (var writer = new StreamWriter(LogFile, true))
+            {
+                writer.WriteLine($"Source: {source}");
                 writer.WriteLine(exception.Message);
                 writer.WriteLine(exception.StackTrace);
             }
@@ -514,7 +515,7 @@ namespace Happy_Apps_Core
             catch (Exception ex)
             when (ex is NotSupportedException || ex is ArgumentNullException || ex is SecurityException || ex is UriFormatException || ex is ExternalException)
             {
-                LogToFile("SaveImage Error", ex);
+                LogToFile(ex);
             }
         }
 
@@ -595,7 +596,7 @@ namespace Happy_Apps_Core
             }
             catch (Exception ex) when (ex is NotSupportedException || ex is ArgumentNullException || ex is SecurityException || ex is UriFormatException)
             {
-                LogToFile("SaveImageAsync Error", ex);
+                LogToFile(ex);
             }
         }
 

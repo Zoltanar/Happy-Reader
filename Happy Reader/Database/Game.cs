@@ -28,5 +28,8 @@ namespace Happy_Reader.Database
         public bool Okazu { get; set; }
         // ReSharper disable once InconsistentNaming
         public string SDArtists { get; set; }
+        [NotMapped]
+        public string DisplayName => ToString();
+        public override string ToString() => RomajiTitle ?? Title;
     }
 }

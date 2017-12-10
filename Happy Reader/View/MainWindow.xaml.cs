@@ -53,7 +53,7 @@ namespace Happy_Reader
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             await _viewModel.Loaded();
-            _viewModel.InitClipboardManager(this);
+            _viewModel.ClipboardManager = new ClipboardManager(this);
         }
 
         private void AddEntry_Click(object sender, RoutedEventArgs e)
@@ -65,6 +65,7 @@ namespace Happy_Reader
                 Content = new AddEntryControl(_viewModel)
             };
             MainTabControl.Items.Add(tabItem);
+            MainTabControl.SelectedItem = tabItem;
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)

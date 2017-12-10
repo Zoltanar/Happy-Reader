@@ -60,7 +60,7 @@ namespace Happy_Apps_Core
             }
             catch (JsonException exception)
             {
-                LogToFile("CoreSettings.Load Error", exception);
+                LogToFile(exception, "CoreSettings.Load Error");
                 return new CoreSettings();
             }
             return settings;
@@ -75,7 +75,7 @@ namespace Happy_Apps_Core
             }
             catch (JsonException exception)
             {
-                LogToFile("CoreSettings.Save", exception);
+                LogToFile(exception, "CoreSettings.Save");
             }
         }
     }

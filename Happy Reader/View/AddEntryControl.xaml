@@ -48,7 +48,7 @@
                 <CheckBox x:Name="PrivateChb" Content="Private" VerticalAlignment="Center"  Height="Auto" Width="Auto" Grid.Column="0" />
                 <CheckBox x:Name="SeriesSpecificChb" Content="Series-Specific" VerticalAlignment="Center" Height="Auto" Width="Auto" Grid.Column="1" />
                 <CheckBox x:Name="RegexChb" Content="Regex" VerticalAlignment="Center"  Height="Auto" Width="Auto" Grid.Column="2" />
-                <CheckBox x:Name="EnabledChb" Content="Enabled" VerticalAlignment="Center" Height="Auto" Width="Auto" Grid.Column="3" />
+                <CheckBox x:Name="EnabledChb" Content="Enabled" VerticalAlignment="Center" Height="Auto" Width="Auto" Grid.Column="3" IsChecked="True"/>
             </Grid>
         </DockPanel>
         <DockPanel Height="30" LastChildFill="True" Grid.Row="6">

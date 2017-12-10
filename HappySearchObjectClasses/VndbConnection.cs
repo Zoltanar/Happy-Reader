@@ -79,17 +79,17 @@ namespace Happy_Apps_Core
                 }
                 catch (IOException e)
                 {
-                    LogToFile("Conn Open Error", e);
+                    LogToFile( e, "Conn Open Error");
                 }
                 catch (AuthenticationException e)
                 {
-                    LogToFile("Conn Authentication Error", e);
+                    LogToFile(e,"Conn Authentication Error");
                     if (e.InnerException == null) continue;
-                    LogToFile("Conn Authentication Error - Inner", e);
+                    LogToFile(e,"Conn Authentication Error - Inner");
                 }
                 catch (Exception ex) when (ex is ArgumentNullException || ex is InvalidOperationException)
                 {
-                    LogToFile("Conn Other Error", ex);
+                    LogToFile(ex,"Conn Other Error");
                 }
             }
             if (_stream != null && _stream.CanRead) return;
@@ -123,15 +123,15 @@ namespace Happy_Apps_Core
                 }
                 catch (IOException e)
                 {
-                    LogToFile("Conn Open Error", e);
+                    LogToFile(e,"Conn Open Error");
                 }
                 catch (Exception ex) when (ex is ArgumentNullException || ex is InvalidOperationException)
                 {
-                    LogToFile("Conn Other Error", ex);
+                    LogToFile(ex, "Conn Other Error");
                 }
                 catch (Exception otherXException)
                 {
-                    LogToFile("Conn Other2 Error", otherXException);
+                    LogToFile(otherXException, "Conn Other2 Error");
                 }
             }
             if (_stream != null && _stream.CanRead) return;

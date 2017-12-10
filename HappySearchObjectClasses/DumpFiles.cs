@@ -152,7 +152,7 @@ namespace Happy_Apps_Core
                 }
                 catch (Exception e)
                 {
-                    LogToFile("GetNewDumpFiles Error", e);
+                    LogToFile(e);
                 }
             }
             //load default file if new one couldnt be received or for some reason doesn't exist.
@@ -188,7 +188,7 @@ namespace Happy_Apps_Core
                 }
                 catch (Exception e)
                 {
-                    LogToFile("GetNewDumpFiles Error", e);
+                    LogToFile(e);
                 }
             }
             //load default file if new one couldnt be received or for some reason doesn't exist.
@@ -228,7 +228,7 @@ namespace Happy_Apps_Core
                     PlainTags = new List<WrittenTag>();
                     return;
                 }
-                LogToFile($"{TagsJson} could not be read, deleting it and loading default tagdump.", e);
+                LogToFile(e);
                 File.Delete(TagsJson);
                 LoadTagdump(true);
             }
@@ -261,7 +261,7 @@ namespace Happy_Apps_Core
                     PlainTraits = new List<WrittenTrait>();
                     return;
                 }
-                LogToFile($"{TraitsJson} could not be read, deleting it and loading default traitdump.", e);
+                LogToFile(e);
                 File.Delete(TraitsJson);
                 LoadTraitdump(true);
             }

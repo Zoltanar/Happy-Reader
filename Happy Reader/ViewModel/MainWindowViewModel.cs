@@ -62,11 +62,36 @@ namespace Happy_Reader
             }
         }
 
-        private void SetEntries()
+        private bool _captureClipboard;
+
+        public bool CaptureClipboard
         {
-            var items = OnlyGameEntries && Game != null ? (string.IsNullOrWhiteSpace(Game.Series) ? Data.GetGameOnlyEntries(Game) : Data.GetSeriesOnlyEntries(Game)) : Data.GetAllEntries();
+            get => _captureClipboard;
+            set {
+                if (value)ClipboardManager.ClipboardChanged += ClipboardChanged;
+                else ClipboardManager.ClipboardChanged -= ClipboardChanged;
+                _captureClipboard = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public void SetEntries()
+        {
+            IQueryable<Entry> items = OnlyGameEntries && Game != null ? (string.IsNullOrWhiteSpace(Game.Series) ? Data.GetGameOnlyEntries(Game) : Data.GetSeriesOnlyEntries(Game)) : Data.Entries;
+            var items2 = items.Select(i => new
+            {
+                i.Id,
+                i.User,
+                i.Type,
+                i.Game,
+                Role = i.RoleString,
+                i.Input,
+                i.Output,
+                i.SeriesSpecific,
+                i.Private
+            });
             EntriesList.Clear();
-            foreach (var item in items)
+            foreach (var item in items2)
             {
                 EntriesList.Add(item);
             }
@@ -188,13 +213,16 @@ namespace Happy_Reader
 
         public TitledImage AddGameFile(string file)
         {
-            if (Data.UserGames.Select(x => x.FilePath).Contains(file)) return null; //todo pass error to frontend
+            if (Data.UserGames.Select(x => x.FilePath).Contains(file))
+            {
+                StatusText = "This file has already been added.";
+                return null;
+            }
             //todo cleanup
             var filename = Path.GetFileNameWithoutExtension(file);
             ListedVN[] fileResults = LocalDatabase.VisualNovels.Where(VisualNovelDatabase.ListVNByNameOrAliasFunc(filename)).ToArray();
             ListedVN[] folderResults = { };
             ListedVN vn = null;
-            UserGame userGame;
             if (fileResults.Length == 1) vn = fileResults.First();
             else
             {
@@ -204,15 +232,8 @@ namespace Happy_Reader
                 if (folderResults.Length == 1) vn = folderResults.First();
             }
             ListedVN[] allResults = fileResults.Concat(folderResults).ToArray();
-            if (vn == null && allResults.Length > 0) vn = allResults[1];
-            if (vn != null)
-            {
-                userGame = new UserGame(file, vn) { Id = Data.UserGames.Max(x => x.Id) + 1 };
-                Data.UserGames.Add(userGame);
-                Data.SaveChanges();
-                return new TitledImage(userGame);
-            }
-            userGame = new UserGame(file, null) { Id = Data.UserGames.Max(x => x.Id) + 1 };
+            if (vn == null && allResults.Length > 0) vn = allResults[0];
+            var userGame = new UserGame(file, vn) { Id = Data.UserGames.Max(x => x.Id) + 1 };
             Data.UserGames.Add(userGame);
             Data.SaveChanges();
             return new TitledImage(userGame);
@@ -233,7 +254,6 @@ namespace Happy_Reader
                 Settings.UserID = 47063;
                 Settings.Username = "zolty";
                 LocalDatabase = new VisualNovelDatabase();
-
                 StatusText = "Opening VNDB Connection...";
                 Conn = new VndbConnection(null, null, null);
                 Conn.Login(ClientName, ClientVersion);
@@ -335,7 +355,7 @@ namespace Happy_Reader
             }
             catch (Exception ex)
             {
-                LogToFile(nameof(ClipboardChanged), ex);
+                LogToFile(ex);
             }
         }
 
@@ -366,12 +386,6 @@ namespace Happy_Reader
         {
             Tester.Test(User, Game);
         }
-
-        public void InitClipboardManager(Window window)
-        {
-            ClipboardManager = new ClipboardManager(window);
-            ClipboardManager.ClipboardChanged += ClipboardChanged;
-        }
-
+        
     }
 }

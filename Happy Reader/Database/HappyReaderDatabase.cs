@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Data.Entity;
+﻿using System.Data.Entity;
 using System.Linq;
 using HRGoogleTranslate;
 
@@ -38,7 +37,7 @@ namespace Happy_Reader.Database
         /// </summary>
         public Game GetGameByName(string name) => Games.FirstOrDefault(i => i.Title == name) ?? Games.FirstOrDefault(i => i.RomajiTitle == name);
 
-        public IEnumerable<dynamic> GetGameOnlyEntries(Game game)
+        public IQueryable<Entry> GetGameOnlyEntries(Game game)
         {
             var entryItems = from i in Entries
                              where i.GameId == game.Id
@@ -46,22 +45,11 @@ namespace Happy_Reader.Database
                              where i.UserId == user.Id
                              from gameItem in Games
                              where i.GameId == gameItem.Id
-                             select new
-                             {
-                                 i.Id,
-                                 User = user.Id,
-                                 i.Type,
-                                 Game = gameItem.RomajiTitle ?? gameItem.Title,
-                                 Role = i.RoleString,
-                                 i.Input,
-                                 i.Output,
-                                 i.SeriesSpecific,
-                                 i.Private
-                             };
+                             select i;
             return entryItems;
         }
 
-        public IEnumerable<dynamic> GetSeriesOnlyEntries(Game game)
+        public IQueryable<Entry> GetSeriesOnlyEntries(Game game)
         {
             var series = Games.Where(i => i.Series == game.Series).Select(i => i.Id).ToList();
             var entryItems = from i in Entries
@@ -70,42 +58,10 @@ namespace Happy_Reader.Database
                              where i.UserId == user.Id
                              from gameItem in Games
                              where i.GameId == gameItem.Id
-                             select new
-                             {
-                                 i.Id,
-                                 User = user.Id,
-                                 i.Type,
-                                 Game = gameItem.RomajiTitle ?? gameItem.Title,
-                                 Role = i.RoleString,
-                                 i.Input,
-                                 i.Output,
-                                 i.SeriesSpecific,
-                                 i.Private
-                             };
+                             select i;
             return entryItems;
         }
-
-        public IQueryable<dynamic> GetAllEntries()
-        {
-            var entryItems = from i in Entries
-                from user in Users
-                where i.UserId == user.Id
-                from game in Games
-                where i.GameId == game.Id
-                select new
-                {
-                    i.Id,
-                    User = user.Id,
-                    i.Type,
-                    Game = game.RomajiTitle ?? game.Title,
-                    Role = i.RoleString,
-                    i.Input,
-                    i.Output,
-                    i.SeriesSpecific,
-                    i.Private
-                };
-            return entryItems;
-        }
+        
     }
 
     public enum EntryType

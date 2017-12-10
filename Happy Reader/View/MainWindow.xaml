@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Happy_Reader"
         x:Class="Happy_Reader.MainWindow"
         mc:Ignorable="d"
-        Title="Happy Reader" Height="400" Width="556.559" Loaded="Window_Loaded" Closing="Window_Closing">
+        Title="Happy Reader" Height="474.699" Width="739.692" Loaded="Window_Loaded" Closing="Window_Closing">
     <Window.DataContext>
         <local:MainWindowViewModel/>
     </Window.DataContext>
@@ -21,15 +21,16 @@
                             </ItemsPanelTemplate>
                         </ListBox.ItemsPanel>
                     </ListBox>
-                    <Button Content="Debug Button"  Click="Debug_Button"  HorizontalAlignment="Left" Margin="10,0,0,10" Width="75" Height="38" VerticalAlignment="Bottom"/>
-                    <Label x:Name="GameResponseLabel" Content="{Binding StatusText}" Margin="0,0,10,10" HorizontalAlignment="Right" Width="386" Height="38" VerticalAlignment="Bottom" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"/>
-                    <Button Content="Remove"  Click="RemoveUserGame"  HorizontalAlignment="Left" Margin="90,0,0,10" Width="75" Height="38" VerticalAlignment="Bottom"/>
+                    <Button Content="Debug"  Click="Debug_Button"  HorizontalAlignment="Left" Margin="10,0,0,10" Width="49" Height="38" VerticalAlignment="Bottom"/>
+                    <Label x:Name="GameResponseLabel" Content="{Binding StatusText}" Margin="245,0,10,10" Height="38" VerticalAlignment="Bottom" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"/>
+                    <Button Content="Remove"  Click="RemoveUserGame"  HorizontalAlignment="Left" Margin="64,0,0,10" Width="48" Height="38" VerticalAlignment="Bottom"/>
+                    <CheckBox Content="Capture Clipboard" HorizontalAlignment="Left" Margin="117,0,0,10" Width="123" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="38" VerticalAlignment="Bottom"  IsChecked="{Binding CaptureClipboard}"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Entries">
                 <Grid>
                     <CheckBox Content="Game-only" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="{Binding OnlyGameEntries, Mode=TwoWay}"/>
-                    <Button Content="Add Entry" Margin="0,0,393,0" VerticalAlignment="Top" Click="AddEntry_Click" HorizontalAlignment="Right" Width="90"/>
+                    <Button Content="Add Entry" Margin="83,0,0,0" VerticalAlignment="Top" Click="AddEntry_Click" HorizontalAlignment="Left" Width="90"/>
                     <DataGrid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding EntriesList}" Margin="0,25,0,0" />
                 </Grid>
             </TabItem>

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Windows;
+using Happy_Apps_Core;
 using Happy_Reader.Database;
 
 namespace Happy_Reader
@@ -27,9 +28,9 @@ namespace Happy_Reader
             {
                 Directory.CreateDirectory(ConfigFolder);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                //TODO log error
+                StaticHelpers.LogToFile(ex);
 
             }
         }

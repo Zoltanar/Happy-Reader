@@ -12,6 +12,8 @@ namespace Happy_Reader.Database
 
         public long UserId { get; set; }
 
+        public User User { get; set; }
+
         [Required]
         public string Input { get; set; }
         
@@ -20,6 +22,8 @@ namespace Happy_Reader.Database
         public long? FileId { get; set; }
 
         public long? GameId { get; set; }
+
+        public Game Game { get; set; }
 
         public bool SeriesSpecific { get; set; }
 
@@ -65,5 +69,6 @@ namespace Happy_Reader.Database
         
         [NotMapped]
         public RoleProxy AssignedProxy { get; set; }
+
     }
 }
