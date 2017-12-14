@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Happy_Apps_Core;
+using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
 using HRGoogleTranslate;
 using static Happy_Reader.StaticMethods;
-#if LOGVERBOSE
 using System.Diagnostics;
-#endif
 using OriginalTextObject = System.Collections.Generic.List<(string Original, string Romaji)>;
 
 namespace Happy_Reader
@@ -21,11 +21,14 @@ namespace Happy_Reader
         private static readonly HappyReaderDatabase Data = new HappyReaderDatabase();
 
         private static User _lastUser;
-        private static Game _lastGame;
+        private static ListedVN _lastGame;
         private static Entry[]_lastEntries;
         public static bool RefreshEntries;
-        
-        public static string[] Translate(User user, Game game, string input, out OriginalTextObject originalText)
+        private static readonly char[] Separators = "『「」』…".ToCharArray();
+        private static readonly char[] InclusiveSeparators = "。？".ToCharArray();
+        private static readonly char[] AllSeparators = Separators.Concat(InclusiveSeparators).ToArray();
+
+        public static string[] Translate(User user, ListedVN game, string input, out OriginalTextObject originalText)
         {
             //Debug.WriteLine($"'{input}' > 'Debug: Not translating.'");
             //return "Debug: Not translating.";
@@ -40,10 +43,18 @@ namespace Happy_Reader
                     while (index < input.Length)
                     {
                         var @char = input[index];
-                        if ("『「」』。？".Contains(@char) && currentPart.Length != 0)
+                        if (AllSeparators.Contains(@char))
                         {
-                            item.Parts.Add((currentPart, !currentPart.All(c => "『「」』。？".Contains(c))));
-                            item.Parts.Add((@char.ToString(), false));
+                            if (InclusiveSeparators.Contains(@char))
+                            {
+                                currentPart += @char;
+                                item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
+                            }
+                            else
+                            {
+                                if(currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
+                                item.Parts.Add((@char.ToString(), false));
+                            }
                             currentPart = "";
                             index++;
                             continue;
@@ -52,7 +63,7 @@ namespace Happy_Reader
                         currentPart += @char;
                         index++;
                     }
-                    if (currentPart.Length > 0) item.Parts.Add((currentPart, currentPart.All(c => "『「」』。？".Contains(c))));
+                    if (currentPart.Length > 0) item.Parts.Add((currentPart, currentPart.All(c => Separators.Contains(c))));
                     if (user != _lastUser || game != _lastGame || RefreshEntries) SetEntries(user, game);
                     item.TranslateParts();
                     originalText = item.Original;
@@ -62,17 +73,17 @@ namespace Happy_Reader
             }
         }
 
-        private static void SetEntries(User user, Game game)
+        private static void SetEntries(User user, ListedVN game)
         {
             RefreshEntries = false;
             _lastUser = user;
             _lastGame = game;
-            long[] gamesInSeries = null;
+            int[] gamesInSeries = null;
             if (game != null)
             {
                 gamesInSeries = game.Series == null
-                    ? new[] { game.Id }
-                    : Data.Games.Where(g => g.Series == game.Series).Select(gg => gg.Id).ToArray();
+                    ? new[] { game.VNID }
+                    : StaticHelpers.LocalDatabase.VisualNovels.Where(g => g.Series == game.Series).Select(gg => gg.VNID).ToArray();
             }
             Entry[] generalEntries;
             if (user == null)
@@ -94,7 +105,7 @@ namespace Happy_Reader
             {
                 specificEntries = Data.Entries.Where(e =>
                             !e.Private &&
-                            e.SeriesSpecific && gamesInSeries.Contains(e.GameId.Value)).ToArray();
+                            e.SeriesSpecific && gamesInSeries.Contains(e.GameId.Value)).ToArray(); //todo make GameId int
             }
             else if (gamesInSeries != null)
             {

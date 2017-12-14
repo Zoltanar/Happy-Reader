@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using KakasiNET;
 namespace Happy_Reader
 {
@@ -9,30 +10,51 @@ namespace Happy_Reader
         public static void Init()
         {
             if (_initialized) return;
-            KakasiLib.Init();
-            _initialized = true;
+            try
+            {
+                KakasiLib.Init();
+                _initialized = true;
+            }
+            catch (Exception ex)
+            {/*LogToFile(ex);*/}
         }
 
         private static void SetParams(params string[] parameters)
         {
-            //always need these parameters
-            KakasiLib.SetParams(new[] { "kakasi", "-ieuc" }.Concat(parameters).ToArray()); //kana with kanji+furi
+            try
+            {
+                //always need these parameters
+                KakasiLib.SetParams(new[] { "kakasi", "-ieuc" }.Concat(parameters).ToArray()); //kana with kanji+furi
+            }
+            catch (Exception ex)
+            {/*LogToFile(ex);*/}
         }
 
         public static string AddFuriToJapanese(string text, bool spaces = false)
         {
             if (spaces) SetParams("-f", "-JH", "-w");
-            else SetParams("-f", "-JH");
-            return KakasiLib.DoKakasi(text);
+            else SetParams("-f", "-JH"); try
+            {
+                return KakasiLib.DoKakasi(text);
+            }
+            catch (Exception ex)
+            {/*LogToFile(ex);*/}
+            return null;
         }
-        
+
         public static string JapaneseToKana(string text, bool spaces = false)
         {
             // Set params to get Furigana
             // NOTE: Use EUC-JP encoding as the wrapper will encode/decode using it
             if (spaces) SetParams("-JH", "-w");
             else SetParams("-JH");
-            return KakasiLib.DoKakasi(text);
+            try
+            {
+                return KakasiLib.DoKakasi(text);
+            }
+            catch (Exception ex)
+            {/*LogToFile(ex);*/}
+            return null;
         }
 
         public static string JapaneseToRomaji(string text, bool spaces = false)
@@ -40,15 +62,25 @@ namespace Happy_Reader
             // Set params to get Furigana
             // NOTE: Use EUC-JP encoding as the wrapper will encode/decode using it
             if (spaces) SetParams("-Ha", "-Ja", "-Ka", "-s");
-            else SetParams("-Ha", "-Ja");
-            return KakasiLib.DoKakasi(text);
+            else SetParams("-Ha", "-Ja"); try
+            {
+                return KakasiLib.DoKakasi(text);
+            }
+            catch (Exception ex)
+            {/*LogToFile(ex);*/}
+            return null;
         }
 
         public static void Deinit()
         {
             if (!_initialized) return;
-            KakasiLib.Dispose();
-            _initialized = false;
+            try
+            {
+                KakasiLib.Dispose();
+                _initialized = false;
+            }
+            catch (Exception ex)
+            {/*LogToFile(ex);*/}
         }
     }
 }

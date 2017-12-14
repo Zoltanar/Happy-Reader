@@ -9,6 +9,10 @@ namespace Happy_Reader
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool GetWindowRect(IntPtr hWnd, ref RECT lpRect);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr FindWindow(string lpszClass, string lpszWindow);
+
         [StructLayout(LayoutKind.Sequential)]
         public struct RECT
         {
@@ -16,7 +20,13 @@ namespace Happy_Reader
             public int Top;
             public int Right;
             public int Bottom;
+            public int Width => Right - Left;
+            public int Height => Bottom - Top;
+            public bool ZeroSized => Width == 0 && Height == 0;
         }
+        [DllImport("user32.dll")]
+        public static extern bool GetClientRect(IntPtr hWnd, out RECT lpRect);
+
         [DllImport("kernel32.dll", SetLastError = true, CallingConvention = CallingConvention.Winapi)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool IsWow64Process([In] IntPtr processHandle, [Out, MarshalAs(UnmanagedType.Bool)] out bool wow64Process);

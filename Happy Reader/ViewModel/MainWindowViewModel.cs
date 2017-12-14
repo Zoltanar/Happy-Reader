@@ -6,11 +6,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using Happy_Reader.Database;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
@@ -19,15 +18,14 @@ using OriginalTextObject = System.Collections.Generic.List<(string Original, str
 using static Happy_Apps_Core.StaticHelpers;
 using JetBrains.Annotations;
 using Newtonsoft.Json.Linq;
-using User = Happy_Reader.Database.User;
 
 namespace Happy_Reader
 {
     internal class MainWindowViewModel : INotifyPropertyChanged
     {
         public User User { get; private set; }
-        public Game Game { get; private set; }
-        
+        public ListedVN Game { get; private set; }
+
         public NotificationEventHandler NotificationEvent;
         public ObservableCollection<dynamic> EntriesList { get; }
         public ObservableCollection<TitledImage> UserGameItems { get; set; } = new ObservableCollection<TitledImage>();
@@ -67,8 +65,9 @@ namespace Happy_Reader
         public bool CaptureClipboard
         {
             get => _captureClipboard;
-            set {
-                if (value)ClipboardManager.ClipboardChanged += ClipboardChanged;
+            set
+            {
+                if (value) ClipboardManager.ClipboardChanged += ClipboardChanged;
                 else ClipboardManager.ClipboardChanged -= ClipboardChanged;
                 _captureClipboard = value;
                 OnPropertyChanged();
@@ -77,30 +76,40 @@ namespace Happy_Reader
 
         public void SetEntries()
         {
-            IQueryable<Entry> items = OnlyGameEntries && Game != null ? (string.IsNullOrWhiteSpace(Game.Series) ? Data.GetGameOnlyEntries(Game) : Data.GetSeriesOnlyEntries(Game)) : Data.Entries;
-            var items2 = items.Select(i => new
+            try
             {
-                i.Id,
-                i.User,
-                i.Type,
-                i.Game,
-                Role = i.RoleString,
-                i.Input,
-                i.Output,
-                i.SeriesSpecific,
-                i.Private
-            });
-            EntriesList.Clear();
-            foreach (var item in items2)
+                var items = (OnlyGameEntries && Game != null
+                    ? (string.IsNullOrWhiteSpace(Game.Series)
+                        ? Data.GetGameOnlyEntries(Game)
+                        : Data.GetSeriesOnlyEntries(Game))
+                    : Data.Entries).ToArray();
+                var items2 = items.Select(i => new
+                {
+                    i.Id,
+                    i.User,
+                    i.Type,
+                    i.Game,
+                    Role = i.RoleString,
+                    i.Input,
+                    i.Output,
+                    i.SeriesSpecific,
+                    i.Private
+                });
+                EntriesList.Clear();
+                foreach (var item in items2)
+                {
+                    EntriesList.Add(item);
+                }
+            }
+            catch (Exception ex)
             {
-                EntriesList.Add(item);
+                LogToFile(ex);
             }
         }
 
         public MainWindowViewModel()
         {
             EntriesList = new ObservableCollection<dynamic>();
-            SetEntries();
             Application.Current.Exit += SaveCacheOnExit;
         }
 
@@ -123,82 +132,14 @@ namespace Happy_Reader
             return returned.Last();
         }
 
-        public bool SetGame(string filename)
-        {
-            using (var md5 = MD5.Create())
-            {
-                using (var filestream = File.OpenRead(filename))
-                {
-                    byte[] hash = md5.ComputeHash(filestream);
-                    var hashHex = GetHashString(hash);
-                    var gameFile = Data.GameFiles.SingleOrDefault(i => i.MD5 == hashHex);
-                    if (gameFile == null || gameFile.GameId == 0)
-                    {
-                        Game = Data.Games.FirstOrDefault(i => i.Title == _hookedProcess.MainWindowTitle);
-                        if (Game == null) CreateAndSetNewGame(_hookedProcess.MainWindowTitle);
-                        if (gameFile == null)
-                        {
-                            gameFile = new GameFile { GameId = Game.Id, MD5 = hashHex };
-                            Data.GameFiles.Add(gameFile);
-                        }
-                        else gameFile.GameId = Game.Id;
-                        Data.SaveChanges();
-                    }
-                    else
-                    {
-                        Game = Data.Games.FirstOrDefault(i => i.Id == gameFile.GameId);
-                        if (Game == null) CreateAndSetNewGame(_hookedProcess.MainWindowTitle, gameFile.GameId);
-                    }
-
-                }
-            }
-            return Game != null;
-
-            void CreateAndSetNewGame(string name, long id = 0)
-            {
-                Game = new Game
-                {
-                    Title = name,
-                    Timestamp = DateTime.UtcNow,
-                    Wiki = "HRCreated",
-                };
-                Game.Id = id == 0 && Data.Games.Any() ? Data.Games.Max(i => i.Id) + 1 : id;
-                Data.Games.Add(Game);
-                Data.SaveChanges();
-            }
-        }
-
-        public static string GetHashString(byte[] hash)
-        {
-            StringBuilder sb = new StringBuilder();
-            foreach (byte b in hash)
-                sb.Append(b.ToString("X2"));
-
-            return sb.ToString();
-        }
-        
         public void HookV2([NotNull]Process process, UserGame userGame)
         {
             _hookedProcess = process;
             if (_hookedProcess == null) throw new Exception("Process was not started.");
-            if (_outputWindow == null){Application.Current.Dispatcher.Invoke(()=>_outputWindow = new OutputWindow());}
-            var gameSet = SetGame(process.MainModule.FileName);
-            if (!gameSet) throw new Exception("Couldn't set or create game.");
+            if (_outputWindow == null) { Application.Current.Dispatcher.Invoke(() => _outputWindow = new OutputWindow()); }
+            Game = userGame.VN;
         }
-        
-        private void SetOutputText(TranslationItem translationItem)
-        {
-            var windowHandle = _hookedProcess.MainWindowHandle;
-            var rct = new NativeMethods.RECT();
-            NativeMethods.GetWindowRect(windowHandle, ref rct);
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                _outputWindow.SetLocation(rct.Left, rct.Bottom, rct.Right - rct.Left);
-                _outputWindow.Show();
-                _outputWindow.SetText(translationItem);
-            });
-        }
-        
+
         public void Closing()
         {
             foreach (var translation in Translator.GetCache())
@@ -241,23 +182,24 @@ namespace Happy_Reader
 
         public async Task Loaded()
         {
-            StatusText = "Loading Cached Translations...";
             await Task.Run(() =>
             {
+                StatusText = "Loading VN Database...";
+                LocalDatabase = new VisualNovelDatabase();
+                User = LocalDatabase.Users.Single(x => x.Id == 0);
+                StatusText = "Loading Cached Translations...";
                 Data.CachedTranslations.Load();
                 Translator.LoadTranslationCache(Data.CachedTranslations.Local);
-                User = Data.Users.Single(x => x.Id == 0);
                 StatusText = "Populating Proxies...";
                 PopulateProxies();
                 StatusText = "Loading Dumpfiles...";
                 DumpFiles.Load();
-                Settings.UserID = 47063;
-                Settings.Username = "zolty";
-                LocalDatabase = new VisualNovelDatabase();
                 StatusText = "Opening VNDB Connection...";
                 Conn = new VndbConnection(null, null, null);
                 Conn.Login(ClientName, ClientVersion);
             });
+            StatusText = "Loading Entries...";
+            SetEntries();
             StatusText = "Loading User Games...";
             foreach (var game in Data.UserGames.OrderBy(x => x.VNID ?? 0))
             {
@@ -312,7 +254,7 @@ namespace Happy_Reader
                             userGame.Process = process;
                             HookV2(process, userGame);
                         }
-                        catch (InvalidOperationException){} //can happen if process is closed after getting reference
+                        catch (InvalidOperationException) { } //can happen if process is closed after getting reference
                     }
                     Thread.Sleep(5000);
                 }
@@ -336,22 +278,31 @@ namespace Happy_Reader
 
         public void ClipboardChanged(object sender, EventArgs e)
         {
-            var cpOwner = GetClipboardOwner();
-            if (!cpOwner?.ProcessName.ToLower().Equals("ithvnr") ?? false) return;
+            if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)) return;
             if (_hookedProcess == null) return;
+            var cpOwner = GetClipboardOwner();
+            var b1 = cpOwner == null;
+            var b2 = cpOwner?.Id == _hookedProcess.Id;
+            var b3 = cpOwner?.ProcessName.ToLower().Equals("ithvnr") ?? false;
+            if (b1 || !(b2 || b3)) return; //if process isn't hooked process or named ithvnr
+            Debug.WriteLine($"Captured clipboard from {cpOwner.ProcessName} ({cpOwner.Id})");
             var rct = GetWindowDimensions(_hookedProcess);
-            _outputWindow.SetLocation(rct.Left, rct.Bottom, rct.Right - rct.Left);
+            if (rct.ZeroSized) return; //todo show it somehow or show error.
+            if (!_outputWindow.IsLoaded)
+            {
+                _outputWindow = new OutputWindow();
+                _outputWindow.Show();
+            }
             try
             {
                 var text = Clipboard.GetText();
                 var latinOnly = new System.Text.RegularExpressions.Regex(@"[a-zA-Z0-9:/\\\\r\\n .!?,;()""]+");
                 if (string.IsNullOrWhiteSpace(text)) return;
                 if (latinOnly.IsMatch(text)) return;
-                //var matches = latinOnly.Matches(text);
                 var unRepeatedString = CheckRepeatedString(text);
-                //var result = System.Text.RegularExpressions.Regex.Match(text, @".*(.+).*\1.*\1.*");
                 var translated = Translate(unRepeatedString, out OriginalTextObject originalText);
-                SetOutputText(new TranslationItem(_hookedProcess.MainWindowTitle, originalText, translated));
+                _outputWindow.SetLocation(rct.Left, rct.Bottom, rct.Width);
+                _outputWindow.SetText(new TranslationItem(_hookedProcess.MainWindowTitle, originalText, translated));
             }
             catch (Exception ex)
             {
@@ -362,7 +313,7 @@ namespace Happy_Reader
         private string CheckRepeatedString(string text)
         {
             //check if repeated after name
-            var firstBracket = text.IndexOfAny(new [] {'「', '『'});
+            var firstBracket = text.IndexOfAny(new[] { '「', '『' });
             if (firstBracket > 0)
             {
                 var name = text.Substring(0, firstBracket);
@@ -386,6 +337,6 @@ namespace Happy_Reader
         {
             Tester.Test(User, Game);
         }
-        
+
     }
 }

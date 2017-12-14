@@ -144,6 +144,11 @@ namespace Happy_Reader
             var windowHandle = process.MainWindowHandle;
             var rct = new NativeMethods.RECT();
             NativeMethods.GetWindowRect(windowHandle, ref rct);
+            if (rct.ZeroSized)
+            {
+                var hwnd = NativeMethods.FindWindow(null, process.MainWindowTitle);
+               NativeMethods.GetWindowRect(hwnd, ref rct);
+            }
             return rct;
         }
     }

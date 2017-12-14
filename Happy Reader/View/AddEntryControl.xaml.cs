@@ -11,7 +11,7 @@ namespace Happy_Reader
     /// </summary>
     public partial class AddEntryControl
     {
-        
+
         private readonly MainWindowViewModel _mainViewModel;
         private bool _entryAlreadyAdded;
 
@@ -19,7 +19,7 @@ namespace Happy_Reader
         {
             _mainViewModel = mainViewModel;
             InitializeComponent();
-            GameTb.Text = _mainViewModel.Game?.RomajiTitle ?? _mainViewModel.Game?.Title ?? "None";
+            GameTb.Text = _mainViewModel.Game?.Title ?? "None";
             var enumTypes = Enum.GetValues(typeof(EntryType))
                 .Cast<EntryType>();
             TypeCb.ItemsSource = enumTypes;
@@ -33,10 +33,10 @@ namespace Happy_Reader
 
         private void AddEntry_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (!Validate()) return;
+            if (!ValidateEntry()) return;
             var entry = new Entry
             {
-                GameId = _mainViewModel.Game?.Id,
+                GameId = _mainViewModel.Game?.VNID,
                 Input = InputTb.Text,
                 Output = OutputTb.Text,
                 RoleString = string.IsNullOrWhiteSpace(RoleTb.Text) ? null : RoleTb.Text,
@@ -48,7 +48,7 @@ namespace Happy_Reader
                 Comment = CommentTb.Text,
                 UserId = _mainViewModel.User?.Id ?? 0,
                 Time = DateTime.UtcNow,
-                Id = StaticMethods.Data.Entries.Max(x=>x.Id)+1
+                Id = StaticMethods.Data.Entries.Max(x => x.Id) + 1
             };
             StaticMethods.Data.Entries.Add(entry);
             StaticMethods.Data.SaveChanges();
@@ -56,22 +56,27 @@ namespace Happy_Reader
             _entryAlreadyAdded = true;
             _mainViewModel.SetEntries();
             Translator.RefreshEntries = true;
-            Cancel_Click(this,null);
+            Cancel_Click(this, null);
+        }
 
-            bool Validate()
+        private bool ValidateEntry()
+        {
+            if (_entryAlreadyAdded)
             {
-                if (_entryAlreadyAdded)
-                {
-                    ResponseLabel.Content = @"Entry was already added.";
-                    return false;
-                }
-                if (string.IsNullOrWhiteSpace(InputTb.Text))
-                {
-                    ResponseLabel.Content = @"Please type something in Input box.";
-                    return false;
-                }
-                return true;
+                ResponseLabel.Content = @"Entry was already added.";
+                return false;
             }
+            if (string.IsNullOrWhiteSpace(InputTb.Text))
+            {
+                ResponseLabel.Content = @"Please type something in Input box.";
+                return false;
+            }
+            if (TypeCb.SelectedItem == null)
+            {
+                ResponseLabel.Content = @"Please select type.";
+                return false;
+            }
+            return true;
         }
     }
 }

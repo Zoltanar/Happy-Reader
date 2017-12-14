@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Happy_Reader.Database;
+using Happy_Apps_Core;
+using Happy_Apps_Core.Database;
 using JetBrains.Annotations;
 
 namespace Happy_Reader
@@ -26,7 +27,7 @@ namespace Happy_Reader
 
         }
 
-        public void Test(User user, Game game)
+        public void Test(User user, ListedVN game)
         {
             var result = Translator.Translate(user, game, OriginalText, out _);
             Stage1 = result[1];

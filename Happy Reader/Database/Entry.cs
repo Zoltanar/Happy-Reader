@@ -1,6 +1,9 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using Happy_Apps_Core;
+using Happy_Apps_Core.Database;
 
 namespace Happy_Reader.Database
 {
@@ -10,9 +13,10 @@ namespace Happy_Reader.Database
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
 
-        public long UserId { get; set; }
-
-        public User User { get; set; }
+        public int UserId { get; set; }
+        
+        [NotMapped]
+        public User User => StaticHelpers.LocalDatabase.Users.SingleOrDefault(x => x.Id == UserId);//{ get; set; }
 
         [Required]
         public string Input { get; set; }
@@ -20,10 +24,11 @@ namespace Happy_Reader.Database
         public string Output { get; set; }
 
         public long? FileId { get; set; }
-
-        public long? GameId { get; set; }
-
-        public Game Game { get; set; }
+        
+        public int? GameId { get; set; }
+        
+        [NotMapped]
+        public ListedVN Game => GameId == null ? null : StaticHelpers.LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == GameId);//{ get; set; }
 
         public bool SeriesSpecific { get; set; }
 

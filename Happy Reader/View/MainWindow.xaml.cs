@@ -52,8 +52,8 @@ namespace Happy_Reader
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            await _viewModel.Loaded();
             _viewModel.ClipboardManager = new ClipboardManager(this);
+            await _viewModel.Loaded();
         }
 
         private void AddEntry_Click(object sender, RoutedEventArgs e)

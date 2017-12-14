@@ -236,7 +236,7 @@ namespace Happy_Apps_Core
         /// <summary>Returns a string that represents the current object.</summary>
         /// <returns>A string that represents the current object.</returns>
         /// <filterpriority>2</filterpriority>
-        public override string ToString() => $"ID={VNID} Title={Title}";
+        public override string ToString() => $"[{VNID}] {Title}";
 
         /// <summary>
         /// Get VN's User-related status as a string.
@@ -335,6 +335,8 @@ namespace Happy_Apps_Core
         /// Get location of cover image in system (not online)
         /// </summary>
         public string StoredCover => $"{VNImagesFolder}{VNID}{Path.GetExtension(ImageURL)}";
+
+        public string Series { get; set; }
 
         /// <summary>
         /// Returns whether vn is by a favorite producer.

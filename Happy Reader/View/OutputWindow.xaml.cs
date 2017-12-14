@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Linq;
+using System.Text;
 using Happy_Reader.WinForms;
 
 namespace Happy_Reader
@@ -10,6 +11,7 @@ namespace Happy_Reader
     {
 
         private readonly WebBrowserOverlayWf _webBrowser;
+        private readonly RecentItemList<StringBuilder> _recentItems = new RecentItemList<StringBuilder>(10);
 
         public OutputWindow()
         {
@@ -22,24 +24,47 @@ namespace Happy_Reader
             CharacterLabel.Content = translationItem.Character;
             ContextLabel.Content = translationItem.RightLabel;
             StringBuilder htmlBuilder = new StringBuilder();
-            foreach (var pair in translationItem.OriginalText)
+            var original = string.Join(string.Empty, translationItem.OriginalText.Select(x => x.Original));
+            var romaji = string.Join(" ", translationItem.OriginalText.Select(x => x.Romaji));
+            htmlBuilder.Append(original);
+            htmlBuilder.Append("</br>");
+            htmlBuilder.Append(romaji);
+            htmlBuilder.Append("</br>");
+            htmlBuilder.Append(translationItem.TranslatedText);
+            _recentItems.Add(htmlBuilder);
+            string html = "<div style=\"font-size:22px;\">" + string.Join("</br></br>", _recentItems.Items);
+            html += "</div>";
+            _webBrowser.WebBrowser.DocumentText = html;
+        }
+        public void SetTextRuby(TranslationItem translationItem)
+        {
+            CharacterLabel.Content = translationItem.Character;
+            ContextLabel.Content = translationItem.RightLabel;
+            StringBuilder htmlBuilder = new StringBuilder();
+            foreach (var (original, romaji) in translationItem.OriginalText)
             {
-                if (string.IsNullOrWhiteSpace(pair.Romaji) || pair.Original == pair.Romaji)
-                {
-                    htmlBuilder.Append(pair.Original);
-                }
+                if (string.IsNullOrWhiteSpace(romaji) || original == romaji)
+                { htmlBuilder.Append(original); }
                 else
                 {
                     htmlBuilder.Append("<ruby><rb>");
-                    htmlBuilder.Append(pair.Original);
+                    htmlBuilder.Append(original);
                     htmlBuilder.Append("</rb><rt>");
-                    htmlBuilder.Append(pair.Romaji);
+                    htmlBuilder.Append(romaji);
                     htmlBuilder.Append("</rt></ruby>");
                 }
             }
             htmlBuilder.Append("</br>");
             htmlBuilder.Append(translationItem.TranslatedText);
-            _webBrowser.WebBrowser.DocumentText = "<div style=\"font-size:22px;\"> " + htmlBuilder + "</div>";
+            _recentItems.Add(htmlBuilder);
+            string html = "<div style=\"font-size:22px;\">";
+            foreach (var item in _recentItems.Items)
+            {
+                html += item.ToString();
+                html += "<br>";
+            }
+            html += "</div>";
+            _webBrowser.WebBrowser.DocumentText = html;
         }
 
         internal void SetLocation(int left, int bottom, int width)
@@ -48,7 +73,7 @@ namespace Happy_Reader
             Top = bottom;
             Width = width;
         }
-        
+
         private void Window_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             DragMove();

@@ -164,15 +164,13 @@
     <Compile Include="Database\Log.cs" />
     <Compile Include="Model\ClipboardManager.cs" />
     <Compile Include="Model\Kakasi.cs" />
+    <Compile Include="Model\RecentItemList.cs" />
     <Compile Include="ViewModel\TranslationTester.cs" />
     <Compile Include="View\AddEntryControl.xaml.cs">
       <DependentUpon>AddEntryControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Database\Entry.cs" />
-    <Compile Include="Database\Game.cs" />
-    <Compile Include="Database\GameFile.cs" />
     <Compile Include="Database\UserGame.cs" />
-    <Compile Include="Database\User.cs" />
     <Compile Include="Database\HappyReaderDatabase.cs" />
     <Compile Include="ViewModel\MainWindowViewModel.cs" />
     <Compile Include="Model\NativeMethods.cs" />

@@ -66,7 +66,11 @@ namespace Happy_Apps_Core.Database
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int Id { get; set; }
 
+        public string Username { get; set; }
+
         public virtual ICollection<ListedProducer> FavoriteProducers { get; set; }
+
+        public override string ToString() => $"[{Id}] {Username}";
     }
 
     public class TableDetail

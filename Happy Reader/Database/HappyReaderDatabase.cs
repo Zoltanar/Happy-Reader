@@ -1,11 +1,13 @@
 ﻿using System.Data.Entity;
 using System.Linq;
+using Happy_Apps_Core;
 using HRGoogleTranslate;
 
 namespace Happy_Reader.Database
 {
 
 
+    // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
     public class HappyReaderDatabase : DbContext
     {
         public HappyReaderDatabase()
@@ -14,10 +16,7 @@ namespace Happy_Reader.Database
         }
 
         public virtual DbSet<Entry> Entries { get; set; }
-        public virtual DbSet<Game> Games { get; set; }
         public virtual DbSet<UserGame> UserGames { get; set; }
-        public virtual DbSet<GameFile> GameFiles { get; set; }
-        public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<Translation> CachedTranslations { get; set; }
         public virtual DbSet<Log> Logs { get; set; }
         public string[] UserGameProcesses => UserGames.Where(x => x != null).Select(x => x.ProcessName).ToArray();
@@ -26,40 +25,12 @@ namespace Happy_Reader.Database
         {
         }
 
+        public IQueryable<Entry> GetGameOnlyEntries(ListedVN game) => Entries.Where(x=>x.GameId == game.VNID);
 
-        /// <summary>
-        /// Tries to get user by username, returns null if not found.
-        /// </summary>
-        public User GetUser(string userName) => Users.FirstOrDefault(i => i.Username == userName);
-
-        /// <summary>
-        /// Tries to get game by title first, if not found then by romajiTitle, returns null if not found.
-        /// </summary>
-        public Game GetGameByName(string name) => Games.FirstOrDefault(i => i.Title == name) ?? Games.FirstOrDefault(i => i.RomajiTitle == name);
-
-        public IQueryable<Entry> GetGameOnlyEntries(Game game)
+        public IQueryable<Entry> GetSeriesOnlyEntries(ListedVN game)
         {
-            var entryItems = from i in Entries
-                             where i.GameId == game.Id
-                             from user in Users
-                             where i.UserId == user.Id
-                             from gameItem in Games
-                             where i.GameId == gameItem.Id
-                             select i;
-            return entryItems;
-        }
-
-        public IQueryable<Entry> GetSeriesOnlyEntries(Game game)
-        {
-            var series = Games.Where(i => i.Series == game.Series).Select(i => i.Id).ToList();
-            var entryItems = from i in Entries
-                             where series.Contains(i.GameId.Value)
-                             from user in Users
-                             where i.UserId == user.Id
-                             from gameItem in Games
-                             where i.GameId == gameItem.Id
-                             select i;
-            return entryItems;
+            var series = StaticHelpers.LocalDatabase.VisualNovels.Where(i => i.Series == game.Series).Select(i => i.VNID).ToArray();
+            return Entries.Where(i => series.Contains( i.GameId.Value));
         }
         
     }
