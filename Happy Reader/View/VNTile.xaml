@@ -1,0 +1,23 @@
+﻿<UserControl x:Class="Happy_Reader.VNTile"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:happyAppsCore="clr-namespace:Happy_Apps_Core;assembly=Happy_Apps_Core"
+             mc:Ignorable="d" Height="375" Width="230">
+    <UserControl.DataContext>
+        <happyAppsCore:ListedVN></happyAppsCore:ListedVN>
+    </UserControl.DataContext>
+    <Border BorderBrush="Black" BorderThickness="1" CornerRadius="10" Background="{Binding BackBrush}" >
+        <Grid>
+            <Label Content="{Binding Title}" Margin="10,10,10,0" VerticalAlignment="Top" FontWeight="Bold"/>
+            <Label Content="{Binding Producer.Name}" Foreground="{Binding ProducerBrush}" Margin="10,0,10,62" VerticalAlignment="Bottom"/>
+            <Label Content="{Binding RatingAndVoteCount}" Margin="10,0,92,36" VerticalAlignment="Bottom"/>
+            <Label Content="{Binding RelDate}" Margin="0,0,10,36" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="77" HorizontalContentAlignment="Right"/>
+            <Label Content="{Binding UserRelatedStatus}" Margin="10,0,10,10" Height="26" VerticalAlignment="Bottom"/>
+            <Image Source="{Binding CoverSource}" Margin="10,41,10,93"/>
+            <Image Source="{Binding FlagSource}" Margin="194,41,10,320"/>
+        </Grid>
+    </Border>
+</UserControl>
+

@@ -29,6 +29,7 @@ namespace Happy_Reader
         public NotificationEventHandler NotificationEvent;
         public ObservableCollection<dynamic> EntriesList { get; }
         public ObservableCollection<TitledImage> UserGameItems { get; set; } = new ObservableCollection<TitledImage>();
+        public ObservableCollection<VNTile> ListedVNs { get; set; } = new ObservableCollection<VNTile>();
         public TranslationTester Tester { get; set; } = new TranslationTester();
 
         private string _statusText;
@@ -182,11 +183,12 @@ namespace Happy_Reader
 
         public async Task Loaded()
         {
+            StatusText = "Loading VN Database...";
             await Task.Run(() =>
             {
-                StatusText = "Loading VN Database...";
                 LocalDatabase = new VisualNovelDatabase();
-                User = LocalDatabase.Users.Single(x => x.Id == 0);
+                Settings.UserID = 47063;
+                User = LocalDatabase.Users.Single(x => x.Id == Settings.UserID);
                 StatusText = "Loading Cached Translations...";
                 Data.CachedTranslations.Load();
                 Translator.LoadTranslationCache(Data.CachedTranslations.Local);
@@ -203,9 +205,12 @@ namespace Happy_Reader
             StatusText = "Loading User Games...";
             foreach (var game in Data.UserGames.OrderBy(x => x.VNID ?? 0))
             {
-                game.VN = game.VNID != null ? LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == game.VNID) : null;
+                game.VN = game.VNID != null
+                    ? LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == game.VNID)
+                    : null;
                 var ti = new TitledImage(game);
                 UserGameItems.Add(ti);
+                if (game.VN != null) ListedVNs.Add(new VNTile(game.VN));
             }
             StatusText = "Loading finished.";
             var monitor = new Thread(MonitorStart) { IsBackground = true };

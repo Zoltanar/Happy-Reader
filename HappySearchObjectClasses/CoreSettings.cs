@@ -42,8 +42,8 @@ namespace Happy_Apps_Core
         /// </summary>
         public CoreSettings()
         {
-            Username = "";
-            UserID = -1;
+            Username = "guest";
+            UserID = 0;
             DecadeLimit = true;
             DumpfileDate = DateTime.MinValue;
             StatsDate = DateTime.MinValue;

@@ -13,7 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		KakasiDocumentation.pdf = KakasiDocumentation.pdf
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Happy Apps Core", "HappySearchObjectClasses\Happy Apps Core.csproj", "{C5E4C647-35BA-4525-B78A-F2263A628A5A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Happy_Apps_Core", "HappySearchObjectClasses\Happy_Apps_Core.csproj", "{C5E4C647-35BA-4525-B78A-F2263A628A5A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Happy Reader Tests", "Happy Reader Tests\Happy Reader Tests.csproj", "{7A6BCB6F-0F0E-4B6B-BDEF-29760583601A}"
 EndProject

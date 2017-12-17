@@ -17,6 +17,10 @@ namespace Happy_Apps_Core
 
         public ApiQuery ActiveQuery;
         private readonly Action<string> _advancedAction;
+#pragma warning disable 649
+        private readonly Action<Label, string> _errorAction; //todo error/warning actions
+        private readonly Action<Label, string> _warningAction;
+#pragma warning restore 649
         private readonly Action _refreshListAction;
         private readonly Action<APIStatus> _changeStatusAction;
         /// <summary>
@@ -42,7 +46,7 @@ namespace Happy_Apps_Core
         {
             if (!ActiveQuery.Completed)
             {
-                WriteError(replyLabel, $"Wait until {ActiveQuery.ActionName} is done.");
+                _errorAction.Invoke(replyLabel, $"Wait until {ActiveQuery.ActionName} is done.");
                 return false;
             }
             ActiveQuery = new ApiQuery(featureName, replyLabel, refreshList, additionalMessage, ignoreDateLimit);
@@ -61,7 +65,7 @@ namespace Happy_Apps_Core
         {
             if (Status != APIStatus.Ready)
             {
-                WriteError(ActiveQuery.ReplyLabel, "API Connection isn't ready.");
+                _errorAction.Invoke(ActiveQuery.ReplyLabel, "API Connection isn't ready.");
                 return QueryResult.Fail;
             }
             Status = APIStatus.Busy;
@@ -84,7 +88,7 @@ namespace Happy_Apps_Core
             {
                 if (!LastResponse.Error.ID.Equals("throttled"))
                 {
-                    WriteError(ActiveQuery.ReplyLabel, errorMessage);
+                    _errorAction.Invoke(ActiveQuery.ReplyLabel, errorMessage);
                     return QueryResult.Fail;
                 }
                 string fullThrottleMessage = "";
@@ -102,7 +106,7 @@ namespace Happy_Apps_Core
                     if (TitlesSkipped > 0) additionalWarning += $" Skipped {TitlesSkipped}.";
                     fullThrottleMessage = ActiveQuery.AdditionalMessage ? normalWarning + additionalWarning : normalWarning;
                 });
-                WriteWarning(ActiveQuery.ReplyLabel, fullThrottleMessage);
+                _warningAction.Invoke(ActiveQuery.ReplyLabel, fullThrottleMessage);
                 LogToFile($"Local: {DateTime.Now} - {fullThrottleMessage}");
                 var waitMS = minWait * 1000;
                 _throttleWaitTime = Convert.ToInt32(waitMS);

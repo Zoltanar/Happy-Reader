@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -14,10 +13,9 @@ using System.Security;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using Happy_Apps_Core.Database;
 using Newtonsoft.Json;
-using Timer = System.Windows.Forms.Timer;
+using System.Windows.Media;
 
 namespace Happy_Apps_Core
 {
@@ -35,6 +33,8 @@ namespace Happy_Apps_Core
         public const string DefaultTraitsJson = "Program Data\\Default Files\\traits.json";
         public const string DefaultTagsJson = "Program Data\\Default Files\\tags.json";
         public const string DefaultFiltersJson = "Program Data\\Default Files\\defaultfilters.json";
+        public const string NsfwImageFile = "Program Data\\Default Files\\nsfw-image.png";
+        public const string NoImageFile = "Program Data\\Default Files\\no-image.png";
         public const string FlagsFolder = "Program Data\\Flags\\";
 
         public const string StoredDataFolder = @"..\..\Stored Data\"; //this is in order to use same folder for all builds (32/64 and debug/release)
@@ -61,29 +61,30 @@ namespace Happy_Apps_Core
         public const string ContentTag = "cont";
         public const string SexualTag = "ero";
         public const string TechnicalTag = "tech";
-        private const int LabelFadeTime = 5000;
 
         //tile background colors
-        public static readonly SolidBrush DefaultTileBrush = new SolidBrush(Color.LightBlue);
-        public static readonly SolidBrush WLHighBrush = new SolidBrush(Color.DeepPink);
-        public static readonly SolidBrush WLMediumBrush = new SolidBrush(Color.HotPink);
-        public static readonly SolidBrush WLLowBrush = new SolidBrush(Color.LightPink);
-        public static readonly SolidBrush ULFinishedBrush = new SolidBrush(Color.LightGreen);
-        public static readonly SolidBrush ULStalledBrush = new SolidBrush(Color.DarkKhaki);
-        public static readonly SolidBrush ULDroppedBrush = new SolidBrush(Color.DarkOrange);
-        public static readonly SolidBrush ULUnknownBrush = new SolidBrush(Color.Gray);
+        public static readonly Color DefaultTileBrush = Colors.LightBlue;
+        public static readonly Color WLHighBrush = Colors.DeepPink;
+        public static readonly Color WLMediumBrush = Colors.HotPink;
+        public static readonly Color WLLowBrush = Colors.LightPink;
+        public static readonly Color ULFinishedBrush = Colors.LightGreen;
+        public static readonly Color ULStalledBrush = Colors.DarkKhaki;
+        public static readonly Color ULDroppedBrush = Colors.DarkOrange;
+        public static readonly Color ULUnknownBrush = Colors.Gray;
 
+        // ReSharper disable UnusedMember.Local
         //tile text colors
-        public static readonly SolidBrush FavoriteProducerBrush = new SolidBrush(Color.Yellow);
-        public static readonly SolidBrush ULPlayingBrush = new SolidBrush(Color.Yellow);
-        public static readonly SolidBrush UnreleasedBrush = new SolidBrush(Color.White);
+        public static readonly Color FavoriteProducerBrush = Colors.Yellow;
+        public static readonly Color ULPlayingBrush = Colors.Yellow;
+        public static readonly Color UnreleasedBrush = Colors.White;
 
         //text colors
-        private static readonly Color ErrorColor = Color.Red;
-        private static readonly Color NormalColor = SystemColors.ControlLightLight;
-        private static readonly Color NormalLinkColor = Color.FromArgb(0, 192, 192);
-        private static readonly Color WarningColor = Color.DarkKhaki;
-        
+        private static readonly Color ErrorColor = Colors.Red;
+        private static readonly Color NormalColor = Colors.White;
+        private static readonly Color NormalLinkColor = Color.FromRgb(0, 192, 192);
+        private static readonly Color WarningColor = Colors.DarkKhaki;
+        // ReSharper restore UnusedMember.Local
+
         public static bool DontTriggerEvent; //used to skip indexchanged events
 
         /// <summary>
@@ -109,55 +110,7 @@ namespace Happy_Apps_Core
             return LocalDatabase.FavoriteProducerList.Any(x => x.ID == vn.ProducerID);
         }
         
-        /// <summary>
-        /// Get brush from vn UL or WL status or null if no statuses are found.
-        /// </summary>
-        public static SolidBrush GetBrushFromStatuses(ListedVN vnBase)
-        {
-            if (vnBase == null) return null;
-            var brush = GetColorFromULStatus(vnBase.UserVN.ULStatus);
-            if (brush != null) return brush;
-            brush = GetColorFromWLStatus(vnBase.UserVN.WLStatus);
-            return brush;
-        }
-
-        /// <summary>
-        /// Return color based on wishlist status, or null if no status
-        /// </summary>
-        public static SolidBrush GetColorFromWLStatus(WishlistStatus? status)
-        {
-            if (status == null) return null;
-            switch (status)
-            {
-                case WishlistStatus.High:
-                    return WLHighBrush;
-                case WishlistStatus.Medium:
-                    return WLMediumBrush;
-                case WishlistStatus.Low:
-                    return WLLowBrush;
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Return color based on userlist status, or null if no status
-        /// </summary>
-        public static SolidBrush GetColorFromULStatus(UserlistStatus? status)
-        {
-            if (status == null) return null;
-            switch (status)
-            {
-                case UserlistStatus.Finished:
-                    return ULFinishedBrush;
-                case UserlistStatus.Stalled:
-                    return ULStalledBrush;
-                case UserlistStatus.Dropped:
-                    return ULDroppedBrush;
-                case UserlistStatus.Unknown:
-                    return ULUnknownBrush;
-            }
-            return null;
-        }
+        
 
         /// <summary>
         /// Serialize object to JSON string and save to file.
@@ -295,43 +248,7 @@ namespace Happy_Apps_Core
 
             return !(Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is DescriptionAttribute attribute) ? value.ToString() : attribute.Description;
         }
-
-        /// <summary>
-        ///     Writes message in a label with message text color.
-        /// </summary>
-        /// <param name="label">Label to which the message is written</param>
-        /// <param name="message">Message to be written</param>
-        public static void WriteText(Label label, string message)
-        {
-            if (label is LinkLabel linkLabel) linkLabel.LinkColor = NormalLinkColor;
-            else label.ForeColor = NormalColor;
-            label.Text = message;
-        }
-
-        /// <summary>
-        ///     Writes message in a label with warning text color.
-        /// </summary>
-        /// <param name="label">Label to which the message is written</param>
-        /// <param name="message">Message to be written</param>
-        public static void WriteWarning(Label label, string message)
-        {
-            if (label is LinkLabel linkLabel) linkLabel.LinkColor = WarningColor;
-            else label.ForeColor = WarningColor;
-            label.Text = message;
-        }
-
-        /// <summary>
-        ///     Writes message in a label with error text color.
-        /// </summary>
-        /// <param name="label">Label to which the message is written</param>
-        /// <param name="message">Message to be written</param>
-        public static void WriteError(Label label, string message)
-        {
-            if (label is LinkLabel linkLabel) linkLabel.LinkColor = ErrorColor;
-            else label.ForeColor = ErrorColor;
-            label.Text = message;
-        }
-
+        
         /// <summary>
         /// Convert number of bytes to human-readable formatted string, rounded to 1 decimal place. (e.g 79.4KB)
         /// </summary>
@@ -507,7 +424,7 @@ namespace Happy_Apps_Core
                     using (var stream = responsePic.GetResponseStream())
                     {
                         if (stream == null) return;
-                        var webImage = Image.FromStream(stream);
+                        var webImage = System.Drawing.Image.FromStream(stream);
                         webImage.Save(imageLocation);
                     }
                 }
@@ -518,18 +435,7 @@ namespace Happy_Apps_Core
                 LogToFile(ex);
             }
         }
-
-        /// <summary>
-        /// Set PictureBox image as language flag or set text as language if image does not exist.
-        /// </summary>
-        public static void SetFlagImage(this PictureBox pictureBox, string language)
-        {
-            if (language == null) return;
-            var prodFlag = $"{FlagsFolder}{language}.png";
-            if (File.Exists(prodFlag)) pictureBox.ImageLocation = prodFlag;
-            else pictureBox.Text = language;
-        }
-
+        
         /// <summary>
         /// Saves screenshot (by URL) to specified location.
         /// </summary>
@@ -549,27 +455,12 @@ namespace Happy_Apps_Core
                 using (var stream = responsePic.GetResponseStream())
                 {
                     if (stream == null) return;
-                    var webImage = Image.FromStream(stream);
+                    var webImage = System.Drawing.Image.FromStream(stream);
                     webImage.Save(savedLocation);
                 }
             }
         }
-
-        /// <summary>
-        ///     Delete text in label after time set in LabelFadeTime.
-        /// </summary>
-        /// <param name="tLabel">Label to delete text in</param>
-        public static void FadeLabel(Label tLabel)
-        {
-            var fadeTimer = new Timer { Interval = LabelFadeTime };
-            fadeTimer.Tick += (sender, e) =>
-            {
-                tLabel.Text = "";
-                fadeTimer.Stop();
-            };
-            fadeTimer.Start();
-        }
-
+        
         /// <summary>
         ///     Saves a title's cover image (unless it already exists)
         /// </summary>
@@ -589,7 +480,7 @@ namespace Happy_Apps_Core
                     using (var stream = responsePic.GetResponseStream())
                     {
                         if (stream == null) return;
-                        var webImage = Image.FromStream(stream);
+                        var webImage = System.Drawing.Image.FromStream(stream);
                         webImage.Save(imageLocation);
                     }
                 }
@@ -618,5 +509,11 @@ namespace Happy_Apps_Core
             string[] urlSplit = screenItem.Image.Split('/');
             return $"{VNScreensFolder}{urlSplit[urlSplit.Length - 2]}\\{urlSplit[urlSplit.Length - 1]}";
         }
+
+        public static GuiSettings GuiSettings { get; set; } = new GuiSettings();
+    }
+    public class GuiSettings
+    {
+        public bool NSFWImages { get; set; } = true;
     }
 }

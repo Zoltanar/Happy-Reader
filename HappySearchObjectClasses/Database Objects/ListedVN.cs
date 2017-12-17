@@ -7,7 +7,10 @@ using static Happy_Apps_Core.StaticHelpers;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Windows;
+using System.Windows.Media;
 using Happy_Apps_Core.Database;
+using JetBrains.Annotations;
 
 namespace Happy_Apps_Core
 {
@@ -15,6 +18,7 @@ namespace Happy_Apps_Core
     /// Object for displaying Visual Novel in Object List View.
     /// </summary>
     [Table("vnlist")]
+    // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
     public class ListedVN
     {
         // ReSharper disable once UnusedMember.Global
@@ -126,7 +130,7 @@ namespace Happy_Apps_Core
         public DateTime DateFullyUpdated { get; set; }
 
         public int? UserVNId { get; set; }
-        
+
         public virtual UserVN UserVN { get; set; }
         #endregion
 
@@ -206,7 +210,7 @@ namespace Happy_Apps_Core
         {
             get
             {
-                if (_languagesObject == null) _languagesObject = JsonConvert.DeserializeObject<VNLanguages>(Languages);
+                if (_languagesObject == null && Languages != null) _languagesObject = JsonConvert.DeserializeObject<VNLanguages>(Languages);
                 return _languagesObject;
             }
         }
@@ -242,31 +246,31 @@ namespace Happy_Apps_Core
         /// Get VN's User-related status as a string.
         /// </summary>
         /// <returns>User-related status</returns>
-        public string UserRelatedStatus()
+        public string UserRelatedStatus
         {
-            string[] parts = { "", "", "" };
-            if (UserVN.ULStatus > UserlistStatus.None)
+            get
             {
-                parts[0] = "Userlist: ";
-                parts[1] = UserVN.ULStatus.ToString();
+                string[] parts = { "", "", "" };
+                if (UserVN?.ULStatus > UserlistStatus.None)
+                {
+                    parts[0] = "Userlist: ";
+                    parts[1] = UserVN.ULStatus.ToString();
+                }
+                else if (UserVN?.WLStatus > WishlistStatus.None)
+                {
+                    parts[0] = "Wishlist: ";
+                    parts[1] = UserVN.WLStatus.ToString();
+                }
+                if (UserVN?.Vote > 0) parts[2] = $" (Vote: {UserVN.Vote:0.#})";
+                return string.Join(" ", parts);
             }
-            else if (UserVN.WLStatus > WishlistStatus.None)
-            {
-                parts[0] = "Wishlist: ";
-                parts[1] = UserVN.WLStatus.ToString();
-            }
-            if (UserVN.Vote > 0) parts[2] = $" (Vote: {UserVN.Vote:0.#})";
-            return string.Join(" ", parts);
         }
 
         /// <summary>
         /// Get VN's rating, votecount and popularity as a string.
         /// </summary>
         /// <returns>Rating, votecount and popularity</returns>
-        public string RatingAndVoteCount()
-        {
-            return VoteCount == 0 ? "No votes yet." : $"{Rating:0.00} ({VoteCount} votes)";
-        }
+        public string RatingAndVoteCount => VoteCount == 0 ? "No votes yet." : $"{Rating:0.00} ({VoteCount} votes)";
 
         /// <summary>
         /// Checks if title was released between two dates, the recent date is inclusive.
@@ -337,6 +341,82 @@ namespace Happy_Apps_Core
         public string StoredCover => $"{VNImagesFolder}{VNID}{Path.GetExtension(ImageURL)}";
 
         public string Series { get; set; }
+
+        public object FlagSource => LanguagesObject?.Originals.Select(language => $"{FlagsFolder}{language}.png")
+                                    .Where(File.Exists).Select(Path.GetFullPath).FirstOrDefault() ?? DependencyProperty.UnsetValue;
+
+
+        public string CoverSource
+        {
+            get
+            {
+                string image;
+                if (ImageNSFW && !StaticHelpers.GuiSettings.NSFWImages) image = NsfwImageFile;
+                else image = File.Exists(StoredCover) ? StoredCover : NoImageFile;
+                return Path.GetFullPath(image);
+            }
+        }
+
+        public Brush BackBrush => GetBrushFromStatuses();
+
+        public Brush ProducerBrush => new SolidColorBrush(VNIsByFavoriteProducer(this)? FavoriteProducerBrush: Colors.Black);
+
+        /// <summary>
+        /// Get brush from vn UL or WL status or null if no statuses are found.
+        /// </summary>
+        [NotNull]
+        public SolidColorBrush GetBrushFromStatuses()
+        {
+            var brush = DefaultTileBrush;
+            var success = GetColorFromULStatus(ref brush);
+            if (!success) GetColorFromWLStatus(ref brush);
+            return new SolidColorBrush(brush);
+        }
+
+        /// <summary>
+        /// Return color based on wishlist status, or null if no status
+        /// </summary>
+        public bool GetColorFromWLStatus(ref Color color)
+        {
+            if (UserVN?.WLStatus == null) return false;
+            switch (UserVN.WLStatus)
+            {
+                case WishlistStatus.High:
+                    color = WLHighBrush;
+                    return true;
+                case WishlistStatus.Medium:
+                    color = WLMediumBrush;
+                    return true;
+                case WishlistStatus.Low:
+                    color = WLLowBrush;
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Return color based on userlist status, or null if no status
+        /// </summary>
+        public bool GetColorFromULStatus(ref Color color)
+        {
+            if (UserVN?.ULStatus == null) return false;
+            switch (UserVN?.ULStatus)
+            {
+                case UserlistStatus.Finished:
+                    color = ULFinishedBrush;
+                    return true;
+                case UserlistStatus.Stalled:
+                    color = ULStalledBrush;
+                    return true;
+                case UserlistStatus.Dropped:
+                    color = ULDroppedBrush;
+                    return true;
+                case UserlistStatus.Unknown:
+                    color = ULUnknownBrush;
+                    return true;
+            }
+            return false;
+        }
 
         /// <summary>
         /// Returns whether vn is by a favorite producer.

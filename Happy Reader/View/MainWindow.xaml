@@ -36,7 +36,6 @@
             </TabItem>
             <TabItem Header="Test">
                 <Grid>
-                    <!--<Label Content="Original Text" Margin="10,10,957,281" HorizontalAlignment="Left" VerticalAlignment="Top"/>-->
                     <Label Content="Original Text" Margin="10,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="120"/>
                     <TextBox HorizontalAlignment="Left" Margin="10,45,0,0" TextWrapping="Wrap" Text="{Binding Tester.OriginalText}" Width="120" AcceptsReturn="True" AcceptsTab="True" Height="96" VerticalAlignment="Top"/>
                     <Label Content="Stage 1" Margin="135,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="120"/>
@@ -54,6 +53,18 @@
                     <Label Content="Stage 7" Margin="385,146,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="120"/>
                     <TextBox HorizontalAlignment="Left" Margin="385,181,0,0" TextWrapping="Wrap" Text="{Binding Tester.Stage7}" Width="120" AcceptsReturn="True" AcceptsTab="True" Height="96" VerticalAlignment="Top"/>
                     <Button Content="Test" Margin="10,282,393,10" Click="TestTranslationClick"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Database" >
+                <Grid Background="#FFC9E1F5">
+                    <ListBox Margin="10,10,10,53" MouseDoubleClick="GameFiles_MouseDoubleClick" ItemsSource="{Binding ListedVNs}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                    </ListBox>
+                    <Label Content="{Binding StatusText}" Margin="245,0,10,10" Height="38" VerticalAlignment="Bottom" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"/>
                 </Grid>
             </TabItem>
         </TabControl>

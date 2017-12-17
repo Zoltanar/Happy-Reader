@@ -190,6 +190,9 @@
     <Compile Include="View\UserGamePanel.xaml.cs">
       <DependentUpon>UserGamePanel.xaml</DependentUpon>
     </Compile>
+    <Compile Include="View\VNTile.xaml.cs">
+      <DependentUpon>VNTile.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\WinForms\WebBrowserOverlayWF.cs" />
     <Compile Include="View\WinForms\Win32.cs" />
     <Page Include="View\AddEntryControl.xaml">
@@ -221,6 +224,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\UserGamePanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\VNTile.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -260,9 +267,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HappySearchObjectClasses\Happy Apps Core.csproj">
+    <ProjectReference Include="..\HappySearchObjectClasses\Happy_Apps_Core.csproj">
       <Project>{c5e4c647-35ba-4525-b78a-f2263a628a5a}</Project>
-      <Name>Happy Apps Core</Name>
+      <Name>Happy_Apps_Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\HRGoogleTranslate\HRGoogleTranslate.csproj">
       <Project>{e78de42e-834a-4baa-8e7f-c876d2be8a01}</Project>
@@ -276,8 +283,12 @@
   <ItemGroup>
     <Content Include="Database\FindDuplicateEntries.sql" />
     <Content Include="Database\ReturnVNRStyleEntries.sql" />
-    <Resource Include="Resources\logo-copy.ico" />
-    <Resource Include="Resources\no-image.gif" />
+    <Resource Include="Resources\logo-copy.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\no-image.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
