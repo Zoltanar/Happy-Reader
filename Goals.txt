@@ -1,6 +1,3 @@
-Implement Japanese>Romaji Translation
-Allow moving output window and save coordinates.
 save timeplayed when exiting program.
-open tab when clicking see details
-remove tsu from end of clauses
 merge databases into one. or dont make entries db dependent on LocalDatabase, by making Game/User use a lookup dictionary.
+close button on output window, and make text background not white

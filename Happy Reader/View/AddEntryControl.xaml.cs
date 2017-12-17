@@ -27,8 +27,10 @@ namespace Happy_Reader
 
         private void Cancel_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            var tabItem = Parent as TabItem;
-            (tabItem?.Parent as TabControl)?.Items.Remove(tabItem);
+            var tabItem = (TabItem)Parent;
+            var tabControl = (TabControl)tabItem.Parent;
+            tabControl.SelectedIndex = 1;
+            tabControl.Items.Remove(tabItem);
         }
 
         private void AddEntry_Click(object sender, System.Windows.RoutedEventArgs e)

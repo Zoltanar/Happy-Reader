@@ -15,12 +15,12 @@ namespace Happy_Reader
             RightLabel = rightLabel;
             OriginalText = originalText;
             var original = string.Join("", originalText.Select(x => x.Original));
-            var firstBracket = original.IndexOfAny(new[] { '『', '「'});
-        if (firstBracket >= 0 && new[] { '』', '」' }.Contains(originalText.Last().Original.Last()))
+            var firstBracket = original.IndexOfAny(new[] { '『', '「' });
+            if (firstBracket >= 0 && new[] { '』', '」' }.Contains(originalText.Last().Original.Last()))
             {
                 Character = original.Substring(0, firstBracket);
             }
-            else Character = "<>";
+            else Character = "";
             TranslatedText = translatedText;
         }
     }

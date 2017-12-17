@@ -302,7 +302,7 @@ namespace Happy_Reader
                 var unRepeatedString = CheckRepeatedString(text);
                 var translated = Translate(unRepeatedString, out OriginalTextObject originalText);
                 _outputWindow.SetLocation(rct.Left, rct.Bottom, rct.Width);
-                _outputWindow.SetText(new TranslationItem(_hookedProcess.MainWindowTitle, originalText, translated));
+                _outputWindow.SetText(new TranslationItem(Game.Title, originalText, translated));
             }
             catch (Exception ex)
             {

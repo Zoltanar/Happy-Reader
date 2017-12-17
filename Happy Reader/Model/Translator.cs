@@ -22,7 +22,7 @@ namespace Happy_Reader
 
         private static User _lastUser;
         private static ListedVN _lastGame;
-        private static Entry[]_lastEntries;
+        private static Entry[] _lastEntries;
         public static bool RefreshEntries;
         private static readonly char[] Separators = "『「」』…".ToCharArray();
         private static readonly char[] InclusiveSeparators = "。？".ToCharArray();
@@ -52,7 +52,7 @@ namespace Happy_Reader
                             }
                             else
                             {
-                                if(currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
+                                if (currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
                                 item.Parts.Add((@char.ToString(), false));
                             }
                             currentPart = "";
@@ -63,13 +63,13 @@ namespace Happy_Reader
                         currentPart += @char;
                         index++;
                     }
-                    if (currentPart.Length > 0) item.Parts.Add((currentPart, currentPart.All(c => Separators.Contains(c))));
+                    if (currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
                     if (user != _lastUser || game != _lastGame || RefreshEntries) SetEntries(user, game);
                     item.TranslateParts();
                     originalText = item.Original;
                     return item.Results;
                 }
-                finally {Kakasi.Deinit();}
+                finally { Kakasi.Deinit(); }
             }
         }
 
@@ -116,7 +116,7 @@ namespace Happy_Reader
             _lastEntries = generalEntries.Concat(specificEntries).OrderBy(i => i.Id).ToArray();
             Debug.WriteLine($"General entries: {generalEntries.Length}. Specific entries: {specificEntries.Length}");
         }
-        
+
         /// <summary>
         /// Replace entries of type Game.
         /// </summary>
@@ -140,7 +140,7 @@ namespace Happy_Reader
             Debug.WriteLine($"Stage 2: {sb}");
 #endif
         }
-        
+
         /// <summary>
         /// Replace entries of type Yomi.
         /// </summary>
@@ -151,7 +151,7 @@ namespace Happy_Reader
             Debug.WriteLine($"Stage 3: {sb}");
 #endif
         }
-        
+
         /// <summary>
         /// Replace entries of type Name and translation to proxies.
         /// </summary>
@@ -229,7 +229,7 @@ namespace Happy_Reader
             Debug.WriteLine($"Stage 4.1: {sb}");
 #endif
         }
-        
+
         private static string[] Translate(string input, out OriginalTextObject originalText)
         {
             var result = new string[8];
@@ -283,7 +283,7 @@ namespace Happy_Reader
                 sb.LogReplace(entry.AssignedProxy.Entry.Output, outputRoleString, entry.Id);
                 foreach (var proxyMod in entry.AssignedProxy.ProxyMods)
                 {
-                    sb.LogReplace(outputRoleString, proxyMod.Output,proxyMod.Id);
+                    sb.LogReplace(outputRoleString, proxyMod.Output, proxyMod.Id);
                 }
                 sb.LogReplace("[[" + entry.RoleString + "]]", entry.Output, entry.Id);
             }
@@ -303,7 +303,7 @@ namespace Happy_Reader
             Debug.WriteLine($"Stage 7: {sb}");
 #endif
         }
-        
+
         /// <summary>
         /// Loads cache with passed collection.
         /// </summary>
@@ -337,7 +337,7 @@ namespace Happy_Reader
                         if (!item.Translate)
                         {
                             _partResults.Add(Enumerable.Repeat(item.Part, 8).ToArray());
-                            _partOriginals.Add(new OriginalTextObject {(item.Part, null)});
+                            _partOriginals.Add(new OriginalTextObject { (item.Part, null) });
                             continue;
                         }
                         _partResults.Add(Translate(item.Part, out OriginalTextObject original));

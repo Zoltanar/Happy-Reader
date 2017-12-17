@@ -4,13 +4,15 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Output" Height="196.093" Width="600" ShowInTaskbar="False" WindowStyle="None" AllowsTransparency="True"  Opacity="0.65" Topmost="True" MouseLeftButtonDown="Window_MouseLeftButtonDown">
+        Title="Output" Height="196.093" Width="600" ShowInTaskbar="False" WindowStyle="None" AllowsTransparency="True"  Opacity="{Binding Value, ElementName=OpacitySlider}" Topmost="True" MouseLeftButtonDown="Window_MouseLeftButtonDown">
     <Window.Background>
         <SolidColorBrush Color="Black"/>
     </Window.Background>
     <Grid>
-        <Label x:Name="CharacterLabel" Content="Label" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Foreground="White" BorderBrush="#FFB61C1C" Background="{x:Null}" BorderThickness="1" Width="270"/>
-        <Label x:Name="ContextLabel" Content="Label" Margin="0,10,10,0" VerticalAlignment="Top" Foreground="White" BorderBrush="#FFB61C1C" Background="{x:Null}" BorderThickness="1" HorizontalAlignment="Right" Width="270" HorizontalContentAlignment="Right"/>
+        <Label x:Name="CharacterLabel" Content="Label" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Foreground="White" BorderBrush="#FFB61C1C" Background="{x:Null}" BorderThickness="1" Width="194"/>
+        <Label x:Name="ContextLabel" Content="Label" Margin="362,10,10,0" VerticalAlignment="Top" Foreground="White" BorderBrush="#FFB61C1C" Background="{x:Null}" BorderThickness="1" HorizontalContentAlignment="Right"/>
         <DockPanel Name="WebBrowserPanel" Margin="10,43,10,10"/>
+        <CheckBox Content="Lock" HorizontalAlignment="Left" Margin="204,17,0,0" VerticalAlignment="Top" Foreground="White" Background="White" Checked="ToggleLock" Unchecked="ToggleLock"/>
+        <Slider Name="OpacitySlider" HorizontalAlignment="Left" Margin="253,17,0,0" VerticalAlignment="Top" Width="104" Value="0.6" Minimum="0.2" Maximum="1"/>
     </Grid>
 </Window>

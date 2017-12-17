@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Text;
+using System.Windows.Controls;
 using Happy_Reader.WinForms;
 
 namespace Happy_Reader
@@ -12,6 +13,7 @@ namespace Happy_Reader
 
         private readonly WebBrowserOverlayWf _webBrowser;
         private readonly RecentItemList<StringBuilder> _recentItems = new RecentItemList<StringBuilder>(10);
+        private bool _lockedLocation;
 
         public OutputWindow()
         {
@@ -28,14 +30,18 @@ namespace Happy_Reader
             var romaji = string.Join(" ", translationItem.OriginalText.Select(x => x.Romaji));
             htmlBuilder.Append(original);
             htmlBuilder.Append("</br>");
-            htmlBuilder.Append(romaji);
-            htmlBuilder.Append("</br>");
-            htmlBuilder.Append(translationItem.TranslatedText);
+            if (!romaji.Equals(original))
+            {
+                htmlBuilder.Append(romaji);
+                htmlBuilder.Append("</br>");
+            }
+            if (!translationItem.TranslatedText.Equals(original)) htmlBuilder.Append(translationItem.TranslatedText);
             _recentItems.Add(htmlBuilder);
             string html = "<div style=\"font-size:22px;\">" + string.Join("</br></br>", _recentItems.Items);
             html += "</div>";
             _webBrowser.WebBrowser.DocumentText = html;
         }
+
         public void SetTextRuby(TranslationItem translationItem)
         {
             CharacterLabel.Content = translationItem.Character;
@@ -69,6 +75,7 @@ namespace Happy_Reader
 
         internal void SetLocation(int left, int bottom, int width)
         {
+            if (_lockedLocation) return;
             Left = left;
             Top = bottom;
             Width = width;
@@ -78,6 +85,11 @@ namespace Happy_Reader
         {
             DragMove();
             //SetGameWindowCoords(Left, Top, Width, Height);
+        }
+
+        private void ToggleLock(object sender, System.Windows.RoutedEventArgs e)
+        {
+            _lockedLocation = ((CheckBox)sender).IsChecked ?? false;
         }
     }
 }

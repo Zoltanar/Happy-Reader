@@ -129,6 +129,13 @@ namespace Happy_Reader
         {
             _viewModel.TestTranslation();
         }
+
+        public void TabMiddleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton != MouseButton.Middle) return;
+            if (!(sender is TabItem tab)) return;
+            MainTabControl.Items.Remove(tab);
+        }
     }
 }
 
