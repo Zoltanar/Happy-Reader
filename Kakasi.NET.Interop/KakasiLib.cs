@@ -189,7 +189,7 @@ namespace KakasiNET
             _kakasiGetoptArgv.Invoke(@params.Length, @params);
 
         }
-
+        
         /// <summary>
         /// Execute Kakasi action
         /// </summary>
@@ -197,7 +197,6 @@ namespace KakasiNET
         /// <returns></returns>
         public static string DoKakasi(string japanese)
         {
-
             // Init, if required
             if (KakasiLibPtr == IntPtr.Zero) Init();
 

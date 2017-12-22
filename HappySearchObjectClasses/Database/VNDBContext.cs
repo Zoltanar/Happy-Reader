@@ -38,6 +38,8 @@ namespace Happy_Apps_Core.Database
         public virtual DbSet<CharacterItem> Characters { get; set; }
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<TableDetail> TableDetails { get; set; }
+
+        public IQueryable<UserVN> URTVisualNovels => UserVisualNovels.Where(x => x.UserId == Settings.UserID);
     }
 
     public class VNDatabaseInitializer : SqliteCreateDatabaseIfNotExists<VisualNovelDatabase>

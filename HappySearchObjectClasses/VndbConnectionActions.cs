@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using Happy_Apps_Core.Database;
 using Happy_Apps_Core.Properties;
 using Newtonsoft.Json;
@@ -18,8 +17,9 @@ namespace Happy_Apps_Core
         public ApiQuery ActiveQuery;
         private readonly Action<string> _advancedAction;
 #pragma warning disable 649
-        private readonly Action<Label, string> _errorAction; //todo error/warning actions
-        private readonly Action<Label, string> _warningAction;
+        private readonly Action<string> _errorAction; //todo error/warning actions
+        private readonly Action<string> _warningAction;
+        private readonly Action<string> _textAction;
 #pragma warning restore 649
         private readonly Action _refreshListAction;
         private readonly Action<APIStatus> _changeStatusAction;
@@ -36,20 +36,19 @@ namespace Happy_Apps_Core
         /// <summary>
         /// Check if API Connection is ready, change status accordingly and write error if it isnt ready.
         /// </summary>
-        /// <param name="replyLabel">Label where error reply will be printed</param>
         /// <param name="featureName">Name of feature calling the query</param>
         /// <param name="refreshList">Refresh OLV on throttled connection</param>
         /// <param name="additionalMessage">Print Added/Skipped message on throttled connection</param>
         /// <param name="ignoreDateLimit">Ignore 10 year limit (if applicable)</param>
         /// <returns>If connection was ready</returns>
-        public bool StartQuery(Label replyLabel, string featureName, bool refreshList, bool additionalMessage, bool ignoreDateLimit)
+        public bool StartQuery(string featureName, bool refreshList, bool additionalMessage, bool ignoreDateLimit)
         {
-            if (!ActiveQuery.Completed)
+            if (ActiveQuery != null && !ActiveQuery.Completed)
             {
-                _errorAction.Invoke(replyLabel, $"Wait until {ActiveQuery.ActionName} is done.");
+                _errorAction?.Invoke($"Wait until {ActiveQuery.ActionName} is done.");
                 return false;
             }
-            ActiveQuery = new ApiQuery(featureName, replyLabel, refreshList, additionalMessage, ignoreDateLimit);
+            ActiveQuery = new ApiQuery(featureName, refreshList, additionalMessage, ignoreDateLimit);
             TitlesAdded = 0;
             TitlesSkipped = 0;
             return true;
@@ -65,7 +64,7 @@ namespace Happy_Apps_Core
         {
             if (Status != APIStatus.Ready)
             {
-                _errorAction.Invoke(ActiveQuery.ReplyLabel, "API Connection isn't ready.");
+                _errorAction?.Invoke("API Connection isn't ready.");
                 return QueryResult.Fail;
             }
             Status = APIStatus.Busy;
@@ -88,7 +87,7 @@ namespace Happy_Apps_Core
             {
                 if (!LastResponse.Error.ID.Equals("throttled"))
                 {
-                    _errorAction.Invoke(ActiveQuery.ReplyLabel, errorMessage);
+                    _errorAction?.Invoke( errorMessage);
                     return QueryResult.Fail;
                 }
                 string fullThrottleMessage = "";
@@ -106,7 +105,7 @@ namespace Happy_Apps_Core
                     if (TitlesSkipped > 0) additionalWarning += $" Skipped {TitlesSkipped}.";
                     fullThrottleMessage = ActiveQuery.AdditionalMessage ? normalWarning + additionalWarning : normalWarning;
                 });
-                _warningAction.Invoke(ActiveQuery.ReplyLabel, fullThrottleMessage);
+                _warningAction.Invoke(fullThrottleMessage);
                 LogToFile($"Local: {DateTime.Now} - {fullThrottleMessage}");
                 var waitMS = minWait * 1000;
                 _throttleWaitTime = Convert.ToInt32(waitMS);
@@ -571,6 +570,36 @@ namespace Happy_Apps_Core
 #if DEBUG
         private const int VNIDToDebug = 20367;
 #endif
+        public async Task UpdateURT()
+        {
+            if (Settings.UserID < 1) return;
+            var result = StartQuery("UpdateURT", true, true, true);
+            if (!result) return;
+            LogToFile($"Starting GetUserRelatedTitles for {Settings.UserID}, previously had {LocalDatabase.URTVisualNovels.Count()} titles.");
+            //clone list to make sure it doesnt keep command status.
+            List<VisualNovelDatabase.UrtListItem> localURTList = LocalDatabase.URTVisualNovels.AsEnumerable().Select(VisualNovelDatabase.UrtListItem.FromVN).ToList();
+            await GetUserList(localURTList);
+            await GetWishList(localURTList);
+            await GetVoteList(localURTList);
+            LocalDatabase.UpdateURTTitles(Settings.UserID, localURTList);
+            await GetRemainingTitles();
+            //SetFavoriteProducersData();
+            //UpdateUserStats();
+            _textAction?.Invoke($"Updated URT ({TitlesAdded} added).");
+            Settings.URTDate = DateTime.UtcNow;
+            Settings.Save();
+            _changeStatusAction?.Invoke(Status);
+        }
+
+
+        private async Task GetRemainingTitles()
+        {
+            int[] userTitles = LocalDatabase.UserVisualNovels.Where(x=>x.UserId == Settings.UserID).Select(x => x.VNID).ToArray();
+            int[] fetchedTitles = LocalDatabase.VisualNovels.Select(x => x.VNID).ToArray();
+            int[] unfetchedTitles = userTitles.Except(fetchedTitles).ToArray();//userVns.Where(x => !fetchedTitles.Contains(x.VNID)).Select(x=>x.VNID).ToArray();
+            if (!unfetchedTitles.Any()) return;
+            await Conn.GetMultipleVN(unfetchedTitles, false);
+        }
 
         /// <summary>
         ///     Get user's userlist from VNDB, add titles that aren't in local db already.
@@ -680,5 +709,9 @@ namespace Happy_Apps_Core
             }
         }
 
+        private void ChangeAPIStatus(APIStatus status)
+        {
+            if (status == APIStatus.Ready) ActiveQuery.Completed = true;
+        }
     }
 }

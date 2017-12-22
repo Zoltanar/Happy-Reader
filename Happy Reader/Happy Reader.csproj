@@ -164,6 +164,7 @@
     <Compile Include="Database\Log.cs" />
     <Compile Include="Model\ClipboardManager.cs" />
     <Compile Include="Model\Kakasi.cs" />
+    <Compile Include="Model\PausableUpdateList.cs" />
     <Compile Include="Model\RecentItemList.cs" />
     <Compile Include="ViewModel\TranslationTester.cs" />
     <Compile Include="View\AddEntryControl.xaml.cs">

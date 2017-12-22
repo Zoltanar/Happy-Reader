@@ -58,13 +58,16 @@
             <TabItem Header="Database" >
                 <Grid Background="#FFC9E1F5">
                     <ListBox Margin="10,10,10,53" MouseDoubleClick="GameFiles_MouseDoubleClick" ItemsSource="{Binding ListedVNs}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                        <ListBox.ItemsPanel>
+                        <ListBox.ItemsPanel >
                             <ItemsPanelTemplate>
                                 <WrapPanel />
                             </ItemsPanelTemplate>
                         </ListBox.ItemsPanel>
                     </ListBox>
-                    <Label Content="{Binding StatusText}" Margin="245,0,10,10" Height="38" VerticalAlignment="Bottom" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"/>
+                    <Label Content="{Binding ListedVNs.Count}" ContentStringFormat="Items: {0}" Margin="0,0,10,10" Height="38" VerticalAlignment="Bottom" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="78"/>
+                    <Label Content="{Binding CoreSettings.URTDate}" ContentStringFormat="Last URT Update: {0}" HorizontalAlignment="Left" Margin="10,0,0,10" Height="38" VerticalAlignment="Bottom" VerticalContentAlignment="Center"/>
+                    <Button Content="Update" HorizontalAlignment="Left" Margin="236,0,0,19" Width="75" Click="UpdateURT" Height="20" VerticalAlignment="Bottom"/>
+                    <Label Content="{Binding VndbConnectionReply}" Margin="316,0,93,10" Height="38" VerticalAlignment="Bottom" VerticalContentAlignment="Center"/>
                 </Grid>
             </TabItem>
         </TabControl>

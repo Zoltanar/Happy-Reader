@@ -6,7 +6,7 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using static Happy_Apps_Core.StaticHelpers;
 
@@ -22,6 +22,12 @@ namespace Happy_Apps_Core
             _advancedAction = advancedModeAction;
             _refreshListAction = refreshListAction;
             _changeStatusAction = changeStatusAction;
+        }
+
+        public VndbConnection([NotNull]Action<string> changeTextAction, Action<APIStatus> changeStatusAction = null)
+        {
+            _textAction = changeTextAction;
+            _changeStatusAction = changeStatusAction ?? ChangeAPIStatus;
         }
 
         private const string VndbHost = "api.vndb.org";
@@ -100,9 +106,9 @@ namespace Happy_Apps_Core
 
         private void AskForNonSsl()
         {
-            var messageResult = MessageBox.Show(@"Connection to VNDB failed, do you wish to try without SSL?",
-                @"Connection Failed", MessageBoxButtons.YesNo);
-            if (messageResult != DialogResult.Yes) return;
+            var messageResult = System.Windows.Forms.MessageBox.Show(@"Connection to VNDB failed, do you wish to try without SSL?",
+                @"Connection Failed", System.Windows.Forms.MessageBoxButtons.YesNo);
+            if (messageResult != System.Windows.Forms.DialogResult.Yes) return;
             LogToFile($"Attempting to open connection to {VndbHost}:{VndbPort} without SSL");
             Status = APIStatus.Closed;
             var complete = false;

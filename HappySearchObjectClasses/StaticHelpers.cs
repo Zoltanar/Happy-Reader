@@ -57,7 +57,6 @@ namespace Happy_Apps_Core
         public const string APIVersion = "2.25";
         public const int APIMaxResults = 25;
         public static readonly string MaxResultsString = "\"results\":" + APIMaxResults;
-        public const string TagTypeUrt = "mctULLabel";
         public const string ContentTag = "cont";
         public const string SexualTag = "ero";
         public const string TechnicalTag = "tech";
@@ -156,7 +155,7 @@ namespace Happy_Apps_Core
             list.RaiseListChangedEvents = true;
             list.ResetBindings();
         }
-
+        
         /// <summary>
         /// Pause RaiseListChangedEvents, clear list and add items, then call ResetBindings event.
         /// </summary>

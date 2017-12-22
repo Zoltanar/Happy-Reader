@@ -18,7 +18,8 @@ namespace Happy_Reader
             var firstBracket = original.IndexOfAny(new[] { '『', '「' });
             if (firstBracket >= 0 && new[] { '』', '」' }.Contains(originalText.Last().Original.Last()))
             {
-                Character = original.Substring(0, firstBracket);
+                var firstBracketTranslated = translatedText.IndexOfAny(new[] { '『', '「' });
+                Character = translatedText.Substring(0, firstBracketTranslated);
             }
             else Character = "";
             TranslatedText = translatedText;

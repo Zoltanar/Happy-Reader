@@ -110,11 +110,11 @@ namespace Happy_Apps_Core.Database
         {
             foreach (var item in urtList)
             {
-                var uvn = UserVisualNovels.SingleOrDefault(x => x.UserId == userid && x.VNID == item.ID);
+                UserVN uvn = UserVisualNovels.SingleOrDefault(x => x.UserId == userid && x.VNID == item.ID);
                 switch (item.Action)
                 {
                     case Command.New:
-                        uvn = new UserVN { VNID = item.ID };
+                        uvn = new UserVN { VNID = item.ID, UserId = userid};
                         UserVisualNovels.Add(uvn);
                         goto case Command.Update;
                     case Command.Update:
@@ -132,8 +132,8 @@ namespace Happy_Apps_Core.Database
                         UserVisualNovels.Remove(uvn);
                         break;
                 }
-                SaveChanges();
             }
+            SaveChanges();
         }
 
         public void UpsertSingleCharacter(CharacterItem character, bool saveChanges)
@@ -185,7 +185,8 @@ namespace Happy_Apps_Core.Database
 
         public void RemoveVisualNovel(int vnid, bool saveChanges)
         {
-            var vn = VisualNovels.First(x => x.VNID == vnid);
+            var vn = VisualNovels.FirstOrDefault(x => x.VNID == vnid);
+            if (vn == null) return;
             VisualNovels.Remove(vn);
             if (saveChanges) SaveChanges();
         }
@@ -237,6 +238,13 @@ namespace Happy_Apps_Core.Database
             {
                 return new UrtListItem(vn);
             }
+            /// <summary>
+            /// Create URT item from previously fetched data. (For Method Group)
+            /// </summary>
+            public static UrtListItem FromVN(UserVN vn)
+            {
+                return new UrtListItem(vn);
+            }
 
             /// <summary>
             /// Create URT item from previously fetched data.
@@ -246,39 +254,47 @@ namespace Happy_Apps_Core.Database
                 ID = vn.VNID;
                 Action = Command.Delete;
             }
+            /// <summary>
+            /// Create URT item from previously fetched data.
+            /// </summary>
+            public UrtListItem(UserVN vn)
+            {
+                ID = vn.VNID;
+                Action = Command.Delete;
+            }
+
+            public UrtListItem(int id)
+            {
+                ID = id;
+                Action = Command.New;
+            }
 
             /// <summary>
             /// Create new URT item from user list data.
             /// </summary>
-            public UrtListItem(UserListItem item)
+            public UrtListItem(UserListItem item) : this(item.VN)
             {
-                ID = item.VN;
                 ULStatus = (UserlistStatus)item.Status;
                 ULAdded = item.Added;
                 ULNote = item.Notes;
-                Action = Command.New;
             }
 
             /// <summary>
             /// Create new URT item from wish list data.
             /// </summary>
-            public UrtListItem(WishListItem item)
+            public UrtListItem(WishListItem item) : this(item.VN)
             {
-                ID = item.VN;
                 WLStatus = (WishlistStatus)item.Priority;
                 WLAdded = item.Added;
-                Action = Command.New;
             }
 
             /// <summary>
             /// Create new URT item from vote list data.
             /// </summary>
-            public UrtListItem(VoteListItem item)
+            public UrtListItem(VoteListItem item) : this(item.VN)
             {
-                ID = item.VN;
                 Vote = item.Vote;
                 VoteAdded = item.Added;
-                Action = Command.New;
             }
 
             /// <summary>
@@ -289,7 +305,7 @@ namespace Happy_Apps_Core.Database
                 ULStatus = (UserlistStatus)item.Status;
                 ULAdded = item.Added;
                 ULNote = item.Notes;
-                Action = Command.Update;
+                if(Action != Command.New) Action = Command.Update;
             }
 
 
@@ -300,7 +316,7 @@ namespace Happy_Apps_Core.Database
             {
                 WLStatus = (WishlistStatus)item.Priority;
                 WLAdded = item.Added;
-                Action = Command.Update;
+                if (Action != Command.New) Action = Command.Update;
             }
 
             /// <summary>
@@ -310,7 +326,7 @@ namespace Happy_Apps_Core.Database
             {
                 Vote = item.Vote;
                 VoteAdded = item.Added;
-                Action = Command.Update;
+                if (Action != Command.New) Action = Command.Update;
             }
 
             /// <summary>Returns a string that represents the current object.</summary>

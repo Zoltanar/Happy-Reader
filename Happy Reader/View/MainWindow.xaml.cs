@@ -53,6 +53,7 @@ namespace Happy_Reader
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             _viewModel.ClipboardManager = new ClipboardManager(this);
+            await _viewModel.InitializeVndbConnection();
             await _viewModel.Loaded();
         }
 
@@ -105,8 +106,19 @@ namespace Happy_Reader
         }
 
         private void Debug_Button(object sender, RoutedEventArgs e)
-        {
+        {/*
+            int count = 0;
+            int charCount = 0;
+            while (true)
+            {
+                var text = "これはテスト文字列です、これはテスト文字列です";
+                Kakasi.JapaneseToKana(text);
+                count++;
+                charCount += text.Length;
+                if (count > 507) { }
+            }*/
         }
+        
 
         public void ShowNotification(object sender, [NotNull]string message, string title = "Notification")
         {
@@ -135,6 +147,11 @@ namespace Happy_Reader
             if (e.ChangedButton != MouseButton.Middle) return;
             if (!(sender is TabItem tab)) return;
             MainTabControl.Items.Remove(tab);
+        }
+
+        private async void UpdateURT(object sender, RoutedEventArgs e)
+        {
+            await _viewModel.UpdateURT();
         }
     }
 }

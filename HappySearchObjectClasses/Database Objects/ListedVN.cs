@@ -131,7 +131,9 @@ namespace Happy_Apps_Core
 
         public int? UserVNId { get; set; }
 
-        public virtual UserVN UserVN { get; set; }
+        public virtual UserVN UserVN
+        { get; set; }
+        //=>null;//LocalDatabase.UserVisualNovels.SingleOrDefault(x => x.UserId == Settings.UserID && x.VNID == VNID);
         #endregion
 
         private int? _daysSinceFullyUpdated;
@@ -360,6 +362,10 @@ namespace Happy_Apps_Core
         public Brush BackBrush => GetBrushFromStatuses();
 
         public Brush ProducerBrush => new SolidColorBrush(VNIsByFavoriteProducer(this)? FavoriteProducerBrush: Colors.Black);
+
+        public Brush DateBrush => new SolidColorBrush(DateForSorting > DateTime.UtcNow ? UnreleasedBrush : Colors.Black);
+
+        public Brush UserRelatedBrush => new SolidColorBrush(UserVN?.ULStatus == UserlistStatus.Playing ? ULPlayingBrush : Colors.Black);
 
         /// <summary>
         /// Get brush from vn UL or WL status or null if no statuses are found.

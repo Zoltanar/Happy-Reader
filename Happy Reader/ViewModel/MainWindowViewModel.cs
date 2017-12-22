@@ -29,10 +29,19 @@ namespace Happy_Reader
         public NotificationEventHandler NotificationEvent;
         public ObservableCollection<dynamic> EntriesList { get; }
         public ObservableCollection<TitledImage> UserGameItems { get; set; } = new ObservableCollection<TitledImage>();
-        public ObservableCollection<VNTile> ListedVNs { get; set; } = new ObservableCollection<VNTile>();
+        public PausableUpdateList<VNTile> ListedVNs { get; set; } = new PausableUpdateList<VNTile>();
         public TranslationTester Tester { get; set; } = new TranslationTester();
 
+
+        private OutputWindow _outputWindow;
         private string _statusText;
+        private string _vndbConnectionReply;
+        private bool _onlyGameEntries;
+        private bool _closingDone;
+        private bool _captureClipboard;
+        private Process _hookedProcess;
+        public ClipboardManager ClipboardManager;
+
         public string StatusText
         {
             get => _statusText;
@@ -42,14 +51,6 @@ namespace Happy_Reader
                 OnPropertyChanged();
             }
         }
-
-        private OutputWindow _outputWindow;
-
-        private bool _onlyGameEntries;
-        private bool _closingDone;
-        private Process _hookedProcess;
-        public ClipboardManager ClipboardManager;
-
         public bool OnlyGameEntries
         {
             get => _onlyGameEntries;
@@ -60,9 +61,6 @@ namespace Happy_Reader
                 SetEntries();
             }
         }
-
-        private bool _captureClipboard;
-
         public bool CaptureClipboard
         {
             get => _captureClipboard;
@@ -73,6 +71,14 @@ namespace Happy_Reader
                 _captureClipboard = value;
                 OnPropertyChanged();
             }
+        }
+
+        public CoreSettings CoreSettings => Settings;
+
+        public string VndbConnectionReply
+        {
+            get => _vndbConnectionReply;
+            set { _vndbConnectionReply = value; OnPropertyChanged(); }
         }
 
         public void SetEntries()
@@ -181,14 +187,28 @@ namespace Happy_Reader
             return new TitledImage(userGame);
         }
 
-        public async Task Loaded()
+        public async Task InitializeVndbConnection()
         {
-            StatusText = "Loading VN Database...";
+            StatusText = "Opening VNDB Connection...";
             await Task.Run(() =>
             {
+                Conn = new VndbConnection(VndbConnectionText);
+                Conn.Login(ClientName, ClientVersion);
+            });
+        }
+
+        public void VndbConnectionText(string text)
+        {
+            Application.Current.Dispatcher.Invoke(() => { VndbConnectionReply = text; });
+        }
+
+        public async Task Loaded()
+        {
+            await Task.Run(() =>
+            {
+                StatusText = "Loading VN Database...";
                 LocalDatabase = new VisualNovelDatabase();
-                Settings.UserID = 47063;
-                User = LocalDatabase.Users.Single(x => x.Id == Settings.UserID);
+                SetUser(47063);
                 StatusText = "Loading Cached Translations...";
                 Data.CachedTranslations.Load();
                 Translator.LoadTranslationCache(Data.CachedTranslations.Local);
@@ -196,13 +216,10 @@ namespace Happy_Reader
                 PopulateProxies();
                 StatusText = "Loading Dumpfiles...";
                 DumpFiles.Load();
-                StatusText = "Opening VNDB Connection...";
-                Conn = new VndbConnection(null, null, null);
-                Conn.Login(ClientName, ClientVersion);
+                StatusText = "Loading Entries...";
+                SetEntries();
+                StatusText = "Loading User Games...";
             });
-            StatusText = "Loading Entries...";
-            SetEntries();
-            StatusText = "Loading User Games...";
             foreach (var game in Data.UserGames.OrderBy(x => x.VNID ?? 0))
             {
                 game.VN = game.VNID != null
@@ -210,12 +227,36 @@ namespace Happy_Reader
                     : null;
                 var ti = new TitledImage(game);
                 UserGameItems.Add(ti);
-                if (game.VN != null) ListedVNs.Add(new VNTile(game.VN));
             }
+            StatusText = "Loading URT List...";
+            await RefreshListedVns();
             StatusText = "Loading finished.";
             var monitor = new Thread(MonitorStart) { IsBackground = true };
             monitor.Start();
             //NotificationEvent.Invoke(this, $"Took {watch.Elapsed:ss\\:fff} (Dumpfiles took {dumpfilesLoadTime:ss\\:fff})", "Loading complete.");
+        }
+
+        private void SetUser(int userid)
+        {
+            Settings.UserID = userid;
+            foreach (var vn in LocalDatabase.VisualNovels)
+            {
+                vn.UserVNId = LocalDatabase.UserVisualNovels.SingleOrDefault(x =>
+                    x.UserId == Settings.UserID && x.VNID == vn.VNID)?.Id;
+            }
+            User = LocalDatabase.Users.Single(x => x.Id == Settings.UserID);
+        }
+
+        private async Task RefreshListedVns()
+        {
+            ListedVN[] urtList = null;
+            await Task.Run(() =>
+            {
+                var vnids = LocalDatabase.UserVisualNovels.Where(x => x.UserId == 47063 && x.WLStatus != WishlistStatus.Blacklist).Select(x => x.VNID).ToArray();
+                urtList = LocalDatabase.VisualNovels.Where(x => vnids.Contains(x.VNID)).ToArray().OrderByDescending(x => x.DateForSorting).ToArray();
+            });
+            ListedVNs.SetRange(urtList.Select(x => new VNTile(x)));
+            OnPropertyChanged(nameof(CoreSettings));
         }
 
         private void PopulateProxies()
@@ -289,8 +330,8 @@ namespace Happy_Reader
             var b1 = cpOwner == null;
             var b2 = cpOwner?.Id == _hookedProcess.Id;
             var b3 = cpOwner?.ProcessName.ToLower().Equals("ithvnr") ?? false;
-            if (b1 || !(b2 || b3)) return; //if process isn't hooked process or named ithvnr
-            Debug.WriteLine($"Captured clipboard from {cpOwner.ProcessName} ({cpOwner.Id})");
+            if (!(b1 || b2 || b3)) return; //if process isn't hooked process or named ithvnr
+            Debug.WriteLine($"Captured clipboard from {cpOwner?.ProcessName} ({cpOwner?.Id})");
             var rct = GetWindowDimensions(_hookedProcess);
             if (rct.ZeroSized) return; //todo show it somehow or show error.
             if (!_outputWindow.IsLoaded)
@@ -301,7 +342,7 @@ namespace Happy_Reader
             try
             {
                 var text = Clipboard.GetText();
-                var latinOnly = new System.Text.RegularExpressions.Regex(@"[a-zA-Z0-9:/\\\\r\\n .!?,;()""]+");
+                var latinOnly = new System.Text.RegularExpressions.Regex(@"^[a-zA-Z0-9:/\\\\r\\n .!?,;()""]+$");
                 if (string.IsNullOrWhiteSpace(text)) return;
                 if (latinOnly.IsMatch(text)) return;
                 var unRepeatedString = CheckRepeatedString(text);
@@ -341,6 +382,12 @@ namespace Happy_Reader
         public void TestTranslation()
         {
             Tester.Test(User, Game);
+        }
+
+        public async Task UpdateURT()
+        {
+            await Conn.UpdateURT();
+            await RefreshListedVns();
         }
 
     }

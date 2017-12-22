@@ -37,8 +37,13 @@ namespace Happy_Reader
             }
             if (!translationItem.TranslatedText.Equals(original)) htmlBuilder.Append(translationItem.TranslatedText);
             _recentItems.Add(htmlBuilder);
-            string html = "<div style=\"font-size:22px;\">" + string.Join("</br></br>", _recentItems.Items);
-            html += "</div>";
+            string html = @"<style>
+div {
+    font-size:22px;
+}
+</style>
+<body bgcolor=""#E6E6FA""><div>" + string.Join("</br></br>", _recentItems.Items);
+            html += "</div></body>";
             _webBrowser.WebBrowser.DocumentText = html;
         }
 
