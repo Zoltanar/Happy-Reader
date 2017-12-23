@@ -1,7 +1,8 @@
 ﻿using System.Linq;
-using System.Text;
+using System.Windows;
 using System.Windows.Controls;
-using Happy_Reader.WinForms;
+using System.Windows.Documents;
+using System.Windows.Media;
 
 namespace Happy_Reader
 {
@@ -10,74 +11,35 @@ namespace Happy_Reader
     /// </summary>
     public partial class OutputWindow
     {
-
-        private readonly WebBrowserOverlayWf _webBrowser;
-        private readonly RecentItemList<StringBuilder> _recentItems = new RecentItemList<StringBuilder>(10);
+        private readonly RecentItemList<Paragraph[]> _recentItems = new RecentItemList<Paragraph[]>(10);
         private bool _lockedLocation;
 
         public OutputWindow()
         {
             InitializeComponent();
-            _webBrowser = new WebBrowserOverlayWf(WebBrowserPanel);
         }
 
         public void SetText(TranslationItem translationItem)
         {
             CharacterLabel.Content = translationItem.Character;
             ContextLabel.Content = translationItem.RightLabel;
-            StringBuilder htmlBuilder = new StringBuilder();
             var original = string.Join(string.Empty, translationItem.OriginalText.Select(x => x.Original));
             var romaji = string.Join(" ", translationItem.OriginalText.Select(x => x.Romaji));
-            htmlBuilder.Append(original);
-            htmlBuilder.Append("</br>");
-            if (!romaji.Equals(original))
-            {
-                htmlBuilder.Append(romaji);
-                htmlBuilder.Append("</br>");
-            }
-            if (!translationItem.TranslatedText.Equals(original)) htmlBuilder.Append(translationItem.TranslatedText);
-            _recentItems.Add(htmlBuilder);
-            string html = @"<style>
-div {
-    font-size:22px;
-}
-</style>
-<body bgcolor=""#E6E6FA""><div>" + string.Join("</br></br>", _recentItems.Items);
-            html += "</div></body>";
-            _webBrowser.WebBrowser.DocumentText = html;
+            var originalP = new Paragraph(new Run(original));
+            originalP.Inlines.FirstInline.Foreground = Brushes.Ivory;
+            var romajiP = new Paragraph(new Run(romaji));
+            romajiP.Inlines.FirstInline.Foreground = Brushes.Pink;
+            var translatedP = new Paragraph(new Run(translationItem.TranslatedText));
+            translatedP.Inlines.FirstInline.Foreground = Brushes.GreenYellow;
+            var blocks = new[] {originalP,romajiP,translatedP, new Paragraph()};
+            foreach (var block in blocks) block.Margin = new Thickness(0);
+            _recentItems.Add( blocks);
+            //draw in textbox
+            var doc = new FlowDocument();
+            foreach (var item in _recentItems.Items) doc.Blocks.AddRange(item);
+            DebugTextbox.Document = doc;
         }
-
-        public void SetTextRuby(TranslationItem translationItem)
-        {
-            CharacterLabel.Content = translationItem.Character;
-            ContextLabel.Content = translationItem.RightLabel;
-            StringBuilder htmlBuilder = new StringBuilder();
-            foreach (var (original, romaji) in translationItem.OriginalText)
-            {
-                if (string.IsNullOrWhiteSpace(romaji) || original == romaji)
-                { htmlBuilder.Append(original); }
-                else
-                {
-                    htmlBuilder.Append("<ruby><rb>");
-                    htmlBuilder.Append(original);
-                    htmlBuilder.Append("</rb><rt>");
-                    htmlBuilder.Append(romaji);
-                    htmlBuilder.Append("</rt></ruby>");
-                }
-            }
-            htmlBuilder.Append("</br>");
-            htmlBuilder.Append(translationItem.TranslatedText);
-            _recentItems.Add(htmlBuilder);
-            string html = "<div style=\"font-size:22px;\">";
-            foreach (var item in _recentItems.Items)
-            {
-                html += item.ToString();
-                html += "<br>";
-            }
-            html += "</div>";
-            _webBrowser.WebBrowser.DocumentText = html;
-        }
-
+        
         internal void SetLocation(int left, int bottom, int width)
         {
             if (_lockedLocation) return;
@@ -92,7 +54,7 @@ div {
             //SetGameWindowCoords(Left, Top, Width, Height);
         }
 
-        private void ToggleLock(object sender, System.Windows.RoutedEventArgs e)
+        private void ToggleLock(object sender, RoutedEventArgs e)
         {
             _lockedLocation = ((CheckBox)sender).IsChecked ?? false;
         }

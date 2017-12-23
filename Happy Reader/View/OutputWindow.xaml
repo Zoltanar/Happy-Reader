@@ -4,19 +4,19 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Output" Height="180" Width="600" 
+        Title="Output" Height="216" Width="600" 
         ShowInTaskbar="False" WindowStyle="None" AllowsTransparency="True"  
-        Opacity="{Binding Value, ElementName=OpacitySlider}" Topmost="True" 
+        Topmost="True" 
         MouseLeftButtonDown="Window_MouseLeftButtonDown"
         ResizeMode="CanResizeWithGrip">
     <Window.Background>
-        <SolidColorBrush Color="Black"/>
+        <SolidColorBrush Color="Black" Opacity="{Binding Value, ElementName=OpacitySlider}"/>
     </Window.Background>
-    <Grid Background="Lavender">
-        <Label x:Name="CharacterLabel" Content="Label" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Black" BorderBrush="#FFB61C1C" Background="{x:Null}" BorderThickness="1" Width="194" Height="18" Padding="5,0"/>
-        <Label x:Name="ContextLabel" Content="Label" Margin="199,0,49,0" VerticalAlignment="Top" Foreground="Black" BorderBrush="#FFB61C1C" Background="{x:Null}" BorderThickness="1" HorizontalContentAlignment="Right" Padding="5,0"/>
-        <DockPanel Name="WebBrowserPanel" Margin="0,18,21,0"/>
-        <CheckBox Content="Lock" VerticalAlignment="Top" Foreground="Black" Background="White" Checked="ToggleLock" Unchecked="ToggleLock" Height="18" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="44"/>
+    <Grid>
+        <Label x:Name="CharacterLabel" Content="Label" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" BorderBrush="#FFB61C1C" Background="{x:Null}" BorderThickness="1" Width="194" Height="18" Padding="5,0"/>
+        <Label x:Name="ContextLabel" Content="Label" Margin="199,0,49,0" VerticalAlignment="Top" Foreground="White" BorderBrush="#FFB61C1C" Background="{x:Null}" BorderThickness="1" HorizontalContentAlignment="Right" Padding="5,0"/>
+        <CheckBox Content="Lock" VerticalAlignment="Top" Foreground="White" Background="White" Checked="ToggleLock" Unchecked="ToggleLock" Height="18" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="44"/>
         <Slider Name="OpacitySlider" Orientation="Vertical" Margin="0,20,0,18" Value="0.6" Minimum="0.2" Maximum="1" HorizontalAlignment="Right" Width="21"/>
+        <RichTextBox Foreground="GreenYellow" x:Name="DebugTextbox" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,23,26,0" Background="{x:Null}" FontSize="22"/>
     </Grid>
 </Window>

@@ -142,7 +142,6 @@ namespace Happy_Reader
                 catch (Exception ex)
                 {
                     StaticHelpers.LogToFile(ex);
-                    AppDomain.Unload(KakasiAppDomain);
                     ReloadAppDomain();
                 }
             }
@@ -163,7 +162,6 @@ namespace Happy_Reader
                 catch (Exception ex)
                 {
                     StaticHelpers.LogToFile(ex);
-                    AppDomain.Unload(KakasiAppDomain);
                     ReloadAppDomain();
                 }
             }
@@ -193,6 +191,8 @@ namespace Happy_Reader
 
         public static string JapaneseToKana(string text, bool spaces = false)
         {
+            _counter++;
+            if (_counter > 500) ReloadAppDomain();
             int tries = 0;
             while (tries < 5)
             {
@@ -204,7 +204,6 @@ namespace Happy_Reader
                 catch (Exception ex)
                 {
                     StaticHelpers.LogToFile(ex);
-                    AppDomain.Unload(KakasiAppDomain);
                     ReloadAppDomain();
                 }
             }

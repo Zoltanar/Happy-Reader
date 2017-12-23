@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Happy_Apps_Core.Database;
 using Happy_Apps_Core.Properties;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using static Happy_Apps_Core.StaticHelpers;
 
@@ -12,16 +13,15 @@ namespace Happy_Apps_Core
 {
     partial class VndbConnection
     {
+        public enum MessageSeverity { Normal, Warning, Error }
         private enum QueryResult { Fail, Success, Throttled }
 
         public ApiQuery ActiveQuery;
         private readonly Action<string> _advancedAction;
-#pragma warning disable 649
-        private readonly Action<string> _errorAction; //todo error/warning actions
-        private readonly Action<string> _warningAction;
-        private readonly Action<string> _textAction;
-#pragma warning restore 649
+        [NotNull]
+        private readonly Action<string, MessageSeverity> _textAction;
         private readonly Action _refreshListAction;
+        [NotNull]
         private readonly Action<APIStatus> _changeStatusAction;
         /// <summary>
         /// Count of titles added in last query.
@@ -45,7 +45,7 @@ namespace Happy_Apps_Core
         {
             if (ActiveQuery != null && !ActiveQuery.Completed)
             {
-                _errorAction?.Invoke($"Wait until {ActiveQuery.ActionName} is done.");
+                _textAction($"Wait until {ActiveQuery.ActionName} is done.",MessageSeverity.Error);
                 return false;
             }
             ActiveQuery = new ApiQuery(featureName, refreshList, additionalMessage, ignoreDateLimit);
@@ -64,11 +64,11 @@ namespace Happy_Apps_Core
         {
             if (Status != APIStatus.Ready)
             {
-                _errorAction?.Invoke("API Connection isn't ready.");
+                _textAction("API Connection isn't ready.", MessageSeverity.Error);
                 return QueryResult.Fail;
             }
             Status = APIStatus.Busy;
-            _changeStatusAction?.Invoke(Status);
+            _changeStatusAction(Status);
             await Task.Run(() =>
             {
                 if (Settings.DecadeLimit && (!ActiveQuery?.IgnoreDateLimit ?? false) && query.StartsWith("get vn ") && !query.Contains("id = "))
@@ -87,25 +87,21 @@ namespace Happy_Apps_Core
             {
                 if (!LastResponse.Error.ID.Equals("throttled"))
                 {
-                    _errorAction?.Invoke( errorMessage);
+                    _textAction(errorMessage, MessageSeverity.Error);
                     return QueryResult.Fail;
                 }
                 string fullThrottleMessage = "";
                 double minWait = 0;
                 await Task.Run(() =>
                 {
-#if DEBUG
                     minWait = Math.Min(5 * 60, LastResponse.Error.Fullwait); //wait 5 minutes
-#else
-                    minWait = Math.Min(5 * 60, LastResponse.Error.Fullwait); //wait 5 minutes
-#endif
                     string normalWarning = $"Throttled for {Math.Floor(minWait / 60)} mins.";
                     string additionalWarning = "";
                     if (TitlesAdded > 0) additionalWarning += $" Added {TitlesAdded}.";
                     if (TitlesSkipped > 0) additionalWarning += $" Skipped {TitlesSkipped}.";
                     fullThrottleMessage = ActiveQuery.AdditionalMessage ? normalWarning + additionalWarning : normalWarning;
                 });
-                _warningAction.Invoke(fullThrottleMessage);
+                _textAction(fullThrottleMessage, MessageSeverity.Warning);
                 LogToFile($"Local: {DateTime.Now} - {fullThrottleMessage}");
                 var waitMS = minWait * 1000;
                 _throttleWaitTime = Convert.ToInt32(waitMS);
@@ -130,12 +126,12 @@ namespace Happy_Apps_Core
                 {
                     _refreshListAction();
                 }
-                _changeStatusAction?.Invoke(Status);
+                _changeStatusAction(Status);
                 await Task.Delay(_throttleWaitTime);
                 Status = APIStatus.Ready;
                 result = await TryQueryInner(query, errorMessage);
             }
-            if (setStatusOnEnd) _changeStatusAction?.Invoke(Status);
+            if (setStatusOnEnd) _changeStatusAction(Status);
             return result == QueryResult.Success;
         }
 
@@ -214,7 +210,7 @@ namespace Happy_Apps_Core
                         var gpResult = await GetProducer(relProducer.ID, Resources.gmvn_query_error, updateAll);
                         if (!gpResult.Item1)
                         {
-                            _changeStatusAction?.Invoke(Status);
+                            _changeStatusAction(Status);
                             return;
                         }
                         if (gpResult.Item2 != null) upsertProducers.Add(gpResult.Item2);
@@ -456,7 +452,7 @@ namespace Happy_Apps_Core
             var result = await TryQueryNoReply($"get user basic (id={userID})");
             if (!result)
             {
-                _changeStatusAction?.Invoke(Status);
+                _changeStatusAction(Status);
                 return "";
             }
             var response = JsonConvert.DeserializeObject<ResultsRoot<UserItem>>(LastResponse.JsonPayload);
@@ -471,7 +467,7 @@ namespace Happy_Apps_Core
             var result = await TryQueryNoReply($"get user basic (username=\"{username}\")");
             if (!result)
             {
-                _changeStatusAction?.Invoke(Status);
+                _changeStatusAction(Status);
                 return -1;
             }
             var response = JsonConvert.DeserializeObject<ResultsRoot<UserItem>>(LastResponse.JsonPayload);
@@ -563,7 +559,7 @@ namespace Happy_Apps_Core
             }
             var ids = vnItems.Select(x => x.ID).ToArray();
             await GetMultipleVN(ids, false);
-            _changeStatusAction?.Invoke(Status);
+            _changeStatusAction(Status);
             return ids;
         }
 
@@ -585,16 +581,16 @@ namespace Happy_Apps_Core
             await GetRemainingTitles();
             //SetFavoriteProducersData();
             //UpdateUserStats();
-            _textAction?.Invoke($"Updated URT ({TitlesAdded} added).");
+            _textAction($"Updated URT ({TitlesAdded} added).", MessageSeverity.Normal);
             Settings.URTDate = DateTime.UtcNow;
             Settings.Save();
-            _changeStatusAction?.Invoke(Status);
+            _changeStatusAction(Status);
         }
 
 
         private async Task GetRemainingTitles()
         {
-            int[] userTitles = LocalDatabase.UserVisualNovels.Where(x=>x.UserId == Settings.UserID).Select(x => x.VNID).ToArray();
+            int[] userTitles = LocalDatabase.UserVisualNovels.Where(x => x.UserId == Settings.UserID).Select(x => x.VNID).ToArray();
             int[] fetchedTitles = LocalDatabase.VisualNovels.Select(x => x.VNID).ToArray();
             int[] unfetchedTitles = userTitles.Except(fetchedTitles).ToArray();//userVns.Where(x => !fetchedTitles.Contains(x.VNID)).Select(x=>x.VNID).ToArray();
             if (!unfetchedTitles.Any()) return;

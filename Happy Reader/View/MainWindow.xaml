@@ -67,7 +67,7 @@
                     <Label Content="{Binding ListedVNs.Count}" ContentStringFormat="Items: {0}" Margin="0,0,10,10" Height="38" VerticalAlignment="Bottom" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="78"/>
                     <Label Content="{Binding CoreSettings.URTDate}" ContentStringFormat="Last URT Update: {0}" HorizontalAlignment="Left" Margin="10,0,0,10" Height="38" VerticalAlignment="Bottom" VerticalContentAlignment="Center"/>
                     <Button Content="Update" HorizontalAlignment="Left" Margin="236,0,0,19" Width="75" Click="UpdateURT" Height="20" VerticalAlignment="Bottom"/>
-                    <Label Content="{Binding VndbConnectionReply}" Margin="316,0,93,10" Height="38" VerticalAlignment="Bottom" VerticalContentAlignment="Center"/>
+                    <Label Foreground="{Binding VndbConnectionColor}" Content="{Binding VndbConnectionReply}" Margin="316,0,93,10" Height="38" VerticalAlignment="Bottom" VerticalContentAlignment="Center"/>
                 </Grid>
             </TabItem>
         </TabControl>

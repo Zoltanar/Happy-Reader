@@ -17,14 +17,15 @@ namespace Happy_Apps_Core
     /// </summary>
     public partial class VndbConnection
     {
-        public VndbConnection(Action<string> advancedModeAction, Action refreshListAction,Action<APIStatus> changeStatusAction)
+        public VndbConnection([NotNull]Action<string, MessageSeverity> changeTextAction, Action<string> advancedModeAction, Action refreshListAction,Action<APIStatus> changeStatusAction = null)
         {
+            _textAction = changeTextAction;
             _advancedAction = advancedModeAction;
             _refreshListAction = refreshListAction;
-            _changeStatusAction = changeStatusAction;
+            _changeStatusAction = changeStatusAction ?? ChangeAPIStatus;
         }
 
-        public VndbConnection([NotNull]Action<string> changeTextAction, Action<APIStatus> changeStatusAction = null)
+        public VndbConnection([NotNull]Action<string, MessageSeverity> changeTextAction, Action<APIStatus> changeStatusAction = null)
         {
             _textAction = changeTextAction;
             _changeStatusAction = changeStatusAction ?? ChangeAPIStatus;

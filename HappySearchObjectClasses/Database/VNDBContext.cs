@@ -21,10 +21,10 @@ namespace Happy_Apps_Core.Database
         // connection string in the application configuration file.
         public VisualNovelDatabase() : base("name=VNDatabase")
         {
-            LogToFile("Visual Novels = " + VisualNovels.Count());
+            /*LogToFile("Visual Novels = " + VisualNovels.Count());
             LogToFile("Producers = " + Producers.Count());
             LogToFile("Characters = " + Characters.Count());
-            LogToFile("User Visual Novels = " + UserVisualNovels.Count());
+            LogToFile("User Visual Novels = " + UserVisualNovels.Count());*/
         }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
