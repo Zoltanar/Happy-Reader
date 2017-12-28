@@ -54,7 +54,7 @@ namespace Happy_Reader.Database
             return $"Unknown Kind {Kind} - AssociatedId {AssociatedId} - Data {Data}";
         }
 
-        public static Log NewSimpleLog(string title, string message)
+        public static Log NewSimpleLog(string message)
         {
             var log = new Log(LogKind.Simple, 0, message);
             log.Notify();

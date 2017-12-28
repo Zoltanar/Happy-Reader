@@ -3,13 +3,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Happy_Reader"
-        xmlns:view="clr-namespace:Happy_Reader.View"
-        x:Class="Happy_Reader.MainWindow"
+    xmlns:view="clr-namespace:Happy_Reader.View"
+        xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
+        x:Class="Happy_Reader.View.MainWindow"
         mc:Ignorable="d"
         Title="Happy Reader" Height="474.699" Width="739.692" Loaded="Window_Loaded" Closing="Window_Closing" Icon="/Happy Reader;component/Resources/logo-hr.png">
     <Window.DataContext>
-        <local:MainWindowViewModel/>
+        <viewModel:MainWindowViewModel/>
     </Window.DataContext>
     <Grid Background="#FF2E4876">
         <TabControl x:Name="MainTabControl" Margin="10" >

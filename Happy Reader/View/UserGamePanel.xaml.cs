@@ -7,7 +7,7 @@ using System.Windows.Input;
 using Happy_Reader.Database;
 using Microsoft.Win32;
 
-namespace Happy_Reader
+namespace Happy_Reader.View
 {
     /// <summary>
     /// Interaction logic for UserGamePanel.xaml

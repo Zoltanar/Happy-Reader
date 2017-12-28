@@ -2,9 +2,10 @@
 using System.Linq;
 using System.Windows.Controls;
 using Happy_Reader.Database;
+using Happy_Reader.ViewModel;
 using JetBrains.Annotations;
 
-namespace Happy_Reader
+namespace Happy_Reader.View
 {
     /// <summary>
     /// Interaction logic for AddEntryControl.xaml

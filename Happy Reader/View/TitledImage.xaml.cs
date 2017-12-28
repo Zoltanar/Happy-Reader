@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Happy_Reader.Database;
 
-namespace Happy_Reader
+namespace Happy_Reader.View
 {
     /// <summary>
     /// Interaction logic for TitledImage.xaml

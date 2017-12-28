@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using Happy_Apps_Core;
 using Happy_Reader.Database;
+// ReSharper disable UnusedMember.Global
 
 namespace Happy_Reader
 {
@@ -102,13 +103,13 @@ namespace Happy_Reader
             }
             catch
             {
-                return default(TValue);
+                return default;
             }
         }
 
-        public static TValue GetOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, TValue defaultValue = default(TValue))
+        public static TValue GetOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, TValue defaultValue = default)
         {
-            return dict.TryGetValue(key, out TValue result) ? result : defaultValue;
+            return dict.TryGetValue(key, out var result) ? result : defaultValue;
         }
 
         public static bool Is64BitProcess(this Process process)

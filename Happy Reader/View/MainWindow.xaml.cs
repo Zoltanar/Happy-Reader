@@ -6,12 +6,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Happy_Reader.Database;
+using Happy_Reader.ViewModel;
 using JetBrains.Annotations;
-using static Happy_Reader.StaticMethods;
 using NotifyIcon = System.Windows.Forms.NotifyIcon;
 using ToolTipIcon = System.Windows.Forms.ToolTipIcon;
 
-namespace Happy_Reader
+namespace Happy_Reader.View
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -92,12 +92,12 @@ namespace Happy_Reader
             var item = GameFiles.SelectedItem as TitledImage;
             var userGame = (UserGame)item?.DataContext;
             if (userGame == null) return;
-            var process = StartProcess(userGame.FilePath);
+            var process = StaticMethods.StartProcess(userGame.FilePath);
             if (userGame.ProcessName == null)
             {
-                var game = Data.UserGames.Single(x => x.Id == userGame.Id);
+                var game = StaticMethods.Data.UserGames.Single(x => x.Id == userGame.Id);
                 game.ProcessName = process.ProcessName;
-                Data.SaveChanges();
+                StaticMethods.Data.SaveChanges();
             }
             if (userGame.HookProcess ?? false) _viewModel.HookV2(process, userGame);
         }
@@ -120,7 +120,7 @@ namespace Happy_Reader
                 GameResponseLabel.Content = "You must select 1 item.";
                 return;
             }
-            if (!UserIsSure()) return;
+            if (!StaticMethods.UserIsSure()) return;
             _viewModel.RemoveUserGame((TitledImage)GameFiles.SelectedItems[0]);
         }
 

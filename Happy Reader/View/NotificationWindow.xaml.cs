@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows;
 
-namespace Happy_Reader
+namespace Happy_Reader.View
 {
     /// <summary>
     /// Interaction logic for NotificationWindow.xaml

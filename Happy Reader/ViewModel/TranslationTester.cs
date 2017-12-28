@@ -4,7 +4,7 @@ using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using JetBrains.Annotations;
 
-namespace Happy_Reader
+namespace Happy_Reader.ViewModel
 {
     public class TranslationTester : INotifyPropertyChanged
     {

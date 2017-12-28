@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Windows;
+
 // ReSharper disable InconsistentNaming
 
-namespace Happy_Reader.WinForms
+namespace Happy_Reader.View.WinForms
 {
     static class Win32
     {

@@ -1,13 +1,14 @@
 ﻿using System;
-using System.Windows.Forms;
-using System.Windows;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Windows;
+using System.Windows.Forms;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
-using System.ComponentModel;
+// ReSharper disable All
 
-namespace Happy_Reader.WinForms
+namespace Happy_Reader.View.WinForms
 {
     /// <summary>
     /// Displays a WinForms.WebBrowser control over a given placement target element in a WPF Window.
