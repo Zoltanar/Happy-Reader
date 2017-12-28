@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data.Entity;
@@ -11,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
 using Happy_Reader.Database;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
@@ -20,11 +18,10 @@ using OriginalTextObject = System.Collections.Generic.List<(string Original, str
 using static Happy_Apps_Core.StaticHelpers;
 using JetBrains.Annotations;
 using Newtonsoft.Json.Linq;
-using Brush = System.Windows.Media.Brush;
 
 namespace Happy_Reader
 {
-    internal class MainWindowViewModel : INotifyPropertyChanged
+    public class MainWindowViewModel : INotifyPropertyChanged
     {
         public User User { get; private set; }
         public ListedVN Game { get; private set; }
@@ -32,19 +29,16 @@ namespace Happy_Reader
         public NotificationEventHandler NotificationEvent;
         public ObservableCollection<dynamic> EntriesList { get; } = new ObservableCollection<dynamic>();
         public ObservableCollection<TitledImage> UserGameItems { get; } = new ObservableCollection<TitledImage>();
-        public PausableUpdateList<VNTile> ListedVNs { get; set; } = new PausableUpdateList<VNTile>();
         public TranslationTester Tester { get; set; } = new TranslationTester();
 
 
         private OutputWindow _outputWindow;
         private string _statusText;
-        private string _vndbConnectionReply;
         private bool _onlyGameEntries;
         private bool _closingDone;
         private bool _captureClipboard;
         private Process _hookedProcess;
         public ClipboardManager ClipboardManager;
-        private Brush _vndbConnectionColor;
 
         public string StatusText
         {
@@ -75,20 +69,6 @@ namespace Happy_Reader
                 _captureClipboard = value;
                 OnPropertyChanged();
             }
-        }
-
-        public CoreSettings CoreSettings => Settings;
-
-        public string VndbConnectionReply
-        {
-            get => _vndbConnectionReply;
-            set { _vndbConnectionReply = value; OnPropertyChanged(); }
-        }
-
-        public Brush VndbConnectionColor
-        {
-            get => _vndbConnectionColor;
-            set { _vndbConnectionColor = value; OnPropertyChanged(); }
         }
 
         public void SetEntries()
@@ -189,43 +169,13 @@ namespace Happy_Reader
             return new TitledImage(userGame);
         }
 
-        public async Task InitializeVndbConnection()
-        {
-            StatusText = "Opening VNDB Connection...";
-            await Task.Run(() =>
-            {
-                Conn = new VndbConnection(VndbConnectionText);
-                Conn.Login(ClientName, ClientVersion);
-            });
-        }
 
-        public void VndbConnectionText(string text, VndbConnection.MessageSeverity severity)
-        {
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                VndbConnectionReply = text;
-                switch (severity)
-                {
-                    case VndbConnection.MessageSeverity.Normal:
-                        VndbConnectionColor = new SolidColorBrush(Colors.Black);
-                        return;
-                    case VndbConnection.MessageSeverity.Warning:
-                        VndbConnectionColor = new SolidColorBrush(Colors.Yellow);
-                        return;
-                    case VndbConnection.MessageSeverity.Error:
-                        VndbConnectionColor = new SolidColorBrush(Colors.Red);
-                        return;
-                }
-            });
-        }
 
         public async Task Loaded()
         {
+            IQueryable<UserGame> games = null;
             await Task.Run(() =>
             {
-                StatusText = "Loading VN Database...";
-                LocalDatabase = new VisualNovelDatabase();
-                SetUser(47063);
                 StatusText = "Loading Cached Translations...";
                 Data.CachedTranslations.Load();
                 Translator.LoadTranslationCache(Data.CachedTranslations.Local);
@@ -236,82 +186,27 @@ namespace Happy_Reader
                 StatusText = "Loading Entries...";
                 SetEntries();
                 StatusText = "Loading User Games...";
+                games = Data.UserGames.OrderBy(x => x.VNID ?? 0);
             });
-            foreach (var game in Data.UserGames.OrderBy(x => x.VNID ?? 0))
-            {
-                game.VN = game.VNID != null
-                    ? LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == game.VNID)
-                    : null;
-                var ti = new TitledImage(game);
-                UserGameItems.Add(ti);
-            }
-            StatusText = "Loading URT List...";
-            await RefreshListedVns();
-            StatusText = "Loading finished.";
+            await games.ForEachAsync(game => game.VN = game.VNID != null ? LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == game.VNID) : null);
+            foreach (var game in games) UserGameItems.Add(new TitledImage(game));
             var monitor = new Thread(MonitorStart) { IsBackground = true };
             monitor.Start();
+            StatusText = "Loading complete.";
             //NotificationEvent.Invoke(this, $"Took {watch.Elapsed:ss\\:fff} (Dumpfiles took {dumpfilesLoadTime:ss\\:fff})", "Loading complete.");
         }
 
-        private void SetUser(int userid)
+        public async Task SetUser(int userid, bool newId)
         {
             Settings.UserID = userid;
-            foreach (var vn in LocalDatabase.VisualNovels)
+            if (newId)
             {
-                vn.UserVNId = LocalDatabase.UserVisualNovels.SingleOrDefault(x =>
-                    x.UserId == Settings.UserID && x.VNID == vn.VNID)?.Id;
+                await LocalDatabase.VisualNovels.ForEachAsync(vn => vn.UserVNId = LocalDatabase.UserVisualNovels
+                    .SingleOrDefault(x => x.UserId == Settings.UserID && x.VNID == vn.VNID)?.Id);
+                await Data.SaveChangesAsync();
             }
             User = LocalDatabase.Users.Single(x => x.Id == Settings.UserID);
         }
-
-        private int _listedVnPage;
-        private bool _finalPage;
-        private Func<ListedVN, bool> _vnFunction = x => true;
-
-        public async Task RefreshListedVns(bool showAll = false)
-        {
-            _finalPage = false;
-            if(showAll) _vnFunction = x => true;
-            IEnumerable<ListedVN> vns = null;
-            await Task.Run(() =>
-            {
-                _listedVnPage = 1;
-                vns = LocalDatabase.VisualNovels.Where(_vnFunction).OrderBy(x => x.VNID).Take(100).ToArray().OrderByDescending(x => x.DateForSorting).ToArray();
-            });
-            ListedVNs.SetRange(vns.Select(x => new VNTile(x)));
-            OnPropertyChanged(nameof(CoreSettings));
-        }
-
-        public async Task AddListedVNPage()
-        {
-            if (_finalPage) return;
-            ListedVN[] vns = null;
-            await Task.Run(() =>
-            {
-                //vns = LocalDatabase.URTVisualNovels.Where(x => x.UserVN.WLStatus != WishlistStatus.Blacklist).ToArray().OrderByDescending(x => x.DateForSorting);
-                vns = LocalDatabase.VisualNovels.Where(_vnFunction).OrderBy(x=>x.VNID).Skip(_listedVnPage * 100).Take(100).ToArray().OrderByDescending(x => x.DateForSorting).ToArray();
-                _listedVnPage++;
-            });
-            if (vns.Length < 100)
-            {
-                _finalPage = true;
-                if (vns.Length == 0) return;
-            }
-            ListedVNs.AddRange(vns.Select(x => new VNTile(x)));
-        }
-
-        public async Task UpdateURT()
-        {
-            await Conn.UpdateURT();
-            await RefreshListedVns();
-        }
-
-        public async Task SearchForVN(string text)
-        {
-            _vnFunction = VisualNovelDatabase.ListVNByNameOrAliasFunc(text);
-            await RefreshListedVns();
-        }
-
         private void PopulateProxies()
         {
             var array = JArray.Parse(File.ReadAllText(ProxiesJson));
@@ -363,6 +258,7 @@ namespace Happy_Reader
                 NotificationEvent.Invoke(this, ex.Message, "Error in MonitorStart");
             }
         }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]

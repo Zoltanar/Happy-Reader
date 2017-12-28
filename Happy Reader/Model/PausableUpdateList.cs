@@ -5,7 +5,7 @@ using System.Collections.Specialized;
 
 namespace Happy_Reader
 {
-    class PausableUpdateList<T> : ObservableCollection<T>
+    public class PausableUpdateList<T> : ObservableCollection<T>
     {
         private bool _updatesPaused;
 

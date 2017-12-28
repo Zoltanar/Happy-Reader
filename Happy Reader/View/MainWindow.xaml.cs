@@ -50,7 +50,7 @@ namespace Happy_Reader
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             _viewModel.ClipboardManager = new ClipboardManager(this);
-            await _viewModel.InitializeVndbConnection();
+            await VnTab.Initialize(_viewModel);
             await _viewModel.Loaded();
         }
 
@@ -136,28 +136,6 @@ namespace Happy_Reader
             MainTabControl.Items.Remove(tab);
         }
 
-        private async void UpdateURT(object sender, RoutedEventArgs e)
-        {
-            await _viewModel.UpdateURT();
-        }
-
-        private async void ScrollViewer_OnScrollChanged(object sender, ScrollChangedEventArgs e)
-        {
-            if (!(e.VerticalChange > 0)) return;
-            var loc = e.VerticalOffset + e.ViewportHeight;
-            if (loc >= e.ExtentHeight) await _viewModel.AddListedVNPage();
-        }
-
-        private async void ResetURT(object sender, RoutedEventArgs e)
-        {
-            await _viewModel.RefreshListedVns(true);
-        }
-
-        private async void SearchForVN(object sender, KeyEventArgs e)
-        {
-            if (e.Key != Key.Enter) return;
-            await _viewModel.SearchForVN(((TextBox) sender).Text);
-        }
     }
 }
 

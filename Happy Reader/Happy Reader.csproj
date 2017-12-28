@@ -191,11 +191,15 @@
     <Compile Include="View\UserGamePanel.xaml.cs">
       <DependentUpon>UserGamePanel.xaml</DependentUpon>
     </Compile>
+    <Compile Include="View\VNTab.xaml.cs">
+      <DependentUpon>VNTab.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\VNTile.xaml.cs">
       <DependentUpon>VNTile.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\WinForms\WebBrowserOverlayWF.cs" />
     <Compile Include="View\WinForms\Win32.cs" />
+    <Compile Include="ViewModel\VNTabViewModel.cs" />
     <Page Include="View\AddEntryControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -225,6 +229,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\UserGamePanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\VNTab.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Happy_Reader"
+        xmlns:view="clr-namespace:Happy_Reader.View"
         x:Class="Happy_Reader.MainWindow"
         mc:Ignorable="d"
         Title="Happy Reader" Height="474.699" Width="739.692" Loaded="Window_Loaded" Closing="Window_Closing" Icon="/Happy Reader;component/Resources/logo-hr.png">
@@ -66,23 +67,7 @@
                 </Grid>
             </TabItem>
             <TabItem Header="Database" >
-                <Grid Background="#FFC9E1F5">
-                    <ListBox Margin="10,10,10,70" MouseDoubleClick="GameFiles_MouseDoubleClick" ItemsSource="{Binding ListedVNs}" 
-                             ScrollViewer.HorizontalScrollBarVisibility="Disabled" VirtualizingStackPanel.VirtualizationMode="Recycling" ScrollViewer.ScrollChanged="ScrollViewer_OnScrollChanged" >
-                        <ListBox.ItemsPanel >
-                            <ItemsPanelTemplate>
-                                <WrapPanel />
-                            </ItemsPanelTemplate>
-                        </ListBox.ItemsPanel>
-                    </ListBox>
-                    <Label Content="{Binding ListedVNs.Count}" ContentStringFormat="Items: {0}" Margin="0,0,10,0" Height="30" VerticalAlignment="Bottom" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="78"/>
-                    <Label Content="{Binding CoreSettings.URTDate}" ContentStringFormat="Last URT Update: {0}" HorizontalAlignment="Left" Margin="10,0,0,0" Height="30" VerticalAlignment="Bottom" VerticalContentAlignment="Center"/>
-                    <Button Content="Update" HorizontalAlignment="Left" Margin="236,0,0,0" Width="75" Click="UpdateURT" Height="30" VerticalAlignment="Bottom" Padding="5,5,7,5"/>
-                    <Label Foreground="{Binding VndbConnectionColor}" Content="{Binding VndbConnectionReply}" Margin="316,0,93,0" Height="30" VerticalAlignment="Bottom" VerticalContentAlignment="Center"/>
-                    <Label Content="Search:" HorizontalAlignment="Left" Margin="10,0,0,35" Height="30" VerticalAlignment="Bottom" VerticalContentAlignment="Center"/>
-                    <TextBox HorizontalAlignment="Left" Margin="63,0,0,36" TextWrapping="Wrap" Width="168" Padding="5" VerticalContentAlignment="Center" PreviewKeyUp="SearchForVN" Height="29" VerticalAlignment="Bottom"/>
-                    <Button Content="Reset" HorizontalAlignment="Left" Margin="236,0,0,35" Width="75" Click="ResetURT" Height="30" VerticalAlignment="Bottom" Padding="5,5,7,5"/>
-                </Grid>
+                    <view:VNTab x:Name="VnTab"/>
             </TabItem>
         </TabControl>
 

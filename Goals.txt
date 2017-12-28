@@ -3,3 +3,4 @@ merge databases into one. or dont make entries db dependent on LocalDatabase, by
 close button on output window, and make text background not white
 auto resize output window height to fit text
 toggles for show original, romaji, translated
+rounded edges on TitledImage
