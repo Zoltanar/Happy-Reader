@@ -10,8 +10,8 @@ namespace Happy_Reader
     {
         public VNTile(ListedVN vn)
         {
-            InitializeComponent();
             DataContext = vn;
+            InitializeComponent();
         }
     }
 }

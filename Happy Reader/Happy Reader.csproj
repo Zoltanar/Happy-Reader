@@ -284,12 +284,11 @@
   <ItemGroup>
     <Content Include="Database\FindDuplicateEntries.sql" />
     <Content Include="Database\ReturnVNRStyleEntries.sql" />
-    <Resource Include="Resources\logo-copy.ico">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\no-image.gif">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
+    <Resource Include="Resources\logo-hr.ico" />
+    <Resource Include="Resources\file-not-found.png" />
+    <Resource Include="Resources\logo-hr.png" />
+    <Resource Include="Resources\no-image.png" />
+    <Resource Include="Resources\nsfw-image.png" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

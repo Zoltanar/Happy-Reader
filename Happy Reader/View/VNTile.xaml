@@ -5,9 +5,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:happyAppsCore="clr-namespace:Happy_Apps_Core;assembly=Happy_Apps_Core"
              mc:Ignorable="d" Height="375" Width="230">
-    <UserControl.DataContext>
+    <d:UserControl.DataContext>
         <happyAppsCore:ListedVN></happyAppsCore:ListedVN>
-    </UserControl.DataContext>
+    </d:UserControl.DataContext>
     <Border BorderBrush="Black" BorderThickness="1" CornerRadius="10" Background="{Binding BackBrush}" >
         <Grid>
             <Label Content="{Binding Title}" Margin="10,10,10,0" VerticalAlignment="Top" FontWeight="Bold"/>
@@ -15,8 +15,22 @@
             <Label Content="{Binding RatingAndVoteCount}" Margin="10,0,92,36" VerticalAlignment="Bottom"/>
             <Label Content="{Binding RelDate}" Margin="0,0,10,36" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="77" HorizontalContentAlignment="Right" Foreground="{Binding DateBrush}"/>
             <Label Content="{Binding UserRelatedStatus}" Margin="10,0,10,10" Height="26" VerticalAlignment="Bottom" Foreground="{Binding UserRelatedBrush}"/>
-            <Image Source="{Binding CoverSource}" Margin="10,41,10,93"/>
+            <Image Margin="10,41,10,93">
+                <Image.Source>
+                    <!-- To save significant application memory, set the DecodePixelWidth or  
+     DecodePixelHeight of the BitmapImage value of the image source to the desired 
+     height and width of the rendered image. If you don't do this, the application will 
+     cache the image as though it were rendered as its normal size rather then just 
+     the size that is displayed. -->
+                    <!-- Note: In order to preserve aspect ratio, only set either DecodePixelWidth
+         or DecodePixelHeight but not both. -->
+                    <BitmapImage 
+                        DecodePixelHeight="239"
+                        UriSource="{Binding CoverSource}" />
+                </Image.Source>
+            </Image>
             <Image Source="{Binding FlagSource}" Margin="194,41,10,320"/>
+            <Label Content="{Binding VNID}" HorizontalAlignment="Left" Margin="194,-1,0,0" VerticalAlignment="Top" Foreground="#FF9C9C9C" FontSize="8" Width="34" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"/>
         </Grid>
     </Border>
 </UserControl>

@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -71,18 +72,29 @@ namespace Happy_Apps_Core
                     {
                         LogToFile("Remote Certificate data - subject/issuer/format/effectivedate/expirationdate");
                         var subject = sslStream.RemoteCertificate.Subject;
-                        LogToFile(subject + "\t - \t" + sslStream.RemoteCertificate.Issuer + "\t - \t" + sslStream.RemoteCertificate.GetFormat() + "\t - \t" +
-                                           sslStream.RemoteCertificate.GetEffectiveDateString() + "\t - \t" + sslStream.RemoteCertificate.GetExpirationDateString());
+                        LogToFile(subject + "\t - \t" + sslStream.RemoteCertificate.Issuer + "\t - \t" +
+                                  sslStream.RemoteCertificate.GetFormat() + "\t - \t" +
+                                  sslStream.RemoteCertificate.GetEffectiveDateString() + "\t - \t" +
+                                  sslStream.RemoteCertificate.GetExpirationDateString());
                         if (!subject.Substring(3).Equals(VndbHost))
                         {
-                            LogToFile($"Certificate received isn't for {VndbHost} so connection is closed (it was for {subject.Substring(3)})");
+                            LogToFile(
+                                $"Certificate received isn't for {VndbHost} so connection is closed (it was for {subject.Substring(3)})");
                             Status = APIStatus.Error;
                             return;
                         }
                     }
+
                     _stream = sslStream;
                     complete = true;
                     LogToFile($"Connected after {retries} tries.");
+                }
+                catch (SocketException e)
+                {
+                    LogToFile(e, "Conn Socket Error");
+                    if (e.InnerException == null) continue;
+                    LogToFile(e, "Conn Socket Error - Inner");
+                    Thread.Sleep(1000);
                 }
                 catch (IOException e)
                 {

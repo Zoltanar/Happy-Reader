@@ -4,15 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Forms;
 using System.Windows.Input;
 using Happy_Reader.Database;
 using JetBrains.Annotations;
 using static Happy_Reader.StaticMethods;
-using Application = System.Windows.Application;
-using DataFormats = System.Windows.DataFormats;
-using DragEventArgs = System.Windows.DragEventArgs;
 using NotifyIcon = System.Windows.Forms.NotifyIcon;
+using ToolTipIcon = System.Windows.Forms.ToolTipIcon;
 
 namespace Happy_Reader
 {
@@ -29,7 +26,7 @@ namespace Happy_Reader
             InitializeComponent();
             _viewModel = (MainWindowViewModel)DataContext;
             // ReSharper disable once PossibleNullReferenceException
-            Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/logo-copy.ico")).Stream;
+            Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/logo-hr.ico")).Stream;
             _trayIcon = new NotifyIcon
             {
                 Icon = new System.Drawing.Icon(iconStream),
@@ -106,17 +103,7 @@ namespace Happy_Reader
         }
 
         private void Debug_Button(object sender, RoutedEventArgs e)
-        {/*
-            int count = 0;
-            int charCount = 0;
-            while (true)
-            {
-                var text = "これはテスト文字列です、これはテスト文字列です";
-                Kakasi.JapaneseToKana(text);
-                count++;
-                charCount += text.Length;
-                if (count > 507) { }
-            }*/
+        {
         }
         
 
@@ -152,6 +139,24 @@ namespace Happy_Reader
         private async void UpdateURT(object sender, RoutedEventArgs e)
         {
             await _viewModel.UpdateURT();
+        }
+
+        private async void ScrollViewer_OnScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            if (!(e.VerticalChange > 0)) return;
+            var loc = e.VerticalOffset + e.ViewportHeight;
+            if (loc >= e.ExtentHeight) await _viewModel.AddListedVNPage();
+        }
+
+        private async void ResetURT(object sender, RoutedEventArgs e)
+        {
+            await _viewModel.RefreshListedVns(true);
+        }
+
+        private async void SearchForVN(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            await _viewModel.SearchForVN(((TextBox) sender).Text);
         }
     }
 }

@@ -346,16 +346,16 @@ namespace Happy_Apps_Core
 
         public object FlagSource => LanguagesObject?.Originals.Select(language => $"{FlagsFolder}{language}.png")
                                     .Where(File.Exists).Select(Path.GetFullPath).FirstOrDefault() ?? DependencyProperty.UnsetValue;
-
-
-        public string CoverSource
+        
+        public Uri CoverSource
         {
             get
             {
                 string image;
                 if (ImageNSFW && !StaticHelpers.GuiSettings.NSFWImages) image = NsfwImageFile;
-                else image = File.Exists(StoredCover) ? StoredCover : NoImageFile;
-                return Path.GetFullPath(image);
+                else if (File.Exists(StoredCover)) image = StoredCover;
+                else image = NoImageFile;
+                return new Uri(Path.GetFullPath(image));
             }
         }
 

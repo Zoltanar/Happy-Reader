@@ -260,3 +260,4 @@ paket-files/
 __pycache__/
 *.pyc
 /Happy Reader/View/OutputWindow bits.txt
+/Happy Reader/image-template.psd

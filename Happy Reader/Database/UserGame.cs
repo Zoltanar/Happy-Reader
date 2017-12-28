@@ -100,7 +100,16 @@ namespace Happy_Reader.Database
             get
             {
                 Bitmap image = null;
-                if (VN == null && FilePath != null) image = Icon.ExtractAssociatedIcon(FilePath)?.ToBitmap();
+                if (VN == null && FilePath != null)
+                {
+                    if (File.Exists(FilePath)) image = Icon.ExtractAssociatedIcon(FilePath)?.ToBitmap();
+                    else
+                    {
+                        // ReSharper disable once PossibleNullReferenceException
+                        Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/file-not-found.png")).Stream;
+                        image = new Bitmap(iconStream);
+                    }
+                }
                 else if (VN != null)
                 {
                     if (File.Exists(VN.StoredCover)) image = new Bitmap(VN.StoredCover);
@@ -108,7 +117,7 @@ namespace Happy_Reader.Database
                 if (image == null)
                 {
                     // ReSharper disable once PossibleNullReferenceException
-                    Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/no-image.gif")).Stream;
+                    Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/no-image.png")).Stream;
                     image = new Bitmap(iconStream);
                 }
                 using (MemoryStream memory = new MemoryStream())
@@ -155,6 +164,15 @@ namespace Happy_Reader.Database
             StaticMethods.Data.SaveChanges();
             VN = vnid == null ? null : StaticHelpers.LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == vnid);
             OnPropertyChanged(nameof(DisplayName));
+            OnPropertyChanged(nameof(Image));
+            OnPropertyChanged(nameof(VN));
+        }
+
+        public void ChangeFilePath(string newFilePath)
+        {
+            FilePath = newFilePath;
+            StaticMethods.Data.SaveChanges();
+            OnPropertyChanged(nameof(FilePath));
             OnPropertyChanged(nameof(Image));
         }
     }

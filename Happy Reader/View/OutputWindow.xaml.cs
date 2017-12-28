@@ -32,11 +32,14 @@ namespace Happy_Reader
             var translatedP = new Paragraph(new Run(translationItem.TranslatedText));
             translatedP.Inlines.FirstInline.Foreground = Brushes.GreenYellow;
             var blocks = new[] {originalP,romajiP,translatedP, new Paragraph()};
-            foreach (var block in blocks) block.Margin = new Thickness(0);
+            foreach (var block in blocks)
+            {
+                block.Margin = new Thickness(0);
+                block.TextAlignment = TextAlignment.Center;
+            }
             _recentItems.Add( blocks);
-            //draw in textbox
             var doc = new FlowDocument();
-            foreach (var item in _recentItems.Items) doc.Blocks.AddRange(item);
+            doc.Blocks.AddRange(_recentItems.Items.SelectMany(x => x));
             DebugTextbox.Document = doc;
         }
         

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data.Entity;
@@ -263,16 +264,52 @@ namespace Happy_Reader
             User = LocalDatabase.Users.Single(x => x.Id == Settings.UserID);
         }
 
-        private async Task RefreshListedVns()
+        private int _listedVnPage;
+        private bool _finalPage;
+        private Func<ListedVN, bool> _vnFunction = x => true;
+
+        public async Task RefreshListedVns(bool showAll = false)
         {
-            ListedVN[] urtList = null;
+            _finalPage = false;
+            if(showAll) _vnFunction = x => true;
+            IEnumerable<ListedVN> vns = null;
             await Task.Run(() =>
             {
-                var vnids = LocalDatabase.UserVisualNovels.Where(x => x.UserId == 47063 && x.WLStatus != WishlistStatus.Blacklist).Select(x => x.VNID).ToArray();
-                urtList = LocalDatabase.VisualNovels.Where(x => vnids.Contains(x.VNID)).ToArray().OrderByDescending(x => x.DateForSorting).ToArray();
+                _listedVnPage = 1;
+                vns = LocalDatabase.VisualNovels.Where(_vnFunction).OrderBy(x => x.VNID).Take(100).ToArray().OrderByDescending(x => x.DateForSorting).ToArray();
             });
-            ListedVNs.SetRange(urtList.Select(x => new VNTile(x)));
+            ListedVNs.SetRange(vns.Select(x => new VNTile(x)));
             OnPropertyChanged(nameof(CoreSettings));
+        }
+
+        public async Task AddListedVNPage()
+        {
+            if (_finalPage) return;
+            ListedVN[] vns = null;
+            await Task.Run(() =>
+            {
+                //vns = LocalDatabase.URTVisualNovels.Where(x => x.UserVN.WLStatus != WishlistStatus.Blacklist).ToArray().OrderByDescending(x => x.DateForSorting);
+                vns = LocalDatabase.VisualNovels.Where(_vnFunction).OrderBy(x=>x.VNID).Skip(_listedVnPage * 100).Take(100).ToArray().OrderByDescending(x => x.DateForSorting).ToArray();
+                _listedVnPage++;
+            });
+            if (vns.Length < 100)
+            {
+                _finalPage = true;
+                if (vns.Length == 0) return;
+            }
+            ListedVNs.AddRange(vns.Select(x => new VNTile(x)));
+        }
+
+        public async Task UpdateURT()
+        {
+            await Conn.UpdateURT();
+            await RefreshListedVns();
+        }
+
+        public async Task SearchForVN(string text)
+        {
+            _vnFunction = VisualNovelDatabase.ListVNByNameOrAliasFunc(text);
+            await RefreshListedVns();
         }
 
         private void PopulateProxies()
@@ -395,16 +432,7 @@ namespace Happy_Reader
             return text;
         }
 
-        public void TestTranslation()
-        {
-            Tester.Test(User, Game);
-        }
-
-        public async Task UpdateURT()
-        {
-            await Conn.UpdateURT();
-            await RefreshListedVns();
-        }
+        public void TestTranslation() => Tester.Test(User, Game);
 
     }
 }

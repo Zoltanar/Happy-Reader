@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using SQLite.CodeFirst;
-using static Happy_Apps_Core.StaticHelpers;
 using System.Linq;
 // ReSharper disable VirtualMemberCallInConstructor
 
@@ -39,7 +38,7 @@ namespace Happy_Apps_Core.Database
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<TableDetail> TableDetails { get; set; }
 
-        public IQueryable<UserVN> URTVisualNovels => UserVisualNovels.Where(x => x.UserId == Settings.UserID);
+        public IQueryable<ListedVN> URTVisualNovels => VisualNovels.Where(x => x.UserVNId != null);
     }
 
     public class VNDatabaseInitializer : SqliteCreateDatabaseIfNotExists<VisualNovelDatabase>
