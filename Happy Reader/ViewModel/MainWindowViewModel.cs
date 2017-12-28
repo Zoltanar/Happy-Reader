@@ -16,6 +16,7 @@ using Happy_Reader.Database;
 using JetBrains.Annotations;
 using Newtonsoft.Json.Linq;
 using OriginalTextObject = System.Collections.Generic.List<(string Original, string Romaji)>;
+using Happy_Reader.View;
 
 namespace Happy_Reader.ViewModel
 {
@@ -26,11 +27,11 @@ namespace Happy_Reader.ViewModel
 
         public StaticMethods.NotificationEventHandler NotificationEvent;
         public ObservableCollection<dynamic> EntriesList { get; } = new ObservableCollection<dynamic>();
-        public ObservableCollection<View.TitledImage> UserGameItems { get; } = new ObservableCollection<View.TitledImage>();
+        public ObservableCollection<UserGameTile> UserGameItems { get; } = new ObservableCollection<UserGameTile>();
         public TranslationTester Tester { get; set; } = new TranslationTester();
 
 
-        private View.OutputWindow _outputWindow;
+        private OutputWindow _outputWindow;
         private string _statusText;
         private bool _onlyGameEntries;
         private bool _closingDone;
@@ -115,7 +116,7 @@ namespace Happy_Reader.ViewModel
         {
             originalText = new OriginalTextObject();
             if (Game == null) return "User or Game is null.";
-            var returned = Translator.Translate(User, Game, currentText, out originalText);
+            string[] returned = Translator.Translate(User, Game, currentText, out originalText);
             return returned.Last();
         }
 
@@ -123,7 +124,7 @@ namespace Happy_Reader.ViewModel
         {
             _hookedProcess = process;
             if (_hookedProcess == null) throw new Exception("Process was not started.");
-            if (_outputWindow == null) { Application.Current.Dispatcher.Invoke(() => _outputWindow = new View.OutputWindow()); }
+            if (_outputWindow == null) { Application.Current.Dispatcher.Invoke(() => _outputWindow = new OutputWindow()); }
             Game = userGame.VN;
         }
 
@@ -139,7 +140,7 @@ namespace Happy_Reader.ViewModel
             _closingDone = true;
         }
 
-        public View.TitledImage AddGameFile(string file)
+        public UserGameTile AddGameFile(string file)
         {
             if (StaticMethods.Data.UserGames.Select(x => x.FilePath).Contains(file))
             {
@@ -164,7 +165,7 @@ namespace Happy_Reader.ViewModel
             var userGame = new UserGame(file, vn) { Id = StaticMethods.Data.UserGames.Max(x => x.Id) + 1 };
             StaticMethods.Data.UserGames.Add(userGame);
             StaticMethods.Data.SaveChanges();
-            return new View.TitledImage(userGame);
+            return new UserGameTile(userGame);
         }
 
 
@@ -187,7 +188,7 @@ namespace Happy_Reader.ViewModel
                 games = StaticMethods.Data.UserGames.OrderBy(x => x.VNID ?? 0);
             });
             await games.ForEachAsync(game => game.VN = game.VNID != null ? StaticHelpers.LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == game.VNID) : null);
-            foreach (var game in games) UserGameItems.Add(new View.TitledImage(game));
+            foreach (var game in games) UserGameItems.Add(new UserGameTile(game));
             var monitor = new Thread(MonitorStart) { IsBackground = true };
             monitor.Start();
             StatusText = "Loading complete.";
@@ -262,7 +263,7 @@ namespace Happy_Reader.ViewModel
         [NotifyPropertyChangedInvocator]
         private void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-        public void RemoveUserGame(View.TitledImage item)
+        public void RemoveUserGame(UserGameTile item)
         {
             UserGameItems.Remove(item);
             StaticMethods.Data.UserGames.Remove((UserGame)item.DataContext);
@@ -283,7 +284,7 @@ namespace Happy_Reader.ViewModel
             if (rct.ZeroSized) return; //todo show it somehow or show error.
             if (!_outputWindow.IsLoaded)
             {
-                _outputWindow = new View.OutputWindow();
+                _outputWindow = new OutputWindow();
                 _outputWindow.Show();
             }
             try

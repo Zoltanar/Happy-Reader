@@ -187,8 +187,8 @@
     </Compile>
     <Compile Include="Model\RoleProxy.cs" />
     <Compile Include="Model\StaticMethods.cs" />
-    <Compile Include="View\TitledImage.xaml.cs">
-      <DependentUpon>TitledImage.xaml</DependentUpon>
+    <Compile Include="View\UserGameTile.xaml.cs">
+      <DependentUpon>UserGameTile.xaml</DependentUpon>
     </Compile>
     <Compile Include="Model\TranslationItem.cs" />
     <Compile Include="Model\Translator.cs" />
@@ -228,7 +228,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\TitledImage.xaml">
+    <Page Include="View\UserGameTile.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

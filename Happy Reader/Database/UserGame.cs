@@ -1,6 +1,5 @@
 using System;
 using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
 using System.Drawing;
@@ -21,9 +20,6 @@ namespace Happy_Reader.Database
         public UserGame(string file, ListedVN vn)
         {
             FilePath = file;
-            FileName = Path.GetFileName(file);
-            FolderName = Path.GetDirectoryName(file);
-            Language = vn?.LanguagesObject?.Originals?.FirstOrDefault() ?? "ja";
             VNID = vn?.VNID;
             VN = vn;
         }
@@ -34,14 +30,7 @@ namespace Happy_Reader.Database
         public long Id { get; set; }
 
         public string UserDefinedName { get; set; }
-
-        [Required]
-        public string Language { get; set; }
-
-        public string FileName { get; set; }
-
-        public string FolderName { get; set; }
-
+        
         [NotMapped]
         public bool HookToProcess
         {
@@ -54,10 +43,6 @@ namespace Happy_Reader.Database
         }
 
         public bool? HookProcess { get; set; }
-
-        public string WindowName { get; set; }
-
-        public bool IgnoresRepeat { get; set; }
 
         public int? VNID { get; set; }
 
@@ -92,7 +77,7 @@ namespace Happy_Reader.Database
         }
 
         [NotMapped]
-        public string DisplayName => UserDefinedName ?? StaticHelpers.TruncateString(VN?.Title ?? Path.GetFileNameWithoutExtension(FileName), 30);
+        public string DisplayName => UserDefinedName ?? StaticHelpers.TruncateString(VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath), 30);
 
         [NotMapped]
         public BitmapImage Image

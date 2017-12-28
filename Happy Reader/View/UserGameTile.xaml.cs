@@ -10,16 +10,16 @@ namespace Happy_Reader.View
     /// <summary>
     /// Interaction logic for TitledImage.xaml
     /// </summary>
-    public partial class TitledImage
+    public partial class UserGameTile
     {
         private readonly UserGame _viewModel;
 
-        public TitledImage()
+        public UserGameTile()
         {
             InitializeComponent();
         }
 
-        public TitledImage(UserGame usergame)
+        public UserGameTile(UserGame usergame)
         {
             InitializeComponent();
             DataContext = usergame;

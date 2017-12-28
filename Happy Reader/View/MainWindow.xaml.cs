@@ -84,12 +84,12 @@ namespace Happy_Reader.View
             GameResponseLabel.Content = $"Dragged file was {Path.GetFileName(file)}";
             var titledImage = _viewModel.AddGameFile(file);
             if (titledImage == null) return;
-            ((IList<TitledImage>)GameFiles.ItemsSource).Add(titledImage);
+            ((IList<UserGameTile>)GameFiles.ItemsSource).Add(titledImage);
         }
 
         private void GameFiles_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            var item = GameFiles.SelectedItem as TitledImage;
+            var item = GameFiles.SelectedItem as UserGameTile;
             var userGame = (UserGame)item?.DataContext;
             if (userGame == null) return;
             var process = StaticMethods.StartProcess(userGame.FilePath);
@@ -121,7 +121,7 @@ namespace Happy_Reader.View
                 return;
             }
             if (!StaticMethods.UserIsSure()) return;
-            _viewModel.RemoveUserGame((TitledImage)GameFiles.SelectedItems[0]);
+            _viewModel.RemoveUserGame((UserGameTile)GameFiles.SelectedItems[0]);
         }
 
         private void TestTranslationClick(object sender, RoutedEventArgs e)
