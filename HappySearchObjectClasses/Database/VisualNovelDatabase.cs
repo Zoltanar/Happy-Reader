@@ -20,18 +20,18 @@ namespace Happy_Apps_Core.Database
         {
             get
             {
-                var user = Users.SingleOrDefault(x => x.Id == StaticHelpers.Settings.UserID);
+                var user = Users.SingleOrDefault(x => x.Id == StaticHelpers.CSettings.UserID);
                 if (user == null)
                 {
-                    var nUser = new User { Id = StaticHelpers.Settings.UserID };
+                    var nUser = new User { Id = StaticHelpers.CSettings.UserID };
                     Users.Add(nUser);
                     SaveChanges();
-                    user = Users.Single(x => x.Id == StaticHelpers.Settings.UserID);
+                    user = Users.Single(x => x.Id == StaticHelpers.CSettings.UserID);
                 }
                 return user.FavoriteProducers;
             }
         }
-        
+
         #region Set Methods
 
         public void AddNoteToVN(int vnid, string note, int userID)
@@ -72,7 +72,7 @@ namespace Happy_Apps_Core.Database
             vn.VoteCount = vnItem.VoteCount;
             if (saveChanges) SaveChanges();
         }
-        
+
         public void InsertFavoriteProducers(List<ListedProducer> addProducerList, int userid)
         {
             var user = Users.Single(x => x.Id == userid);
@@ -110,27 +110,37 @@ namespace Happy_Apps_Core.Database
         {
             foreach (var item in urtList)
             {
-                UserVN uvn = UserVisualNovels.SingleOrDefault(x => x.UserId == userid && x.VNID == item.ID);
-                switch (item.Action)
+                try
                 {
-                    case Command.New:
-                        uvn = new UserVN { VNID = item.ID, UserId = userid};
-                        UserVisualNovels.Add(uvn);
-                        goto case Command.Update;
-                    case Command.Update:
-                        Debug.Assert(uvn != null, nameof(uvn) + " != null");
-                        uvn.ULStatus = item.ULStatus;
-                        uvn.ULAdded = item.ULAdded;
-                        uvn.ULNote = item.ULNote;
-                        uvn.WLStatus = item.WLStatus;
-                        uvn.WLAdded = item.WLAdded;
-                        uvn.Vote = item.Vote;
-                        uvn.VoteAdded = item.VoteAdded;
-                        break;
-                    case Command.Delete:
-                        Debug.Assert(uvn != null, nameof(uvn) + " != null");
-                        UserVisualNovels.Remove(uvn);
-                        break;
+                    UserVN uvn = UserVisualNovels.SingleOrDefault(x => x.UserId == userid && x.VNID == item.ID);
+                    switch (item.Action)
+                    {
+                        case Command.New:
+                            uvn = new UserVN { VNID = item.ID, UserId = userid };
+                            UserVisualNovels.Add(uvn);
+                            goto case Command.Update;
+                        case Command.Update:
+                            Debug.Assert(uvn != null, nameof(uvn) + " != null");
+                            uvn.ULStatus = item.ULStatus;
+                            uvn.ULAdded = item.ULAdded;
+                            uvn.ULNote = item.ULNote;
+                            uvn.WLStatus = item.WLStatus;
+                            uvn.WLAdded = item.WLAdded;
+                            uvn.Vote = item.Vote;
+                            uvn.VoteAdded = item.VoteAdded;
+                            break;
+                        case Command.Delete:
+                            Debug.Assert(uvn != null, nameof(uvn) + " != null");
+                            UserVisualNovels.Remove(uvn);
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    StaticHelpers.LogToFile(ex);
+#if !DEBUG
+throw ex;
+#endif
                 }
             }
             SaveChanges();
@@ -305,7 +315,7 @@ namespace Happy_Apps_Core.Database
                 ULStatus = (UserlistStatus)item.Status;
                 ULAdded = item.Added;
                 ULNote = item.Notes;
-                if(Action != Command.New) Action = Command.Update;
+                if (Action != Command.New) Action = Command.Update;
             }
 
 

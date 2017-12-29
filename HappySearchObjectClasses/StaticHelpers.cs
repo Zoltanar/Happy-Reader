@@ -47,13 +47,14 @@ namespace Happy_Apps_Core
         public const string PermanentFilterJson = StoredDataFolder + "filters.json";
         public const string LogFile = StoredDataFolder + "message.log";
         public const string CoreSettingsJson = StoredDataFolder + "coresettings.json";
+        public const string GuiSettingsJson = StoredDataFolder + "guisettings.json";
 #pragma warning restore 1591
 
         #endregion
 
 #pragma warning disable 1591
-        public const string ClientName = "Happy Search";
-        public const string ClientVersion = "1.5.0";
+        public const string ClientName = "Happy Reader";
+        public const string ClientVersion = "2.0.0";
         public const string APIVersion = "2.25";
         public const int APIMaxResults = 25;
         public static readonly string MaxResultsString = "\"results\":" + APIMaxResults;
@@ -91,7 +92,8 @@ namespace Happy_Apps_Core
         /// </summary>
         public enum TagCategory { Content, Sexual, Technical }
 
-        public static readonly CoreSettings Settings = CoreSettings.Load();
+        public static readonly CoreSettings CSettings = CoreSettings.Load();
+        public static readonly GuiSettings GSettings = GuiSettings.Load();
 
         public static VndbConnection Conn;
 #pragma warning restore 1591
@@ -109,8 +111,6 @@ namespace Happy_Apps_Core
             return LocalDatabase.FavoriteProducerList.Any(x => x.ID == vn.ProducerID);
         }
         
-        
-
         /// <summary>
         /// Serialize object to JSON string and save to file.
         /// </summary>
@@ -509,10 +509,37 @@ namespace Happy_Apps_Core
             return $"{VNScreensFolder}{urlSplit[urlSplit.Length - 2]}\\{urlSplit[urlSplit.Length - 1]}";
         }
 
-        public static GuiSettings GuiSettings { get; set; } = new GuiSettings();
-    }
-    public class GuiSettings
-    {
-        public bool NSFWImages { get; set; } = true;
+        public static T LoadJson<T>(string jsonPath) where T: new()
+        {
+            T settings;
+            if (!File.Exists(jsonPath))
+            {
+                var result =  new T();
+                result.SaveJson(jsonPath);
+                return result;
+            }
+            try
+            {
+                settings = JsonConvert.DeserializeObject<T>(File.ReadAllText(jsonPath));
+            }
+            catch (JsonException exception)
+            {
+                LogToFile(exception, $"LoadJson error, type: {typeof(T)}");
+                return new T();
+            }
+            return settings;
+        }
+
+        public static void SaveJson<T>(this T item, string jsonPath)
+        {
+            try
+            {
+                File.WriteAllText(jsonPath, JsonConvert.SerializeObject(item, Formatting.Indented));
+            }
+            catch (JsonException exception)
+            {
+                LogToFile(exception, $"SaveJson error, type: {typeof(T)}");
+            }
+        }
     }
 }

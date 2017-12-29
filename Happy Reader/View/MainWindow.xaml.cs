@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -49,9 +50,10 @@ namespace Happy_Reader.View
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            Stopwatch watch = Stopwatch.StartNew();
             _viewModel.ClipboardManager = new ClipboardManager(this);
             await VnTab.Initialize(_viewModel);
-            await _viewModel.Loaded();
+            await _viewModel.Loaded(watch);
         }
 
         private void AddEntry_Click(object sender, RoutedEventArgs e)

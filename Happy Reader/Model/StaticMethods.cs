@@ -23,6 +23,8 @@ namespace Happy_Reader
         public const string ProxiesJson = ConfigFolder + "proxies.json";
         public static HappyReaderDatabase Data { get; } = new HappyReaderDatabase();
 
+        public static GuiSettings GSettings { get; set; } = StaticHelpers.GSettings;
+
         static StaticMethods()
         {
             try

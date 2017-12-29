@@ -269,11 +269,11 @@ namespace Happy_Apps_Core
 
         public static void Load()
         {
-            if (DaysSince(Settings.DumpfileDate) > 2 || DaysSince(Settings.DumpfileDate) == -1)
+            if (DaysSince(CSettings.DumpfileDate) > 2 || DaysSince(CSettings.DumpfileDate) == -1)
             {
                 if (!GetNewDumpFiles()) return;
-                Settings.DumpfileDate = DateTime.UtcNow;
-                Settings.Save();
+                CSettings.DumpfileDate = DateTime.UtcNow;
+                CSettings.Save();
             }
             else
             {

@@ -7,7 +7,7 @@
         xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
         x:Class="Happy_Reader.View.MainWindow"
         mc:Ignorable="d"
-        Title="Happy Reader" Height="474.699" Width="739.692" Loaded="Window_Loaded" Closing="Window_Closing" Icon="/Happy Reader;component/Resources/logo-hr.png">
+        Title="Happy Reader" MinWidth="800" MinHeight="600" Width="800" Height="600"  Loaded="Window_Loaded" Closing="Window_Closing" Icon="/Happy Reader;component/Resources/logo-hr.png">
     <Window.DataContext>
         <viewModel:MainWindowViewModel/>
     </Window.DataContext>
@@ -67,7 +67,52 @@
                 </Grid>
             </TabItem>
             <TabItem Header="Database" >
-                    <view:VNTab x:Name="VnTab"/>
+                <view:VNTab x:Name="VnTab"/>
+            </TabItem>
+            <TabItem Header="Information">
+                <Grid Background="DimGray">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="160"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="340"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox TextWrapping="Wrap" IsReadOnly="True" Text="Information About This Program" Margin="10" Background="Black" Foreground="White"/>
+                    </Grid>
+                    <Grid Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="2.5*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Height="47" Margin="10,10,10,0" TextWrapping="Wrap" Text="Send Query Here" VerticalAlignment="Top"/>
+                        <Button Grid.Column="0" Content="Send" Margin="0,62,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="48"/>
+                        <ListBox Grid.Column="0" Background="Black" ItemsSource="{Binding VndbQueries}" Margin="10,87,10,10" 
+                                 HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Width="{Binding ViewportWidth, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ScrollViewer}}}">
+                                        <TextBox TextWrapping="Wrap" Text="{Binding Path=DataContext ,RelativeSource={RelativeSource Self}}" Foreground="White" Background="{x:Null}" BorderBrush="LightGray" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <Button Grid.Column="0" Content="Clear" Margin="0,62,63,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="45"/>
+                        <CheckBox Foreground="White" Grid.Column="0" Content="Advanced Mode" Margin="0,65,113,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="71" IsChecked="{Binding GSettings.AdvancedMode}"/>
+                        <ListBox Grid.Column="1" Margin="10" ItemsSource="{Binding VndbResponses}" Background="Black" 
+                                 HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Width="{Binding ViewportWidth, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ScrollViewer}}}">
+                                        <TextBox TextWrapping="Wrap" Text="{Binding Path=DataContext ,RelativeSource={RelativeSource Self}}" Foreground="White" Background="{x:Null}" BorderBrush="LightGray" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Grid>
             </TabItem>
         </TabControl>
 

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using Newtonsoft.Json;
 using static Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Apps_Core
@@ -50,33 +48,8 @@ namespace Happy_Apps_Core
             URTDate = DateTime.MinValue;
         }
 
-        public static CoreSettings Load()
-        {
-            CoreSettings settings;
-            if (!File.Exists(CoreSettingsJson)) return new CoreSettings();
-            try
-            {
-                settings = JsonConvert.DeserializeObject<CoreSettings>(File.ReadAllText(CoreSettingsJson));
-            }
-            catch (JsonException exception)
-            {
-                LogToFile(exception, "CoreSettings.Load Error");
-                return new CoreSettings();
-            }
-            return settings;
-        }
+        public static CoreSettings Load() => LoadJson<CoreSettings>(CoreSettingsJson);
 
-
-        public void Save()
-        {
-            try
-            {
-                File.WriteAllText(CoreSettingsJson, JsonConvert.SerializeObject(this, Formatting.Indented));
-            }
-            catch (JsonException exception)
-            {
-                LogToFile(exception, "CoreSettings.Save");
-            }
-        }
+        public void Save() => this.SaveJson(CoreSettingsJson);
     }
 }

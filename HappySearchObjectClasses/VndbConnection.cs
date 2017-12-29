@@ -18,7 +18,7 @@ namespace Happy_Apps_Core
     /// </summary>
     public partial class VndbConnection
     {
-        public VndbConnection([NotNull]Action<string, MessageSeverity> changeTextAction, Action<string> advancedModeAction, Action refreshListAction,Action<APIStatus> changeStatusAction = null)
+        public VndbConnection([NotNull]Action<string, MessageSeverity> changeTextAction, Action<string,bool> advancedModeAction, Action refreshListAction,Action<APIStatus> changeStatusAction = null)
         {
             _textAction = changeTextAction;
             _advancedAction = advancedModeAction;
@@ -197,6 +197,7 @@ namespace Happy_Apps_Core
         public void Query(string command)
         {
             if (Status == APIStatus.Error) return;
+            if(GSettings.AdvancedMode) _advancedAction?.Invoke(command, true);
             Status = APIStatus.Busy;
             byte[] encoded = Encoding.UTF8.GetBytes(command);
             var requestBuffer = new byte[encoded.Length + 1];
@@ -217,6 +218,7 @@ namespace Happy_Apps_Core
                 responseBuffer = biggerBadderBuffer;
             }
             LastResponse = Parse(responseBuffer, totalRead);
+            if (GSettings.AdvancedMode) _advancedAction?.Invoke(LastResponse.JsonPayload, false);
             SetStatusFromLastResponseType();
         }
 

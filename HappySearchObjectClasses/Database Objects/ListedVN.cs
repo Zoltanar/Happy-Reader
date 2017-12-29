@@ -352,7 +352,7 @@ namespace Happy_Apps_Core
             get
             {
                 string image;
-                if (ImageNSFW && !StaticHelpers.GuiSettings.NSFWImages) image = NsfwImageFile;
+                if (ImageNSFW && !GSettings.NSFWImages) image = NsfwImageFile;
                 else if (File.Exists(StoredCover)) image = StoredCover;
                 else image = NoImageFile;
                 return new Uri(Path.GetFullPath(image));

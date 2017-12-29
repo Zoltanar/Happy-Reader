@@ -28,5 +28,20 @@ namespace Happy_Reader
 			if (Items.Count == _size) Items.RemoveAt(Items.Count - 1);
 			Items.Insert(0, item);
 		}
-	}
+    }
+
+    public class RecentStringList : RecentItemList<string>
+    {
+        private int _idCounter;
+
+        public RecentStringList(int size = 25, IEnumerable<string> items = null) : base(size, items)
+        {
+        }
+
+        public void AddWithId(string item)
+        {
+            _idCounter++;
+            Add($"[{_idCounter}] {item}");
+        }
+    }
 }

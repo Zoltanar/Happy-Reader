@@ -17,7 +17,10 @@ namespace Happy_Apps_Core
         private enum QueryResult { Fail, Success, Throttled }
 
         public ApiQuery ActiveQuery;
-        private readonly Action<string> _advancedAction;
+        /// <summary>
+        /// string is text to be passed, bool is true if query, false if response
+        /// </summary>
+        private readonly Action<string, bool> _advancedAction;
         [NotNull]
         private readonly Action<string, MessageSeverity> _textAction;
         private readonly Action _refreshListAction;
@@ -45,7 +48,7 @@ namespace Happy_Apps_Core
         {
             if (ActiveQuery != null && !ActiveQuery.Completed)
             {
-                _textAction($"Wait until {ActiveQuery.ActionName} is done.",MessageSeverity.Error);
+                _textAction($"Wait until {ActiveQuery.ActionName} is done.", MessageSeverity.Error);
                 return false;
             }
             ActiveQuery = new ApiQuery(featureName, refreshList, additionalMessage, ignoreDateLimit);
@@ -71,14 +74,13 @@ namespace Happy_Apps_Core
             _changeStatusAction(Status);
             await Task.Run(() =>
             {
-                if (Settings.DecadeLimit && (!ActiveQuery?.IgnoreDateLimit ?? false) && query.StartsWith("get vn ") && !query.Contains("id = "))
+                if (CSettings.DecadeLimit && (!ActiveQuery?.IgnoreDateLimit ?? false) && query.StartsWith("get vn ") && !query.Contains("id = "))
                 {
                     query = Regex.Replace(query, "\\)", $" and released > \"{DateTime.UtcNow.Year - 10}\")");
                 }
                 LogToFile(query);
                 Query(query);
             });
-            _advancedAction?.Invoke(query);
             if (LastResponse.Type == ResponseType.Unknown)
             {
                 return QueryResult.Fail;
@@ -151,7 +153,6 @@ namespace Happy_Apps_Core
                 LogToFile(query);
                 Query(query);
             });
-            _advancedAction?.Invoke(query);
             return LastResponse.Type != ResponseType.Unknown && LastResponse.Type != ResponseType.Error;
         }
 
@@ -178,7 +179,7 @@ namespace Happy_Apps_Core
             int done = 0;
             do
             {
-                int[] currentArray = vnsToGet.Skip(done).Take(APIMaxResults).ToArray();
+                List<int> currentArray = vnsToGet.Skip(done).Take(APIMaxResults).ToList();
                 string currentArrayString = '[' + string.Join(",", currentArray) + ']';
                 string multiVNQuery =
                     $"get vn basic,details,tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
@@ -186,6 +187,7 @@ namespace Happy_Apps_Core
                 if (!queryResult) return;
                 var vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
                 RemoveDeletedVNs(vnRoot, currentArray);
+                if (!currentArray.Any()) return;
                 var vnsToBeUpserted = new List<(VNItem VN, ProducerItem Producer, VNLanguages Languages)>();
                 var producersToBeUpserted = new List<ProducerItem>();
                 await HandleVNItems(vnRoot.Items, producersToBeUpserted, vnsToBeUpserted);
@@ -204,7 +206,7 @@ namespace Happy_Apps_Core
                     var releases = await GetReleases(vnItem.ID, Resources.svn_query_error);
                     var mainRelease = releases.FirstOrDefault(item => item.Producers.Exists(x => x.Developer));
                     var relProducer = mainRelease?.Producers.FirstOrDefault(p => p.Developer);
-                    VNLanguages languages = new VNLanguages(vnItem.Orig_Lang, vnItem.Languages);
+                    var languages = new VNLanguages(vnItem.Orig_Lang, vnItem.Languages);
                     if (relProducer != null)
                     {
                         var gpResult = await GetProducer(relProducer.ID, Resources.gmvn_query_error, updateAll);
@@ -221,12 +223,16 @@ namespace Happy_Apps_Core
             }
         }
 
-        private void RemoveDeletedVNs(ResultsRoot<VNItem> root, int[] currentArray)
+        private void RemoveDeletedVNs(ResultsRoot<VNItem> root, List<int> currentArray)
         {
-            if (root.Num >= currentArray.Length) return;
+            if (root.Num >= currentArray.Count) return;
             //some vns were deleted, find which ones and remove them
-            IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
-            foreach (var deletedVN in deletedVNs) LocalDatabase.RemoveVisualNovel(deletedVN, false);
+            IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn)).ToArray();
+            foreach (var deletedVN in deletedVNs)
+            {
+                LocalDatabase.RemoveVisualNovel(deletedVN, false);
+                currentArray.Remove(deletedVN);
+            }
             LocalDatabase.SaveChanges();
         }
 
@@ -235,7 +241,7 @@ namespace Happy_Apps_Core
         /// Creates its own SQLite Transactions.
         /// </summary>
         /// <param name="vnIDs">List of VNs</param>
-        public async Task GetCharactersForMultipleVN(int[] vnIDs)
+        public async Task GetCharactersForMultipleVN(List<int> vnIDs)
         {
             if (!vnIDs.Any()) return;
             int[] currentArray = vnIDs.Take(APIMaxResults).ToArray();
@@ -253,7 +259,7 @@ namespace Happy_Apps_Core
                 if (!await HandleMoreResults()) return;
             }
             int done = APIMaxResults;
-            while (done < vnIDs.Length)
+            while (done < vnIDs.Count)
             {
                 currentArray = vnIDs.Skip(done).Take(APIMaxResults).ToArray();
                 currentArrayString = '[' + string.Join(",", currentArray) + ']';
@@ -336,20 +342,14 @@ namespace Happy_Apps_Core
         {
             List<int> vnsToGet = vnIDs.ToList();
             if (!vnsToGet.Any()) return;
-            int[] currentArray = vnsToGet.Take(APIMaxResults).ToArray();
+            List<int> currentArray = vnsToGet.Take(APIMaxResults).ToList();
             string currentArrayString = '[' + string.Join(",", currentArray) + ']';
             string multiVNQuery = $"get vn tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
             var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error);
             if (!queryResult) return;
             var vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
-            if (vnRoot.Num < currentArray.Length)
-            {
-                //some vns were deleted, find which ones and remove them
-                var root = vnRoot;
-                IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
-                foreach (var deletedVN in deletedVNs) LocalDatabase.RemoveVisualNovel(deletedVN, false);
-                LocalDatabase.SaveChanges();
-            }
+            RemoveDeletedVNs(vnRoot, currentArray);
+            if (!currentArray.Any()) return;
             foreach (var vnItem in vnRoot.Items)
             {
                 LocalDatabase.UpdateVNTagsStats(vnItem, false);
@@ -360,20 +360,14 @@ namespace Happy_Apps_Core
             int done = APIMaxResults;
             while (done < vnsToGet.Count)
             {
-                currentArray = vnsToGet.Skip(done).Take(APIMaxResults).ToArray();
+                currentArray = vnsToGet.Skip(done).Take(APIMaxResults).ToList();
                 currentArrayString = '[' + string.Join(",", currentArray) + ']';
                 multiVNQuery = $"get vn tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
                 queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error);
                 if (!queryResult) return;
                 vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
-                if (vnRoot.Num < currentArray.Length)
-                {
-                    //some vns were deleted, find which ones and remove them
-                    var root = vnRoot;
-                    IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
-                    foreach (var deletedVN in deletedVNs) LocalDatabase.RemoveVisualNovel(deletedVN, false);
-                    LocalDatabase.SaveChanges();
-                }
+                RemoveDeletedVNs(vnRoot, currentArray);
+                if (!currentArray.Any()) return;
                 foreach (var vnItem in vnRoot.Items)
                 {
                     LocalDatabase.UpdateVNTagsStats(vnItem, false);
@@ -568,29 +562,41 @@ namespace Happy_Apps_Core
 #endif
         public async Task UpdateURT()
         {
-            if (Settings.UserID < 1) return;
+            if (CSettings.UserID < 1) return;
             var result = StartQuery("UpdateURT", true, true, true);
             if (!result) return;
-            LogToFile($"Starting GetUserRelatedTitles for {Settings.UserID}, previously had {LocalDatabase.URTVisualNovels.Count()} titles.");
-            //clone list to make sure it doesnt keep command status.
-            List<VisualNovelDatabase.UrtListItem> localURTList = LocalDatabase.URTVisualNovels.AsEnumerable().Select(VisualNovelDatabase.UrtListItem.FromVN).ToList();
-            await GetUserList(localURTList);
-            await GetWishList(localURTList);
-            await GetVoteList(localURTList);
-            LocalDatabase.UpdateURTTitles(Settings.UserID, localURTList);
-            await GetRemainingTitles();
-            //SetFavoriteProducersData();
-            //UpdateUserStats();
-            _textAction($"Updated URT ({TitlesAdded} added).", MessageSeverity.Normal);
-            Settings.URTDate = DateTime.UtcNow;
-            Settings.Save();
-            _changeStatusAction(Status);
+            try
+            {
+                LogToFile(
+                    $"Starting GetUserRelatedTitles for {CSettings.UserID}, previously had {LocalDatabase.URTVisualNovels.Count()} titles.");
+                //clone list to make sure it doesnt keep command status.
+                List<VisualNovelDatabase.UrtListItem> localURTList = LocalDatabase.UserVisualNovels.Where(x => x.UserId == CSettings.UserID)
+                    .ToArray().Select(x => new VisualNovelDatabase.UrtListItem(x)).ToList();
+                await GetUserList(localURTList);
+                await GetWishList(localURTList);
+                await GetVoteList(localURTList);
+                LocalDatabase.UpdateURTTitles(CSettings.UserID, localURTList);
+                await GetRemainingTitles();
+                //SetFavoriteProducersData();
+                //UpdateUserStats();
+                _textAction($"Updated URT ({TitlesAdded} added).", MessageSeverity.Normal);
+                CSettings.URTDate = DateTime.UtcNow;
+                CSettings.Save();
+                _changeStatusAction(Status);
+            }
+            catch (Exception ex)
+            {
+                LogToFile(ex);
+#if !DEBUG
+throw ex;
+#endif
+            }
         }
 
 
         private async Task GetRemainingTitles()
         {
-            int[] userTitles = LocalDatabase.UserVisualNovels.Where(x => x.UserId == Settings.UserID).Select(x => x.VNID).ToArray();
+            int[] userTitles = LocalDatabase.UserVisualNovels.Where(x => x.UserId == CSettings.UserID).Select(x => x.VNID).ToArray();
             int[] fetchedTitles = LocalDatabase.VisualNovels.Select(x => x.VNID).ToArray();
             int[] unfetchedTitles = userTitles.Except(fetchedTitles).ToArray();//userVns.Where(x => !fetchedTitles.Contains(x.VNID)).Select(x=>x.VNID).ToArray();
             if (!unfetchedTitles.Any()) return;
@@ -605,7 +611,7 @@ namespace Happy_Apps_Core
         public async Task GetUserList(List<VisualNovelDatabase.UrtListItem> urtList)
         {
             LogToFile("Starting GetUserList");
-            string userListQuery = $"get vnlist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
+            string userListQuery = $"get vnlist basic (uid = {CSettings.UserID} ) {{\"results\":100}}";
             //1 - fetch from VNDB using API
             var result = await TryQuery(userListQuery, Resources.gul_query_error);
             if (!result) return;
@@ -617,7 +623,7 @@ namespace Happy_Apps_Core
             while (moreResults)
             {
                 pageNo++;
-                string userListQuery2 = $"get vnlist basic (uid = {Settings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
+                string userListQuery2 = $"get vnlist basic (uid = {CSettings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
                 var moreResult = await TryQuery(userListQuery2, Resources.gul_query_error);
                 if (!moreResult) return;
                 var ulMoreRoot = JsonConvert.DeserializeObject<ResultsRoot<UserListItem>>(LastResponse.JsonPayload);
@@ -640,7 +646,7 @@ namespace Happy_Apps_Core
         public async Task GetWishList(List<VisualNovelDatabase.UrtListItem> urtList)
         {
             LogToFile("Starting GetWishList");
-            string wishListQuery = $"get wishlist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
+            string wishListQuery = $"get wishlist basic (uid = {CSettings.UserID} ) {{\"results\":100}}";
             var result = await TryQuery(wishListQuery, Resources.gwl_query_error);
             if (!result) return;
             var wlRoot = JsonConvert.DeserializeObject<ResultsRoot<WishListItem>>(LastResponse.JsonPayload);
@@ -651,7 +657,7 @@ namespace Happy_Apps_Core
             while (moreResults)
             {
                 pageNo++;
-                string wishListQuery2 = $"get wishlist basic (uid = {Settings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
+                string wishListQuery2 = $"get wishlist basic (uid = {CSettings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
                 var moreResult = await TryQuery(wishListQuery2, Resources.gwl_query_error);
                 if (!moreResult) return;
                 var wlMoreRoot = JsonConvert.DeserializeObject<ResultsRoot<WishListItem>>(LastResponse.JsonPayload);
@@ -674,7 +680,7 @@ namespace Happy_Apps_Core
         public async Task GetVoteList(List<VisualNovelDatabase.UrtListItem> urtList)
         {
             LogToFile("Starting GetVoteList");
-            string voteListQuery = $"get votelist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
+            string voteListQuery = $"get votelist basic (uid = {CSettings.UserID} ) {{\"results\":100}}";
             var result = await TryQuery(voteListQuery, Resources.gvl_query_error);
             if (!result) return;
             var vlRoot = JsonConvert.DeserializeObject<ResultsRoot<VoteListItem>>(LastResponse.JsonPayload);
@@ -685,7 +691,7 @@ namespace Happy_Apps_Core
             while (moreResults)
             {
                 pageNo++;
-                string voteListQuery2 = $"get votelist basic (uid = {Settings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
+                string voteListQuery2 = $"get votelist basic (uid = {CSettings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
                 var moreResult = await TryQuery(voteListQuery2, Resources.gvl_query_error);
                 if (!moreResult) return;
                 var vlMoreRoot = JsonConvert.DeserializeObject<ResultsRoot<VoteListItem>>(LastResponse.JsonPayload);

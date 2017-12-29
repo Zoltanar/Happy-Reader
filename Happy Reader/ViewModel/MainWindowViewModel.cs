@@ -29,7 +29,8 @@ namespace Happy_Reader.ViewModel
         public ObservableCollection<dynamic> EntriesList { get; } = new ObservableCollection<dynamic>();
         public ObservableCollection<UserGameTile> UserGameItems { get; } = new ObservableCollection<UserGameTile>();
         public TranslationTester Tester { get; set; } = new TranslationTester();
-
+        private readonly RecentStringList _vndbQueriesList = new RecentStringList(50);
+        private readonly RecentStringList _vndbResponsesList = new RecentStringList(50);
 
         private OutputWindow _outputWindow;
         private string _statusText;
@@ -69,6 +70,17 @@ namespace Happy_Reader.ViewModel
                 OnPropertyChanged();
             }
         }
+        public GuiSettings GSettings => StaticMethods.GSettings;
+        public BindingList<string> VndbQueries { get; set; }
+        public BindingList<string> VndbResponses { get; set; }
+
+        public MainWindowViewModel()
+        {
+            Application.Current.Exit += SaveCacheOnExit;
+            VndbQueries = _vndbQueriesList.Items;
+            VndbResponses = _vndbResponsesList.Items;
+            OnPropertyChanged(nameof(VndbQueries));
+        }
 
         public void SetEntries()
         {
@@ -94,11 +106,6 @@ namespace Happy_Reader.ViewModel
                 EntriesList.Clear();
                 foreach (var item in items2) EntriesList.Add(item);
             });
-        }
-
-        public MainWindowViewModel()
-        {
-            Application.Current.Exit += SaveCacheOnExit;
         }
 
         public void SaveCacheOnExit(object sender, ExitEventArgs args)
@@ -168,10 +175,9 @@ namespace Happy_Reader.ViewModel
             return new UserGameTile(userGame);
         }
 
-
-
-        public async Task Loaded()
+        public async Task Loaded(Stopwatch watch)
         {
+
             IQueryable<UserGame> games = null;
             await Task.Run(() =>
             {
@@ -192,20 +198,21 @@ namespace Happy_Reader.ViewModel
             var monitor = new Thread(MonitorStart) { IsBackground = true };
             monitor.Start();
             StatusText = "Loading complete.";
-            //NotificationEvent.Invoke(this, $"Took {watch.Elapsed:ss\\:fff} (Dumpfiles took {dumpfilesLoadTime:ss\\:fff})", "Loading complete.");
+            NotificationEvent(this, $"Took {watch.Elapsed:ss\\:fff} seconds.", "Loading Complete");
         }
 
         public async Task SetUser(int userid, bool newId)
         {
-            StaticHelpers.Settings.UserID = userid;
+            StaticHelpers.CSettings.UserID = userid;
             if (newId)
             {
                 await StaticHelpers.LocalDatabase.VisualNovels.ForEachAsync(vn => vn.UserVNId = StaticHelpers.LocalDatabase.UserVisualNovels
-                    .SingleOrDefault(x => x.UserId == StaticHelpers.Settings.UserID && x.VNID == vn.VNID)?.Id);
+                    .SingleOrDefault(x => x.UserId == StaticHelpers.CSettings.UserID && x.VNID == vn.VNID)?.Id);
                 await StaticMethods.Data.SaveChangesAsync();
             }
-            User = StaticHelpers.LocalDatabase.Users.Single(x => x.Id == StaticHelpers.Settings.UserID);
+            User = StaticHelpers.LocalDatabase.Users.Single(x => x.Id == StaticHelpers.CSettings.UserID);
         }
+
         private void PopulateProxies()
         {
             var array = JArray.Parse(File.ReadAllText(StaticMethods.ProxiesJson));
@@ -227,7 +234,7 @@ namespace Happy_Reader.ViewModel
 
         private void MonitorStart()
         {
-            NotificationEvent.Invoke(this, $"Processes to monitor: {StaticMethods.Data.UserGameProcesses.Length}");
+            //NotificationEvent.Invoke(this, $"Processes to monitor: {StaticMethods.Data.UserGameProcesses.Length}");
             try
             {
                 while (true)
@@ -329,5 +336,9 @@ namespace Happy_Reader.ViewModel
 
         public void TestTranslation() => Tester.Test(User, Game);
 
+        public void VndbAdvancedAction(string text, bool isQuery)
+        {
+            Application.Current.Dispatcher.Invoke(() => (isQuery ? _vndbQueriesList : _vndbResponsesList).AddWithId(text));
+        }
     }
 }
