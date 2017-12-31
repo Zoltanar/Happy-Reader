@@ -5,9 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:view="clr-namespace:Happy_Reader.View"
         xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
-        x:Class="Happy_Reader.View.MainWindow"
+    xmlns:controls="clr-namespace:System.Windows.Controls;assembly=DotNetProjects.Input.Toolkit"
+    x:Class="Happy_Reader.View.MainWindow"
         mc:Ignorable="d"
-        Title="Happy Reader" MinWidth="800" MinHeight="600" Width="800" Height="600"  Loaded="Window_Loaded" Closing="Window_Closing" Icon="/Happy Reader;component/Resources/logo-hr.png">
+        Title="Happy Reader" MinWidth="800" MinHeight="600" Width="800" Height="600"  
+    Loaded="Window_Loaded" Closing="Window_Closing" 
+    Icon="/Happy Reader;component/Resources/logo-hr.png">
     <Window.DataContext>
         <viewModel:MainWindowViewModel/>
     </Window.DataContext>
@@ -48,7 +51,10 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Label Content="Original Text" Margin="10,10,10,0" VerticalAlignment="Top"/>
-                    <TextBox Margin="10,45,10,35" TextWrapping="Wrap" Text="{Binding Tester.OriginalText}" AcceptsReturn="True" AcceptsTab="True" Grid.Row="0" Grid.Column="0" />
+                    <TextBox Margin="10,45,10,58" TextWrapping="Wrap" Text="{Binding Tester.OriginalText}" AcceptsReturn="True" AcceptsTab="True" Grid.Row="0" Grid.Column="0" />
+                    <Label Grid.Row="0" Grid.Column="0" Content="Game" HorizontalAlignment="Left" Margin="10,0,0,35" VerticalAlignment="Bottom" Height="18" VerticalContentAlignment="Center" Padding="0"/>
+                    <controls:AutoCompleteBox Grid.Row="0" Grid.Column="0" Margin="46,0,31,35"  Text="None" VerticalContentAlignment="Center" Padding="0" Height="18" VerticalAlignment="Bottom"  
+                                              FilterMode="Contains" ItemsSource="{Binding UserGameNames}" KeyUp="EnterOnTester"/>
                     <Button Content="Test" Margin="10,0,10,10" VerticalAlignment="Bottom" Click="TestTranslationClick" Grid.Row="0" Grid.Column="0" />
                     <Label Content="Stage 1" Margin="10,10,10,0" VerticalAlignment="Top" Grid.Row="0" Grid.Column="1"/>
                     <TextBox Margin="10,45,10,10" TextWrapping="Wrap" Text="{Binding Tester.Stage1}" IsReadOnly="True" Grid.Row="0" Grid.Column="1" />
@@ -64,9 +70,10 @@
                     <TextBox Margin="10,45,10,10" TextWrapping="Wrap" Text="{Binding Tester.Stage6}" IsReadOnly="True" Grid.Column="2" Grid.Row="1"/>
                     <Label Content="Stage 7" Margin="10,10,10,0" VerticalAlignment="Top"  Grid.Column="3" Grid.Row="1"/>
                     <TextBox Margin="10,45,10,10" TextWrapping="Wrap" Text="{Binding Tester.Stage7}" IsReadOnly="True" Grid.Column="3" Grid.Row="1"/>
+                    <Label Grid.Row="0" Grid.Column="0" x:Name="TesterGameValid" Content="❌" Margin="0,0,10,35" VerticalAlignment="Bottom" Height="18" VerticalContentAlignment="Center" Padding="0" HorizontalAlignment="Right" Width="16"/>
                 </Grid>
             </TabItem>
-            <TabItem Header="Database" >
+            <TabItem Header="Database">
                 <view:VNTab x:Name="VnTab"/>
             </TabItem>
             <TabItem Header="Information">

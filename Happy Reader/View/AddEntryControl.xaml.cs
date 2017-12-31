@@ -20,7 +20,7 @@ namespace Happy_Reader.View
         {
             _mainViewModel = mainViewModel;
             InitializeComponent();
-            GameTb.Text = _mainViewModel.Game?.Title ?? "None";
+            GameTb.Text = _mainViewModel.UserGame?.VN?.Title ?? "None";
             var enumTypes = Enum.GetValues(typeof(EntryType))
                 .Cast<EntryType>();
             TypeCb.ItemsSource = enumTypes;
@@ -39,7 +39,7 @@ namespace Happy_Reader.View
             if (!ValidateEntry()) return;
             var entry = new Entry
             {
-                GameId = _mainViewModel.Game?.VNID,
+                GameId = _mainViewModel.UserGame?.VN?.VNID,
                 Input = InputTb.Text,
                 Output = OutputTb.Text,
                 RoleString = string.IsNullOrWhiteSpace(RoleTb.Text) ? null : RoleTb.Text,

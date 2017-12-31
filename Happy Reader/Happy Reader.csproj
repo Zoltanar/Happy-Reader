@@ -69,6 +69,7 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Happy Reader Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -110,6 +111,18 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DotNetProjects.DataVisualization.Toolkit, Version=5.0.43.0, Culture=neutral, PublicKeyToken=79778c5f2eed289b, processorArchitecture=MSIL">
+      <HintPath>..\packages\DotNetProjects.Wpf.Toolkit.5.0.43\lib\net40\DotNetProjects.DataVisualization.Toolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="DotNetProjects.Input.Toolkit, Version=5.0.43.0, Culture=neutral, PublicKeyToken=79778c5f2eed289b, processorArchitecture=MSIL">
+      <HintPath>..\packages\DotNetProjects.Wpf.Toolkit.5.0.43\lib\net40\DotNetProjects.Input.Toolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="DotNetProjects.Layout.Toolkit, Version=5.0.43.0, Culture=neutral, PublicKeyToken=79778c5f2eed289b, processorArchitecture=MSIL">
+      <HintPath>..\packages\DotNetProjects.Wpf.Toolkit.5.0.43\lib\net40\DotNetProjects.Layout.Toolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="DotNetProjects.WPF.Themes, Version=5.0.43.0, Culture=neutral, PublicKeyToken=79778c5f2eed289b, processorArchitecture=MSIL">
+      <HintPath>..\packages\DotNetProjects.Wpf.Toolkit.5.0.43\lib\net40\DotNetProjects.WPF.Themes.dll</HintPath>
+    </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
@@ -195,14 +208,13 @@
     <Compile Include="View\UserGamePanel.xaml.cs">
       <DependentUpon>UserGamePanel.xaml</DependentUpon>
     </Compile>
+    <Compile Include="View\VirtualizingWrapPanel.cs" />
     <Compile Include="View\VNTab.xaml.cs">
       <DependentUpon>VNTab.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\VNTile.xaml.cs">
       <DependentUpon>VNTile.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View\WinForms\WebBrowserOverlayWF.cs" />
-    <Compile Include="View\WinForms\Win32.cs" />
     <Compile Include="ViewModel\VNTabViewModel.cs" />
     <Page Include="View\AddEntryControl.xaml">
       <SubType>Designer</SubType>

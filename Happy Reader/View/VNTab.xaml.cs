@@ -25,7 +25,7 @@ namespace Happy_Reader.View
         {
             if (!(e.VerticalChange > 0)) return;
             var loc = e.VerticalOffset + e.ViewportHeight;
-            if (loc >= e.ExtentHeight) await _viewModel.AddListedVNPage();
+            if (loc+1 >= e.ExtentHeight) await _viewModel.AddListedVNPage();
         }
 
         private async void ResetURT(object sender, RoutedEventArgs e) => await _viewModel.RefreshListedVns(true);

@@ -8,10 +8,19 @@ namespace Happy_Reader.View
     /// </summary>
     public partial class VNTile : UserControl
     {
+        //private static readonly List<TimeSpan> ConstructorTimes = new List<TimeSpan>();
+        //public static double AverageConstructorTime => ConstructorTimes.Average(x=> x.TotalMilliseconds);
         public VNTile(ListedVN vn)
         {
-            DataContext = vn;
+            //var watch = Stopwatch.StartNew();
             InitializeComponent();
+            DataContext = vn;
+            //ConstructorTimes.Add(watch.Elapsed);
+        }
+
+        public static VNTile FromListedVN(ListedVN vn)
+        {
+            return new VNTile(vn);
         }
     }
 }

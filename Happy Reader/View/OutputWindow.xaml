@@ -13,10 +13,10 @@
         <SolidColorBrush Color="Black" Opacity="{Binding Value, ElementName=OpacitySlider}"/>
     </Window.Background>
     <Grid>
-        <Label x:Name="CharacterLabel" Content="Label" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" BorderBrush="#FFB61C1C" Background="{x:Null}" BorderThickness="1" Width="194" Height="18" Padding="5,0"/>
-        <Label x:Name="ContextLabel" Content="Label" Margin="199,0,49,0" VerticalAlignment="Top" Foreground="White" BorderBrush="#FFB61C1C" Background="{x:Null}" BorderThickness="1" HorizontalContentAlignment="Right" Padding="5,0"/>
-        <CheckBox Content="Lock" VerticalAlignment="Top" Foreground="White" Background="White" Checked="ToggleLock" Unchecked="ToggleLock" Height="18" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="44"/>
-        <Slider Name="OpacitySlider" Orientation="Vertical" Margin="0,20,0,18" Value="0.6" Minimum="0.2" Maximum="1" HorizontalAlignment="Right" Width="21"/>
-        <RichTextBox Foreground="GreenYellow" x:Name="DebugTextbox" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,23,26,0" Background="{x:Null}" FontSize="22"/>
+        <CheckBox Content="🔒" VerticalAlignment="Top" Foreground="White" Background="White" Checked="ToggleLock" Unchecked="ToggleLock" Height="18" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="36" Margin="0,18,0,0" FontSize="10"/>
+        <Slider Name="OpacitySlider" Orientation="Vertical" Margin="0,64,0,18" Value="0.6" Minimum="0.2" Maximum="1" HorizontalAlignment="Right" Width="31" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+        <RichTextBox Foreground="GreenYellow" x:Name="DebugTextbox" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,0,36,0" Background="{x:Null}" FontSize="22"/>
+        <Button Content="Close" VerticalAlignment="Top" Click="CloseButton_Click" Height="18" Background="DimGray" BorderBrush="#FFB61C1C" Foreground="White" HorizontalAlignment="Right" Width="36"/>
+        <CheckBox Content="FS" VerticalAlignment="Top" Foreground="White" Background="White" Checked="ToggleFullScreen" Unchecked="ToggleFullScreen" Height="18" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="36" Margin="0,41,0,0" FontSize="10"/>
     </Grid>
 </Window>

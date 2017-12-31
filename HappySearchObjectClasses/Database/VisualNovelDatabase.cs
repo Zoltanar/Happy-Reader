@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using Newtonsoft.Json;
 
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
@@ -205,13 +206,13 @@ throw ex;
 
         #region Other
 
-        public static Func<ListedVN, bool> ListVNByNameOrAliasFunc(string searchString)
+        public static Expression<Func<ListedVN, bool>> ListVNByNameOrAliasFunc(string searchString)
         {
             searchString = searchString.ToLowerInvariant();
             return vn =>
                 vn.Title.ToLowerInvariant().Contains(searchString) ||
-                (vn.KanjiTitle?.ToLowerInvariant().Contains(searchString) ?? false) ||
-                (vn.Aliases?.ToLowerInvariant().Contains(searchString) ?? false);
+                vn.KanjiTitle!= null && vn.KanjiTitle.ToLowerInvariant().Contains(searchString) ||
+                vn.Aliases != null && vn.Aliases.ToLowerInvariant().Contains(searchString);
         }
 
         /// <summary>

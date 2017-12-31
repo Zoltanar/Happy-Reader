@@ -63,20 +63,20 @@ namespace Happy_Apps_Core
         public const string TechnicalTag = "tech";
 
         //tile background colors
-        public static readonly Color DefaultTileBrush = Colors.LightBlue;
-        public static readonly Color WLHighBrush = Colors.DeepPink;
-        public static readonly Color WLMediumBrush = Colors.HotPink;
-        public static readonly Color WLLowBrush = Colors.LightPink;
-        public static readonly Color ULFinishedBrush = Colors.LightGreen;
-        public static readonly Color ULStalledBrush = Colors.DarkKhaki;
-        public static readonly Color ULDroppedBrush = Colors.DarkOrange;
-        public static readonly Color ULUnknownBrush = Colors.Gray;
+        public static readonly Brush DefaultTileBrush = Brushes.LightBlue;
+        public static readonly Brush WLHighBrush = Brushes.DeepPink;
+        public static readonly Brush WLMediumBrush = Brushes.HotPink;
+        public static readonly Brush WLLowBrush = Brushes.LightPink;
+        public static readonly Brush ULFinishedBrush = Brushes.LightGreen;
+        public static readonly Brush ULStalledBrush = Brushes.DarkKhaki;
+        public static readonly Brush ULDroppedBrush = Brushes.DarkOrange;
+        public static readonly Brush ULUnknownBrush = Brushes.Gray;
 
         // ReSharper disable UnusedMember.Local
         //tile text colors
-        public static readonly Color FavoriteProducerBrush = Colors.Yellow;
-        public static readonly Color ULPlayingBrush = Colors.Yellow;
-        public static readonly Color UnreleasedBrush = Colors.White;
+        public static readonly Brush FavoriteProducerBrush = Brushes.Yellow;
+        public static readonly Brush ULPlayingBrush = Brushes.Yellow;
+        public static readonly Brush UnreleasedBrush = Brushes.White;
 
         //text colors
         private static readonly Color ErrorColor = Colors.Red;

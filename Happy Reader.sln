@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2003
+VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Happy Reader", "Happy Reader\Happy Reader.csproj", "{662ACC6B-35BE-4F7A-B876-0E1764DCAED6}"
 EndProject
@@ -11,6 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		Goals.txt = Goals.txt
 		KakasiDocumentation.pdf = KakasiDocumentation.pdf
+		LicenseATF.txt = LicenseATF.txt
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Happy_Apps_Core", "HappySearchObjectClasses\Happy_Apps_Core.csproj", "{C5E4C647-35BA-4525-B78A-F2263A628A5A}"

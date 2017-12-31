@@ -16,6 +16,7 @@ namespace Happy_Reader.ViewModel
         public string Stage5 { get; set; }
         public string Stage6 { get; set; }
         public string Stage7 { get; set; }
+        public ListedVN Game { get; set; }
 
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -27,9 +28,10 @@ namespace Happy_Reader.ViewModel
 
         }
 
-        public void Test(User user, ListedVN game)
+        public void Test(User user)
         {
-            var result = Translator.Translate(user, game, OriginalText, out _);
+            if (string.IsNullOrWhiteSpace(OriginalText)) return;
+            var result = Translator.Translate(user, Game, OriginalText, out _);
             Stage1 = result[1];
             Stage2 = result[2];
             Stage3 = result[3];

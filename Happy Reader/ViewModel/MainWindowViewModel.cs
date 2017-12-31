@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data.Entity;
@@ -23,11 +24,13 @@ namespace Happy_Reader.ViewModel
     public class MainWindowViewModel : INotifyPropertyChanged
     {
         public User User { get; private set; }
-        public ListedVN Game { get; private set; }
+        public UserGame UserGame { get; private set; }
 
         public StaticMethods.NotificationEventHandler NotificationEvent;
         public ObservableCollection<dynamic> EntriesList { get; } = new ObservableCollection<dynamic>();
         public ObservableCollection<UserGameTile> UserGameItems { get; } = new ObservableCollection<UserGameTile>();
+        public IEnumerable<UserGame> UserGames => UserGameItems.Select(x => (UserGame) x.DataContext);
+        public IEnumerable<string> UserGameNames => UserGames.Select(x => x.DisplayName);
         public TranslationTester Tester { get; set; } = new TranslationTester();
         private readonly RecentStringList _vndbQueriesList = new RecentStringList(50);
         private readonly RecentStringList _vndbResponsesList = new RecentStringList(50);
@@ -74,6 +77,7 @@ namespace Happy_Reader.ViewModel
         public BindingList<string> VndbQueries { get; set; }
         public BindingList<string> VndbResponses { get; set; }
 
+
         public MainWindowViewModel()
         {
             Application.Current.Exit += SaveCacheOnExit;
@@ -84,10 +88,10 @@ namespace Happy_Reader.ViewModel
 
         public void SetEntries()
         {
-            var items = (OnlyGameEntries && Game != null
-                ? (string.IsNullOrWhiteSpace(Game.Series)
-                    ? StaticMethods.Data.GetGameOnlyEntries(Game)
-                    : StaticMethods.Data.GetSeriesOnlyEntries(Game))
+            var items = (OnlyGameEntries && UserGame?.VN != null
+                ? (string.IsNullOrWhiteSpace(UserGame?.VN.Series)
+                    ? StaticMethods.Data.GetGameOnlyEntries(UserGame?.VN)
+                    : StaticMethods.Data.GetSeriesOnlyEntries(UserGame?.VN))
                 : StaticMethods.Data.Entries).ToArray();
             var items2 = items.Select(i => new
             {
@@ -111,19 +115,14 @@ namespace Happy_Reader.ViewModel
         public void SaveCacheOnExit(object sender, ExitEventArgs args)
         {
             if (_closingDone) return;
-            foreach (var translation in Translator.GetCache())
-            {
-                if (StaticMethods.Data.CachedTranslations.Local.Contains(translation)) continue;
-                StaticMethods.Data.CachedTranslations.Add(translation);
-            }
-            StaticMethods.Data.SaveChanges();
+            StaticMethods.SaveTranslationCache();
         }
 
         public string Translate(string currentText, out OriginalTextObject originalText)
         {
             originalText = new OriginalTextObject();
-            if (Game == null) return "User or Game is null.";
-            string[] returned = Translator.Translate(User, Game, currentText, out originalText);
+            if (UserGame == null) return "UserGame is null.";
+            string[] returned = Translator.Translate(User, UserGame.VN, currentText, out originalText);
             return returned.Last();
         }
 
@@ -132,17 +131,12 @@ namespace Happy_Reader.ViewModel
             _hookedProcess = process;
             if (_hookedProcess == null) throw new Exception("Process was not started.");
             if (_outputWindow == null) { Application.Current.Dispatcher.Invoke(() => _outputWindow = new OutputWindow()); }
-            Game = userGame.VN;
+            UserGame = userGame;
         }
 
         public void Closing()
         {
-            foreach (var translation in Translator.GetCache())
-            {
-                if (StaticMethods.Data.CachedTranslations.Local.Contains(translation)) continue;
-                StaticMethods.Data.CachedTranslations.Add(translation);
-            }
-            StaticMethods.Data.SaveChanges();
+            StaticMethods.SaveTranslationCache();
             _outputWindow?.Close();
             _closingDone = true;
         }
@@ -195,6 +189,7 @@ namespace Happy_Reader.ViewModel
             });
             await games.ForEachAsync(game => game.VN = game.VNID != null ? StaticHelpers.LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == game.VNID) : null);
             foreach (var game in games) UserGameItems.Add(new UserGameTile(game));
+            OnPropertyChanged(nameof(UserGameNames));
             var monitor = new Thread(MonitorStart) { IsBackground = true };
             monitor.Start();
             StatusText = "Loading complete.";
@@ -256,6 +251,7 @@ namespace Happy_Reader.ViewModel
                         }
                         catch (InvalidOperationException) { } //can happen if process is closed after getting reference
                     }
+                    if (_closingDone) return;
                     Thread.Sleep(5000);
                 }
             }
@@ -275,6 +271,7 @@ namespace Happy_Reader.ViewModel
             UserGameItems.Remove(item);
             StaticMethods.Data.UserGames.Remove((UserGame)item.DataContext);
             StaticMethods.Data.SaveChanges();
+            OnPropertyChanged(nameof(UserGameNames));
         }
 
         public void ClipboardChanged(object sender, EventArgs e)
@@ -286,7 +283,9 @@ namespace Happy_Reader.ViewModel
             var b2 = cpOwner?.Id == _hookedProcess.Id;
             var b3 = cpOwner?.ProcessName.ToLower().Equals("ithvnr") ?? false;
             if (!(b1 || b2 || b3)) return; //if process isn't hooked process or named ithvnr
+#if LOGVERBOSE
             Debug.WriteLine($"Captured clipboard from {cpOwner?.ProcessName} ({cpOwner?.Id})");
+#endif
             var rct = StaticMethods.GetWindowDimensions(_hookedProcess);
             if (rct.ZeroSized) return; //todo show it somehow or show error.
             if (!_outputWindow.IsLoaded)
@@ -303,7 +302,7 @@ namespace Happy_Reader.ViewModel
                 var unRepeatedString = CheckRepeatedString(text);
                 var translated = Translate(unRepeatedString, out OriginalTextObject originalText);
                 _outputWindow.SetLocation(rct.Left, rct.Bottom, rct.Width);
-                _outputWindow.SetText(new TranslationItem(Game.Title, originalText, translated));
+                _outputWindow.SetText(new TranslationItem(originalText, translated));
             }
             catch (Exception ex)
             {
@@ -334,7 +333,7 @@ namespace Happy_Reader.ViewModel
             return text;
         }
 
-        public void TestTranslation() => Tester.Test(User, Game);
+        public void TestTranslation() => Tester.Test(User);
 
         public void VndbAdvancedAction(string text, bool isQuery)
         {

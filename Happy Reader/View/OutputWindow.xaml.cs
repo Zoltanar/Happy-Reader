@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace Happy_Reader.View
@@ -13,6 +14,7 @@ namespace Happy_Reader.View
     {
         private readonly RecentItemList<Paragraph[]> _recentItems = new RecentItemList<Paragraph[]>(10);
         private bool _lockedLocation;
+        private bool _fullScreen;
 
         public OutputWindow()
         {
@@ -21,9 +23,7 @@ namespace Happy_Reader.View
 
         public void SetText(TranslationItem translationItem)
         {
-            CharacterLabel.Content = translationItem.Character;
-            ContextLabel.Content = translationItem.RightLabel;
-            var original = string.Join(string.Empty, translationItem.OriginalText.Select(x => x.Original));
+            var original = string.Join(" ", translationItem.OriginalText.Select(x => x.Original));
             var romaji = string.Join(" ", translationItem.OriginalText.Select(x => x.Romaji));
             var originalP = new Paragraph(new Run(original));
             originalP.Inlines.FirstInline.Foreground = Brushes.Ivory;
@@ -41,25 +41,32 @@ namespace Happy_Reader.View
             var doc = new FlowDocument();
             doc.Blocks.AddRange(_recentItems.Items.SelectMany(x => x));
             DebugTextbox.Document = doc;
+            if(_fullScreen) Activate();
         }
         
         internal void SetLocation(int left, int bottom, int width)
         {
             if (_lockedLocation) return;
-            Left = left;
-            Top = bottom;
-            Width = width;
+            Left = left + 0.25*width;
+            Top = bottom - Height;
+            Width = width*0.5;
         }
 
-        private void Window_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             DragMove();
-            //SetGameWindowCoords(Left, Top, Width, Height);
         }
 
         private void ToggleLock(object sender, RoutedEventArgs e)
         {
             _lockedLocation = ((CheckBox)sender).IsChecked ?? false;
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e) =>Close();
+
+        private void ToggleFullScreen(object sender, RoutedEventArgs e)
+        {
+            _fullScreen = ((CheckBox)sender).IsChecked ?? false;
         }
     }
 }

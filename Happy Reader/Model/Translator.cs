@@ -28,48 +28,44 @@ namespace Happy_Reader
         private static readonly char[] InclusiveSeparators = "。？".ToCharArray();
         private static readonly char[] AllSeparators = Separators.Concat(InclusiveSeparators).ToArray();
 
+        //todo make it to use a single object
         public static string[] Translate(User user, ListedVN game, string input, out OriginalTextObject originalText)
         {
             //Debug.WriteLine($"'{input}' > 'Debug: Not translating.'");
             //return "Debug: Not translating.";
             lock (TranslateLock)
             {
-                try
+                var item = new TranslationObject();
+                int index = 0;
+                string currentPart = "";
+                while (index < input.Length)
                 {
-                    Kakasi.Init();
-                    var item = new TranslationObject();
-                    int index = 0;
-                    string currentPart = "";
-                    while (index < input.Length)
+                    var @char = input[index];
+                    if (AllSeparators.Contains(@char))
                     {
-                        var @char = input[index];
-                        if (AllSeparators.Contains(@char))
+                        if (InclusiveSeparators.Contains(@char))
                         {
-                            if (InclusiveSeparators.Contains(@char))
-                            {
-                                currentPart += @char;
-                                item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
-                            }
-                            else
-                            {
-                                if (currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
-                                item.Parts.Add((@char.ToString(), false));
-                            }
-                            currentPart = "";
-                            index++;
-                            continue;
-
+                            currentPart += @char;
+                            item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
                         }
-                        currentPart += @char;
+                        else
+                        {
+                            if (currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
+                            item.Parts.Add((@char.ToString(), false));
+                        }
+                        currentPart = "";
                         index++;
+                        continue;
+
                     }
-                    if (currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
-                    if (user != _lastUser || game != _lastGame || RefreshEntries) SetEntries(user, game);
-                    item.TranslateParts();
-                    originalText = item.Original;
-                    return item.Results;
+                    currentPart += @char;
+                    index++;
                 }
-                finally { Kakasi.Deinit(); }
+                if (currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
+                if (user != _lastUser || game != _lastGame || RefreshEntries) SetEntries(user, game);
+                item.TranslateParts();
+                originalText = item.Original;
+                return item.Results;
             }
         }
 
@@ -244,9 +240,9 @@ namespace Happy_Reader
             TranslateStageTwo(sb, _lastEntries);
             result[2] = sb.ToString();
             originalText = new OriginalTextObject();
-            var romaji = Kakasi.JapaneseToRomaji(sb.ToString(), true);
-            var kana = Kakasi.JapaneseToKana(sb.ToString(), true);
-            var o = kana.Split(' ').Zip(romaji.Split(' '), (x, y) => (x, y));
+            var romaji = Kakasi.JapaneseToRomaji(sb.ToString());
+            var kana = Kakasi.JapaneseToKana(sb.ToString());
+            var o = kana.Split(' ').Zip(romaji.Split(' '), (x, y) => (x, y)).ToArray();
             originalText.AddRange(o);
             TranslateStageThree(sb, _lastEntries);
             result[3] = sb.ToString();
@@ -279,13 +275,13 @@ namespace Happy_Reader
         {
             foreach (var entry in usefulEntriesWithProxies)
             {
-                var outputRoleString = "[[" + entry.RoleString + "]]";
-                sb.LogReplace(entry.AssignedProxy.Entry.Output, outputRoleString, entry.Id);
+                sb.LogReplace(entry.AssignedProxy.Entry.Output, entry.AssignedProxy.FullRoleString, entry.Id);
                 foreach (var proxyMod in entry.AssignedProxy.ProxyMods)
                 {
-                    sb.LogReplace(outputRoleString, proxyMod.Output, proxyMod.Id);
+                    var pmO = proxyMod.Output.Replace($"[[{proxyMod.RoleString}]]", entry.AssignedProxy.FullRoleString);
+                    sb.LogReplace(entry.AssignedProxy.FullRoleString, pmO, proxyMod.Id);
                 }
-                sb.LogReplace("[[" + entry.RoleString + "]]", entry.Output, entry.Id);
+                sb.LogReplace(entry.AssignedProxy.FullRoleString, entry.Output, entry.Id);
             }
 #if LOGVERBOSE
             Debug.WriteLine($"Stage 6: {sb}");
@@ -327,7 +323,7 @@ namespace Happy_Reader
             private readonly List<string[]> _partResults = new List<string[]>();
             public readonly OriginalTextObject Original = new OriginalTextObject();
             public readonly string[] Results = new string[8];
-
+            
             public void TranslateParts()
             {
                 try

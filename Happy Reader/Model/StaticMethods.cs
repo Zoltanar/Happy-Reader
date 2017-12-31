@@ -154,5 +154,51 @@ namespace Happy_Reader
             }
             return rct;
         }
+
+        public static void SaveTranslationCache()
+        {
+            foreach (var translation in Translator.GetCache())
+            {
+                if (Data.CachedTranslations.Local.Contains(translation)) continue;
+                Data.CachedTranslations.Add(translation);
+            }
+            Data.SaveChanges();
+        }
+
+        /// <summary>
+        /// NanUnion is a C++ style type union used for efficiently converting
+        /// a double into an unsigned long, whose bits can be easily manipulated</summary>
+        [StructLayout(LayoutKind.Explicit)]
+        private struct NanUnion
+        {
+            /// <summary>
+            /// Floating point representation of the union</summary>
+            [FieldOffset(0)]
+            internal double FloatingValue;
+
+            /// <summary>
+            /// Integer representation of the union</summary>
+            [FieldOffset(0)]
+            internal ulong IntegerValue;
+        }
+        /// <summary>
+        /// Check if a number isn't really a number</summary>
+        /// <param name="value">The number to check</param>
+        /// <returns>True if the number is not a number, false if it is a number</returns>
+        public static bool IsNaN(this double value)
+        {
+            // Get the double as an unsigned long
+            NanUnion union = new NanUnion { FloatingValue = value };
+
+            // An IEEE 754 double precision floating point number is NaN if its
+            // exponent equals 2047 and it has a non-zero mantissa.
+            ulong exponent = union.IntegerValue & 0xfff0000000000000L;
+            if ((exponent != 0x7ff0000000000000L) && (exponent != 0xfff0000000000000L))
+            {
+                return false;
+            }
+            ulong mantissa = union.IntegerValue & 0x000fffffffffffffL;
+            return mantissa != 0L;
+        }
     }
 }

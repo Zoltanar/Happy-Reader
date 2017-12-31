@@ -4,20 +4,25 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
+             xmlns:view="clr-namespace:Happy_Reader.View"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="568.072">
-    <UserControl.DataContext><viewModel:VNTabViewModel/></UserControl.DataContext>
+    <UserControl.DataContext>
+        <viewModel:VNTabViewModel/>
+    </UserControl.DataContext>
     <Grid Background="#FFC9E1F5">
         <ListBox Margin="10,10,10,70" ItemsSource="{Binding ListedVNs}" 
-                             ScrollViewer.HorizontalScrollBarVisibility="Disabled" VirtualizingStackPanel.VirtualizationMode="Recycling" ScrollViewer.ScrollChanged="ScrollViewer_OnScrollChanged" >
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+                 ScrollViewer.ScrollChanged="ScrollViewer_OnScrollChanged"
+                 VirtualizingStackPanel.VirtualizationMode="Recycling" >
             <ListBox.ItemsPanel >
                 <ItemsPanelTemplate>
-                    <WrapPanel />
+                    <view:VirtualizingWrapPanel ></view:VirtualizingWrapPanel>
                 </ItemsPanelTemplate>
             </ListBox.ItemsPanel>
         </ListBox>
         <Label Content="{Binding ListedVNs.Count}" ContentStringFormat="Items: {0}" Margin="0,0,10,35" Height="30" VerticalAlignment="Bottom" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="78"/>
-        <Label Content="{Binding CoreCSettings.URTDate}" ContentStringFormat="Last URT Update: {0}" HorizontalAlignment="Left" Margin="10,0,0,0" Height="30" VerticalAlignment="Bottom" VerticalContentAlignment="Center" Width="266"/>
+        <Label Content="{Binding CSettings.URTDate}" ContentStringFormat="Last URT Update: {0}" HorizontalAlignment="Left" Margin="10,0,0,0" Height="30" VerticalAlignment="Bottom" VerticalContentAlignment="Center" Width="266"/>
         <Button Content="Update" HorizontalAlignment="Left" Margin="281,0,0,0" Width="75" Click="UpdateURT" Height="30" VerticalAlignment="Bottom" Padding="5,5,7,5"/>
         <Label Foreground="{Binding VndbConnectionColor}" Content="{Binding VndbConnectionReply}" Margin="361,0,10,0" Height="30" VerticalAlignment="Bottom" VerticalContentAlignment="Center"/>
         <Label Content="Search:" HorizontalAlignment="Left" Margin="10,0,0,35" Height="30" VerticalAlignment="Bottom" VerticalContentAlignment="Center"/>

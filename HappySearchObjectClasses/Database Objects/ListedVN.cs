@@ -351,6 +351,7 @@ namespace Happy_Apps_Core
         {
             get
             {
+                if (VNID == 0) return new Uri(Path.GetFullPath(NoImageFile));
                 string image;
                 if (ImageNSFW && !GSettings.NSFWImages) image = NsfwImageFile;
                 else if (File.Exists(StoredCover)) image = StoredCover;
@@ -361,28 +362,28 @@ namespace Happy_Apps_Core
 
         public Brush BackBrush => GetBrushFromStatuses();
 
-        public Brush ProducerBrush => new SolidColorBrush(VNIsByFavoriteProducer(this)? FavoriteProducerBrush: Colors.Black);
+        public Brush ProducerBrush => VNIsByFavoriteProducer(this)? FavoriteProducerBrush: Brushes.Black;
 
-        public Brush DateBrush => new SolidColorBrush(DateForSorting > DateTime.UtcNow ? UnreleasedBrush : Colors.Black);
+        public Brush DateBrush => DateForSorting > DateTime.UtcNow ? UnreleasedBrush : Brushes.Black;
 
-        public Brush UserRelatedBrush => new SolidColorBrush(UserVN?.ULStatus == UserlistStatus.Playing ? ULPlayingBrush : Colors.Black);
+        public Brush UserRelatedBrush => UserVN?.ULStatus == UserlistStatus.Playing ? ULPlayingBrush : Brushes.Black;
 
         /// <summary>
         /// Get brush from vn UL or WL status or null if no statuses are found.
         /// </summary>
         [NotNull]
-        public SolidColorBrush GetBrushFromStatuses()
+        public Brush GetBrushFromStatuses()
         {
             var brush = DefaultTileBrush;
             var success = GetColorFromULStatus(ref brush);
             if (!success) GetColorFromWLStatus(ref brush);
-            return new SolidColorBrush(brush);
+            return brush;
         }
 
         /// <summary>
         /// Return color based on wishlist status, or null if no status
         /// </summary>
-        public bool GetColorFromWLStatus(ref Color color)
+        public bool GetColorFromWLStatus(ref Brush color)
         {
             if (UserVN?.WLStatus == null) return false;
             switch (UserVN.WLStatus)
@@ -403,7 +404,7 @@ namespace Happy_Apps_Core
         /// <summary>
         /// Return color based on userlist status, or null if no status
         /// </summary>
-        public bool GetColorFromULStatus(ref Color color)
+        public bool GetColorFromULStatus(ref Brush color)
         {
             if (UserVN?.ULStatus == null) return false;
             switch (UserVN?.ULStatus)

@@ -50,12 +50,16 @@ namespace HRGoogleTranslate
             var input = text.ToString();
             if (Cache.ContainsKey(input))
             {
+#if LOGVERBOSE
                 System.Diagnostics.Debug.WriteLine($"HRTranslate.Google - Getting string from cache, input: {input}");
+#endif
                 text.Clear();
                 text.Append(Cache[input].Output);
                 return;
             }
+#if LOGVERBOSE
             System.Diagnostics.Debug.WriteLine($"HRTranslate.Google - Getting string from API, input: {input}");
+#endif
             var response = Client.TranslateText(text.ToString(), "en", "ja", TranslationModel.Base);
             text.Clear();
             if (!string.IsNullOrWhiteSpace(response?.TranslatedText))
@@ -66,6 +70,6 @@ namespace HRGoogleTranslate
             else text.Append("Failed to translate");
 
 #endif
+            }
         }
-    }
 }

@@ -6,6 +6,8 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using Happy_Apps_Core;
 using Happy_Reader.Database;
 using Happy_Reader.ViewModel;
 using JetBrains.Annotations;
@@ -107,7 +109,7 @@ namespace Happy_Reader.View
         private void Debug_Button(object sender, RoutedEventArgs e)
         {
         }
-        
+
 
         public void ShowNotification(object sender, [NotNull]string message, string title = "Notification")
         {
@@ -138,6 +140,26 @@ namespace Happy_Reader.View
             MainTabControl.Items.Remove(tab);
         }
 
+        private void EnterOnTester(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            var acBox = (AutoCompleteBox)sender;
+            string item = (string)acBox.SelectedItem ?? acBox.Text;
+            if (string.IsNullOrWhiteSpace(item)) return;
+            //if text is just numbers, parse as vnid, else, look inside display names of usergames
+            _viewModel.Tester.Game = int.TryParse(item, out int id) ? 
+                StaticHelpers.LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == id) : 
+                _viewModel.UserGames.FirstOrDefault(x => x.DisplayName.IndexOf(item, StringComparison.OrdinalIgnoreCase) >= 0)?.VN;
+            if (_viewModel.Tester.Game != null)
+            {
+                acBox.Text = _viewModel.Tester.Game.Title;
+                TesterGameValid.Content = "✔️";
+                TesterGameValid.Foreground = Brushes.Green;
+                return;
+            }
+            TesterGameValid.Content = "❌";
+            TesterGameValid.Foreground = Brushes.Red;
+        }
     }
 }
 

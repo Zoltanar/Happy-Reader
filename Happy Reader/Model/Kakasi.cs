@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Linq;
+using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using Happy_Apps_Core;
 using KakasiNET;
@@ -7,39 +8,21 @@ namespace Happy_Reader
 {
     static class Kakasi
     {
+        private static KakasiLib _kakasiJtk;
+        private static KakasiLib _kakasiJtr;
+        private static int _counter;
 
-        private static KakasiInner IsolatedKakasi;
-        private static AppDomain KakasiAppDomain;
+        private static readonly string KakasiAssembly;
+
         static Kakasi()
         {
-            ReloadAppDomain(true);
-        }
-
-        static void ReloadAppDomain(bool firstTime = false)
-        {
-            _counter = 0;
-            if(!firstTime) AppDomain.Unload(KakasiAppDomain);
-            // Get and display the full name of the EXE assembly.
-            string exeAssembly = Assembly.GetEntryAssembly().FullName;
-
-            // Construct and initialize settings for a second AppDomain.
-            AppDomainSetup ads = new AppDomainSetup
-            {
-                ApplicationBase = AppDomain.CurrentDomain.BaseDirectory,
-                DisallowBindingRedirects = false,
-                DisallowCodeDownload = true,
-                ConfigurationFile = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile
-            };
-
-            // Create the second AppDomain.
-            KakasiAppDomain = AppDomain.CreateDomain("AD #2", null, ads);
-
-            // Create an instance of MarshalbyRefType in the second AppDomain. 
-            // A proxy to the object is returned.
             try
             {
-                IsolatedKakasi =
-                    (KakasiInner) KakasiAppDomain.CreateInstanceAndUnwrap(exeAssembly, typeof(KakasiInner).FullName);
+                var path = Path.GetFullPath(@"Kakasi.NET.Interop.dll");
+                var assembly = Assembly.LoadFile(path);
+                KakasiAssembly = assembly.FullName;
+                LoadKakasiJtk();
+                LoadKakasiJtr();
             }
             catch (Exception ex)
             {
@@ -47,168 +30,70 @@ namespace Happy_Reader
             }
         }
 
-        private class KakasiInner : MarshalByRefObject
+
+        static void LoadKakasiJtk()
         {
-            private static bool _initialized;
-
-            public void Init()
-            {
-                if (_initialized) return;
-                try
-                {
-                    KakasiLib.Init();
-                    _initialized = true;
-                }
-                catch (Exception ex)
-                {/*LogToFile(ex);*/}
-            }
-
-            private void SetParams(params string[] parameters)
-            {
-                try
-                {
-                    //always need these parameters
-                    KakasiLib.SetParams(new[] { "kakasi", "-ieuc" }.Concat(parameters).ToArray()); //kana with kanji+furi
-                }
-                catch (Exception ex)
-                {/*LogToFile(ex);*/}
-            }
-
-            public string AddFuriToJapanese(string text, bool spaces = false)
-            {
-                if (spaces) SetParams("-f", "-JH", "-w");
-                else SetParams("-f", "-JH"); try
-                {
-                    return KakasiLib.DoKakasi(text);
-                }
-                catch (Exception ex)
-                {/*LogToFile(ex);*/}
-                return null;
-            }
-
-            public string JapaneseToKana(string text, bool spaces = false)
-            {
-                // Set params to get Furigana
-                // NOTE: Use EUC-JP encoding as the wrapper will encode/decode using it
-                if (spaces) SetParams("-JH", "-w");
-                else SetParams("-JH");
-                try
-                {
-                    return KakasiLib.DoKakasi(text);
-                }
-                catch (Exception ex)
-                {/*LogToFile(ex);*/}
-                return null;
-            }
-
-            public string JapaneseToRomaji(string text, bool spaces = false)
-            {
-                // Set params to get Furigana
-                // NOTE: Use EUC-JP encoding as the wrapper will encode/decode using it
-                if (spaces) SetParams("-Ha", "-Ja", "-Ka", "-s");
-                else SetParams("-Ha", "-Ja"); try
-                {
-                    return KakasiLib.DoKakasi(text);
-                }
-                catch (Exception ex)
-                {/*LogToFile(ex);*/}
-                return null;
-            }
-
-            public void Deinit()
-            {
-                if (!_initialized) return;
-                try
-                {
-                    KakasiLib.Dispose();
-                    _initialized = false;
-                }
-                catch (Exception ex)
-                {/*LogToFile(ex);*/}
-            }
+            var kakasiAppDomainJtk = AppDomain.CreateDomain($"KakasiJapToKana AD1 ");
+            _kakasiJtk = (KakasiLib)kakasiAppDomainJtk.CreateInstanceAndUnwrap(KakasiAssembly, typeof(KakasiLib).FullName);
+            _kakasiJtk.Init();
+            _kakasiJtk.SetParams(new string[] { "kakasi", "-ieuc", "-JH", "-s" });
         }
 
-        public static void Init()
+        static void LoadKakasiJtr()
+        {
+            var kakasiAppDomainJtr = AppDomain.CreateDomain($"KakasiJapToRomaji AD2 ");
+            _kakasiJtr = (KakasiLib)kakasiAppDomainJtr.CreateInstanceAndUnwrap(KakasiAssembly, typeof(KakasiLib).FullName);
+            _kakasiJtr.InitSpecific("libkakasi2.dll");
+            _kakasiJtr.SetParams(new string[] { "kakasi", "-ieuc", "-Ha", "-Ja", "-Ka", "-s" });
+        }
+
+        public static string JapaneseToRomaji(string text)
         {
             int tries = 0;
             while (tries < 5)
             {
+                HandleCounter();
                 try
                 {
                     tries++;
-                    IsolatedKakasi.Init();
-                    break;
+                    return _kakasiJtr.DoKakasi(text);
                 }
                 catch (Exception ex)
                 {
                     StaticHelpers.LogToFile(ex);
-                    ReloadAppDomain();
-                }
-            }
-
-        }
-
-        public static void Deinit()
-        {
-            int tries = 0;
-            while (tries < 5)
-            {
-                try
-                {
-                    tries++;
-                    IsolatedKakasi.Deinit();
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    StaticHelpers.LogToFile(ex);
-                    ReloadAppDomain();
-                }
-            }
-        }
-
-        private static int _counter;
-        public static string JapaneseToRomaji(string text, bool spaces = false)
-        {
-            _counter++;
-            if (_counter > 500) ReloadAppDomain();
-            int tries = 0;
-            while (tries < 5)
-            {
-                try
-                {
-                    tries++;
-                    return IsolatedKakasi.JapaneseToRomaji(text,spaces);
-                }
-                catch (Exception ex)
-                {
-                    StaticHelpers.LogToFile(ex);
-                    ReloadAppDomain();
+                    LoadKakasiJtr();
                 }
             }
             return null;
         }
 
-        public static string JapaneseToKana(string text, bool spaces = false)
+        public static string JapaneseToKana(string text)
         {
-            _counter++;
-            if (_counter > 500) ReloadAppDomain();
             int tries = 0;
             while (tries < 5)
             {
+                HandleCounter();
                 try
                 {
                     tries++;
-                    return IsolatedKakasi.JapaneseToKana(text, spaces);
+                    return _kakasiJtk.DoKakasi(text);
                 }
                 catch (Exception ex)
                 {
                     StaticHelpers.LogToFile(ex);
-                    ReloadAppDomain();
+                    LoadKakasiJtk();
                 }
             }
             return null;
         }
+
+        private static void HandleCounter()
+        {
+            _counter++;
+            if (_counter % 50 == 0) Debug.WriteLine($"Kakasi counter at {_counter}");
+        }
+
+
     }
 
 }

@@ -11,7 +11,7 @@ namespace KakasiNET
     /// <summary>
     /// Kakasi library wrapper, taken as is from https://github.com/linguanostra/Kakasi.NET/tree/cca815915c7f616252c40eac7d16e2e247d4b429
     /// </summary>
-    public static class KakasiLib
+    public class KakasiLib : MarshalByRefObject
     {
 
         #region Externs
@@ -89,7 +89,7 @@ namespace KakasiNET
         /// <summary>
         /// Kakasi library instance pointer
         /// </summary>
-        private static IntPtr KakasiLibPtr = IntPtr.Zero;
+        private IntPtr KakasiLibPtr = IntPtr.Zero;
 
         #endregion
 
@@ -98,7 +98,7 @@ namespace KakasiNET
         /// <summary>
         /// Init Kakasi library
         /// </summary>
-        public static void Init()
+        public void Init()
         {
 
             // Get executing assembly location
@@ -113,8 +113,23 @@ namespace KakasiNET
         /// <summary>
         /// Init Kakasi library
         /// </summary>
+        public void InitSpecific(string kakasiDll)
+        {
+
+            // Get executing assembly location
+            var executingAssemblyLocation = Assembly.GetExecutingAssembly().Location;
+            var executingAssemblyPath = Path.GetDirectoryName(executingAssemblyLocation);
+
+            // Init using this path
+            Init(executingAssemblyPath, kakasiDll);
+
+        }
+
+        /// <summary>
+        /// Init Kakasi library
+        /// </summary>
         /// <param name="executionPath">Execution path (to search for x86/x64 DLL)</param>
-        public static void Init(string executionPath)
+        public void Init(string executionPath, string kakasiDll = "libkakasi.dll")
         {
 
             // Lib path
@@ -125,7 +140,7 @@ namespace KakasiNET
             SetDllDirectory(kakasiLibPath);
 
             // Load library
-            KakasiLibPtr = LoadLibrary(Path.Combine(kakasiLibPath, @"libkakasi.dll"));
+            KakasiLibPtr = LoadLibrary(Path.Combine(kakasiLibPath, kakasiDll));
 
             // Check for errors
             if (KakasiLibPtr != IntPtr.Zero)
@@ -167,7 +182,7 @@ namespace KakasiNET
         /// <summary>
         /// Dispose of the library instance
         /// </summary>
-        public static void Dispose()
+        public void Dispose()
         {
             if (KakasiLibPtr != IntPtr.Zero)
             {
@@ -179,7 +194,7 @@ namespace KakasiNET
         /// Set Kakasi library params
         /// </summary>
         /// <param name="params"></param>
-        public static void SetParams(string[] @params)
+        public void SetParams(string[] @params)
         {
 
             // Init, if required
@@ -195,7 +210,7 @@ namespace KakasiNET
         /// </summary>
         /// <param name="japanese"></param>
         /// <returns></returns>
-        public static string DoKakasi(string japanese)
+        public string DoKakasi(string japanese)
         {
             // Init, if required
             if (KakasiLibPtr == IntPtr.Zero) Init();
