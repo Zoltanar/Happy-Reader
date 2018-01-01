@@ -200,6 +200,9 @@
     </Compile>
     <Compile Include="Model\RoleProxy.cs" />
     <Compile Include="Model\StaticMethods.cs" />
+    <Compile Include="View\TestTranslationPanel.xaml.cs">
+      <DependentUpon>TestTranslationPanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\UserGameTile.xaml.cs">
       <DependentUpon>UserGameTile.xaml</DependentUpon>
     </Compile>
@@ -237,6 +240,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\OutputWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\TestTranslationPanel.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -391,7 +391,7 @@ namespace Happy_Apps_Core
             if (value == null || maxChars < 4) return value;
             return value.Length <= maxChars ? value : value.Substring(0, maxChars - 3) + "...";
         }
-
+        
         /// <summary>
         ///     Convert DateTime to UnixTimestamp.
         /// </summary>

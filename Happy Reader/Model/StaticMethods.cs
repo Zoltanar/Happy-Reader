@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using Happy_Apps_Core;
 using Happy_Reader.Database;
+using System.Linq.Expressions;
 // ReSharper disable UnusedMember.Global
 
 namespace Happy_Reader
@@ -150,7 +151,7 @@ namespace Happy_Reader
             if (rct.ZeroSized)
             {
                 var hwnd = NativeMethods.FindWindow(null, process.MainWindowTitle);
-               NativeMethods.GetWindowRect(hwnd, ref rct);
+                NativeMethods.GetWindowRect(hwnd, ref rct);
             }
             return rct;
         }
@@ -200,5 +201,19 @@ namespace Happy_Reader
             ulong mantissa = union.IntegerValue & 0x000fffffffffffffL;
             return mantissa != 0L;
         }
+        /// <summary>
+        /// Truncates strings if they are longer than 'maxChars' (minimum is 4 characters).
+        /// </summary>
+        /// <param name="maxChars">The maximum number of characters</param>
+        /// <returns>Truncated string</returns>
+        public static Expression<Func<string, string>> TruncateStringExpression(int maxChars)
+        {
+            maxChars = Math.Max(maxChars, 4);
+            Expression<Func<string, string>> expression = x => x == null ? null :
+                (x.Length <= maxChars ? x : x.Substring(0, maxChars - 3) + "...");
+            return expression;
+        }
+
+        public static readonly Func<string, string> TruncateStringFunction30 = TruncateStringExpression(30).Compile();
     }
 }

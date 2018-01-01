@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Happy_Reader.ViewModel;
@@ -35,7 +34,5 @@ namespace Happy_Reader.View
             if (e.Key != Key.Enter) return;
             await _viewModel.SearchForVN(((TextBox)sender).Text);
         }
-
-        public async Task Initialize(MainWindowViewModel mainViewModel) => await _viewModel.Initialize(mainViewModel); 
     }
 }

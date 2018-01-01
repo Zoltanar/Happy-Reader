@@ -30,7 +30,7 @@ namespace Happy_Reader.Database
         public long Id { get; set; }
 
         public string UserDefinedName { get; set; }
-        
+
         [NotMapped]
         public bool HookToProcess
         {
@@ -50,8 +50,33 @@ namespace Happy_Reader.Database
 
         public TimeSpan TimeOpen { get; set; }
 
+#if DEBUG
+        private ListedVN _vn;
+        private bool _vnGot;
+
+        [NotMapped]
+        public ListedVN VN
+        {
+            get
+            {
+                if (Id == 0) return _vn;
+                if (!_vnGot)
+                {
+                    if(VNID != null) _vn = StaticHelpers.LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == VNID);
+                    _vnGot = true;
+                }
+                return _vn;
+            }
+            set
+            {
+                _vn = value;
+                _vnGot = true;
+            } 
+        }
+#else
         [NotMapped]
         public ListedVN VN { get; set; }
+#endif
 
         private Stopwatch _runningTime;
 
@@ -77,7 +102,8 @@ namespace Happy_Reader.Database
         }
 
         [NotMapped]
-        public string DisplayName => UserDefinedName ?? StaticHelpers.TruncateString(VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath), 30);
+        public string DisplayName =>
+            UserDefinedName ?? StaticMethods.TruncateStringFunction30(VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath)); //StaticHelpers.TruncateString(VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath), 30);
 
         [NotMapped]
         public BitmapImage Image

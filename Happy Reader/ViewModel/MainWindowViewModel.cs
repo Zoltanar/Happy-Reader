@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data.Entity;
@@ -28,9 +27,6 @@ namespace Happy_Reader.ViewModel
         public StaticMethods.NotificationEventHandler NotificationEvent;
         public ObservableCollection<dynamic> EntriesList { get; } = new ObservableCollection<dynamic>();
         public ObservableCollection<UserGameTile> UserGameItems { get; } = new ObservableCollection<UserGameTile>();
-        public IEnumerable<UserGame> UserGames => UserGameItems.Select(x => (UserGame) x.DataContext);
-        public IEnumerable<string> UserGameNames => UserGames.Select(x => x.DisplayName);
-        public TranslationTester Tester { get; set; } = new TranslationTester();
         private readonly RecentStringList _vndbQueriesList = new RecentStringList(50);
         private readonly RecentStringList _vndbResponsesList = new RecentStringList(50);
 
@@ -75,6 +71,8 @@ namespace Happy_Reader.ViewModel
         public GuiSettings GSettings => StaticMethods.GSettings;
         public BindingList<string> VndbQueries { get; set; }
         public BindingList<string> VndbResponses { get; set; }
+        public TranslationTester TestViewModel { get; }
+        public VNTabViewModel DatabaseViewModel { get; }
 
 
         public MainWindowViewModel()
@@ -82,6 +80,8 @@ namespace Happy_Reader.ViewModel
             Application.Current.Exit += SaveCacheOnExit;
             VndbQueries = _vndbQueriesList.Items;
             VndbResponses = _vndbResponsesList.Items;
+            TestViewModel = new TranslationTester(this);
+            DatabaseViewModel = new VNTabViewModel(this);
             OnPropertyChanged(nameof(VndbQueries));
         }
 
@@ -169,8 +169,8 @@ namespace Happy_Reader.ViewModel
 
         public async Task Loaded(Stopwatch watch)
         {
-
-            IQueryable<UserGame> games = null;
+            await DatabaseViewModel.Initialize();
+            StaticMethods.Data.UserGames.Load();
             await Task.Run(() =>
             {
                 StatusText = "Loading Cached Translations...";
@@ -183,11 +183,16 @@ namespace Happy_Reader.ViewModel
                 StatusText = "Loading Entries...";
                 SetEntries();
                 StatusText = "Loading User Games...";
-                games = StaticMethods.Data.UserGames.OrderBy(x => x.VNID ?? 0);
+                foreach (var game in StaticMethods.Data.UserGames.Local)
+                {
+                    game.VN = game.VNID != null
+                        ? StaticHelpers.LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == game.VNID)
+                        : null;
+                }
             });
-            await games.ForEachAsync(game => game.VN = game.VNID != null ? StaticHelpers.LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == game.VNID) : null);
-            foreach (var game in games) UserGameItems.Add(new UserGameTile(game));
-            OnPropertyChanged(nameof(UserGameNames));
+            foreach (var game in StaticMethods.Data.UserGames.Local.OrderBy(x=>x.VNID ?? 0)) { UserGameItems.Add(new UserGameTile(game)); }
+            TestViewModel.Initialize();
+            OnPropertyChanged(nameof(TestViewModel));
             var monitor = new Thread(MonitorStart) { IsBackground = true };
             monitor.Start();
             StatusText = "Loading complete.";
@@ -269,7 +274,7 @@ namespace Happy_Reader.ViewModel
             UserGameItems.Remove(item);
             StaticMethods.Data.UserGames.Remove((UserGame)item.DataContext);
             StaticMethods.Data.SaveChanges();
-            OnPropertyChanged(nameof(UserGameNames));
+            OnPropertyChanged(nameof(TestViewModel));
         }
 
         public void ClipboardChanged(object sender, EventArgs e)
@@ -330,8 +335,6 @@ namespace Happy_Reader.ViewModel
             if (p1 == p2) return p1;
             return text;
         }
-
-        public void TestTranslation() => Tester.Test(User);
 
         public void VndbAdvancedAction(string text, bool isQuery)
         {
