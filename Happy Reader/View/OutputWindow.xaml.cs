@@ -21,15 +21,13 @@ namespace Happy_Reader.View
             InitializeComponent();
         }
 
-        public void SetText(TranslationItem translationItem)
+        public void SetText(Translation translation)
         {
-            var original = string.Join(" ", translationItem.OriginalText.Select(x => x.Original));
-            var romaji = string.Join(" ", translationItem.OriginalText.Select(x => x.Romaji));
-            var originalP = new Paragraph(new Run(original));
+            var originalP = new Paragraph(new Run(translation.Original));
             originalP.Inlines.FirstInline.Foreground = Brushes.Ivory;
-            var romajiP = new Paragraph(new Run(romaji));
+            var romajiP = new Paragraph(new Run(translation.Romaji));
             romajiP.Inlines.FirstInline.Foreground = Brushes.Pink;
-            var translatedP = new Paragraph(new Run(translationItem.TranslatedText));
+            var translatedP = new Paragraph(new Run(translation.Output));
             translatedP.Inlines.FirstInline.Foreground = Brushes.GreenYellow;
             var blocks = new[] {originalP,romajiP,translatedP, new Paragraph()};
             foreach (var block in blocks)

@@ -1,7 +1,6 @@
 ﻿using System.Data.Entity;
 using System.Linq;
 using Happy_Apps_Core;
-using HRGoogleTranslate;
 
 namespace Happy_Reader.Database
 {
@@ -17,7 +16,7 @@ namespace Happy_Reader.Database
 
         public virtual DbSet<Entry> Entries { get; set; }
         public virtual DbSet<UserGame> UserGames { get; set; }
-        public virtual DbSet<Translation> CachedTranslations { get; set; }
+        public virtual DbSet<HRGoogleTranslate.Translation> CachedTranslations { get; set; }
         public virtual DbSet<Log> Logs { get; set; }
         public string[] UserGameProcesses => UserGames.Where(x => x != null).Select(x => x.ProcessName).ToArray();
 

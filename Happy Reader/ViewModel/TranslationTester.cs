@@ -31,14 +31,14 @@ namespace Happy_Reader.ViewModel
         public void Test(User user)
         {
             if (string.IsNullOrWhiteSpace(OriginalText)) return;
-            var result = Translator.Translate(user, Game, OriginalText, out _);
-            Stage1 = result[1];
-            Stage2 = result[2];
-            Stage3 = result[3];
-            Stage4 = result[4];
-            Stage5 = result[5];
-            Stage6 = result[6];
-            Stage7 = result[7];
+            var translation = Translator.Translate(user, Game, OriginalText);
+            Stage1 = translation.Results[1];
+            Stage2 = translation.Results[2];
+            Stage3 = translation.Results[3];
+            Stage4 = translation.Results[4];
+            Stage5 = translation.Results[5];
+            Stage6 = translation.Results[6];
+            Stage7 = translation.Results[7];
             OnPropertyChanged(null);
         }
     }

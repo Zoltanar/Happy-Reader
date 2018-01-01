@@ -16,7 +16,6 @@ using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
 using JetBrains.Annotations;
 using Newtonsoft.Json.Linq;
-using OriginalTextObject = System.Collections.Generic.List<(string Original, string Romaji)>;
 using Happy_Reader.View;
 
 namespace Happy_Reader.ViewModel
@@ -118,12 +117,11 @@ namespace Happy_Reader.ViewModel
             StaticMethods.SaveTranslationCache();
         }
 
-        public string Translate(string currentText, out OriginalTextObject originalText)
+        public Translation Translate(string currentText)
         {
-            originalText = new OriginalTextObject();
-            if (UserGame == null) return "UserGame is null.";
-            string[] returned = Translator.Translate(User, UserGame.VN, currentText, out originalText);
-            return returned.Last();
+            if (UserGame == null) return Translation.Error("UserGame is null.");
+            Translation translation = Translator.Translate(User, UserGame.VN, currentText);
+            return translation;
         }
 
         public void HookV2([NotNull]Process process, UserGame userGame)
@@ -300,9 +298,9 @@ namespace Happy_Reader.ViewModel
                 if (string.IsNullOrWhiteSpace(text)) return;
                 if (latinOnly.IsMatch(text)) return;
                 var unRepeatedString = CheckRepeatedString(text);
-                var translated = Translate(unRepeatedString, out OriginalTextObject originalText);
+                var translation = Translate(unRepeatedString);
                 _outputWindow.SetLocation(rct.Left, rct.Bottom, rct.Width);
-                _outputWindow.SetText(new TranslationItem(originalText, translated));
+                _outputWindow.SetText(translation);
             }
             catch (Exception ex)
             {

@@ -203,7 +203,7 @@
     <Compile Include="View\UserGameTile.xaml.cs">
       <DependentUpon>UserGameTile.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Model\TranslationItem.cs" />
+    <Compile Include="Model\Translation.cs" />
     <Compile Include="Model\Translator.cs" />
     <Compile Include="View\UserGamePanel.xaml.cs">
       <DependentUpon>UserGamePanel.xaml</DependentUpon>

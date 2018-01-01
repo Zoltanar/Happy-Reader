@@ -9,7 +9,6 @@ using Happy_Reader.Database;
 using HRGoogleTranslate;
 using static Happy_Reader.StaticMethods;
 using System.Diagnostics;
-using OriginalTextObject = System.Collections.Generic.List<(string Original, string Romaji)>;
 
 namespace Happy_Reader
 {
@@ -29,13 +28,13 @@ namespace Happy_Reader
         private static readonly char[] AllSeparators = Separators.Concat(InclusiveSeparators).ToArray();
 
         //todo make it to use a single object
-        public static string[] Translate(User user, ListedVN game, string input, out OriginalTextObject originalText)
+        public static Translation Translate(User user, ListedVN game, string input)
         {
             //Debug.WriteLine($"'{input}' > 'Debug: Not translating.'");
             //return "Debug: Not translating.";
             lock (TranslateLock)
             {
-                var item = new TranslationObject();
+                var item = new Translation(input);
                 int index = 0;
                 string currentPart = "";
                 while (index < input.Length)
@@ -64,8 +63,7 @@ namespace Happy_Reader
                 if (currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
                 if (user != _lastUser || game != _lastGame || RefreshEntries) SetEntries(user, game);
                 item.TranslateParts();
-                originalText = item.Original;
-                return item.Results;
+                return item;
             }
         }
 
@@ -170,7 +168,7 @@ namespace Happy_Reader
                 else proxies.Add(role, new ProxiesWithCount(roleProxies.Select(roleProxy => new RoleProxy { Role = role, Entry = roleProxy })));
             }
             var entriesWithProxiesArray = entries.Where(i => (i.Type == EntryType.Name || i.Type == EntryType.Translation) && !i.Input.Contains("[[")).ToArray();
-            var usefulEntriesWithProxies = entriesWithProxiesArray.ToList();
+            var usefulEntriesWithProxies = entriesWithProxiesArray.OrderByDescending(x => x.Input.Length).ToList();
             //replace these with initial proxies
             foreach (var entry in entriesWithProxiesArray)
             {
@@ -226,7 +224,7 @@ namespace Happy_Reader
 #endif
         }
 
-        private static string[] Translate(string input, out OriginalTextObject originalText)
+        public static string[] Translate(string input)
         {
             var result = new string[8];
             var sb = new StringBuilder(input);
@@ -239,11 +237,6 @@ namespace Happy_Reader
             result[1] = sb.ToString();
             TranslateStageTwo(sb, _lastEntries);
             result[2] = sb.ToString();
-            originalText = new OriginalTextObject();
-            var romaji = Kakasi.JapaneseToRomaji(sb.ToString());
-            var kana = Kakasi.JapaneseToKana(sb.ToString());
-            var o = kana.Split(' ').Zip(romaji.Split(' '), (x, y) => (x, y)).ToArray();
-            originalText.AddRange(o);
             TranslateStageThree(sb, _lastEntries);
             result[3] = sb.ToString();
             IEnumerable<Entry> usefulEntriesWithProxies;
@@ -303,7 +296,7 @@ namespace Happy_Reader
         /// <summary>
         /// Loads cache with passed collection.
         /// </summary>
-        public static void LoadTranslationCache(IEnumerable<Translation> cachedTranslations)
+        public static void LoadTranslationCache(IEnumerable<HRGoogleTranslate.Translation> cachedTranslations)
         {
             GoogleTranslate.LoadCache(cachedTranslations);
         }
@@ -311,50 +304,9 @@ namespace Happy_Reader
         /// <summary>
         /// Gets current cache in Translator.
         /// </summary>
-        public static IEnumerable<Translation> GetCache()
+        public static IEnumerable<HRGoogleTranslate.Translation> GetCache()
         {
             return GoogleTranslate.GetCache();
-        }
-
-        private class TranslationObject
-        {
-            private readonly List<OriginalTextObject> _partOriginals = new List<OriginalTextObject>();
-            internal readonly List<(string Part, bool Translate)> Parts = new List<(string Part, bool Translate)>();
-            private readonly List<string[]> _partResults = new List<string[]>();
-            public readonly OriginalTextObject Original = new OriginalTextObject();
-            public readonly string[] Results = new string[8];
-            
-            public void TranslateParts()
-            {
-                try
-                {
-                    foreach (var item in Parts)
-                    {
-                        if (!item.Translate)
-                        {
-                            _partResults.Add(Enumerable.Repeat(item.Part, 8).ToArray());
-                            _partOriginals.Add(new OriginalTextObject { (item.Part, null) });
-                            continue;
-                        }
-                        _partResults.Add(Translate(item.Part, out OriginalTextObject original));
-                        _partOriginals.Add(original);
-                    }
-                    for (int stage = 0; stage < 8; stage++)
-                    {
-                        var stage1 = stage;
-                        Results[stage] = string.Join("", _partResults.Select(c => c[stage1]));
-                    }
-                    foreach (OriginalTextObject originalPart in _partOriginals)
-                    {
-                        originalPart.ForEach(Original.Add);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogToConsole(ex.Message); //todo log to file
-                }
-
-            }
         }
 
         private class ProxiesWithCount
