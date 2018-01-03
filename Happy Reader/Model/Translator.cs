@@ -271,7 +271,7 @@ namespace Happy_Reader
                 sb.LogReplace(entry.AssignedProxy.Entry.Output, entry.AssignedProxy.FullRoleString, entry.Id);
                 foreach (var proxyMod in entry.AssignedProxy.ProxyMods)
                 {
-                    var pmO = proxyMod.Output.Replace($"[[{proxyMod.RoleString}]]", entry.AssignedProxy.FullRoleString);
+                    var pmO = proxyMod.Output.Replace($"[[{proxyMod.RoleString ?? "m"}]]", entry.AssignedProxy.FullRoleString);
                     sb.LogReplace(entry.AssignedProxy.FullRoleString, pmO, proxyMod.Id);
                 }
                 sb.LogReplace(entry.AssignedProxy.FullRoleString, entry.Output, entry.Id);

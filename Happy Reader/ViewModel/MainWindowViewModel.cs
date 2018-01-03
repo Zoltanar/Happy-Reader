@@ -30,7 +30,7 @@ namespace Happy_Reader.ViewModel
         private readonly RecentStringList _vndbQueriesList = new RecentStringList(50);
         private readonly RecentStringList _vndbResponsesList = new RecentStringList(50);
 
-        private OutputWindow _outputWindow;
+        private readonly OutputWindow _outputWindow;
         private string _statusText;
         private bool _onlyGameEntries;
         private bool _closingDone;
@@ -75,7 +75,7 @@ namespace Happy_Reader.ViewModel
         public VNTabViewModel DatabaseViewModel { get; }
 
 
-        public MainWindowViewModel()
+        public MainWindowViewModel(MainWindow mainWindow)
         {
             Application.Current.Exit += SaveCacheOnExit;
             VndbQueries = _vndbQueriesList.Items;
@@ -83,6 +83,7 @@ namespace Happy_Reader.ViewModel
             TestViewModel = new TranslationTester(this);
             DatabaseViewModel = new VNTabViewModel(this);
             OnPropertyChanged(nameof(VndbQueries));
+            _outputWindow = new OutputWindow(mainWindow);
         }
 
         public void SetEntries()
@@ -128,7 +129,6 @@ namespace Happy_Reader.ViewModel
         {
             _hookedProcess = process;
             if (_hookedProcess == null) throw new Exception("Process was not started.");
-            if (_outputWindow == null) { Application.Current.Dispatcher.Invoke(() => _outputWindow = new OutputWindow()); }
             UserGame = userGame;
         }
 
@@ -190,7 +190,7 @@ namespace Happy_Reader.ViewModel
                         : null;
                 }
             });
-            foreach (var game in StaticMethods.Data.UserGames.Local.OrderBy(x=>x.VNID ?? 0)) { UserGameItems.Add(new UserGameTile(game)); }
+            foreach (var game in StaticMethods.Data.UserGames.Local.OrderBy(x => x.VNID ?? 0)) { UserGameItems.Add(new UserGameTile(game)); }
             TestViewModel.Initialize();
             OnPropertyChanged(nameof(TestViewModel));
             var monitor = new Thread(MonitorStart) { IsBackground = true };
@@ -291,11 +291,7 @@ namespace Happy_Reader.ViewModel
 #endif
             var rct = StaticMethods.GetWindowDimensions(_hookedProcess);
             if (rct.ZeroSized) return; //todo show it somehow or show error.
-            if (!_outputWindow.IsLoaded)
-            {
-                _outputWindow = new OutputWindow();
-                _outputWindow.Show();
-            }
+            if (!_outputWindow.IsVisible) _outputWindow.Show();
             try
             {
                 var text = Clipboard.GetText();

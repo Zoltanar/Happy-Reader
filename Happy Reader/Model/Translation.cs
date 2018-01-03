@@ -43,10 +43,16 @@ namespace Happy_Reader
                     }
                     _partResults.Add(Translator.Translate(part));
                 }
-                for (int stage = 0; stage < 8; stage++)
+                for (int stage = 0; stage < 7; stage++)
                 {
                     var stage1 = stage;
-                    Results[stage] = string.Join("", _partResults.Select(c => c[stage1]));
+                    Results[stage] = string.Join(stage < 7 || _partResults[stage][0].Length == 1 ? string.Empty : " ", _partResults.Select(c => c[stage1]));
+                }
+                for (int part = 0; part < _partResults.Count; part++)
+                {
+                    var text = _partResults[part][7];
+                    Results[7] += text;
+                    if(part < _partResults.Count-1 && Parts[part].Translate && Parts[part+1].Translate) Results[7] += " ";
                 }
             }
             catch (Exception ex)

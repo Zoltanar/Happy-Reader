@@ -10,13 +10,13 @@ namespace Happy_Reader.View
     /// </summary>
     public partial class VNTab : UserControl
     {
-        private readonly VNTabViewModel _viewModel;
+        private VNTabViewModel _viewModel;
 
         public VNTab()
         {
             InitializeComponent();
-            _viewModel = (VNTabViewModel)DataContext;
         }
+
 
         private async void UpdateURT(object sender, RoutedEventArgs e) => await _viewModel.UpdateURT();
 
@@ -33,6 +33,11 @@ namespace Happy_Reader.View
         {
             if (e.Key != Key.Enter) return;
             await _viewModel.SearchForVN(((TextBox)sender).Text);
+        }
+
+        private void VNTab_OnLoaded(object sender, RoutedEventArgs e)
+        {
+            _viewModel = (VNTabViewModel)DataContext;
         }
     }
 }

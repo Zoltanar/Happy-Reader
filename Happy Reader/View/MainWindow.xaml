@@ -9,10 +9,7 @@
         mc:Ignorable="d"
         Title="Happy Reader" MinWidth="800" MinHeight="600" Width="800" Height="600"  
     Loaded="Window_Loaded" Closing="Window_Closing" 
-    Icon="/Happy Reader;component/Resources/logo-hr.png">
-    <Window.DataContext>
-        <viewModel:MainWindowViewModel/>
-    </Window.DataContext>
+    Icon="/Happy Reader;component/Resources/logo-hr.png" d:DataContext="{d:DesignInstance viewModel:MainWindowViewModel}">
     <Grid Background="#FF2E4876">
         <TabControl x:Name="MainTabControl" Margin="10" >
             <TabItem Header="Games" >

@@ -16,7 +16,7 @@ namespace Happy_Reader.View
         private readonly MainWindowViewModel _mainViewModel;
         private bool _entryAlreadyAdded;
 
-        internal AddEntryControl([NotNull]MainWindowViewModel mainViewModel)
+        internal AddEntryControl([NotNull]MainWindowViewModel mainViewModel, string initialInput = "")
         {
             _mainViewModel = mainViewModel;
             InitializeComponent();
@@ -24,6 +24,9 @@ namespace Happy_Reader.View
             var enumTypes = Enum.GetValues(typeof(EntryType))
                 .Cast<EntryType>();
             TypeCb.ItemsSource = enumTypes;
+            TypeCb.SelectedValue = EntryType.Name;
+            InputTb.Text = initialInput;
+
         }
 
         private void Cancel_Click(object sender, System.Windows.RoutedEventArgs e)

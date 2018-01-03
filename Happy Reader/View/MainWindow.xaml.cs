@@ -25,7 +25,8 @@ namespace Happy_Reader.View
         public MainWindow()
         {
             InitializeComponent();
-            _viewModel = (MainWindowViewModel)DataContext;
+            _viewModel = new MainWindowViewModel(this);
+            DataContext = _viewModel;
             // ReSharper disable once PossibleNullReferenceException
             Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/logo-hr.ico")).Stream;
             _trayIcon = new NotifyIcon
@@ -57,14 +58,7 @@ namespace Happy_Reader.View
 
         private void AddEntry_Click(object sender, RoutedEventArgs e)
         {
-            var tabItem = new TabItem
-            {
-                Header = "Add Entry",
-                Name = "AddEntryControl",
-                Content = new AddEntryControl(_viewModel)
-            };
-            MainTabControl.Items.Add(tabItem);
-            MainTabControl.SelectedItem = tabItem;
+            AddEntry();
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -130,6 +124,20 @@ namespace Happy_Reader.View
             if (e.ChangedButton != MouseButton.Middle) return;
             if (!(sender is TabItem tab)) return;
             MainTabControl.Items.Remove(tab);
+        }
+
+        public void AddEntryFromOutputWindow(string text) => AddEntry(text);
+
+        private void AddEntry(string initialInput = "")
+        {
+            var tabItem = new TabItem
+            {
+                Header = "Add Entry",
+                Name = "AddEntryControl",
+                Content = new AddEntryControl(_viewModel, initialInput)
+            };
+            MainTabControl.Items.Add(tabItem);
+            MainTabControl.SelectedItem = tabItem;
         }
 
     }

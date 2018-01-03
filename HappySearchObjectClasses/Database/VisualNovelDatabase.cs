@@ -208,11 +208,11 @@ throw ex;
 
         public static Expression<Func<ListedVN, bool>> ListVNByNameOrAliasFunc(string searchString)
         {
-            searchString = searchString.ToLowerInvariant();
+            searchString = searchString.ToLower();
             return vn =>
-                vn.Title.ToLowerInvariant().Contains(searchString) ||
-                vn.KanjiTitle!= null && vn.KanjiTitle.ToLowerInvariant().Contains(searchString) ||
-                vn.Aliases != null && vn.Aliases.ToLowerInvariant().Contains(searchString);
+                vn.Title.ToLower().Contains(searchString) ||
+                vn.KanjiTitle!= null && vn.KanjiTitle.ToLower().Contains(searchString) ||
+                vn.Aliases != null && vn.Aliases.ToLower().Contains(searchString);
         }
 
         /// <summary>

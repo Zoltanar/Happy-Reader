@@ -8,7 +8,7 @@ namespace Happy_Reader
     public class PausableUpdateList<T> : ObservableCollection<T>
     {
         private bool _updatesPaused;
-
+        
         protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
             if (_updatesPaused) return;
