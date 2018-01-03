@@ -17,7 +17,6 @@ namespace Happy_Apps_Core
     /// <summary>
     /// Object for displaying Visual Novel in Object List View.
     /// </summary>
-    [Table("vnlist")]
     // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
     public class ListedVN
     {
@@ -61,9 +60,9 @@ namespace Happy_Apps_Core
         public string KanjiTitle { get; set; }
 
         /// <summary>
-        /// VN's first non-trial release date
+        /// VN's first non-trial release date, set by calling SetReleaseDate(string)
         /// </summary>
-        public string RelDate { get; set; }
+        public string ReleaseDateString { get; set; }
 
         public int? ProducerID { get; set; }
 
@@ -133,8 +132,15 @@ namespace Happy_Apps_Core
 
         public virtual UserVN UserVN
         { get; set; }
-        //=>null;//LocalDatabase.UserVisualNovels.SingleOrDefault(x => x.UserId == Settings.UserID && x.VNID == VNID);
+        
+        public DateTime ReleaseDate { get; set; }
         #endregion
+
+        public void SetReleaseDate(string releaseDateString)
+        {
+            ReleaseDateString = releaseDateString;
+            ReleaseDate = StringToDate(releaseDateString);
+        }
 
         private int? _daysSinceFullyUpdated;
         /// <summary>
@@ -175,30 +181,15 @@ namespace Happy_Apps_Core
         {
             return characterList.Where(x => x.CharacterIsInVN(VNID)).ToArray();
         }
-
-        private DateTime? _dateForSorting;
+        
         private List<VNItem.TagItem> _tagList;
         private VNLanguages _languagesObject;
-
-        /// <summary>
-        /// Date used for sorting rather than display string.
-        /// </summary>
-        public DateTime DateForSorting
-        {
-            get
-            {
-                if (_dateForSorting == null) _dateForSorting = StringToDate(RelDate);
-                return _dateForSorting.Value;
-            }
-
-        }
-
+        
         /// <summary>
         /// String for Length
         /// </summary>
         public string LengthString => LengthTime.GetDescription();
-
-
+        
         /// <summary>
         /// Days since last tags/stats/traits update
         /// </summary>
@@ -224,8 +215,8 @@ namespace Happy_Apps_Core
         {
             get
             {
-                if (DateForSorting == DateTime.MaxValue) return UnreleasedFilter.WithoutReleaseDate;
-                return DateForSorting > DateTime.Today ? UnreleasedFilter.WithReleaseDate : UnreleasedFilter.Released;
+                if (ReleaseDate == DateTime.MaxValue) return UnreleasedFilter.WithoutReleaseDate;
+                return ReleaseDate > DateTime.Today ? UnreleasedFilter.WithReleaseDate : UnreleasedFilter.Released;
             }
         }
 
@@ -283,7 +274,7 @@ namespace Happy_Apps_Core
         /// <returns></returns>
         public bool ReleasedBetween(DateTime oldDate, DateTime recentDate)
         {
-            return DateForSorting > oldDate && DateForSorting <= recentDate;
+            return ReleaseDate > oldDate && ReleaseDate <= recentDate;
         }
 
         /// <summary>
@@ -334,7 +325,7 @@ namespace Happy_Apps_Core
         /// <param name="year">Year of release</param>
         public bool ReleasedInYear(int year)
         {
-            return DateForSorting.Year == year;
+            return ReleaseDate.Year == year;
         }
 
         /// <summary>
@@ -364,7 +355,7 @@ namespace Happy_Apps_Core
 
         public Brush ProducerBrush => VNIsByFavoriteProducer(this)? FavoriteProducerBrush: Brushes.Black;
 
-        public Brush DateBrush => DateForSorting > DateTime.UtcNow ? UnreleasedBrush : Brushes.Black;
+        public Brush DateBrush => ReleaseDate > DateTime.UtcNow ? UnreleasedBrush : Brushes.Black;
 
         public Brush UserRelatedBrush => UserVN?.ULStatus == UserlistStatus.Playing ? ULPlayingBrush : Brushes.Black;
 

@@ -11,7 +11,6 @@ namespace Happy_Apps_Core
 	/// <summary>
 	/// From get character commands
 	/// </summary>
-	[Table("charlist")]
 	public class CharacterItem
 	{
 		[Key]

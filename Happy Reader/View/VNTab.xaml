@@ -12,9 +12,21 @@
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
                  ScrollViewer.ScrollChanged="ScrollViewer_OnScrollChanged"
                  VirtualizingStackPanel.VirtualizationMode="Recycling" >
-            <ListBox.ItemsPanel >
+            <ListBox.Resources>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Left" />
+                    <Setter Property="VerticalContentAlignment" Value="Top" />
+                </Style>
+            </ListBox.Resources>
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Left" />
+                    <Setter Property="VerticalContentAlignment" Value="Top" />
+                </Style>
+            </ListBox.ItemContainerStyle>
+            <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <view:VirtualizingWrapPanel ></view:VirtualizingWrapPanel>
+                    <view:VirtualizingWrapPanel></view:VirtualizingWrapPanel>
                 </ItemsPanelTemplate>
             </ListBox.ItemsPanel>
         </ListBox>

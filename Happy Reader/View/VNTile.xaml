@@ -13,7 +13,7 @@
             <Label Content="{Binding Title}" Margin="10,10,10,0" VerticalAlignment="Top" FontWeight="Bold"/>
             <Label Content="{Binding Producer.Name}" Foreground="{Binding ProducerBrush}" Margin="10,0,10,62" VerticalAlignment="Bottom"/>
             <Label Content="{Binding RatingAndVoteCount}" Margin="10,0,92,36" VerticalAlignment="Bottom"/>
-            <Label Content="{Binding RelDate}" Margin="0,0,10,36" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="77" HorizontalContentAlignment="Right" Foreground="{Binding DateBrush}"/>
+            <Label Content="{Binding ReleaseDateString}" Margin="0,0,10,36" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="77" HorizontalContentAlignment="Right" Foreground="{Binding DateBrush}"/>
             <Label Content="{Binding UserRelatedStatus}" Margin="10,0,10,10" Height="26" VerticalAlignment="Bottom" Foreground="{Binding UserRelatedBrush}"/>
             <Image Margin="10,41,10,93" Source="{Binding CoverSource}"/>
             <Image Source="{Binding FlagSource}" Margin="194,41,10,320"/>

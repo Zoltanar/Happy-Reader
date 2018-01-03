@@ -53,7 +53,7 @@ namespace Happy_Reader.View
         {
             Stopwatch watch = Stopwatch.StartNew();
             _viewModel.ClipboardManager = new ClipboardManager(this);
-            await _viewModel.Loaded(watch);
+            await _viewModel.Initialize(watch);
         }
 
         private void AddEntry_Click(object sender, RoutedEventArgs e)

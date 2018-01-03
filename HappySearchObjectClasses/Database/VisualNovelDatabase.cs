@@ -172,7 +172,7 @@ throw ex;
             vn.Title = item.Title;
             vn.KanjiTitle = item.Original;
             vn.ProducerID = producer?.ID;
-            vn.RelDate = item.Released;
+            vn.SetReleaseDate(item.Released);
             vn.Tags = ListToJsonArray(new List<object>(item.Tags));
             vn.Description = item.Description;
             vn.ImageURL = item.Image;

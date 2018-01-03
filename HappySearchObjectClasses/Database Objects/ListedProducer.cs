@@ -4,13 +4,13 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Happy_Apps_Core.Database;
 // ReSharper disable VirtualMemberCallInConstructor
+// ReSharper disable ClassWithVirtualMembersNeverInherited.Global
 
 namespace Happy_Apps_Core
 {
     /// <summary>
     /// Object for Favorite Producers in Object List View.
     /// </summary>
-    [Table("producerlist")]
     public class ListedProducer
     {
         /// <summary>

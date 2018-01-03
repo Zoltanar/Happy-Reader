@@ -73,8 +73,7 @@ namespace Happy_Reader.ViewModel
         public BindingList<string> VndbResponses { get; set; }
         public TranslationTester TestViewModel { get; }
         public VNTabViewModel DatabaseViewModel { get; }
-
-
+        
         public MainWindowViewModel(MainWindow mainWindow)
         {
             Application.Current.Exit += SaveCacheOnExit;
@@ -167,7 +166,7 @@ namespace Happy_Reader.ViewModel
             return new UserGameTile(userGame);
         }
 
-        public async Task Loaded(Stopwatch watch)
+        public async Task Initialize(Stopwatch watch)
         {
             await DatabaseViewModel.Initialize();
             StaticMethods.Data.UserGames.Load();

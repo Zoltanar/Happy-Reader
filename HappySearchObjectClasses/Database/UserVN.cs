@@ -1,9 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+// ReSharper disable ClassWithVirtualMembersNeverInherited.Global
 
 namespace Happy_Apps_Core.Database
 {
-    [Table("userlist")]
     public class UserVN
     {
         [Key]
