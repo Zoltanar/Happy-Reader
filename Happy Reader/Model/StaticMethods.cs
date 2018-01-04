@@ -158,9 +158,8 @@ namespace Happy_Reader
 
         public static void SaveTranslationCache()
         {
-            foreach (var translation in Translator.GetCache())
+            foreach (var translation in Translator.GetNewCache())
             {
-                if (Data.CachedTranslations.Local.Contains(translation)) continue;
                 Data.CachedTranslations.Add(translation);
             }
             Data.SaveChanges();

@@ -243,8 +243,8 @@ namespace Happy_Apps_Core
         /// </summary>
         public static string GetDescription(this Enum value)
         {
+            if (value == null) return "N/A";
             FieldInfo field = value.GetType().GetField(value.ToString());
-
             return !(Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is DescriptionAttribute attribute) ? value.ToString() : attribute.Description;
         }
         
@@ -526,6 +526,12 @@ namespace Happy_Apps_Core
             {
                 LogToFile(exception, $"LoadJson error, type: {typeof(T)}");
                 return new T();
+            }
+
+            if (settings == null)
+            {
+                settings = new T();
+                settings.SaveJson(jsonPath);
             }
             return settings;
         }

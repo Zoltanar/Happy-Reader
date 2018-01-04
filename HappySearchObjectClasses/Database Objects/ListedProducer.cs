@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.IO;
+using System.Windows;
 using Happy_Apps_Core.Database;
 // ReSharper disable VirtualMemberCallInConstructor
 // ReSharper disable ClassWithVirtualMembersNeverInherited.Global
@@ -114,6 +116,9 @@ namespace Happy_Apps_Core
 
         [Column("Updated")]
         public DateTime? UpdatedDt { get; set; }
+
+        public object FlagSource => Language != null ? Path.GetFullPath($"{StaticHelpers.FlagsFolder}{Language}.png")
+                                        : DependencyProperty.UnsetValue;
 
         #endregion
         /// <summary>Returns a string that represents the current object.</summary>

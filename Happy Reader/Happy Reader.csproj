@@ -180,6 +180,7 @@
     </ApplicationDefinition>
     <Compile Include="Database\Log.cs" />
     <Compile Include="Model\ClipboardManager.cs" />
+    <Compile Include="Model\EnumDescriptionConverter.cs" />
     <Compile Include="Model\Kakasi.cs" />
     <Compile Include="Model\PausableUpdateList.cs" />
     <Compile Include="Model\RecentItemList.cs" />
@@ -212,6 +213,9 @@
       <DependentUpon>UserGamePanel.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\VirtualizingWrapPanel.cs" />
+    <Compile Include="View\VNPanel.xaml.cs">
+      <DependentUpon>VNPanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\VNTab.xaml.cs">
       <DependentUpon>VNTab.xaml</DependentUpon>
     </Compile>
@@ -220,6 +224,10 @@
     </Compile>
     <Compile Include="ViewModel\VNTabViewModel.cs" />
     <Page Include="View\AddEntryControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\ListedVNSampleData.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -252,6 +260,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\UserGamePanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\VNPanel.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

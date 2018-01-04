@@ -8,10 +8,11 @@
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="800" d:DataContext="{d:DesignInstance viewModel:VNTabViewModel}" Loaded="VNTab_OnLoaded">
     <Grid Background="#FFC9E1F5">
-        <ListBox Margin="10,10,10,70" ItemsSource="{Binding ListedVNs}" 
+        <ListBox x:Name="VisualNovelItems" Margin="10,10,10,70" ItemsSource="{Binding ListedVNs}" 
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
                  ScrollViewer.ScrollChanged="ScrollViewer_OnScrollChanged"
-                 VirtualizingStackPanel.VirtualizationMode="Recycling" >
+                 VirtualizingStackPanel.VirtualizationMode="Recycling" 
+                 MouseDoubleClick="VNTileDoubleClicked">
             <ListBox.Resources>
                 <Style TargetType="ListBoxItem">
                     <Setter Property="HorizontalContentAlignment" Value="Left" />

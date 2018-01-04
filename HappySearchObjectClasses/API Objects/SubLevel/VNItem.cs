@@ -166,6 +166,8 @@ namespace Happy_Apps_Core
                 return $"[{ID},{Score},{Spoiler}]";
             }
 
+            public string DisplayString => ToString();
+
             public string GetName(List<DumpFiles.WrittenTag> plainTags)
             {
                 return plainTags.Find(item => item.ID == ID)?.Name;

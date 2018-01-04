@@ -227,6 +227,27 @@ namespace Happy_Reader
         public static string[] Translate(string input)
         {
             var result = new string[8];
+            if (input.Length == 1)
+            {
+                var kana = Kakasi.JapaneseToKana(input);
+                if (kana == input)
+                {
+                    var romaji = Kakasi.JapaneseToRomaji(input);
+                    result[0] = input;
+                    result[1] = input;
+                    result[2] = input;
+                    result[3] = input;
+                    result[4] = input;
+                    result[5] = romaji;
+                    result[6] = romaji;
+                    result[7] = romaji;
+                    return result;
+                }
+            }
+            if (input.Length == 0)
+            {
+
+            }
             var sb = new StringBuilder(input);
             //process in stages
 #if LOGVERBOSE
@@ -304,9 +325,9 @@ namespace Happy_Reader
         /// <summary>
         /// Gets current cache in Translator.
         /// </summary>
-        public static IEnumerable<HRGoogleTranslate.Translation> GetCache()
+        public static IEnumerable<HRGoogleTranslate.Translation> GetNewCache()
         {
-            return GoogleTranslate.GetCache();
+            return GoogleTranslate.GetNewCache();
         }
 
         private class ProxiesWithCount

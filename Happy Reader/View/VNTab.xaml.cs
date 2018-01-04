@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Happy_Apps_Core;
 using Happy_Reader.ViewModel;
 
 namespace Happy_Reader.View
@@ -11,6 +12,7 @@ namespace Happy_Reader.View
     public partial class VNTab : UserControl
     {
         private VNTabViewModel _viewModel;
+        private MainWindow _mainWindow;
 
         public VNTab()
         {
@@ -38,6 +40,15 @@ namespace Happy_Reader.View
         private void VNTab_OnLoaded(object sender, RoutedEventArgs e)
         {
             _viewModel = (VNTabViewModel)DataContext;
+            _mainWindow = (MainWindow)Window.GetWindow(this);
+        }
+
+        private void VNTileDoubleClicked(object sender, MouseButtonEventArgs e)
+        {
+            var item = VisualNovelItems.SelectedItem as VNTile;
+            var vn = (ListedVN)item?.DataContext;
+            if (vn == null) return;
+            _mainWindow.OpenVNPanel(vn);
         }
     }
 }

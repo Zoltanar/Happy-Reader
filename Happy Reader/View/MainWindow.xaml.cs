@@ -6,6 +6,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Happy_Apps_Core;
 using Happy_Reader.Database;
 using Happy_Reader.ViewModel;
 using JetBrains.Annotations;
@@ -136,10 +137,26 @@ namespace Happy_Reader.View
                 Name = "AddEntryControl",
                 Content = new AddEntryControl(_viewModel, initialInput)
             };
+            AddTabItem(tabItem);
+        }
+
+        public void OpenVNPanel(ListedVN vn)
+        {
+            var tabItem = new TabItem
+            {
+                Header = StaticHelpers.TruncateString(vn.Title,30),
+                Name = "VNPanel",
+                Content = new VNPanel(vn)
+            };
+            AddTabItem(tabItem);
+        }
+
+        public void AddTabItem(TabItem tabItem)
+        {
+            tabItem.MouseUp += TabMiddleClick;
             MainTabControl.Items.Add(tabItem);
             MainTabControl.SelectedItem = tabItem;
         }
-
     }
 }
 

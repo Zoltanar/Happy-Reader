@@ -20,14 +20,6 @@ namespace Happy_Apps_Core
     // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
     public class ListedVN
     {
-        // ReSharper disable once UnusedMember.Global
-        public ListedVN() { }
-
-        public ListedVN(string name)
-        {
-            Title = name;
-        }
-
         /// <summary>
         /// Returns true if a title was last updated over x days ago.
         /// </summary>
@@ -132,7 +124,7 @@ namespace Happy_Apps_Core
 
         public virtual UserVN UserVN
         { get; set; }
-        
+
         public DateTime ReleaseDate { get; set; }
         #endregion
 
@@ -181,14 +173,9 @@ namespace Happy_Apps_Core
         {
             return characterList.Where(x => x.CharacterIsInVN(VNID)).ToArray();
         }
-        
+
         private List<VNItem.TagItem> _tagList;
         private VNLanguages _languagesObject;
-        
-        /// <summary>
-        /// String for Length
-        /// </summary>
-        public string LengthString => LengthTime.GetDescription();
         
         /// <summary>
         /// Days since last tags/stats/traits update
@@ -258,13 +245,7 @@ namespace Happy_Apps_Core
                 return string.Join(" ", parts);
             }
         }
-
-        /// <summary>
-        /// Get VN's rating, votecount and popularity as a string.
-        /// </summary>
-        /// <returns>Rating, votecount and popularity</returns>
-        public string RatingAndVoteCount => VoteCount == 0 ? "No votes yet." : $"{Rating:0.00} ({VoteCount} votes)";
-
+        
         /// <summary>
         /// Checks if title was released between two dates, the recent date is inclusive.
         /// Make sure to enter arguments in correct order.
@@ -337,7 +318,7 @@ namespace Happy_Apps_Core
 
         public object FlagSource => LanguagesObject?.Originals.Select(language => $"{FlagsFolder}{language}.png")
                                     .Where(File.Exists).Select(Path.GetFullPath).FirstOrDefault() ?? DependencyProperty.UnsetValue;
-        
+
         public Uri CoverSource
         {
             get
@@ -353,7 +334,7 @@ namespace Happy_Apps_Core
 
         public Brush BackBrush => GetBrushFromStatuses();
 
-        public Brush ProducerBrush => VNIsByFavoriteProducer(this)? FavoriteProducerBrush: Brushes.Black;
+        public Brush ProducerBrush => VNIsByFavoriteProducer(this) ? FavoriteProducerBrush : Brushes.Black;
 
         public Brush DateBrush => ReleaseDate > DateTime.UtcNow ? UnreleasedBrush : Brushes.Black;
 
@@ -445,6 +426,7 @@ namespace Happy_Apps_Core
             var allIds = DumpFiles.GetAllSubTraits(id);
             return GetCharacters(LocalDatabase.Characters).Any(c => c.Traits.Any(t => allIds.Contains(t.ID)));
         }
+
     }
 
     /// <summary>
@@ -545,4 +527,6 @@ namespace Happy_Apps_Core
         Dropped = 4
     }
 #pragma warning restore 1591
+
+
 }

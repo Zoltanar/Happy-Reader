@@ -13,10 +13,12 @@ namespace Happy_Reader.View
     public partial class UserGameTile
     {
         private readonly UserGame _viewModel;
+        private readonly MainWindow _mainWindow;
 
         public UserGameTile()
         {
             InitializeComponent();
+            _mainWindow = (MainWindow)Window.GetWindow(this);
         }
 
         public UserGameTile(UserGame usergame)
@@ -28,12 +30,8 @@ namespace Happy_Reader.View
 
         private void GameDetails(object sender, EventArgs e)
         {
-            var window = (MainWindow)Window.GetWindow(this);
-            if (window == null) throw new NullReferenceException("MainWindow not found.");
             var tabItem = new TabItem { Header = _viewModel.DisplayName, Content = new UserGamePanel(_viewModel) };
-            tabItem.MouseUp += window.TabMiddleClick;
-            window.MainTabControl.Items.Add(tabItem);
-            window.MainTabControl.SelectedItem = tabItem;
+            _mainWindow.AddTabItem(tabItem);
         }
 
         private void BrowseToLocation(object sender, RoutedEventArgs e)

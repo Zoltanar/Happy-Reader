@@ -1,5 +1,5 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Text;
 using Google.Cloud.Translation.V2;
@@ -9,7 +9,8 @@ namespace HRGoogleTranslate
     public static class GoogleTranslate
     {
 #if !NOTRANSLATION
-        private static readonly ConcurrentDictionary<string, Translation> Cache = new ConcurrentDictionary<string, Translation>();
+        private static ImmutableDictionary<string, Translation> _presentCache;
+        private static readonly Dictionary<string, Translation> NewCache = new Dictionary<string, Translation>();
         private static readonly HashSet<string> UntouchedStrings = new HashSet<string>();
         private const string GoogleCredential = @"C:\Google\hrtranslate-credential.json";
 
@@ -31,14 +32,16 @@ namespace HRGoogleTranslate
 
         public static void LoadCache(IEnumerable<Translation> translations)
         {
-            Cache.Clear();
+            var builder = ImmutableDictionary.CreateBuilder<string,Translation>();
             foreach (var translation in translations)
             {
-                Cache.TryAdd(translation.Input, translation);
+                builder.Add(translation.Input, translation);
             }
+
+            _presentCache = builder.ToImmutable();
         }
 
-        public static IEnumerable<Translation> GetCache() => Cache.Values;
+        public static IEnumerable<Translation> GetNewCache() => NewCache.Values;
 #endif
         public static void Translate(StringBuilder text)
         {
@@ -48,13 +51,13 @@ namespace HRGoogleTranslate
 #else
             if (UntouchedStrings.Contains(text.ToString())) return;
             var input = text.ToString();
-            if (Cache.ContainsKey(input))
+            if (_presentCache.ContainsKey(input))
             {
 #if LOGVERBOSE
                 System.Diagnostics.Debug.WriteLine($"HRTranslate.Google - Getting string from cache, input: {input}");
 #endif
                 text.Clear();
-                text.Append(Cache[input].Output);
+                text.Append(_presentCache[input].Output);
                 return;
             }
 #if LOGVERBOSE
@@ -65,7 +68,7 @@ namespace HRGoogleTranslate
             if (!string.IsNullOrWhiteSpace(response?.TranslatedText))
             {
                 text.Append(response.TranslatedText);
-                Cache[input] = new Translation(input, response.TranslatedText);
+                NewCache[input] = new Translation(input, response.TranslatedText);
             }
             else text.Append("Failed to translate");
 
