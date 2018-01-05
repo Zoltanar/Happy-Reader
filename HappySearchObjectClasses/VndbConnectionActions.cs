@@ -715,5 +715,29 @@ throw ex;
         {
             if (status == APIStatus.Ready) ActiveQuery.Completed = true;
         }
+
+        public async Task<bool> GetAndSetRelationsForVN(ListedVN vn)
+        {
+            if (!StartQuery(nameof(GetAndSetRelationsForVN), false, false, true)) return false;
+            await Conn.TryQuery($"get vn relations (id = {vn.VNID})", "Relations Query Error");
+            var root = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(Conn.LastResponse.JsonPayload);
+            if (root.Num == 0) return false;
+            VNItem.RelationsItem[] relations = root.Items[0].Relations;
+            await Task.Run(() => LocalDatabase.AddRelationsToVN(vn, relations));
+            _changeStatusAction(Conn.Status);
+            return true;
+        }
+
+        public async Task<bool> GetAndSetAnimeForVN(ListedVN vn)
+        {
+            if (!StartQuery(nameof(GetAndSetAnimeForVN), false, false, true)) return false;
+            await Conn.TryQuery($"get vn anime (id = {vn.VNID})", "Anime Query Error");
+            var root = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(Conn.LastResponse.JsonPayload);
+            if (root.Num == 0) return false;
+            VNItem.AnimeItem[] anime = root.Items[0].Anime;
+            await Task.Run(() => LocalDatabase.AddAnimeToVN(vn, anime));
+            _changeStatusAction(Conn.Status);
+            return true;
+        }
     }
 }

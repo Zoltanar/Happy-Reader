@@ -5,7 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d mc" 
              d:DesignHeight="600" d:DesignWidth="800" 
-             d:DataContext="{d:DesignData Source=ListedVNSampleData.xaml}">
+             d:DataContext="{d:DesignData Source=ListedVNSampleData.xaml}"
+             Loaded="VNPanel_OnLoaded">
     <!--d:DataContext="{x:Static happyReader:SampleListedVN.SampleData}">-->
     <!--d:DataContext="{d:DesignInstance {x:Type happyReader:SampleListedVN}, IsDesignTimeCreatable=True}" >-->
     <Grid>
@@ -29,6 +30,7 @@
                     <RowDefinition Height="30"/>
                     <RowDefinition Height="30"/>
                     <RowDefinition Height="30"/>
+                    <RowDefinition Height="30"/>
                 </Grid.RowDefinitions>
                 <Label Grid.Row="0" HorizontalContentAlignment="Right" Content="Title"/>
                 <Label Grid.Row="1" HorizontalContentAlignment="Right" Content="Original"/>
@@ -36,11 +38,13 @@
                 <Label Grid.Row="3" HorizontalContentAlignment="Right" Content="Tags"/>
                 <Label Grid.Row="4" HorizontalContentAlignment="Right" Content="Producer"/>
                 <Label Grid.Row="5" HorizontalContentAlignment="Right" Content="Rating"/>
-                <Label Grid.Row="6" HorizontalContentAlignment="Right" Content="Anime"/>
-                <Label Grid.Row="7" HorizontalContentAlignment="Right" Content="Character Traits"/>
+                <Label Grid.Row="6" HorizontalContentAlignment="Right" Content="Relations"/>
+                <Label Grid.Row="7" HorizontalContentAlignment="Right" Content="Anime"/>
+                <Label Grid.Row="8" HorizontalContentAlignment="Right" Content="Character Traits"/>
             </Grid>
             <Grid Grid.Row="0" Grid.Column="1" Margin="5" Background="LightGray">
                 <Grid.RowDefinitions >
+                    <RowDefinition Height="30"/>
                     <RowDefinition Height="30"/>
                     <RowDefinition Height="30"/>
                     <RowDefinition Height="30"/>
@@ -53,7 +57,7 @@
                 <Label Grid.Row="0" Content="{Binding Title}"/>
                 <Label Grid.Row="1" Content="{Binding KanjiTitle}"/>
                 <Label Grid.Row="2" Content="{Binding Aliases}"/>
-                <ComboBox Grid.Row="3" ItemsSource="{Binding TagList}"  DisplayMemberPath="DisplayString" IsReadOnly="True"/>
+                <ComboBox Grid.Row="3" ItemsSource="{Binding DisplayTags}" IsReadOnly="True" SelectedIndex="0"/>
                 <Grid Grid.Row="4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="30"/>
@@ -81,8 +85,9 @@
                     </Label>
                     <Label Grid.Column="1" Content="{Binding Popularity}" ContentStringFormat="Popularity {0:0.00}" HorizontalContentAlignment="Right"/>
                 </Grid>
-                <Label Grid.Row="6" Content="{Binding Anime}"/>
-                <Label Grid.Row="7" Content="--Characters--"/>
+                <ComboBox Grid.Row="6" x:Name="RelationsCombobox" ItemsSource="{Binding DisplayRelations}" SelectedIndex="0" IsReadOnly="True"/>
+                <ComboBox Grid.Row="7" x:Name="AnimeCombobox" ItemsSource="{Binding DisplayAnime}" SelectedIndex="0" IsReadOnly="True"/>
+                <ComboBox Grid.Row="8" ItemsSource="{Binding DisplayTraits}" SelectedIndex="0" IsReadOnly="True"/>
             </Grid>
             <Image Grid.Row="0" Grid.Column="2" Source="{Binding CoverSource}" Margin="5"/>
         </Grid>

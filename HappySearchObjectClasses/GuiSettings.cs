@@ -4,6 +4,9 @@
     {
         private bool _nsfwImages;
         private bool _advancedMode;
+        private bool _contentTags;
+        private bool _sexualTags;
+        private bool _technicalTags;
 
         public bool NSFWImages
         {
@@ -23,6 +26,39 @@
             {
                 if (_advancedMode == value) return;
                 _advancedMode = value;
+                Save();
+            }
+        }
+
+        public bool ContentTags
+        {
+            get => _contentTags;
+            set
+            {
+                if (_contentTags == value) return;
+                _contentTags = value;
+                Save();
+            }
+        }
+
+        public bool SexualTags
+        {
+            get => _sexualTags;
+            set
+            {
+                if (_sexualTags == value) return;
+                _sexualTags = value;
+                Save();
+            }
+        }
+
+        public bool TechnicalTags
+        {
+            get => _technicalTags;
+            set
+            {
+                if (_technicalTags == value) return;
+                _technicalTags = value;
                 Save();
             }
         }

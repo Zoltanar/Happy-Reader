@@ -103,14 +103,14 @@ namespace Happy_Apps_Core
             Directory.CreateDirectory(StoredDataFolder);
             File.Create(LogFile).Close();
         }
-        
+
         public static VisualNovelDatabase LocalDatabase;
 
         public static bool VNIsByFavoriteProducer(ListedVN vn)
         {
             return LocalDatabase.FavoriteProducerList.Any(x => x.ID == vn.ProducerID);
         }
-        
+
         /// <summary>
         /// Serialize object to JSON string and save to file.
         /// </summary>
@@ -155,7 +155,7 @@ namespace Happy_Apps_Core
             list.RaiseListChangedEvents = true;
             list.ResetBindings();
         }
-        
+
         /// <summary>
         /// Pause RaiseListChangedEvents, clear list and add items, then call ResetBindings event.
         /// </summary>
@@ -176,25 +176,25 @@ namespace Happy_Apps_Core
         public static void LogToFile(string message)
         {
             Debug.Print(message);
-	        int counter = 0;
-	        while (IsFileLocked(new FileInfo(LogFile)))
-	        {
-		        counter++;
-		        if (counter > 5) throw new IOException("Logfile is locked!");
-		        Thread.Sleep(25);
-	        }
-			using (var writer = new StreamWriter(LogFile, true))
+            int counter = 0;
+            while (IsFileLocked(new FileInfo(LogFile)))
+            {
+                counter++;
+                if (counter > 5) throw new IOException("Logfile is locked!");
+                Thread.Sleep(25);
+            }
+            using (var writer = new StreamWriter(LogFile, true))
             {
                 writer.WriteLine(message);
             }
         }
-        
+
         /// <summary>
         /// Print exception to Debug and write it to log file.
         /// </summary>
         /// <param name="exception">Exception to be written to file</param>
         /// <param name="source">Source of error, CallerMemberName by default</param>
-        public static void LogToFile(Exception exception,[CallerMemberName]string source = null)
+        public static void LogToFile(Exception exception, [CallerMemberName]string source = null)
         {
             Debug.Print($"Source: {source}");
             Debug.Print(exception.Message);
@@ -247,7 +247,7 @@ namespace Happy_Apps_Core
             FieldInfo field = value.GetType().GetField(value.ToString());
             return !(Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is DescriptionAttribute attribute) ? value.ToString() : attribute.Description;
         }
-        
+
         /// <summary>
         /// Convert number of bytes to human-readable formatted string, rounded to 1 decimal place. (e.g 79.4KB)
         /// </summary>
@@ -319,12 +319,10 @@ namespace Happy_Apps_Core
         /// </summary>
         /// <param name="tagstring">JSON-formatted string</param>
         /// <returns>List of tags</returns>
-        public static List<VNItem.TagItem> StringToTags(string tagstring)
+        public static VNItem.TagItem[] StringToTags(string tagstring)
         {
-            if (tagstring.Equals("")) return new List<VNItem.TagItem>();
-            var curS = $"{{\"tags\":{tagstring}}}";
-            var vnitem = JsonConvert.DeserializeObject<VNItem>(curS);
-            return vnitem.Tags;
+            if (string.IsNullOrWhiteSpace(tagstring)) return new VNItem.TagItem[] { };
+            return JsonConvert.DeserializeObject<VNItem.TagItem[]>(tagstring) ?? new VNItem.TagItem[] { };
         }
 
         /// <summary>
@@ -391,7 +389,7 @@ namespace Happy_Apps_Core
             if (value == null || maxChars < 4) return value;
             return value.Length <= maxChars ? value : value.Substring(0, maxChars - 3) + "...";
         }
-        
+
         /// <summary>
         ///     Convert DateTime to UnixTimestamp.
         /// </summary>
@@ -434,7 +432,7 @@ namespace Happy_Apps_Core
                 LogToFile(ex);
             }
         }
-        
+
         /// <summary>
         /// Saves screenshot (by URL) to specified location.
         /// </summary>
@@ -459,7 +457,7 @@ namespace Happy_Apps_Core
                 }
             }
         }
-        
+
         /// <summary>
         ///     Saves a title's cover image (unless it already exists)
         /// </summary>
@@ -509,12 +507,12 @@ namespace Happy_Apps_Core
             return $"{VNScreensFolder}{urlSplit[urlSplit.Length - 2]}\\{urlSplit[urlSplit.Length - 1]}";
         }
 
-        public static T LoadJson<T>(string jsonPath) where T: new()
+        public static T LoadJson<T>(string jsonPath) where T : new()
         {
             T settings;
             if (!File.Exists(jsonPath))
             {
-                var result =  new T();
+                var result = new T();
                 result.SaveJson(jsonPath);
                 return result;
             }

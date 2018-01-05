@@ -37,6 +37,7 @@
         <Label Foreground="{Binding VndbConnectionColor}" Content="{Binding VndbConnectionReply}" Margin="361,0,10,0" Height="30" VerticalAlignment="Bottom" VerticalContentAlignment="Center"/>
         <Label Content="Search:" HorizontalAlignment="Left" Margin="10,0,0,35" Height="30" VerticalAlignment="Bottom" VerticalContentAlignment="Center"/>
         <TextBox HorizontalAlignment="Left" Margin="63,0,0,36" TextWrapping="Wrap" Width="213" Padding="5" VerticalContentAlignment="Center" PreviewKeyUp="SearchForVN" Height="29" VerticalAlignment="Bottom"/>
-        <Button Content="Reset" HorizontalAlignment="Left" Margin="281,0,0,35" Width="75" Click="ResetURT" Height="30" VerticalAlignment="Bottom" Padding="5,5,7,5"/>
+        <Button Content="Reset" HorizontalAlignment="Left" Margin="281,0,0,35" Width="75" Click="ShowAll" Height="30" VerticalAlignment="Bottom" Padding="5,5,7,5"/>
+        <Button Content="User-related Titles" HorizontalAlignment="Left" Margin="361,0,0,35" Width="121" Click="ShowURT" Height="30" VerticalAlignment="Bottom" Padding="5,5,7,5"/>
     </Grid>
 </UserControl>

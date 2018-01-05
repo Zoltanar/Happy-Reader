@@ -7,6 +7,8 @@ using static Happy_Apps_Core.StaticHelpers;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using Happy_Apps_Core.Database;
@@ -18,7 +20,7 @@ namespace Happy_Apps_Core
     /// Object for displaying Visual Novel in Object List View.
     /// </summary>
     // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
-    public class ListedVN
+    public class ListedVN : INotifyPropertyChanged
     {
         /// <summary>
         /// Returns true if a title was last updated over x days ago.
@@ -150,8 +152,8 @@ namespace Happy_Apps_Core
         /// <summary>
         /// List of Tags in this VN.
         /// </summary>
-        [NotMapped]
-        public List<VNItem.TagItem> TagList
+        [NotMapped, NotNull]
+        public VNItem.TagItem[] TagList
         {
             get
             {
@@ -161,6 +163,109 @@ namespace Happy_Apps_Core
                     foreach (var tag in _tagList) tag.SetCategory(DumpFiles.PlainTags);
                 }
                 return _tagList;
+            }
+        }
+
+        [NotMapped, NotNull]
+        public IEnumerable<string> DisplayTags
+        {
+            get
+            {
+                var visibleTags = new List<VNItem.TagItem>();
+                foreach (var tag in TagList)
+                {
+                    switch (tag.Category)
+                    {
+                        case TagCategory.Content:
+                            if (!GSettings.ContentTags) continue;
+                            break;
+                        case TagCategory.Sexual:
+                            if (!GSettings.SexualTags) continue;
+                            break;
+                        case TagCategory.Technical:
+                            if (!GSettings.TechnicalTags) continue;
+                            break;
+                    }
+                    visibleTags.Add(tag);
+                }
+                if (visibleTags.Count == 0) return new[] { "No Tags Found" };
+                List<string> stringList = visibleTags.Select(x => x.Print(DumpFiles.PlainTags)).ToList();
+                stringList.Sort();
+                return stringList;
+            }
+        }
+
+        [NotMapped, NotNull]
+        public IEnumerable<string> DisplayTraits
+        {
+            get
+            {
+                var vnCharacters = GetCharacters(LocalDatabase.Characters);
+                var stringList = new List<string> { $"{vnCharacters.Length} Characters" };
+                for (var index = 0; index < vnCharacters.Length; index++)
+                {
+                    var characterItem = vnCharacters[index];
+                    stringList.Add($"Character {characterItem.ID}");
+                    foreach (var trait in characterItem.Traits) stringList.Add(DumpFiles.PlainTraits.Find(x => x.ID == trait.ID)?.ToString());
+                    if (index < vnCharacters.Length - 1) stringList.Add("---------------");
+                }
+                return stringList;
+            }
+        }
+
+        [NotMapped, NotNull]
+        public IEnumerable<string> DisplayRelations
+        {
+            get
+            {
+                if (!RelationsObject.Any()) return new List<string> { "No relations found." };
+                var titleString = RelationsObject.Length == 1 ? "1 Relation" : $"{RelationsObject.Length} Relations";
+                var stringList = new List<string> { titleString, "--------------" };
+                IGrouping<string, VNItem.RelationsItem>[] groups = RelationsObject.GroupBy(x => x.Relation).ToArray();
+                for (var index = 0; index < groups.Length; index++)
+                {
+                    IGrouping<string, VNItem.RelationsItem> group = groups[index];
+                    stringList.AddRange(group.Select(relation => relation.Print()));
+                    if (index < groups.Length - 1) stringList.Add("---------------");
+                }
+                return stringList;
+            }
+        }
+
+        [NotMapped, NotNull]
+        public IEnumerable<string> DisplayAnime
+        {
+            get
+            {
+                if (!AnimeObject.Any()) return new List<string> { "No anime found." };
+                var titleString = $"{AnimeObject.Length} Anime";
+                var stringList = new List<string> { titleString, "--------------" };
+                stringList.AddRange(AnimeObject.Select(x => x.Print()));
+                return stringList;
+            }
+        }
+
+        [NotMapped, NotNull]
+        public VNItem.RelationsItem[] RelationsObject
+        {
+            get
+            {
+                if (_relationsObject != null) return _relationsObject;
+                if (string.IsNullOrWhiteSpace(Relations)) _relationsObject = new VNItem.RelationsItem[] { };
+                else _relationsObject = JsonConvert.DeserializeObject<VNItem.RelationsItem[]>(Relations) ?? new VNItem.RelationsItem[] { };
+                return _relationsObject;
+            }
+        }
+
+        [NotMapped, NotNull]
+        public VNItem.AnimeItem[] AnimeObject
+        {
+            get
+            {
+                if (_animeObject != null) return _animeObject;
+                if (string.IsNullOrWhiteSpace(Anime)) _animeObject = new VNItem.AnimeItem[] { };
+                else _animeObject = JsonConvert.DeserializeObject<VNItem.AnimeItem[]>(Anime) ?? new VNItem.AnimeItem[] { };
+                return _animeObject;
             }
         }
 
@@ -174,9 +279,11 @@ namespace Happy_Apps_Core
             return characterList.Where(x => x.CharacterIsInVN(VNID)).ToArray();
         }
 
-        private List<VNItem.TagItem> _tagList;
+        private VNItem.RelationsItem[] _relationsObject;
+        private VNItem.AnimeItem[] _animeObject;
+        private VNItem.TagItem[] _tagList;
         private VNLanguages _languagesObject;
-        
+
         /// <summary>
         /// Days since last tags/stats/traits update
         /// </summary>
@@ -186,14 +293,8 @@ namespace Happy_Apps_Core
         /// <summary>
         /// Language of producer
         /// </summary>
-        public VNLanguages LanguagesObject
-        {
-            get
-            {
-                if (_languagesObject == null && Languages != null) _languagesObject = JsonConvert.DeserializeObject<VNLanguages>(Languages);
-                return _languagesObject;
-            }
-        }
+        [NotMapped, NotNull]
+        public VNLanguages LanguagesObject => _languagesObject ?? (_languagesObject = JsonConvert.DeserializeObject<VNLanguages>(Languages) ?? new VNLanguages());
 
         /// <summary>
         /// Return unreleased status of vn.
@@ -245,7 +346,7 @@ namespace Happy_Apps_Core
                 return string.Join(" ", parts);
             }
         }
-        
+
         /// <summary>
         /// Checks if title was released between two dates, the recent date is inclusive.
         /// Make sure to enter arguments in correct order.
@@ -316,7 +417,7 @@ namespace Happy_Apps_Core
 
         public string Series { get; set; }
 
-        public object FlagSource => LanguagesObject?.Originals.Select(language => $"{FlagsFolder}{language}.png")
+        public object FlagSource => LanguagesObject.Originals.Select(language => $"{FlagsFolder}{language}.png")
                                     .Where(File.Exists).Select(Path.GetFullPath).FirstOrDefault() ?? DependencyProperty.UnsetValue;
 
         public Uri CoverSource
@@ -339,6 +440,8 @@ namespace Happy_Apps_Core
         public Brush DateBrush => ReleaseDate > DateTime.UtcNow ? UnreleasedBrush : Brushes.Black;
 
         public Brush UserRelatedBrush => UserVN?.ULStatus == UserlistStatus.Playing ? ULPlayingBrush : Brushes.Black;
+
+
 
         /// <summary>
         /// Get brush from vn UL or WL status or null if no statuses are found.
@@ -408,12 +511,12 @@ namespace Happy_Apps_Core
 
         public bool HasLanguage(string value)
         {
-            return LanguagesObject?.All.Contains(value) ?? false;
+            return LanguagesObject.All.Contains(value);
         }
 
         public bool HasOriginalLanguage(string value)
         {
-            return LanguagesObject?.Originals.Contains(value) ?? false;
+            return LanguagesObject.Originals.Contains(value);
         }
 
         public bool MatchesSingleTag(int id)
@@ -427,6 +530,40 @@ namespace Happy_Apps_Core
             return GetCharacters(LocalDatabase.Characters).Any(c => c.Traits.Any(t => allIds.Contains(t.ID)));
         }
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public async Task GetRelationsAnimeScreens()
+        {
+            if (string.IsNullOrWhiteSpace(Relations))
+            {
+                await Conn.GetAndSetRelationsForVN(this);
+                OnPropertyChanged(nameof(DisplayRelations));
+            }
+            if (string.IsNullOrWhiteSpace(Anime))
+            {
+                await Conn.GetAndSetAnimeForVN(this);
+                OnPropertyChanged(nameof(DisplayAnime));
+            }
+            //todo
+        }
+
+        public void SetRelations(string relationsString, VNItem.RelationsItem[] relationsObject)
+        {
+            Relations = relationsString;
+            _relationsObject = relationsObject;
+        }
+
+        public void SetAnime(string animeString, VNItem.AnimeItem[] animeObject)
+        {
+            Anime = animeString;
+            _animeObject = animeObject;
+        }
     }
 
     /// <summary>

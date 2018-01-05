@@ -62,7 +62,7 @@ namespace Happy_Apps_Core
         public class AnimeItem
         {
             public int ID { get; set; }
-            public int Ann_ID { get; set; }
+            public int? Ann_ID { get; set; }
             public string Nfo_ID { get; set; }
             public string Title_Romaji { get; set; }
             public string Title_Kanji { get; set; }

@@ -42,26 +42,29 @@ namespace Happy_Apps_Core.Database
             SaveChanges();
         }
 
-        public void AddRelationsToVN(int vnid, VNItem.RelationsItem[] relations)
+        public void AddRelationsToVN(ListedVN vn, VNItem.RelationsItem[] relations)
         {
-            var relationsString = relations.Any() ? ListToJsonArray(new List<object>(relations)) : "Empty";
-            VisualNovels.Single(x => x.VNID == vnid).Relations = relationsString;
+            var relationsObject = relations.Any() ? relations : new VNItem.RelationsItem[] { };
+            var relationsString = ListToJsonArray(relationsObject);
+            vn.SetRelations(relationsString, relationsObject);
+            SaveChanges();
+        }
+
+        public void AddAnimeToVN(ListedVN vn, VNItem.AnimeItem[] anime)
+        {
+            var animeObject = anime.Any() ? anime : new VNItem.AnimeItem[] { };
+            var animeString = ListToJsonArray(animeObject);
+            vn.SetAnime(animeString, animeObject);
             SaveChanges();
         }
 
         public void AddScreensToVN(int vnid, VNItem.ScreenItem[] screens)
         {
-            var screensString = screens.Any() ? ListToJsonArray(new List<object>(screens)) : "Empty";
+            var screensString = ListToJsonArray(screens.Any() ? screens : new VNItem.ScreenItem[] { });
             VisualNovels.Single(x => x.VNID == vnid).Screens = screensString;
             SaveChanges();
         }
 
-        public void AddAnimeToVN(int vnid, VNItem.AnimeItem[] anime)
-        {
-            var animeString = anime.Any() ? ListToJsonArray(new List<object>(anime)) : "Empty";
-            VisualNovels.Single(x => x.VNID == vnid).Anime = animeString;
-            SaveChanges();
-        }
 
         public void UpdateVNTagsStats(VNItem vnItem, bool saveChanges)
         {

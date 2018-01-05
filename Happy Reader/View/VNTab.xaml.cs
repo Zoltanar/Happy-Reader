@@ -29,7 +29,7 @@ namespace Happy_Reader.View
             if (loc+1 >= e.ExtentHeight) await _viewModel.AddListedVNPage();
         }
 
-        private async void ResetURT(object sender, RoutedEventArgs e) => await _viewModel.RefreshListedVns(true);
+        private async void ShowAll(object sender, RoutedEventArgs e) => await _viewModel.RefreshListedVns(true);
 
         private async void SearchForVN(object sender, KeyEventArgs e)
         {
@@ -50,5 +50,7 @@ namespace Happy_Reader.View
             if (vn == null) return;
             _mainWindow.OpenVNPanel(vn);
         }
+
+        private async void ShowURT(object sender, RoutedEventArgs e) => await _viewModel.ShowURT();
     }
 }

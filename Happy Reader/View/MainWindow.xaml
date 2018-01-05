@@ -40,7 +40,7 @@
             <TabItem Header="Database">
                 <view:VNTab DataContext="{Binding DatabaseViewModel}"/>
             </TabItem>
-            <TabItem Header="Information">
+            <TabItem Header="Info/Settings">
                 <Grid Background="DimGray">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="160"/>
@@ -48,10 +48,18 @@
                     </Grid.RowDefinitions>
                     <Grid Row="0">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="340"/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="435"/>
                         </Grid.ColumnDefinitions>
                         <TextBox TextWrapping="Wrap" IsReadOnly="True" Text="Information About This Program" Margin="10" Background="Black" Foreground="White"/>
+                        <GroupBox Grid.Column="1" Header="Settings" Foreground="White" BorderThickness="1" Margin="5">
+                            <StackPanel>
+                                <CheckBox Content="Show Content Tags" Foreground="White" IsChecked="{Binding GSettings.ContentTags}"/>
+                                <CheckBox Content="Show Sexual Tags" Foreground="White" IsChecked="{Binding GSettings.SexualTags}"/>
+                                <CheckBox Content="Show Technical Tags" Foreground="White" IsChecked="{Binding GSettings.TechnicalTags}"/>
+                                <CheckBox Content="Show NSFW Images" Foreground="White" IsChecked="{Binding GSettings.NSFWImages}"/>
+                            </StackPanel>
+                        </GroupBox>
                     </Grid>
                     <Grid Row="1">
                         <Grid.ColumnDefinitions>

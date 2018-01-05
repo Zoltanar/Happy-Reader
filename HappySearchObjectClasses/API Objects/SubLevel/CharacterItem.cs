@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using JetBrains.Annotations;
+using Newtonsoft.Json;
+
 // ReSharper disable UnusedMember.Global
 // ReSharper disable InconsistentNaming
 
@@ -13,7 +16,10 @@ namespace Happy_Apps_Core
 	/// </summary>
 	public class CharacterItem
 	{
-		[Key]
+	    private VNItem[] _vNs;
+	    private TraitItem[] _traits;
+
+	    [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
 		[Column("CharacterID")]
 		public int ID { get; set; }
@@ -25,11 +31,13 @@ namespace Happy_Apps_Core
 		public string VNsColumn { get; set; }
 		public DateTime? DateUpdated { get; set; }
 
-		[NotMapped]
-		public List<TraitItem> Traits { get; set; }
-		[NotMapped]
-		public List<VNItem> VNs { get; set; }
-		[NotMapped]
+	    [NotMapped, NotNull]
+        public TraitItem[] Traits => _traits ?? (_traits = JsonConvert.DeserializeObject<TraitItem[]>(TraitsColumn) ?? new TraitItem[] { });
+
+        [NotMapped,NotNull]
+	    public VNItem[] VNs => _vNs ?? (_vNs = JsonConvert.DeserializeObject<VNItem[]>(VNsColumn) ?? new VNItem[] { });
+
+	    [NotMapped]
 		public string Description { get; set; }
 		[NotMapped]
 		public string Aliases { get; set; }
