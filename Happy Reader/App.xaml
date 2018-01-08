@@ -6,5 +6,12 @@
              ShutdownMode="OnMainWindowClose">
     <Application.Resources>
         <happyReader:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
+        <Style x:Key="NoBorderTextBox" TargetType="TextBox">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
     </Application.Resources>
+
 </Application>

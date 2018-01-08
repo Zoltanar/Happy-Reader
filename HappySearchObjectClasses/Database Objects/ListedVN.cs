@@ -10,7 +10,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Happy_Apps_Core.Database;
 using JetBrains.Annotations;
 
@@ -117,6 +119,7 @@ namespace Happy_Apps_Core
         /// Newline separated string of aliases
         /// </summary>
         public string Aliases { get; set; }
+
 
         public string Languages { get; set; }
 
@@ -245,6 +248,12 @@ namespace Happy_Apps_Core
             }
         }
 
+
+        /// <summary>
+        /// Newline separated string of aliases
+        /// </summary>
+        public string DisplayAliases => Aliases.Replace("\n", ", ");
+
         [NotMapped, NotNull]
         public VNItem.RelationsItem[] RelationsObject
         {
@@ -269,6 +278,18 @@ namespace Happy_Apps_Core
             }
         }
 
+        [NotMapped, NotNull]
+        public VNItem.ScreenItem[] ScreensObject
+        {
+            get
+            {
+                if (_screensObject != null) return _screensObject;
+                if (string.IsNullOrWhiteSpace(Screens)) _screensObject = new VNItem.ScreenItem[] { };
+                else _screensObject = JsonConvert.DeserializeObject<VNItem.ScreenItem[]>(Screens) ?? new VNItem.ScreenItem[] { };
+                return _screensObject;
+            }
+        }
+
         /// <summary>
         /// Gets characters involved in VN.
         /// </summary>
@@ -281,6 +302,7 @@ namespace Happy_Apps_Core
 
         private VNItem.RelationsItem[] _relationsObject;
         private VNItem.AnimeItem[] _animeObject;
+        private VNItem.ScreenItem[] _screensObject;
         private VNItem.TagItem[] _tagList;
         private VNLanguages _languagesObject;
 
@@ -420,6 +442,7 @@ namespace Happy_Apps_Core
         public object FlagSource => LanguagesObject.Originals.Select(language => $"{FlagsFolder}{language}.png")
                                     .Where(File.Exists).Select(Path.GetFullPath).FirstOrDefault() ?? DependencyProperty.UnsetValue;
 
+        [NotNull]
         public Uri CoverSource
         {
             get
@@ -441,6 +464,30 @@ namespace Happy_Apps_Core
 
         public Brush UserRelatedBrush => UserVN?.ULStatus == UserlistStatus.Playing ? ULPlayingBrush : Brushes.Black;
 
+        [NotNull]
+        public IEnumerable<Image> DisplayScreenshots
+        {
+            get
+            {
+                if (!ScreensObject.Any()) return Enumerable.Empty<Image>();
+                var images = new List<Image>();
+                foreach (var screen in ScreensObject)
+                {
+                    if (screen.Nsfw && !GSettings.NSFWImages)
+                    {
+                        images.Add(new Image { Source = new BitmapImage(new Uri(Path.GetFullPath(NsfwImageFile))) });
+                    }
+                    else
+                    {
+                        var loc = screen.StoredLocation();
+                        if (!File.Exists(loc)) continue;
+                        images.Add(new Image { Source = new BitmapImage(new Uri(Path.GetFullPath(loc))) });
+                    }
+                }
+
+                return images;
+            }
+        }
 
 
         /// <summary>
@@ -550,6 +597,11 @@ namespace Happy_Apps_Core
                 await Conn.GetAndSetAnimeForVN(this);
                 OnPropertyChanged(nameof(DisplayAnime));
             }
+            if (string.IsNullOrWhiteSpace(Screens))
+            {
+                await Conn.GetAndSetScreensForVN(this);
+                OnPropertyChanged(nameof(DisplayScreenshots));
+            }
             //todo
         }
 
@@ -563,6 +615,12 @@ namespace Happy_Apps_Core
         {
             Anime = animeString;
             _animeObject = animeObject;
+        }
+
+        public void SetScreens(string screensString, VNItem.ScreenItem[] screensObject)
+        {
+            Screens = screensString;
+            _screensObject = screensObject;
         }
     }
 
@@ -612,7 +670,7 @@ namespace Happy_Apps_Core
         }
     }
 
-    public enum UnreleasedFilter : long
+    public enum UnreleasedFilter
     {
         [Description("Unreleased without date")]
         WithoutReleaseDate = 1,
@@ -622,7 +680,7 @@ namespace Happy_Apps_Core
         Released = 3
     }
 
-    public enum LengthFilter : long
+    public enum LengthFilter
     {
         [Description("Not Available")]
         NA = 0,
@@ -642,7 +700,7 @@ namespace Happy_Apps_Core
     /// <summary>
     /// Map Wishlist status numbers to words.
     /// </summary>
-    public enum WishlistStatus : long
+    public enum WishlistStatus
     {
         None = -1,
         High = 0,
@@ -654,7 +712,7 @@ namespace Happy_Apps_Core
     /// <summary>
     /// Map Userlist status numbers to words.
     /// </summary>
-    public enum UserlistStatus : long
+    public enum UserlistStatus
     {
         None = -1,
         Unknown = 0,

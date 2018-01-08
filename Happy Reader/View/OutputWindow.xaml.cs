@@ -28,19 +28,29 @@ namespace Happy_Reader.View
 
         public void SetText(Translation translation)
         {
-            var originalP = new Paragraph(new Run(translation.Original));
-            originalP.Inlines.FirstInline.Foreground = Brushes.Ivory;
-            var romajiP = new Paragraph(new Run(translation.Romaji));
-            romajiP.Inlines.FirstInline.Foreground = Brushes.Pink;
+            var blocks = new System.Collections.Generic.List<Paragraph>(3);
+            if (!string.IsNullOrWhiteSpace(translation.Original))
+            {
+                var originalP = new Paragraph(new Run(translation.Original));
+                originalP.Inlines.FirstInline.Foreground = Brushes.Ivory;
+                blocks.Add(originalP);
+            }
+            if (!string.IsNullOrWhiteSpace(translation.Romaji))
+            {
+                var romajiP = new Paragraph(new Run(translation.Romaji));
+                romajiP.Inlines.FirstInline.Foreground = Brushes.Pink;
+                blocks.Add(romajiP);
+            }
             var translatedP = new Paragraph(new Run(translation.Output));
             translatedP.Inlines.FirstInline.Foreground = Brushes.GreenYellow;
-            var blocks = new[] { originalP, romajiP, translatedP, new Paragraph() };
+            blocks.Add(translatedP);
+            blocks.Add(new Paragraph());
             foreach (var block in blocks)
             {
                 block.Margin = new Thickness(0);
                 block.TextAlignment = TextAlignment.Center;
             }
-            _recentItems.Add(blocks);
+            _recentItems.Add(blocks.ToArray());
             var doc = new FlowDocument();
             doc.Blocks.AddRange(_recentItems.Items.SelectMany(x => x));
             DebugTextbox.Document = doc;

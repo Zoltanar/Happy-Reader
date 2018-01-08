@@ -10,6 +10,7 @@ using Happy_Apps_Core;
 using Happy_Reader.Database;
 using Happy_Reader.ViewModel;
 using JetBrains.Annotations;
+using Microsoft.Win32;
 using NotifyIcon = System.Windows.Forms.NotifyIcon;
 using ToolTipIcon = System.Windows.Forms.ToolTipIcon;
 
@@ -88,16 +89,9 @@ namespace Happy_Reader.View
             var item = GameFiles.SelectedItem as UserGameTile;
             var userGame = (UserGame)item?.DataContext;
             if (userGame == null) return;
-            var process = StaticMethods.StartProcess(userGame.FilePath);
-            if (userGame.ProcessName == null)
-            {
-                var game = StaticMethods.Data.UserGames.Single(x => x.Id == userGame.Id);
-                game.ProcessName = process.ProcessName;
-                StaticMethods.Data.SaveChanges();
-            }
-            if (userGame.HookProcess ?? false) _viewModel.HookV2(process, userGame);
+            _viewModel.HookUserGame(userGame);
         }
-
+        
         private void Debug_Button(object sender, RoutedEventArgs e)
         {
         }
@@ -156,6 +150,23 @@ namespace Happy_Reader.View
             tabItem.MouseUp += TabMiddleClick;
             MainTabControl.Items.Add(tabItem);
             MainTabControl.SelectedItem = tabItem;
+        }
+
+        private void ChangeIthPath(object sender, RoutedEventArgs e)
+        {
+            var dialog = new OpenFileDialog();
+            string directory = Path.GetDirectoryName(StaticHelpers.GSettings.IthPath);
+            while (!Directory.Exists(directory))
+            {
+                directory = directory == null ? Environment.CurrentDirectory : Directory.GetParent(directory).FullName;
+            }
+            dialog.InitialDirectory = directory;
+            var result = dialog.ShowDialog();
+            if (result ?? false)
+            {
+                IthPathBox.Text = dialog.FileName;
+                StaticHelpers.GSettings.IthPath = dialog.FileName;
+            }
         }
     }
 }

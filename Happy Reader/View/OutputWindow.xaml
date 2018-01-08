@@ -18,7 +18,8 @@
     <Grid>
         <CheckBox Content="🔒" VerticalAlignment="Top" Foreground="White" Background="White" Checked="ToggleLock" Unchecked="ToggleLock" Height="18" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="36" Margin="0,18,0,0" FontSize="10"/>
         <Slider Name="OpacitySlider" Orientation="Vertical" Margin="0,64,0,18" Value="0.6" Minimum="0.2" Maximum="1" HorizontalAlignment="Right" Width="31" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-        <RichTextBox Foreground="GreenYellow" x:Name="DebugTextbox" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,0,36,0" Background="{x:Null}" FontSize="22" >
+        <RichTextBox Foreground="GreenYellow" x:Name="DebugTextbox" HorizontalContentAlignment="Center" IsReadOnly="True"
+                     VerticalContentAlignment="Center" Margin="0,0,36,0" Background="{x:Null}" FontSize="22" >
             <RichTextBox.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Add Entry For Text" 

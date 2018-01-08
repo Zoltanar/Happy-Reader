@@ -7,6 +7,7 @@
         private bool _contentTags;
         private bool _sexualTags;
         private bool _technicalTags;
+        private string _ithPath;
 
         public bool NSFWImages
         {
@@ -59,6 +60,17 @@
             {
                 if (_technicalTags == value) return;
                 _technicalTags = value;
+                Save();
+            }
+        }
+
+        public string IthPath
+        {
+            get => _ithPath;
+            set
+            {
+                if (_ithPath == value) return;
+                _ithPath = value;
                 Save();
             }
         }

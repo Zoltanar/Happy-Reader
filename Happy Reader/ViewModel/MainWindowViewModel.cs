@@ -73,7 +73,7 @@ namespace Happy_Reader.ViewModel
         public BindingList<string> VndbResponses { get; set; }
         public TranslationTester TestViewModel { get; }
         public VNTabViewModel DatabaseViewModel { get; }
-        
+
         public MainWindowViewModel(MainWindow mainWindow)
         {
             Application.Current.Exit += SaveCacheOnExit;
@@ -102,7 +102,7 @@ namespace Happy_Reader.ViewModel
                 i.Input,
                 i.Output,
                 i.SeriesSpecific,
-                i.Private
+                i.Regex
             });
             Application.Current.Dispatcher.Invoke(() =>
             {
@@ -122,13 +122,6 @@ namespace Happy_Reader.ViewModel
             if (UserGame == null) return Translation.Error("UserGame is null.");
             Translation translation = Translator.Translate(User, UserGame.VN, currentText);
             return translation;
-        }
-
-        public void HookV2([NotNull]Process process, UserGame userGame)
-        {
-            _hookedProcess = process;
-            if (_hookedProcess == null) throw new Exception("Process was not started.");
-            UserGame = userGame;
         }
 
         public void Closing()
@@ -249,7 +242,7 @@ namespace Happy_Reader.ViewModel
                                 StaticMethods.Data.UserGames.FirstOrDefault(x => x.FilePath.Equals(process.MainModule.FileName));
                             if (userGame == null || userGame.Process != null) continue;
                             userGame.Process = process;
-                            HookV2(process, userGame);
+                            HookUserGame(userGame);
                         }
                         catch (InvalidOperationException) { } //can happen if process is closed after getting reference
                     }
@@ -299,6 +292,7 @@ namespace Happy_Reader.ViewModel
                 if (latinOnly.IsMatch(text)) return;
                 var unRepeatedString = CheckRepeatedString(text);
                 var translation = Translate(unRepeatedString);
+                if (string.IsNullOrWhiteSpace(translation.Output)) return;
                 _outputWindow.SetLocation(rct.Left, rct.Bottom, rct.Width);
                 _outputWindow.SetText(translation);
             }
@@ -335,5 +329,28 @@ namespace Happy_Reader.ViewModel
         {
             Application.Current.Dispatcher.Invoke(() => (isQuery ? _vndbQueriesList : _vndbResponsesList).AddWithId(text));
         }
+
+        public void HookWithIth(UserGame userGame)
+        {
+            var process = HookUserGame(userGame);
+            if (string.IsNullOrWhiteSpace(GSettings.IthPath)) return;
+            var ith = StaticMethods.StartProcess(GSettings.IthPath, $@"/p{process.Id}", true);
+            ith.StandardInput.WriteLine($"/p{process.Id}");
+        }
+
+        public Process HookUserGame(UserGame userGame)
+        {
+            UserGame = userGame;
+            var process = StaticMethods.StartProcess(userGame.FilePath);
+            if (userGame.ProcessName == null)
+            {
+                var game = StaticMethods.Data.UserGames.Single(x => x.Id == userGame.Id);
+                game.ProcessName = process.ProcessName;
+                StaticMethods.Data.SaveChanges();
+            }
+            _hookedProcess = process;
+            return process;
+        }
+
     }
 }

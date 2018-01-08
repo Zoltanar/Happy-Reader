@@ -26,14 +26,14 @@ namespace Happy_Reader
         private static readonly char[] Separators = "『「」』…".ToCharArray();
         private static readonly char[] InclusiveSeparators = "。？".ToCharArray();
         private static readonly char[] AllSeparators = Separators.Concat(InclusiveSeparators).ToArray();
-
-        //todo make it to use a single object
+        
         public static Translation Translate(User user, ListedVN game, string input)
         {
             //Debug.WriteLine($"'{input}' > 'Debug: Not translating.'");
             //return "Debug: Not translating.";
             lock (TranslateLock)
             {
+                if (user != _lastUser || game != _lastGame || RefreshEntries) SetEntries(user, game);
                 var item = new Translation(input);
                 int index = 0;
                 string currentPart = "";
@@ -61,7 +61,6 @@ namespace Happy_Reader
                     index++;
                 }
                 if (currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
-                if (user != _lastUser || game != _lastGame || RefreshEntries) SetEntries(user, game);
                 item.TranslateParts();
                 return item;
             }
@@ -116,9 +115,14 @@ namespace Happy_Reader
         /// </summary>
         /// <param name="sb"></param>
         /// <param name="entries"></param>
-        private static void TranslateStageOne(StringBuilder sb, Entry[] entries)
+        public static void TranslateStageOne(StringBuilder sb, Entry[] entries)
         {
-            foreach (var entry in entries.Where(i => i.Type == EntryType.Game)) sb.LogReplace(entry.Input, entry.Output, entry.Id);
+            if (entries == null) entries = _lastEntries;
+            foreach (var entry in entries.Where(i => i.Type == EntryType.Game))
+            {
+                if (entry.Regex) sb.LogReplaceRegex(entry.Input, entry.Output, entry.Id);
+                else sb.LogReplace(entry.Input, entry.Output, entry.Id);
+            }
 #if LOGVERBOSE
             Debug.WriteLine($"Stage 1: {sb}");
 #endif

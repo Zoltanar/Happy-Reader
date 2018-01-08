@@ -54,11 +54,18 @@ namespace Happy_Reader.View
             _viewModel.SaveVNID(VNIDNameBox.Text.Length == 0 ? null : (int?)int.Parse(VNIDNameBox.Text));
         }
 
+        private void SaveHookCode(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            _viewModel.SaveHookCode(HookCodeBox.Text);
+        }
+
         private static readonly Regex DigitRegex = new Regex(@"\d");
 
         private void DigitsOnly(object sender, TextCompositionEventArgs e)
         {
             if (!DigitRegex.IsMatch(e.Text)) e.Handled = true;
         }
+
     }
 }

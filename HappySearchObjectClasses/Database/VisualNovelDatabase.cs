@@ -58,10 +58,11 @@ namespace Happy_Apps_Core.Database
             SaveChanges();
         }
 
-        public void AddScreensToVN(int vnid, VNItem.ScreenItem[] screens)
+        public void AddScreensToVN(ListedVN vn, VNItem.ScreenItem[] screens)
         {
-            var screensString = ListToJsonArray(screens.Any() ? screens : new VNItem.ScreenItem[] { });
-            VisualNovels.Single(x => x.VNID == vnid).Screens = screensString;
+            var screensObject = screens.Any() ? screens : new VNItem.ScreenItem[] { };
+            var screensString = ListToJsonArray(screensObject);
+            vn.SetScreens(screensString, screensObject);
             SaveChanges();
         }
 

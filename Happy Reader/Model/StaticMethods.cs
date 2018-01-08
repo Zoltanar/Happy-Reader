@@ -80,7 +80,7 @@ namespace Happy_Reader
             Console.WriteLine(message);
         }
 
-        public static Process StartProcess(string executablePath)
+        public static Process StartProcess(string executablePath, string args = "", bool redirectStandardInput = false)
         {
             var processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(executablePath));
             Process existing = processes.FirstOrDefault();
@@ -91,10 +91,15 @@ namespace Happy_Reader
             ProcessStartInfo pi = new ProcessStartInfo
             {
                 FileName = executablePath,
-                UseShellExecute = true,
-                WorkingDirectory = exeParentFolder
+                UseShellExecute = false,
+                WorkingDirectory = exeParentFolder,
+                Arguments = args,
+                RedirectStandardInput = redirectStandardInput
             };
-            return Process.Start(pi);
+            var process = Process.Start(pi);
+            Debug.Assert(process != null, nameof(process) + " != null");
+            process.WaitForInputIdle(3000);
+            return process;
         }
 
         public static TValue GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue value)

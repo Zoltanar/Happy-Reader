@@ -7,8 +7,15 @@
              d:DesignHeight="600" d:DesignWidth="800" 
              d:DataContext="{d:DesignData Source=ListedVNSampleData.xaml}"
              Loaded="VNPanel_OnLoaded">
-    <!--d:DataContext="{x:Static happyReader:SampleListedVN.SampleData}">-->
-    <!--d:DataContext="{d:DesignInstance {x:Type happyReader:SampleListedVN}, IsDesignTimeCreatable=True}" >-->
+    <UserControl.Resources>
+        <Style TargetType="TextBox"  BasedOn="{StaticResource NoBorderTextBox}">
+        </Style>
+
+        <Style x:Key="RightLabel" TargetType="Label" >
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Right"/>
+        </Style>
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="329*"/>
@@ -32,15 +39,15 @@
                     <RowDefinition Height="30"/>
                     <RowDefinition Height="30"/>
                 </Grid.RowDefinitions>
-                <Label Grid.Row="0" HorizontalContentAlignment="Right" Content="Title"/>
-                <Label Grid.Row="1" HorizontalContentAlignment="Right" Content="Original"/>
-                <Label Grid.Row="2" HorizontalContentAlignment="Right" Content="Aliases"/>
-                <Label Grid.Row="3" HorizontalContentAlignment="Right" Content="Tags"/>
-                <Label Grid.Row="4" HorizontalContentAlignment="Right" Content="Producer"/>
-                <Label Grid.Row="5" HorizontalContentAlignment="Right" Content="Rating"/>
-                <Label Grid.Row="6" HorizontalContentAlignment="Right" Content="Relations"/>
-                <Label Grid.Row="7" HorizontalContentAlignment="Right" Content="Anime"/>
-                <Label Grid.Row="8" HorizontalContentAlignment="Right" Content="Character Traits"/>
+                <Label Grid.Row="0"  Style="{StaticResource RightLabel}" Content="Title"/>
+                <Label Grid.Row="1" Style="{StaticResource RightLabel}" Content="Original"/>
+                <Label Grid.Row="2" Style="{StaticResource RightLabel}" Content="Aliases"/>
+                <Label Grid.Row="3" Style="{StaticResource RightLabel}" Content="Tags"/>
+                <Label Grid.Row="4" Style="{StaticResource RightLabel}" Content="Producer"/>
+                <Label Grid.Row="5" Style="{StaticResource RightLabel}" Content="Rating"/>
+                <Label Grid.Row="6" Style="{StaticResource RightLabel}" Content="Relations"/>
+                <Label Grid.Row="7" Style="{StaticResource RightLabel}" Content="Anime"/>
+                <Label Grid.Row="8" Style="{StaticResource RightLabel}" Content="Character Traits"/>
             </Grid>
             <Grid Grid.Row="0" Grid.Column="1" Margin="5" Background="LightGray">
                 <Grid.RowDefinitions >
@@ -54,9 +61,9 @@
                     <RowDefinition Height="30"/>
                     <RowDefinition Height="30"/>
                 </Grid.RowDefinitions>
-                <Label Grid.Row="0" Content="{Binding Title}"/>
-                <Label Grid.Row="1" Content="{Binding KanjiTitle}"/>
-                <Label Grid.Row="2" Content="{Binding Aliases}"/>
+                <TextBox Grid.Row="0" Text="{Binding Title}"/>
+                <TextBox Grid.Row="1" Text="{Binding KanjiTitle}"/>
+                <TextBox Grid.Row="2" Text="{Binding DisplayAliases}" />
                 <ComboBox Grid.Row="3" ItemsSource="{Binding DisplayTags}" IsReadOnly="True" SelectedIndex="0"/>
                 <Grid Grid.Row="4">
                     <Grid.ColumnDefinitions>
@@ -65,40 +72,52 @@
                         <ColumnDefinition Width="100"/>
                     </Grid.ColumnDefinitions>
                     <Image  Source="{Binding Producer.FlagSource}" Grid.Column="0"/>
-                    <Label Content="{Binding Producer.Name}" Grid.Column="1"/>
-                    <Label Content="{Binding LengthTime, Converter={StaticResource EnumDescriptionConverter}}" HorizontalContentAlignment="Right" Grid.Column="2"/>
+                    <TextBox Text="{Binding Producer.Name}" Grid.Column="1"/>
+                    <TextBox Text="{Binding LengthTime, Converter={StaticResource EnumDescriptionConverter}}" HorizontalContentAlignment="Right" Grid.Column="2"/>
                 </Grid>
                 <Grid Grid.Row="5">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
-                    <Label Grid.Column="0">
-                        <TextBlock>
-                            <TextBlock.Text>
-                                <MultiBinding StringFormat="{}{0:0.00} ({1} votes)">
-                                    <Binding Path="Rating"/>
-                                    <Binding Path="VoteCount"/>
-                                </MultiBinding>
-                            </TextBlock.Text>
-                        </TextBlock>
-                    </Label>
-                    <Label Grid.Column="1" Content="{Binding Popularity}" ContentStringFormat="Popularity {0:0.00}" HorizontalContentAlignment="Right"/>
+                    <TextBox Grid.Column="0">
+                        <TextBox.Text>
+                            <MultiBinding StringFormat="{}{0:0.00} ({1} votes)">
+                                <Binding Path="Rating"/>
+                                <Binding Path="VoteCount"/>
+                            </MultiBinding>
+                        </TextBox.Text>
+                    </TextBox>
+                    <TextBox Grid.Column="1" Text="{Binding Popularity, StringFormat=Popularity {0:0.00}}" HorizontalContentAlignment="Right"/>
                 </Grid>
                 <ComboBox Grid.Row="6" x:Name="RelationsCombobox" ItemsSource="{Binding DisplayRelations}" SelectedIndex="0" IsReadOnly="True"/>
                 <ComboBox Grid.Row="7" x:Name="AnimeCombobox" ItemsSource="{Binding DisplayAnime}" SelectedIndex="0" IsReadOnly="True"/>
                 <ComboBox Grid.Row="8" ItemsSource="{Binding DisplayTraits}" SelectedIndex="0" IsReadOnly="True"/>
             </Grid>
             <Image Grid.Row="0" Grid.Column="2" Source="{Binding CoverSource}" Margin="5"/>
+            <Label Grid.Row="0" VerticalContentAlignment="Top" HorizontalContentAlignment="Right" Content="{Binding VNID}" Grid.Column="2" />
         </Grid>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="230"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Text="{Binding Description}" TextWrapping="Wrap" Margin="5" Background="LightGray"/>
-            <Image Grid.Column="1" />
+            <TextBox Grid.Column="0" Text="{Binding Description}" TextWrapping="Wrap" Margin="5" Background="LightGray"/>
+            <ItemsControl ItemsSource="{Binding DisplayScreenshots}"  Grid.Column="1">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.Template>
+                    <ControlTemplate>
+                        <ScrollViewer x:Name="ScrollViewer" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Disabled" 
+                                      CanContentScroll="True" PreviewMouseWheel="ScrollViewer_OnPreviewMouseWheel">
+                            <ItemsPresenter />
+                        </ScrollViewer>
+                    </ControlTemplate>
+                </ItemsControl.Template>
+            </ItemsControl>
         </Grid>
     </Grid>
-
 </UserControl>

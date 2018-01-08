@@ -47,6 +47,8 @@ namespace Happy_Reader.Database
         public int? VNID { get; set; }
 
         public string FilePath { get; set; }
+        
+        public string HookCode { get; set; }
 
         public TimeSpan TimeOpen { get; set; }
 
@@ -103,7 +105,7 @@ namespace Happy_Reader.Database
 
         [NotMapped]
         public string DisplayName =>
-            UserDefinedName ?? StaticMethods.TruncateStringFunction30(VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath)); //StaticHelpers.TruncateString(VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath), 30);
+            UserDefinedName ?? StaticMethods.TruncateStringFunction30(VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath));
 
         [NotMapped]
         public BitmapImage Image
@@ -177,6 +179,13 @@ namespace Happy_Reader.Database
             OnPropertyChanged(nameof(DisplayName));
             OnPropertyChanged(nameof(Image));
             OnPropertyChanged(nameof(VN));
+        }
+
+        public void SaveHookCode([NotNull]string text)
+        {
+            HookCode = text.Trim();
+            StaticMethods.Data.SaveChanges();
+            OnPropertyChanged(nameof(HookCode));
         }
 
         public void ChangeFilePath(string newFilePath)

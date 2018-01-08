@@ -57,6 +57,7 @@
         <ContextMenu>
             <MenuItem Header="See Details" Click="GameDetails"></MenuItem>
             <MenuItem Header="Browse To Location" Click="BrowseToLocation"></MenuItem>
+            <MenuItem Header="Launch with ITHVNR" Click="LaunchWithIth"></MenuItem>
         </ContextMenu>
     </UserControl.ContextMenu>
 </UserControl>

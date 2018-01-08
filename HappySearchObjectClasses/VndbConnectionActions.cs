@@ -739,5 +739,17 @@ throw ex;
             _changeStatusAction(Conn.Status);
             return true;
         }
+
+        public async Task<bool> GetAndSetScreensForVN(ListedVN vn)
+        {
+            if (!StartQuery(nameof(GetAndSetScreensForVN), false, false, true)) return false;
+            await Conn.TryQuery($"get vn screens (id = {vn.VNID})", "Screens Query Error");
+            var root = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(Conn.LastResponse.JsonPayload);
+            if (root.Num == 0) return false;
+            VNItem.ScreenItem[] screens = root.Items[0].Screens;
+            await Task.Run(() => LocalDatabase.AddScreensToVN(vn, screens));
+            _changeStatusAction(Conn.Status);
+            return true;
+        }
     }
 }

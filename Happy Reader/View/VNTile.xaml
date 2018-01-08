@@ -8,8 +8,8 @@
     <Border BorderBrush="Black" BorderThickness="1" CornerRadius="10" Background="{Binding BackBrush}" >
         <Grid>
             <Label Content="{Binding Title}" Margin="10,10,10,0" VerticalAlignment="Top" FontWeight="Bold"/>
-            <Label Content="{Binding Producer.Name}" Foreground="{Binding ProducerBrush}" Margin="10,0,10,62" VerticalAlignment="Bottom"/>
-            <Label Margin="10,0,92,36" VerticalAlignment="Bottom">
+            <Label Content="{Binding Producer.Name}" Foreground="{Binding ProducerBrush}" Margin="10,0,10,52" VerticalAlignment="Bottom" Padding="0"/>
+            <Label Margin="10,0,97,31" VerticalAlignment="Bottom" Padding="0">
                 <TextBlock>
                     <TextBlock.Text>
                         <MultiBinding StringFormat="{}{0:0.00} ({1} votes)">
@@ -19,9 +19,9 @@
                     </TextBlock.Text>
                 </TextBlock>
             </Label>
-            <Label Content="{Binding ReleaseDateString}" Margin="0,0,10,36" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="77" HorizontalContentAlignment="Right" Foreground="{Binding DateBrush}"/>
-            <Label Content="{Binding UserRelatedStatus}" Margin="10,0,10,10" Height="26" VerticalAlignment="Bottom" Foreground="{Binding UserRelatedBrush}"/>
-            <Image Margin="10,41,10,93" Source="{Binding CoverSource}"/>
+            <Label Content="{Binding ReleaseDateString}" Margin="0,0,10,31" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="82" HorizontalContentAlignment="Right" Foreground="{Binding DateBrush}" Padding="0"/>
+            <Label Content="{Binding UserRelatedStatus}" Margin="10,0,10,10" VerticalAlignment="Bottom" Foreground="{Binding UserRelatedBrush}" Padding="0"/>
+            <Image Margin="10,41,10,73" Source="{Binding CoverSource}"/>
             <Image Source="{Binding FlagSource}" Margin="194,41,10,320"/>
             <Label Content="{Binding VNID}" HorizontalAlignment="Left" Margin="194,-1,0,0" VerticalAlignment="Top" Foreground="#FF9C9C9C" FontSize="9" Width="34" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"/>
         </Grid>

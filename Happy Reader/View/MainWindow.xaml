@@ -42,6 +42,17 @@
             </TabItem>
             <TabItem Header="Info/Settings">
                 <Grid Background="DimGray">
+                    <Grid.Style>
+                        <Style TargetType="Grid">
+                            <Style.Resources>
+                                <Style TargetType="Control">
+                                    <Setter Property="Foreground" Value="White" />
+                                </Style>
+                                <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type Control}}"/>
+                                <Style TargetType="Label" BasedOn="{StaticResource {x:Type Control}}"/>
+                            </Style.Resources>
+                        </Style>
+                    </Grid.Style>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="160"/>
                         <RowDefinition Height="*"/>
@@ -54,10 +65,20 @@
                         <TextBox TextWrapping="Wrap" IsReadOnly="True" Text="Information About This Program" Margin="10" Background="Black" Foreground="White"/>
                         <GroupBox Grid.Column="1" Header="Settings" Foreground="White" BorderThickness="1" Margin="5">
                             <StackPanel>
-                                <CheckBox Content="Show Content Tags" Foreground="White" IsChecked="{Binding GSettings.ContentTags}"/>
-                                <CheckBox Content="Show Sexual Tags" Foreground="White" IsChecked="{Binding GSettings.SexualTags}"/>
-                                <CheckBox Content="Show Technical Tags" Foreground="White" IsChecked="{Binding GSettings.TechnicalTags}"/>
-                                <CheckBox Content="Show NSFW Images" Foreground="White" IsChecked="{Binding GSettings.NSFWImages}"/>
+                                <CheckBox Content="Show Content Tags" IsChecked="{Binding GSettings.ContentTags}"/>
+                                <CheckBox Content="Show Sexual Tags" IsChecked="{Binding GSettings.SexualTags}"/>
+                                <CheckBox Content="Show Technical Tags" IsChecked="{Binding GSettings.TechnicalTags}"/>
+                                <CheckBox Content="Show NSFW Images" IsChecked="{Binding GSettings.NSFWImages}"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="57"/>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition Width="53"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Grid.Column="0" Content="ITH Path:"/>
+                                    <TextBox Grid.Column="1" x:Name="IthPathBox" Text="{Binding GSettings.IthPath}" Foreground="White" Style="{StaticResource NoBorderTextBox}"/>
+                                    <Button Grid.Column="2" Content="Change" Click="ChangeIthPath"/>
+                                </Grid>
                             </StackPanel>
                         </GroupBox>
                     </Grid>

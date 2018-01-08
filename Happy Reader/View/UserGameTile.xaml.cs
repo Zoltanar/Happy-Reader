@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using Happy_Reader.Database;
+using Happy_Reader.ViewModel;
 
 namespace Happy_Reader.View
 {
@@ -13,12 +14,10 @@ namespace Happy_Reader.View
     public partial class UserGameTile
     {
         private readonly UserGame _viewModel;
-        private readonly MainWindow _mainWindow;
 
         public UserGameTile()
         {
             InitializeComponent();
-            _mainWindow = (MainWindow)Window.GetWindow(this);
         }
 
         public UserGameTile(UserGame usergame)
@@ -31,12 +30,19 @@ namespace Happy_Reader.View
         private void GameDetails(object sender, EventArgs e)
         {
             var tabItem = new TabItem { Header = _viewModel.DisplayName, Content = new UserGamePanel(_viewModel) };
-            _mainWindow.AddTabItem(tabItem);
+            // ReSharper disable once PossibleNullReferenceException
+            ((MainWindow)Window.GetWindow(this)).AddTabItem(tabItem);
         }
 
         private void BrowseToLocation(object sender, RoutedEventArgs e)
         {
             Process.Start("explorer", Directory.GetParent(_viewModel.FilePath).FullName);
+        }
+
+        private void LaunchWithIth(object sender, RoutedEventArgs e)
+        {
+            // ReSharper disable once PossibleNullReferenceException
+            ((MainWindowViewModel)((MainWindow) Window.GetWindow(this)).DataContext).HookWithIth(_viewModel);
         }
     }
 }

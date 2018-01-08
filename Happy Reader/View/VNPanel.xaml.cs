@@ -22,5 +22,14 @@ namespace Happy_Reader.View
             AnimeCombobox.SelectedIndex = 0;
             //ScreensCombobox.SelectedIndex = 0;
         }
+
+        private void ScrollViewer_OnPreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+        {
+            ScrollViewer scrollviewer = (ScrollViewer)sender;
+            scrollviewer.CanContentScroll = true;
+            if (e.Delta > 0) scrollviewer.LineLeft();
+            else scrollviewer.LineRight();
+            e.Handled = true;
+        }
     }
 }
