@@ -62,12 +62,7 @@ namespace Happy_Reader.View
         {
             AddEntry();
         }
-
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            _viewModel.Closing();
-        }
-
+        
         private void DropFileOnGamesTab(object sender, DragEventArgs e)
         {
             string file = (e.Data.GetData(DataFormats.FileDrop) as string[])?.First();
@@ -94,6 +89,7 @@ namespace Happy_Reader.View
         
         private void Debug_Button(object sender, RoutedEventArgs e)
         {
+            _viewModel.DebugButton();
         }
 
 

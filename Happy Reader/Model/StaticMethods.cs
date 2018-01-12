@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using System.Windows;
 using Happy_Apps_Core;
 using Happy_Reader.Database;
@@ -38,48 +35,7 @@ namespace Happy_Reader
 
             }
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void LogReplace(this StringBuilder sb, string input, string output, long id)
-        {
-#if LOGVERBOSE
-            var sbOriginal = sb.ToString();
-            sb.Replace(input, output);
-            var sbReplaced = sb.ToString();
-            if (sbOriginal != sbReplaced)
-            {
-                Debug.WriteLine($"Replace happened - id {id}: '{input}' > '{output}'");
-            }
-#else
-            sb.Replace(input, output);
-#endif
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void LogReplaceRegex(this StringBuilder sb, string input, string output, long id)
-        {
-            var rgx = new Regex(input);
-#if LOGVERBOSE
-            var sbOriginal = sb.ToString();
-            var sbReplaced = rgx.Replace(sbOriginal, output);
-            if (sbOriginal != sbReplaced)
-            {
-                Debug.WriteLine($"Replace happened - id {id}: '{input}' > '{output}'");
-            }
-#else
-            var sbReplaced = rgx.Replace(sb.ToString(), output);
-#endif
-            sb.Clear();
-            sb.Append(sbReplaced);
-        }
-
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void LogToConsole(string message)
-        {
-            Console.WriteLine(message);
-        }
-
+        
         public static Process StartProcess(string executablePath, string args = "", bool redirectStandardInput = false)
         {
             var processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(executablePath));
@@ -186,6 +142,7 @@ namespace Happy_Reader
             [FieldOffset(0)]
             internal ulong IntegerValue;
         }
+
         /// <summary>
         /// Check if a number isn't really a number</summary>
         /// <param name="value">The number to check</param>
@@ -205,6 +162,7 @@ namespace Happy_Reader
             ulong mantissa = union.IntegerValue & 0x000fffffffffffffL;
             return mantissa != 0L;
         }
+
         /// <summary>
         /// Truncates strings if they are longer than 'maxChars' (minimum is 4 characters).
         /// </summary>

@@ -21,7 +21,7 @@ namespace Happy_Reader.ViewModel
         }
 
         public string OriginalText { get; set; }
-
+        public string Romaji { get; set; }
         public string Stage1 { get; set; }
         public string Stage2 { get; set; }
         public string Stage3 { get; set; }
@@ -45,6 +45,7 @@ namespace Happy_Reader.ViewModel
         {
             if (string.IsNullOrWhiteSpace(OriginalText)) return;
             var translation = Translator.Translate(_mainViewModel.User, Game, OriginalText);
+            Romaji = translation.Romaji;
             Stage1 = translation.Results[1];
             Stage2 = translation.Results[2];
             Stage3 = translation.Results[3];

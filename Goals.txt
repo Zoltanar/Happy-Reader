@@ -1,9 +1,5 @@
-save timeplayed when exiting program while playing.
 auto resize output window height to fit text
-toggles for show original, romaji, translated
 apply translate stage 4 to pre-romaji
-close output window when hooked process is closed
-
 
 great outstanding problems:
 can't show outputwindow on top of some fullscreen games, steals focus on games where it works

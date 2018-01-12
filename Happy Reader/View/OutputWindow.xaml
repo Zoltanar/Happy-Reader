@@ -8,18 +8,46 @@
         Title="Output" Height="216" Width="600" 
         ShowInTaskbar="False" WindowStyle="None" AllowsTransparency="True"  
         Topmost="True" 
-        MouseLeftButtonDown="Window_MouseLeftButtonDown"
+        MouseLeftButtonDown="DragOnMouseButton"
         ResizeMode="CanResizeWithGrip">
     <Window.DataContext>
-        <view:OutputWindowViewModel></view:OutputWindowViewModel></Window.DataContext>
+        <view:OutputWindowViewModel/>
+    </Window.DataContext>
     <Window.Background>
         <SolidColorBrush Color="Black" Opacity="{Binding Value, ElementName=OpacitySlider}"/>
     </Window.Background>
+    <Window.Resources>
+        <Style TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="BorderBrush" Value="Gold" />
+                    <Setter Property="BorderThickness" Value="1.5" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Height" Value="18"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+        </Style>
+    </Window.Resources>
     <Grid>
-        <CheckBox Content="🔒" VerticalAlignment="Top" Foreground="White" Background="White" Checked="ToggleLock" Unchecked="ToggleLock" Height="18" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="36" Margin="0,18,0,0" FontSize="10"/>
-        <Slider Name="OpacitySlider" Orientation="Vertical" Margin="0,64,0,18" Value="0.6" Minimum="0.2" Maximum="1" HorizontalAlignment="Right" Width="31" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-        <RichTextBox Foreground="GreenYellow" x:Name="DebugTextbox" HorizontalContentAlignment="Center" IsReadOnly="True"
-                     VerticalContentAlignment="Center" Margin="0,0,36,0" Background="{x:Null}" FontSize="22" >
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition x:Name="SettingsColumn" Width="50"/>
+        </Grid.ColumnDefinitions>
+        <RichTextBox Grid.Column="0"  Foreground="GreenYellow" x:Name="DebugTextbox" HorizontalContentAlignment="Center" IsReadOnly="True"
+                     VerticalContentAlignment="Center" Background="{x:Null}" FontSize="22"  BorderBrush="Transparent">
             <RichTextBox.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Add Entry For Text" 
@@ -30,7 +58,15 @@
                 </ContextMenu>
             </RichTextBox.ContextMenu>
         </RichTextBox>
-        <Button Content="Close" VerticalAlignment="Top" Click="CloseButton_Click" Height="18" Background="DimGray" BorderBrush="#FFB61C1C" Foreground="White" HorizontalAlignment="Right" Width="36"/>
-        <CheckBox Content="FS" VerticalAlignment="Top" Foreground="White" Background="White" Checked="ToggleFullScreen" Unchecked="ToggleFullScreen" Height="18" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="36" Margin="0,41,0,0" FontSize="10"/>
+        <Grid Column="1" Margin="5,5,0,0" >
+            <Button Content="Close" VerticalAlignment="Top" Click="CloseButton_Click" Height="18" Background="Transparent" BorderBrush="#FFB61C1C" Foreground="White" />
+            <CheckBox Content="🔒" VerticalAlignment="Top" Checked="ToggleLock" Unchecked="ToggleLock" Height="18" Margin="0,18,0,0" FontSize="10"/>
+            <Slider Name="OpacitySlider" Orientation="Vertical" Margin="0,95,0,19" Value="0.6" Minimum="0.2" Maximum="1" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+            <CheckBox Content="FS" VerticalAlignment="Top" Checked="ToggleFullScreen" Unchecked="ToggleFullScreen" Margin="0,36,0,0" FontSize="10"/>
+            <CheckBox Content="漢字" VerticalAlignment="Top" IsChecked="True" Checked="ToggleOriginal" Unchecked="ToggleOriginal" Margin="0,54,0,0" FontSize="10"/>
+            <CheckBox Content="roma" VerticalAlignment="Top" IsChecked="True" Checked="ToggleRomaji" Unchecked="ToggleRomaji" Margin="0,72,0,0" FontSize="10"/>
+        </Grid>
+        <ToggleButton Grid.Column="0" Content="Settings" Margin="0,5,0,0" VerticalAlignment="Top" HorizontalAlignment="Right" 
+                      Width="54" Click="ShowSettings" Height="24" IsChecked="True" Background="Transparent" Foreground="White"/>
     </Grid>
 </Window>

@@ -4,7 +4,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using Happy_Reader.Database;
-using Happy_Reader.ViewModel;
 
 namespace Happy_Reader.View
 {
@@ -38,11 +37,6 @@ namespace Happy_Reader.View
         {
             Process.Start("explorer", Directory.GetParent(_viewModel.FilePath).FullName);
         }
-
-        private void LaunchWithIth(object sender, RoutedEventArgs e)
-        {
-            // ReSharper disable once PossibleNullReferenceException
-            ((MainWindowViewModel)((MainWindow) Window.GetWindow(this)).DataContext).HookWithIth(_viewModel);
-        }
+        
     }
 }

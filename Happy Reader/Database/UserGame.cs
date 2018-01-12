@@ -103,6 +103,16 @@ namespace Happy_Reader.Database
             }
         }
 
+        public void SaveTimePlayed(bool notify)
+        {
+            _runningTime.Stop();
+            TimeOpen += _runningTime.Elapsed;
+            Process = null;
+            var log = Log.NewTimePlayedLog(Id, _runningTime.Elapsed, notify);
+            StaticMethods.Data.Logs.Add(log);
+            StaticMethods.Data.SaveChanges();
+        }
+
         [NotMapped]
         public string DisplayName =>
             UserDefinedName ?? StaticMethods.TruncateStringFunction30(VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath));
@@ -151,12 +161,7 @@ namespace Happy_Reader.Database
 
         private void ProcessExited(object sender, EventArgs e)
         {
-            _runningTime.Stop();
-            TimeOpen += _runningTime.Elapsed;
-            Process = null;
-            var log = Log.NewTimePlayedLog(Id, _runningTime.Elapsed);
-            StaticMethods.Data.Logs.Add(log);
-            StaticMethods.Data.SaveChanges();
+            SaveTimePlayed(true);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

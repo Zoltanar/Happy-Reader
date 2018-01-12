@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using static Happy_Reader.StaticMethods;
+using Happy_Apps_Core;
 
 namespace Happy_Reader
 {
@@ -18,9 +18,9 @@ namespace Happy_Reader
         public Translation(string original)
         {
             var s1Original = new StringBuilder(original);
-            Translator.TranslateStageOne(s1Original, null);
+            Translator.TranslateStageOne(s1Original);
             Original = s1Original.ToString();
-            Romaji = Kakasi.JapaneseToRomaji(s1Original.ToString());
+            Romaji = Kakasi.JapaneseToRomaji(Translator.ReplaceNames(s1Original.ToString()));
         }
 
         private Translation(string original, string romaji,string results)
@@ -61,7 +61,7 @@ namespace Happy_Reader
             }
             catch (Exception ex)
             {
-                LogToConsole(ex.Message); //todo log to file
+                StaticHelpers.LogToFile(ex.Message);
             }
 
         }

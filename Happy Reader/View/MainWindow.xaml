@@ -1,14 +1,14 @@
 ﻿<Window
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:view="clr-namespace:Happy_Reader.View"
-        xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
+    xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
     x:Class="Happy_Reader.View.MainWindow"
-        mc:Ignorable="d"
-        Title="Happy Reader" MinWidth="800" MinHeight="600" Width="800" Height="600"  
-    Loaded="Window_Loaded" Closing="Window_Closing" 
+    mc:Ignorable="d"
+    Title="Happy Reader" MinWidth="800" MinHeight="600" Width="800" Height="600"  
+    Loaded="Window_Loaded"
     Icon="/Happy Reader;component/Resources/logo-hr.png" d:DataContext="{d:DesignInstance viewModel:MainWindowViewModel}">
     <Grid Background="#FF2E4876">
         <TabControl x:Name="MainTabControl" Margin="10" >

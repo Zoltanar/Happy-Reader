@@ -33,10 +33,10 @@ namespace Happy_Reader.ViewModel
         private readonly OutputWindow _outputWindow;
         private string _statusText;
         private bool _onlyGameEntries;
-        private bool _closingDone;
         private bool _captureClipboard;
         private Process _hookedProcess;
         public ClipboardManager ClipboardManager;
+        private Thread _monitor;
 
         public string StatusText
         {
@@ -76,7 +76,7 @@ namespace Happy_Reader.ViewModel
 
         public MainWindowViewModel(MainWindow mainWindow)
         {
-            Application.Current.Exit += SaveCacheOnExit;
+            Application.Current.Exit += ExitProcedures;
             VndbQueries = _vndbQueriesList.Items;
             VndbResponses = _vndbResponsesList.Items;
             TestViewModel = new TranslationTester(this);
@@ -111,9 +111,11 @@ namespace Happy_Reader.ViewModel
             });
         }
 
-        public void SaveCacheOnExit(object sender, ExitEventArgs args)
+        public void ExitProcedures(object sender, ExitEventArgs args)
         {
-            if (_closingDone) return;
+            _monitor.Abort();
+            _outputWindow?.Close();
+            UserGame.SaveTimePlayed(false);
             StaticMethods.SaveTranslationCache();
         }
 
@@ -123,14 +125,7 @@ namespace Happy_Reader.ViewModel
             Translation translation = Translator.Translate(User, UserGame.VN, currentText);
             return translation;
         }
-
-        public void Closing()
-        {
-            StaticMethods.SaveTranslationCache();
-            _outputWindow?.Close();
-            _closingDone = true;
-        }
-
+        
         public UserGameTile AddGameFile(string file)
         {
             if (StaticMethods.Data.UserGames.Select(x => x.FilePath).Contains(file))
@@ -185,8 +180,8 @@ namespace Happy_Reader.ViewModel
             foreach (var game in StaticMethods.Data.UserGames.Local.OrderBy(x => x.VNID ?? 0)) { UserGameItems.Add(new UserGameTile(game)); }
             TestViewModel.Initialize();
             OnPropertyChanged(nameof(TestViewModel));
-            var monitor = new Thread(MonitorStart) { IsBackground = true };
-            monitor.Start();
+            _monitor = new Thread(MonitorStart) { IsBackground = true };
+            _monitor.Start();
             StatusText = "Loading complete.";
             NotificationEvent(this, $"Took {watch.Elapsed:ss\\:fff} seconds.", "Loading Complete");
         }
@@ -225,9 +220,9 @@ namespace Happy_Reader.ViewModel
         private void MonitorStart()
         {
             //NotificationEvent.Invoke(this, $"Processes to monitor: {StaticMethods.Data.UserGameProcesses.Length}");
-            try
+            while (true)
             {
-                while (true)
+                try
                 {
                     var processes = Process.GetProcesses();
                     foreach (var processName in StaticMethods.Data.UserGameProcesses)
@@ -238,6 +233,7 @@ namespace Happy_Reader.ViewModel
                         {
                             if (process.Is64BitProcess()) continue;
                             if (process.HasExited) continue;
+                            if (UserGame?.Process != null) continue;
                             var userGame =
                                 StaticMethods.Data.UserGames.FirstOrDefault(x => x.FilePath.Equals(process.MainModule.FileName));
                             if (userGame == null || userGame.Process != null) continue;
@@ -246,14 +242,14 @@ namespace Happy_Reader.ViewModel
                         }
                         catch (InvalidOperationException) { } //can happen if process is closed after getting reference
                     }
-                    if (_closingDone) return;
-                    Thread.Sleep(5000);
                 }
+                catch (Exception ex)
+                {
+                    NotificationEvent.Invoke(this, ex.Message, "Error in MonitorStart");
+                }
+                Thread.Sleep(5000);
             }
-            catch (Exception ex)
-            {
-                NotificationEvent.Invoke(this, ex.Message, "Error in MonitorStart");
-            }
+            // ReSharper disable once FunctionNeverReturns
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -330,14 +326,6 @@ namespace Happy_Reader.ViewModel
             Application.Current.Dispatcher.Invoke(() => (isQuery ? _vndbQueriesList : _vndbResponsesList).AddWithId(text));
         }
 
-        public void HookWithIth(UserGame userGame)
-        {
-            var process = HookUserGame(userGame);
-            if (string.IsNullOrWhiteSpace(GSettings.IthPath)) return;
-            var ith = StaticMethods.StartProcess(GSettings.IthPath, $@"/p{process.Id}", true);
-            ith.StandardInput.WriteLine($"/p{process.Id}");
-        }
-
         public Process HookUserGame(UserGame userGame)
         {
             UserGame = userGame;
@@ -349,8 +337,19 @@ namespace Happy_Reader.ViewModel
                 StaticMethods.Data.SaveChanges();
             }
             _hookedProcess = process;
+            _hookedProcess.EnableRaisingEvents = true;
+            _hookedProcess.Exited += HookedProcessOnExited;
             return process;
         }
 
+        private void HookedProcessOnExited(object sender, EventArgs eventArgs)
+        {
+            Application.Current.Dispatcher.Invoke(() => _outputWindow.Close());
+        }
+
+        public void DebugButton()
+        {
+            _outputWindow.Show();
+        }
     }
 }

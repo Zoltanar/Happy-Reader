@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -16,7 +17,9 @@ namespace Happy_Reader.View
         private readonly RecentItemList<Paragraph[]> _recentItems = new RecentItemList<Paragraph[]>(10);
         private bool _lockedLocation;
         private bool _fullScreen;
-
+        private bool _original = true;
+        private bool _romaji = true;
+        private readonly GridLength _settingsColumnLength;
 
         public OutputWindow(MainWindow mainWindow)
         {
@@ -24,18 +27,19 @@ namespace Happy_Reader.View
             var viewModel = (OutputWindowViewModel) DataContext;
             viewModel.TextArea = DebugTextbox;
             viewModel.MainWindow = mainWindow;
+            _settingsColumnLength = SettingsColumn.Width;
         }
 
         public void SetText(Translation translation)
         {
             var blocks = new System.Collections.Generic.List<Paragraph>(3);
-            if (!string.IsNullOrWhiteSpace(translation.Original))
+            if ( _original && !string.IsNullOrWhiteSpace(translation.Original))
             {
                 var originalP = new Paragraph(new Run(translation.Original));
                 originalP.Inlines.FirstInline.Foreground = Brushes.Ivory;
                 blocks.Add(originalP);
             }
-            if (!string.IsNullOrWhiteSpace(translation.Romaji))
+            if (_romaji && !string.IsNullOrWhiteSpace(translation.Romaji))
             {
                 var romajiP = new Paragraph(new Run(translation.Romaji));
                 romajiP.Inlines.FirstInline.Foreground = Brushes.Pink;
@@ -65,9 +69,15 @@ namespace Happy_Reader.View
             Width = width * 0.5;
         }
 
-        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void DragOnMouseButton(object sender, MouseButtonEventArgs e)
         {
             DragMove();
+        }
+
+        private void ShowSettings(object sender, RoutedEventArgs e)
+        {
+            // ReSharper disable once PossibleInvalidOperationException
+            SettingsColumn.Width = ((ToggleButton)sender).IsChecked.Value ? _settingsColumnLength : new GridLength(0);
         }
 
         private void ToggleLock(object sender, RoutedEventArgs e)
@@ -77,11 +87,11 @@ namespace Happy_Reader.View
 
         private void CloseButton_Click(object sender, RoutedEventArgs e) => Hide();
 
-        private void ToggleFullScreen(object sender, RoutedEventArgs e)
-        {
-            _fullScreen = ((CheckBox)sender).IsChecked ?? false;
-        }
+        private void ToggleFullScreen(object sender, RoutedEventArgs e) => _fullScreen = ((CheckBox)sender).IsChecked ?? false;
 
+        private void ToggleOriginal(object sender, RoutedEventArgs e) => _original = ((CheckBox)sender).IsChecked ?? false;
+
+        private void ToggleRomaji(object sender, RoutedEventArgs e) => _romaji = ((CheckBox)sender).IsChecked ?? false;
     }
 
     public class OutputWindowViewModel
@@ -96,10 +106,7 @@ namespace Happy_Reader.View
         }
         private void AddEntry()
         {
-            var text = TextArea.Selection.Text;
-            MainWindow.AddEntryFromOutputWindow(text);
-            //todo MainWindow.Do
-            //todo open addentrycontrol tab on mainwindow.
+            MainWindow.AddEntryFromOutputWindow(TextArea.Selection.Text);
         }
 
         public ICommand AddEntryForText { get; set; }

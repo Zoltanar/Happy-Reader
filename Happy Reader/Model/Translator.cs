@@ -7,8 +7,8 @@ using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
 using HRGoogleTranslate;
-using static Happy_Reader.StaticMethods;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Happy_Reader
 {
@@ -21,7 +21,7 @@ namespace Happy_Reader
 
         private static User _lastUser;
         private static ListedVN _lastGame;
-        private static Entry[] _lastEntries;
+        private static Entry[] _entries;
         public static bool RefreshEntries;
         private static readonly char[] Separators = "『「」』…".ToCharArray();
         private static readonly char[] InclusiveSeparators = "。？".ToCharArray();
@@ -29,8 +29,6 @@ namespace Happy_Reader
         
         public static Translation Translate(User user, ListedVN game, string input)
         {
-            //Debug.WriteLine($"'{input}' > 'Debug: Not translating.'");
-            //return "Debug: Not translating.";
             lock (TranslateLock)
             {
                 if (user != _lastUser || game != _lastGame || RefreshEntries) SetEntries(user, game);
@@ -106,19 +104,16 @@ namespace Happy_Reader
                         (e.Private && e.UserId == user.Id || !e.Private) &&
                         e.SeriesSpecific && gamesInSeries.Contains(e.GameId.Value)).ToArray();
             }
-            _lastEntries = generalEntries.Concat(specificEntries).OrderBy(i => i.Id).ToArray();
+            _entries = generalEntries.Concat(specificEntries).OrderBy(i => i.Id).ToArray();
             Debug.WriteLine($"General entries: {generalEntries.Length}. Specific entries: {specificEntries.Length}");
         }
 
         /// <summary>
         /// Replace entries of type Game.
         /// </summary>
-        /// <param name="sb"></param>
-        /// <param name="entries"></param>
-        public static void TranslateStageOne(StringBuilder sb, Entry[] entries)
+        public static void TranslateStageOne(StringBuilder sb)
         {
-            if (entries == null) entries = _lastEntries;
-            foreach (var entry in entries.Where(i => i.Type == EntryType.Game))
+            foreach (var entry in _entries.Where(i => i.Type == EntryType.Game))
             {
                 if (entry.Regex) sb.LogReplaceRegex(entry.Input, entry.Output, entry.Id);
                 else sb.LogReplace(entry.Input, entry.Output, entry.Id);
@@ -131,9 +126,9 @@ namespace Happy_Reader
         /// <summary>
         /// Replace entries of type Input.
         /// </summary>
-        private static void TranslateStageTwo(StringBuilder sb, Entry[] entries)
+        private static void TranslateStageTwo(StringBuilder sb)
         {
-            foreach (var entry in entries.Where(i => i.Type == EntryType.Input)) sb.LogReplace(entry.Input, entry.Output, entry.Id);
+            foreach (var entry in _entries.Where(i => i.Type == EntryType.Input)) sb.LogReplace(entry.Input, entry.Output, entry.Id);
 #if LOGVERBOSE
             Debug.WriteLine($"Stage 2: {sb}");
 #endif
@@ -142,20 +137,30 @@ namespace Happy_Reader
         /// <summary>
         /// Replace entries of type Yomi.
         /// </summary>
-        private static void TranslateStageThree(StringBuilder sb, Entry[] entries)
+        private static void TranslateStageThree(StringBuilder sb)
         {
-            foreach (var entry in entries.Where(i => i.Type == EntryType.Yomi)) sb.LogReplace(entry.Input, entry.Output, entry.Id);
+            foreach (var entry in _entries.Where(i => i.Type == EntryType.Yomi)) sb.LogReplace(entry.Input, entry.Output, entry.Id);
 #if LOGVERBOSE
             Debug.WriteLine($"Stage 3: {sb}");
 #endif
         }
 
+        public static string ReplaceNames(string original)
+        {
+            var sb = new StringBuilder(original);
+            foreach (var entry in _entries.Where(x=>x.Type == EntryType.Name || x.Type == EntryType.Yomi))
+            {
+                sb.Replace(entry.Input, entry.Output);
+            }
+            return sb.ToString();
+        }
+
         /// <summary>
         /// Replace entries of type Name and translation to proxies.
         /// </summary>
-        private static IEnumerable<Entry> TranslateStageFour(StringBuilder sb, Entry[] entries, HappyReaderDatabase data)
+        private static IEnumerable<Entry> TranslateStageFour(StringBuilder sb, HappyReaderDatabase data)
         {
-            var roles = entries.Select(z => z.RoleString).Distinct().ToArray();
+            var roles = _entries.Select(z => z.RoleString).Distinct().ToArray();
             var proxies = new Dictionary<string, ProxiesWithCount>();
             foreach (var role in roles)
             {
@@ -171,7 +176,7 @@ namespace Happy_Reader
                 }
                 else proxies.Add(role, new ProxiesWithCount(roleProxies.Select(roleProxy => new RoleProxy { Role = role, Entry = roleProxy })));
             }
-            var entriesWithProxiesArray = entries.Where(i => (i.Type == EntryType.Name || i.Type == EntryType.Translation) && !i.Input.Contains("[[")).ToArray();
+            var entriesWithProxiesArray = _entries.Where(i => (i.Type == EntryType.Name || i.Type == EntryType.Translation) && !i.Input.Contains("[[")).ToArray();
             var usefulEntriesWithProxies = entriesWithProxiesArray.OrderByDescending(x => x.Input.Length).ToList();
             //replace these with initial proxies
             foreach (var entry in entriesWithProxiesArray)
@@ -181,12 +186,12 @@ namespace Happy_Reader
                     usefulEntriesWithProxies.Remove(entry);
                     continue;
                 }
-                var roleString = entry.RoleString ?? (entry.Type == EntryType.Name ? "m" : "n"); //m default for name, n default for translation
-                var proxy = proxies[roleString].Proxies.Count == 0 ? null : proxies[roleString].Proxies.Dequeue();//proxies.FirstOrDefault(p => p.Role == roleString);
+                var roleString = entry.RoleString ?? (entry.Type == EntryType.Name ? "m" : "n");
+                var proxy = proxies[roleString].Proxies.Count == 0 ? null : proxies[roleString].Proxies.Dequeue();
                 proxies[roleString].Count++;
                 if (proxy == null)
                 {
-                    LogToConsole("No proxy available, stopping translate.");
+                    StaticHelpers.LogToFile("No proxy available, stopping translate.");
                     throw new Exception("Error - no proxy available.");
                 }
                 proxy.FullRoleString = $"[[{roleString}#{proxies[roleString].Count}]]";
@@ -198,7 +203,7 @@ namespace Happy_Reader
             Debug.WriteLine($"Stage 4.0: {sb}");
 #endif
             //perform replaces involving proxies
-            var entriesOnProxies = entries.Where(i => i.Type == EntryType.ProxyMod).ToArray();
+            var entriesOnProxies = _entries.Where(i => i.Type == EntryType.ProxyMod).ToArray();
             TranslateStage4P1(sb, usefulEntriesWithProxies, entriesOnProxies);
             foreach (var entry in usefulEntriesWithProxies)
             {
@@ -258,16 +263,16 @@ namespace Happy_Reader
             Debug.WriteLine($"Stage 0: {sb}");
 #endif
             result[0] = sb.ToString();
-            TranslateStageOne(sb, _lastEntries);
+            TranslateStageOne(sb);
             result[1] = sb.ToString();
-            TranslateStageTwo(sb, _lastEntries);
+            TranslateStageTwo(sb);
             result[2] = sb.ToString();
-            TranslateStageThree(sb, _lastEntries);
+            TranslateStageThree(sb);
             result[3] = sb.ToString();
             IEnumerable<Entry> usefulEntriesWithProxies;
             try
             {
-                usefulEntriesWithProxies = TranslateStageFour(sb, _lastEntries, Data);
+                usefulEntriesWithProxies = TranslateStageFour(sb, Data);
             }
             catch (Exception ex)
             {
@@ -281,7 +286,7 @@ namespace Happy_Reader
             result[5] = sb.ToString();
             TranslateStageSix(sb, usefulEntriesWithProxies);
             result[6] = sb.ToString();
-            TranslateStageSeven(sb, _lastEntries);
+            TranslateStageSeven(sb);
             result[7] = sb.ToString();
             return result;
         }
@@ -309,10 +314,10 @@ namespace Happy_Reader
         /// <summary>
         /// Replace entries of type Output.
         /// </summary>
-        private static void TranslateStageSeven(StringBuilder sb, Entry[] entries)
+        private static void TranslateStageSeven(StringBuilder sb)
         {
-            foreach (var entry in entries.Where(i => i.Type == EntryType.Output && !i.Regex)) sb.LogReplace(entry.Input, entry.Output, entry.Id);
-            foreach (var entry in entries.Where(i => i.Type == EntryType.Output && i.Regex)) sb.LogReplaceRegex(entry.Input, entry.Output, entry.Id);
+            foreach (var entry in _entries.Where(i => i.Type == EntryType.Output && !i.Regex)) sb.LogReplace(entry.Input, entry.Output, entry.Id);
+            foreach (var entry in _entries.Where(i => i.Type == EntryType.Output && i.Regex)) sb.LogReplaceRegex(entry.Input, entry.Output, entry.Id);
 #if LOGVERBOSE
             Debug.WriteLine($"Stage 7: {sb}");
 #endif
@@ -333,6 +338,42 @@ namespace Happy_Reader
         {
             return GoogleTranslate.GetNewCache();
         }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void LogReplace(this StringBuilder sb, string input, string output, long id)
+        {
+#if LOGVERBOSE
+            var sbOriginal = sb.ToString();
+            sb.Replace(input, output);
+            var sbReplaced = sb.ToString();
+            if (sbOriginal != sbReplaced)
+            {
+                Debug.WriteLine($"Replace happened - id {id}: '{input}' > '{output}'");
+            }
+#else
+            sb.Replace(input, output);
+#endif
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void LogReplaceRegex(this StringBuilder sb, string input, string output, long id)
+        {
+            var rgx = new Regex(input);
+#if LOGVERBOSE
+            var sbOriginal = sb.ToString();
+            var sbReplaced = rgx.Replace(sbOriginal, output);
+            if (sbOriginal != sbReplaced)
+            {
+                Debug.WriteLine($"Replace happened - id {id}: '{input}' > '{output}'");
+            }
+#else
+            var sbReplaced = rgx.Replace(sb.ToString(), output);
+#endif
+            sb.Clear();
+            sb.Append(sbReplaced);
+        }
+
 
         private class ProxiesWithCount
         {
