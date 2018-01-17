@@ -1,4 +1,6 @@
-﻿namespace Happy_Apps_Core
+﻿using Happy_Apps_Core.Database;
+
+namespace Happy_Apps_Core
 {
     /// <summary>
     /// From get producer commands

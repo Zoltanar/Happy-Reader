@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
-using JetBrains.Annotations;
-using Newtonsoft.Json;
+using Happy_Apps_Core.Database;
+
+// ReSharper disable VirtualMemberCallInConstructor
 
 // ReSharper disable UnusedMember.Global
 // ReSharper disable InconsistentNaming
@@ -16,8 +17,11 @@ namespace Happy_Apps_Core
 	/// </summary>
 	public class CharacterItem
 	{
-	    private VNItem[] _vNs;
-	    private TraitItem[] _traits;
+	    public CharacterItem()
+	    {
+            DbTraits = new HashSet<DbTrait>();
+            CharacterVns = new HashSet<CharacterVN>();
+	    }
 
 	    [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
@@ -25,36 +29,35 @@ namespace Happy_Apps_Core
 		public int ID { get; set; }
 		public string Name { get; set; }
 		public string Image { get; set; }
-		[Column("Traits")]
-		public string TraitsColumn { get; set; }
-		[Column("VNs")]
-		public string VNsColumn { get; set; }
 		public DateTime? DateUpdated { get; set; }
 
-	    [NotMapped, NotNull]
-        public TraitItem[] Traits => _traits ?? (_traits = JsonConvert.DeserializeObject<TraitItem[]>(TraitsColumn) ?? new TraitItem[] { });
+	    /// <summary>
+	    /// Only used in json convert from vndb
+	    /// </summary>
+        [NotMapped]
+	    public VNItem[] VNs { get; set; }
 
-        [NotMapped,NotNull]
-	    public VNItem[] VNs => _vNs ?? (_vNs = JsonConvert.DeserializeObject<VNItem[]>(VNsColumn) ?? new VNItem[] { });
+        /// <summary>
+        /// Only used in json convert from vndb
+        /// </summary>
+        [NotMapped]
+        public TraitItem[] Traits { get; set; }
 
+	    public virtual ICollection<DbTrait> DbTraits { get; set; }
+
+	    public virtual ICollection<CharacterVN> CharacterVns { get; set; }
+        
 	    [NotMapped]
 		public string Description { get; set; }
 		[NotMapped]
 		public string Aliases { get; set; }
-
-		public bool CharacterIsInVN(int vnid)
-		{
-			IEnumerable<int> idList = VNs.Select(x => x.ID);
-			return idList.Contains(vnid);
-		}
+        
 		public bool ContainsTraits(IEnumerable<DumpFiles.WrittenTrait> traitFilters)
 		{
 			//remove all numbers in traits from traitIDs, if nothing is left then it matched all
-			int[] traits = Traits.Select(x => x.ID).ToArray();
+			int[] traits = DbTraits.Select(x => x.TraitId).ToArray();
 			return traitFilters.All(writtenTrait => traits.Any(characterTrait => writtenTrait.AllIDs.Contains(characterTrait)));
 		}
-
-
 
 		public class TraitItem : List<int>
 		{

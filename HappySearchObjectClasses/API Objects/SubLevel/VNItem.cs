@@ -158,50 +158,10 @@ namespace Happy_Apps_Core
                 get => (int)this[2];
                 set => this[2] = value;
             }
+            
+            public override string ToString() => $"[{ID},{Score},{Spoiler}]";
 
-            public StaticHelpers.TagCategory Category { get; set; }
-
-            public override string ToString()
-            {
-                return $"[{ID},{Score},{Spoiler}]";
-            }
-
-            public string DisplayString => ToString();
-
-            public string GetName(List<DumpFiles.WrittenTag> plainTags)
-            {
-                return plainTags.Find(item => item.ID == ID)?.Name;
-            }
-
-            public void SetCategory(List<DumpFiles.WrittenTag> plainTags)
-            {
-                string cat = plainTags.Find(item => item.ID == ID)?.Cat;
-                switch (cat)
-                {
-                    case StaticHelpers.ContentTag:
-                        Category = StaticHelpers.TagCategory.Content;
-                        return;
-                    case StaticHelpers.SexualTag:
-                        Category = StaticHelpers.TagCategory.Sexual;
-                        return;
-                    case StaticHelpers.TechnicalTag:
-                        Category = StaticHelpers.TagCategory.Technical;
-                        return;
-                    default:
-                        return;
-                }
-            }
-
-            /// <summary>
-            /// Return string with Tag name and score, if tag isn't found in list, "Not Approved" is returned.
-            /// </summary>
-            /// <param name="plainTags">List of tags from tagdump</param>
-            /// <returns>String with tag name and score</returns>
-            public string Print(List<DumpFiles.WrittenTag> plainTags)
-            {
-                var name = GetName(plainTags);
-                return name != null ? $"{GetName(plainTags)} ({Score:0.00})" : "Not Approved";
-            }
+            
         }
 
 

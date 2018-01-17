@@ -8,9 +8,7 @@
              d:DataContext="{d:DesignData Source=ListedVNSampleData.xaml}"
              Loaded="VNPanel_OnLoaded">
     <UserControl.Resources>
-        <Style TargetType="TextBox"  BasedOn="{StaticResource NoBorderTextBox}">
-        </Style>
-
+        <Style TargetType="TextBox"  BasedOn="{StaticResource NoBorderTextBox}"/>
         <Style x:Key="RightLabel" TargetType="Label" >
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="HorizontalContentAlignment" Value="Right"/>
@@ -63,7 +61,7 @@
                 </Grid.RowDefinitions>
                 <TextBox Grid.Row="0" Text="{Binding Title}"/>
                 <TextBox Grid.Row="1" Text="{Binding KanjiTitle}"/>
-                <TextBox Grid.Row="2" Text="{Binding DisplayAliases}" />
+                <TextBox Grid.Row="2" Text="{Binding DisplayAliases, Mode=OneWay}" />
                 <ComboBox Grid.Row="3" ItemsSource="{Binding DisplayTags}" IsReadOnly="True" SelectedIndex="0"/>
                 <Grid Grid.Row="4">
                     <Grid.ColumnDefinitions>
@@ -95,7 +93,11 @@
                 <ComboBox Grid.Row="8" ItemsSource="{Binding DisplayTraits}" SelectedIndex="0" IsReadOnly="True"/>
             </Grid>
             <Image Grid.Row="0" Grid.Column="2" Source="{Binding CoverSource}" Margin="5"/>
-            <Label Grid.Row="0" VerticalContentAlignment="Top" HorizontalContentAlignment="Right" Content="{Binding VNID}" Grid.Column="2" />
+            <Label Grid.Row="0" VerticalContentAlignment="Top" HorizontalContentAlignment="Right" Grid.Column="2" >
+                <Hyperlink Click="ID_OnClick">
+                    <Run Text="{Binding VNID}"/>
+                </Hyperlink>
+            </Label>
         </Grid>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>

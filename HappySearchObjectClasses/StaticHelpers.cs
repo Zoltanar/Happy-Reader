@@ -90,7 +90,7 @@ namespace Happy_Apps_Core
         /// <summary>
         /// Categories of VN Tags
         /// </summary>
-        public enum TagCategory { Content, Sexual, Technical }
+        public enum TagCategory { Null, Content, Sexual, Technical }
 
         public static readonly CoreSettings CSettings = CoreSettings.Load();
         public static readonly GuiSettings GSettings = GuiSettings.Load();
@@ -312,37 +312,6 @@ namespace Happy_Apps_Core
                 return dtDate;
             }
             return DateTime.MaxValue;
-        }
-
-        /// <summary>
-        ///     Convert JSON-formatted string to list of tags.
-        /// </summary>
-        /// <param name="tagstring">JSON-formatted string</param>
-        /// <returns>List of tags</returns>
-        public static VNItem.TagItem[] StringToTags(string tagstring)
-        {
-            if (string.IsNullOrWhiteSpace(tagstring)) return new VNItem.TagItem[] { };
-            return JsonConvert.DeserializeObject<VNItem.TagItem[]>(tagstring) ?? new VNItem.TagItem[] { };
-        }
-
-        /// <summary>
-        /// Get number of tags in specified category.
-        /// </summary>
-        /// <param name="tags">Collection of tags</param>
-        /// <param name="category">Category that tags should be in</param>
-        /// <returns>Number of tags that match</returns>
-        public static int GetTagCountByCat(this IEnumerable<VNItem.TagItem> tags, TagCategory category)
-        {
-            switch (category)
-            {
-                case TagCategory.Content:
-                    return tags.Count(tag => tag.Category == TagCategory.Content);
-                case TagCategory.Sexual:
-                    return tags.Count(tag => tag.Category == TagCategory.Sexual);
-                case TagCategory.Technical:
-                    return tags.Count(tag => tag.Category == TagCategory.Technical);
-            }
-            return 1;
         }
 
         /// <summary>

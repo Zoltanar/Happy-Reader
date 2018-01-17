@@ -30,8 +30,11 @@ namespace Happy_Apps_Core.Database
         public virtual DbSet<ListedProducer> Producers { get; set; }
         public virtual DbSet<UserVN> UserVisualNovels { get; set; }
         public virtual DbSet<CharacterItem> Characters { get; set; }
+        public virtual DbSet<CharacterVN> CharacterVNs { get; set; }
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<TableDetail> TableDetails { get; set; }
+        public virtual DbSet<DbTag> Tags { get; set; }
+        public virtual DbSet<DbTrait> Traits { get; set; }
 
         public IQueryable<ListedVN> URTVisualNovels => VisualNovels.Where(x => x.UserVNId != null);
     }
@@ -40,9 +43,9 @@ namespace Happy_Apps_Core.Database
     {
         protected override void Seed(VisualNovelDatabase context)
         {
-            context.TableDetails.Add(new TableDetail { Key = "programname", Value = "Happy Search" });
+            context.TableDetails.Add(new TableDetail { Key = "programname", Value = "Happy Reader" });
             context.TableDetails.Add(new TableDetail { Key = "author", Value = "Zoltanar" });
-            context.TableDetails.Add(new TableDetail { Key = "projecturl", Value = "https://github.com/Zoltanar/Happy-Search" });
+            context.TableDetails.Add(new TableDetail { Key = "projecturl", Value = "https://github.com/Zoltanar/Happy-Reader" });
             context.TableDetails.Add(new TableDetail { Key = "databaseversion", Value = "2.0.0" });
             base.Seed(context);
         }

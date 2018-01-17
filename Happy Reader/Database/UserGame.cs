@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using Happy_Apps_Core;
+using Happy_Apps_Core.Database;
 using JetBrains.Annotations;
 
 namespace Happy_Reader.Database

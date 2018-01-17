@@ -1,6 +1,7 @@
 ﻿using System.Data.Entity;
 using System.Linq;
 using Happy_Apps_Core;
+using Happy_Apps_Core.Database;
 
 namespace Happy_Reader.Database
 {

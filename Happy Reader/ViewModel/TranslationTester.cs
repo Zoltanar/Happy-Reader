@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Happy_Apps_Core;
+using Happy_Apps_Core.Database;
 using JetBrains.Annotations;
 
 namespace Happy_Reader.ViewModel
@@ -46,13 +47,13 @@ namespace Happy_Reader.ViewModel
             if (string.IsNullOrWhiteSpace(OriginalText)) return;
             var translation = Translator.Translate(_mainViewModel.User, Game, OriginalText);
             Romaji = translation.Romaji;
-            Stage1 = translation.Results[1];
-            Stage2 = translation.Results[2];
-            Stage3 = translation.Results[3];
-            Stage4 = translation.Results[4];
-            Stage5 = translation.Results[5];
-            Stage6 = translation.Results[6];
-            Stage7 = translation.Results[7];
+            Stage1 = translation.Results[1].Equals(OriginalText) ? "(no change)" : translation.Results[1];
+            Stage2 = translation.Results[2].Equals(Stage1) ? "(no change)" : translation.Results[2];
+            Stage3 = translation.Results[3].Equals(Stage2) ? "(no change)" : translation.Results[3];
+            Stage4 = translation.Results[4].Equals(Stage3) ? "(no change)" : translation.Results[4];
+            Stage5 = translation.Results[5].Equals(Stage4) ? "(no change)" : translation.Results[5];
+            Stage6 = translation.Results[6].Equals(Stage5) ? "(no change)" : translation.Results[6];
+            Stage7 = translation.Results[7].Equals(Stage6) ? "(no change)" : translation.Results[7];
             OnPropertyChanged(null);
         }
 

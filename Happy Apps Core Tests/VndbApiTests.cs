@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Happy_Apps_Core;
 using Newtonsoft.Json;
 using static Happy_Apps_Core.StaticHelpers;
+using System.Collections.Generic;
 
 namespace Happy_Apps_Core_Tests
 {
@@ -78,11 +79,13 @@ namespace Happy_Apps_Core_Tests
             var charRoot = JsonConvert.DeserializeObject<ResultsRoot<CharacterItem>>(_conn.LastResponse.JsonPayload);
             var characters = charRoot.Items.OrderBy(x => x.ID);
             var character = characters.First();
+            var traits = JsonConvert.DeserializeObject<List<CharacterItem.TraitItem>>(character.Traits);
+            var vns = JsonConvert.DeserializeObject<List<CharacterItem.VNItem>>(character.VNs);
             Assert.AreEqual(1783, character.ID, "Failed at basic, Payload: " + _conn.LastResponse.JsonPayload);
             //traits
-            Assert.IsTrue(character.Traits.Any(x => x.ID == 7), "Failed at traits, Payload: " + _conn.LastResponse.JsonPayload);
+            Assert.IsTrue(traits.Any(x => x.ID == 7), "Failed at traits, Payload: " + _conn.LastResponse.JsonPayload);
             //vns
-            Assert.IsTrue(character.VNs.First().ID == 1, "Failed at vns, Payload: " + _conn.LastResponse.JsonPayload);
+            Assert.IsTrue(vns.First().ID == 1, "Failed at vns, Payload: " + _conn.LastResponse.JsonPayload);
         }
 
         [TestMethod]

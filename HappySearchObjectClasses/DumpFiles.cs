@@ -282,15 +282,6 @@ namespace Happy_Apps_Core
                 LoadTraitdump();
             }
         }
-
-        public static int[] GetAllSubTags(int id)
-        {
-            return PlainTags.Find(x => x.ID == id).AllIDs;
-        }
-
-        public static int[] GetAllSubTraits(int id)
-        {
-            return PlainTraits.Find(x => x.ID == id).AllIDs;
-        }
+        
     }
 }

@@ -32,6 +32,7 @@ namespace Happy_Apps_Core
             _changeStatusAction = changeStatusAction ?? ChangeAPIStatus;
         }
 
+        public const int VndbAPIMaxYear = 99999999;
         private const string VndbHost = "api.vndb.org";
         private const ushort VndbPort = 19534;
         private const ushort VndbPortTLS = 19535;

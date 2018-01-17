@@ -69,9 +69,8 @@ namespace Happy_Apps_Core.Database
 
         public void UpdateVNTagsStats(VNItem vnItem, bool saveChanges)
         {
-            var tags = ListToJsonArray(new List<object>(vnItem.Tags));
             var vn = VisualNovels.Single(x => x.VNID == vnItem.ID);
-            vn.Tags = tags;
+            foreach (var tag in vnItem.Tags) vn.DbTags.Add(DbTag.From(tag));
             vn.Popularity = vnItem.Popularity;
             vn.Rating = vnItem.Rating;
             vn.VoteCount = vnItem.VoteCount;
@@ -144,7 +143,7 @@ namespace Happy_Apps_Core.Database
                 {
                     StaticHelpers.LogToFile(ex);
 #if !DEBUG
-throw ex;
+throw;
 #endif
                 }
             }
@@ -153,15 +152,28 @@ throw ex;
 
         public void UpsertSingleCharacter(CharacterItem character, bool saveChanges)
         {
-            var dbCharacter = Characters.SingleOrDefault(x => x.ID == character.ID);
-            if (dbCharacter == null)
+            try
             {
-                dbCharacter = new CharacterItem { ID = character.ID };
-                Characters.Add(dbCharacter);
+                var dbCharacter = Characters.SingleOrDefault(x => x.ID == character.ID);
+                if (dbCharacter == null)
+                {
+                    dbCharacter = new CharacterItem { ID = character.ID };
+                    Characters.Add(dbCharacter);
+                }
+
+                foreach (var trait in character.Traits) dbCharacter.DbTraits.Add(DbTrait.From(trait));
+                foreach (var vn in character.VNs) dbCharacter.CharacterVns.Add(CharacterVN.From(vn));
+                dbCharacter.DateUpdated = DateTime.UtcNow;
+                if (saveChanges) SaveChanges();
             }
-            dbCharacter.TraitsColumn = ListToJsonArray(new List<object>(character.Traits));
-            dbCharacter.VNsColumn = ListToJsonArray(new List<object>(character.VNs));
-            if (saveChanges) SaveChanges();
+            catch (Exception ex)
+            {
+                StaticHelpers.LogToFile(ex);
+#if !DEBUG
+                throw;
+#endif
+
+            }
         }
 
         public void UpsertSingleVN((VNItem item, ProducerItem producer, VNLanguages languages) data, bool setFullyUpdated, bool saveChanges)
@@ -170,14 +182,14 @@ throw ex;
             var vn = VisualNovels.SingleOrDefault(x => x.VNID == item.ID);
             if (vn == null)
             {
-                vn = new ListedVN() { VNID = item.ID };
+                vn = new ListedVN { VNID = item.ID };
                 VisualNovels.Add(vn);
             }
             vn.Title = item.Title;
             vn.KanjiTitle = item.Original;
             vn.ProducerID = producer?.ID;
             vn.SetReleaseDate(item.Released);
-            vn.Tags = ListToJsonArray(new List<object>(item.Tags));
+            foreach (var tag in item.Tags) vn.DbTags.Add(DbTag.From(tag));
             vn.Description = item.Description;
             vn.ImageURL = item.Image;
             vn.ImageNSFW = item.Image_Nsfw;
@@ -187,6 +199,7 @@ throw ex;
             vn.VoteCount = item.VoteCount;
             vn.Aliases = item.Aliases;
             vn.Languages = languages?.ToString();
+            vn.DateUpdated = DateTime.UtcNow;
             if (setFullyUpdated) vn.DateFullyUpdated = DateTime.UtcNow;
             if (saveChanges) SaveChanges();
         }
@@ -210,13 +223,13 @@ throw ex;
 
         #region Other
 
-        public static Expression<Func<ListedVN, bool>> ListVNByNameOrAliasFunc(string searchString)
+        public static Expression<Func<VisualNovelDatabase, IQueryable<ListedVN>>> ListVNByNameOrAliasFunc(string searchString)
         {
             searchString = searchString.ToLower();
-            return vn =>
+            return db => db.VisualNovels.Where(vn =>
                 vn.Title.ToLower().Contains(searchString) ||
-                vn.KanjiTitle!= null && vn.KanjiTitle.ToLower().Contains(searchString) ||
-                vn.Aliases != null && vn.Aliases.ToLower().Contains(searchString);
+                vn.KanjiTitle != null && vn.KanjiTitle.ToLower().Contains(searchString) ||
+                vn.Aliases != null && vn.Aliases.ToLower().Contains(searchString));
         }
 
         /// <summary>

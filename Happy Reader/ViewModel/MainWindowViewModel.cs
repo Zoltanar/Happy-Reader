@@ -115,7 +115,7 @@ namespace Happy_Reader.ViewModel
         {
             _monitor.Abort();
             _outputWindow?.Close();
-            UserGame.SaveTimePlayed(false);
+            UserGame?.SaveTimePlayed(false);
             StaticMethods.SaveTranslationCache();
         }
 
@@ -135,7 +135,7 @@ namespace Happy_Reader.ViewModel
             }
             //todo cleanup
             var filename = Path.GetFileNameWithoutExtension(file);
-            ListedVN[] fileResults = StaticHelpers.LocalDatabase.VisualNovels.Where(VisualNovelDatabase.ListVNByNameOrAliasFunc(filename)).ToArray();
+            ListedVN[] fileResults = VisualNovelDatabase.ListVNByNameOrAliasFunc(filename).Compile().Invoke(StaticHelpers.LocalDatabase).ToArray();
             ListedVN[] folderResults = { };
             ListedVN vn = null;
             if (fileResults.Length == 1) vn = fileResults.First();
@@ -143,7 +143,7 @@ namespace Happy_Reader.ViewModel
             {
                 var parent = Directory.GetParent(file);
                 var folder = parent.Name.Equals("data", StringComparison.OrdinalIgnoreCase) ? Directory.GetParent(parent.FullName).Name : parent.Name;
-                folderResults = StaticHelpers.LocalDatabase.VisualNovels.Where(VisualNovelDatabase.ListVNByNameOrAliasFunc(folder)).ToArray();
+                folderResults = VisualNovelDatabase.ListVNByNameOrAliasFunc(folder).Compile().Invoke(StaticHelpers.LocalDatabase).ToArray();
                 if (folderResults.Length == 1) vn = folderResults.First();
             }
             ListedVN[] allResults = fileResults.Concat(folderResults).ToArray();
@@ -344,7 +344,7 @@ namespace Happy_Reader.ViewModel
 
         private void HookedProcessOnExited(object sender, EventArgs eventArgs)
         {
-            Application.Current.Dispatcher.Invoke(() => _outputWindow.Close());
+            Application.Current.Dispatcher.Invoke(() => _outputWindow.Hide());
         }
 
         public void DebugButton()

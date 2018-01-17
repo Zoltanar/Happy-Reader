@@ -1,22 +1,23 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Newtonsoft.Json;
-using static Happy_Apps_Core.StaticHelpers;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Happy_Apps_Core.Database;
 using JetBrains.Annotations;
+using Newtonsoft.Json;
 
-namespace Happy_Apps_Core
+// ReSharper disable VirtualMemberCallInConstructor
+// ReSharper disable MemberCanBeProtected.Global
+
+namespace Happy_Apps_Core.Database
 {
     /// <summary>
     /// Object for displaying Visual Novel in Object List View.
@@ -24,6 +25,10 @@ namespace Happy_Apps_Core
     // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
     public class ListedVN : INotifyPropertyChanged
     {
+        public ListedVN()
+        {
+            DbTags = new HashSet<DbTag>();
+        }
         /// <summary>
         /// Returns true if a title was last updated over x days ago.
         /// </summary>
@@ -63,9 +68,7 @@ namespace Happy_Apps_Core
         public int? ProducerID { get; set; }
 
         public virtual ListedProducer Producer { get; set; }
-
-        public string Tags { get; set; }
-
+        
         public DateTime DateUpdated { get; set; }
 
         /// <summary>
@@ -119,8 +122,7 @@ namespace Happy_Apps_Core
         /// Newline separated string of aliases
         /// </summary>
         public string Aliases { get; set; }
-
-
+        
         public string Languages { get; set; }
 
         public DateTime DateFullyUpdated { get; set; }
@@ -131,12 +133,14 @@ namespace Happy_Apps_Core
         { get; set; }
 
         public DateTime ReleaseDate { get; set; }
+
+        public virtual ICollection<DbTag> DbTags { get; set; }
         #endregion
 
         public void SetReleaseDate(string releaseDateString)
         {
             ReleaseDateString = releaseDateString;
-            ReleaseDate = StringToDate(releaseDateString);
+            ReleaseDate = StaticHelpers.StringToDate(releaseDateString);
         }
 
         private int? _daysSinceFullyUpdated;
@@ -151,48 +155,31 @@ namespace Happy_Apps_Core
                 return _daysSinceFullyUpdated.Value;
             }
         }
-
-        /// <summary>
-        /// List of Tags in this VN.
-        /// </summary>
-        [NotMapped, NotNull]
-        public VNItem.TagItem[] TagList
-        {
-            get
-            {
-                if (_tagList == null)
-                {
-                    _tagList = StringToTags(Tags);
-                    foreach (var tag in _tagList) tag.SetCategory(DumpFiles.PlainTags);
-                }
-                return _tagList;
-            }
-        }
-
+        
         [NotMapped, NotNull]
         public IEnumerable<string> DisplayTags
         {
             get
             {
-                var visibleTags = new List<VNItem.TagItem>();
-                foreach (var tag in TagList)
+                var visibleTags = new List<DbTag>();
+                foreach (var tag in DbTags)
                 {
                     switch (tag.Category)
                     {
-                        case TagCategory.Content:
-                            if (!GSettings.ContentTags) continue;
+                        case StaticHelpers.TagCategory.Content:
+                            if (!StaticHelpers.GSettings.ContentTags) continue;
                             break;
-                        case TagCategory.Sexual:
-                            if (!GSettings.SexualTags) continue;
+                        case StaticHelpers.TagCategory.Sexual:
+                            if (!StaticHelpers.GSettings.SexualTags) continue;
                             break;
-                        case TagCategory.Technical:
-                            if (!GSettings.TechnicalTags) continue;
+                        case StaticHelpers.TagCategory.Technical:
+                            if (!StaticHelpers.GSettings.TechnicalTags) continue;
                             break;
                     }
                     visibleTags.Add(tag);
                 }
                 if (visibleTags.Count == 0) return new[] { "No Tags Found" };
-                List<string> stringList = visibleTags.Select(x => x.Print(DumpFiles.PlainTags)).ToList();
+                List<string> stringList = visibleTags.Select(x => x.Print()).ToList();
                 stringList.Sort();
                 return stringList;
             }
@@ -203,13 +190,14 @@ namespace Happy_Apps_Core
         {
             get
             {
-                var vnCharacters = GetCharacters(LocalDatabase.Characters);
+                if (VNID == 0) return new List<string>();
+                var vnCharacters =  StaticHelpers.LocalDatabase.CharacterVNs.Where(x=>x.ListedVNId == VNID).Select(y=>y.CharacterItem).ToArray();
                 var stringList = new List<string> { $"{vnCharacters.Length} Characters" };
                 for (var index = 0; index < vnCharacters.Length; index++)
                 {
                     var characterItem = vnCharacters[index];
                     stringList.Add($"Character {characterItem.ID}");
-                    foreach (var trait in characterItem.Traits) stringList.Add(DumpFiles.PlainTraits.Find(x => x.ID == trait.ID)?.ToString());
+                    foreach (var trait in characterItem.DbTraits) stringList.Add(DumpFiles.PlainTraits.Find(x => x.ID == trait.TraitId)?.ToString());
                     if (index < vnCharacters.Length - 1) stringList.Add("---------------");
                 }
                 return stringList;
@@ -252,7 +240,7 @@ namespace Happy_Apps_Core
         /// <summary>
         /// Newline separated string of aliases
         /// </summary>
-        public string DisplayAliases => Aliases.Replace("\n", ", ");
+        public string DisplayAliases => Aliases?.Replace("\n", ", ") ?? "";
 
         [NotMapped, NotNull]
         public VNItem.RelationsItem[] RelationsObject
@@ -289,21 +277,10 @@ namespace Happy_Apps_Core
                 return _screensObject;
             }
         }
-
-        /// <summary>
-        /// Gets characters involved in VN.
-        /// </summary>
-        /// <param name="characterList">List of all characters</param>
-        /// <returns>Array of Characters</returns>
-        public CharacterItem[] GetCharacters(IEnumerable<CharacterItem> characterList)
-        {
-            return characterList.Where(x => x.CharacterIsInVN(VNID)).ToArray();
-        }
-
+        
         private VNItem.RelationsItem[] _relationsObject;
         private VNItem.AnimeItem[] _animeObject;
         private VNItem.ScreenItem[] _screensObject;
-        private VNItem.TagItem[] _tagList;
         private VNLanguages _languagesObject;
 
         /// <summary>
@@ -316,7 +293,7 @@ namespace Happy_Apps_Core
         /// Language of producer
         /// </summary>
         [NotMapped, NotNull]
-        public VNLanguages LanguagesObject => _languagesObject ?? (_languagesObject = JsonConvert.DeserializeObject<VNLanguages>(Languages) ?? new VNLanguages());
+        public VNLanguages LanguagesObject => _languagesObject ?? (_languagesObject = Languages == null ? new VNLanguages() : JsonConvert.DeserializeObject<VNLanguages>(Languages) ?? new VNLanguages());
 
         /// <summary>
         /// Return unreleased status of vn.
@@ -435,11 +412,11 @@ namespace Happy_Apps_Core
         /// <summary>
         /// Get location of cover image in system (not online)
         /// </summary>
-        public string StoredCover => $"{VNImagesFolder}{VNID}{Path.GetExtension(ImageURL)}";
+        public string StoredCover => $"{StaticHelpers.VNImagesFolder}{VNID}{Path.GetExtension(ImageURL)}";
 
         public string Series { get; set; }
 
-        public object FlagSource => LanguagesObject.Originals.Select(language => $"{FlagsFolder}{language}.png")
+        public object FlagSource => LanguagesObject.Originals.Select(language => $"{StaticHelpers.FlagsFolder}{language}.png")
                                     .Where(File.Exists).Select(Path.GetFullPath).FirstOrDefault() ?? DependencyProperty.UnsetValue;
 
         [NotNull]
@@ -447,22 +424,22 @@ namespace Happy_Apps_Core
         {
             get
             {
-                if (VNID == 0) return new Uri(Path.GetFullPath(NoImageFile));
+                if (VNID == 0) return new Uri(Path.GetFullPath(StaticHelpers.NoImageFile));
                 string image;
-                if (ImageNSFW && !GSettings.NSFWImages) image = NsfwImageFile;
+                if (ImageNSFW && !StaticHelpers.GSettings.NSFWImages) image = StaticHelpers.NsfwImageFile;
                 else if (File.Exists(StoredCover)) image = StoredCover;
-                else image = NoImageFile;
+                else image = StaticHelpers.NoImageFile;
                 return new Uri(Path.GetFullPath(image));
             }
         }
 
         public Brush BackBrush => GetBrushFromStatuses();
 
-        public Brush ProducerBrush => VNIsByFavoriteProducer(this) ? FavoriteProducerBrush : Brushes.Black;
+        public Brush ProducerBrush => StaticHelpers.VNIsByFavoriteProducer(this) ? StaticHelpers.FavoriteProducerBrush : Brushes.Black;
 
-        public Brush DateBrush => ReleaseDate > DateTime.UtcNow ? UnreleasedBrush : Brushes.Black;
+        public Brush DateBrush => ReleaseDate > DateTime.UtcNow ? StaticHelpers.UnreleasedBrush : Brushes.Black;
 
-        public Brush UserRelatedBrush => UserVN?.ULStatus == UserlistStatus.Playing ? ULPlayingBrush : Brushes.Black;
+        public Brush UserRelatedBrush => UserVN?.ULStatus == UserlistStatus.Playing ? StaticHelpers.ULPlayingBrush : Brushes.Black;
 
         [NotNull]
         public IEnumerable<Image> DisplayScreenshots
@@ -473,9 +450,9 @@ namespace Happy_Apps_Core
                 var images = new List<Image>();
                 foreach (var screen in ScreensObject)
                 {
-                    if (screen.Nsfw && !GSettings.NSFWImages)
+                    if (screen.Nsfw && !StaticHelpers.GSettings.NSFWImages)
                     {
-                        images.Add(new Image { Source = new BitmapImage(new Uri(Path.GetFullPath(NsfwImageFile))) });
+                        images.Add(new Image { Source = new BitmapImage(new Uri(Path.GetFullPath(StaticHelpers.NsfwImageFile))) });
                     }
                     else
                     {
@@ -496,7 +473,7 @@ namespace Happy_Apps_Core
         [NotNull]
         public Brush GetBrushFromStatuses()
         {
-            var brush = DefaultTileBrush;
+            var brush = StaticHelpers.DefaultTileBrush;
             var success = GetColorFromULStatus(ref brush);
             if (!success) GetColorFromWLStatus(ref brush);
             return brush;
@@ -511,13 +488,13 @@ namespace Happy_Apps_Core
             switch (UserVN.WLStatus)
             {
                 case WishlistStatus.High:
-                    color = WLHighBrush;
+                    color = StaticHelpers.WLHighBrush;
                     return true;
                 case WishlistStatus.Medium:
-                    color = WLMediumBrush;
+                    color = StaticHelpers.WLMediumBrush;
                     return true;
                 case WishlistStatus.Low:
-                    color = WLLowBrush;
+                    color = StaticHelpers.WLLowBrush;
                     return true;
             }
             return false;
@@ -532,16 +509,16 @@ namespace Happy_Apps_Core
             switch (UserVN?.ULStatus)
             {
                 case UserlistStatus.Finished:
-                    color = ULFinishedBrush;
+                    color = StaticHelpers.ULFinishedBrush;
                     return true;
                 case UserlistStatus.Stalled:
-                    color = ULStalledBrush;
+                    color = StaticHelpers.ULStalledBrush;
                     return true;
                 case UserlistStatus.Dropped:
-                    color = ULDroppedBrush;
+                    color = StaticHelpers.ULDroppedBrush;
                     return true;
                 case UserlistStatus.Unknown:
-                    color = ULUnknownBrush;
+                    color = StaticHelpers.ULUnknownBrush;
                     return true;
             }
             return false;
@@ -566,17 +543,6 @@ namespace Happy_Apps_Core
             return LanguagesObject.Originals.Contains(value);
         }
 
-        public bool MatchesSingleTag(int id)
-        {
-            var allIds = DumpFiles.GetAllSubTags(id);
-            return TagList.Any(tag => allIds.Contains(tag.ID));
-        }
-        public bool MatchesSingleTrait(int id)
-        {
-            var allIds = DumpFiles.GetAllSubTraits(id);
-            return GetCharacters(LocalDatabase.Characters).Any(c => c.Traits.Any(t => allIds.Contains(t.ID)));
-        }
-
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
@@ -589,17 +555,17 @@ namespace Happy_Apps_Core
         {
             if (string.IsNullOrWhiteSpace(Relations))
             {
-                await Conn.GetAndSetRelationsForVN(this);
+                await StaticHelpers.Conn.GetAndSetRelationsForVN(this);
                 OnPropertyChanged(nameof(DisplayRelations));
             }
             if (string.IsNullOrWhiteSpace(Anime))
             {
-                await Conn.GetAndSetAnimeForVN(this);
+                await StaticHelpers.Conn.GetAndSetAnimeForVN(this);
                 OnPropertyChanged(nameof(DisplayAnime));
             }
             if (string.IsNullOrWhiteSpace(Screens))
             {
-                await Conn.GetAndSetScreensForVN(this);
+                await StaticHelpers.Conn.GetAndSetScreensForVN(this);
                 OnPropertyChanged(nameof(DisplayScreenshots));
             }
             //todo
@@ -647,7 +613,11 @@ namespace Happy_Apps_Core
         /// <summary>
         /// Empty Constructor for serialization
         /// </summary>
-        public VNLanguages() { }
+        public VNLanguages()
+        {
+            Originals = new string[0];
+            Others = new string[0];
+        }
 
         /// <summary>
         /// Constructor for vn languages.

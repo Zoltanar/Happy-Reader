@@ -1,5 +1,5 @@
-﻿<happyAppsCore:ListedVN 
-                  xmlns:happyAppsCore="clr-namespace:Happy_Apps_Core;assembly=Happy_Apps_Core"
+﻿<database:ListedVN
+    xmlns:database="clr-namespace:Happy_Apps_Core.Database;assembly=Happy_Apps_Core"
                   VNID="15538"
            Title="Neko Para Vol.1 Soleil Kaiten Shimashita!"
             KanjiTitle="ネコぱら Vol.1 ソレイユ開店しました！"

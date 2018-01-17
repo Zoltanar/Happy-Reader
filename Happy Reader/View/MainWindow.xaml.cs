@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Happy_Apps_Core;
+using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
 using Happy_Reader.ViewModel;
 using JetBrains.Annotations;
