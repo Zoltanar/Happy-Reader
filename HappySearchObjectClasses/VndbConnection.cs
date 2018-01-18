@@ -23,7 +23,16 @@ namespace Happy_Apps_Core
             _textAction = changeTextAction;
             _advancedAction = advancedModeAction;
             _refreshListAction = refreshListAction;
-            _changeStatusAction = changeStatusAction ?? ChangeAPIStatus;
+            if (changeStatusAction != null)
+            {
+                _changeStatusAction = status =>
+                {
+                    //runs the mandatory part of changeApiStatus first, then runs provided action
+                    ChangeAPIStatus(status);
+                    changeStatusAction(status);
+                };
+            }
+            else _changeStatusAction = ChangeAPIStatus;
         }
 
         public VndbConnection([NotNull]Action<string, MessageSeverity> changeTextAction, Action<APIStatus> changeStatusAction = null)
@@ -46,7 +55,7 @@ namespace Happy_Apps_Core
         /// <summary>
         /// Open stream with VNDB API.
         /// </summary>
-        public void Open()
+        private void Open(bool printCertificates)
         {
             LogToFile($"Attempting to open connection to {VndbHost}:{VndbPortTLS}");
             var complete = false;
@@ -54,8 +63,11 @@ namespace Happy_Apps_Core
             var certs = new X509CertificateCollection();
             var certFiles = Directory.GetFiles("Program Data\\Certificates");
             foreach (var certFile in certFiles) certs.Add(X509Certificate.CreateFromCertFile(certFile));
-            LogToFile("Local Certificate data - subject/issuer/format/effectivedate/expirationdate");
-            foreach (var cert in certs) LogToFile($"{cert.Subject}\t{cert.Issuer}\t{cert.GetFormat()}\t{cert.GetEffectiveDateString()}\t{cert.GetExpirationDateString()}");
+            if (printCertificates)
+            {
+                LogToFile("Local Certificate data - subject/issuer/format/effectivedate/expirationdate");
+                foreach (var cert in certs) LogToFile($"{cert.Subject}\t{cert.Issuer}\t{cert.GetFormat()}\t{cert.GetEffectiveDateString()}\t{cert.GetExpirationDateString()}");
+            }
             while (!complete && retries < 5)
             {
                 try
@@ -71,12 +83,15 @@ namespace Happy_Apps_Core
                     LogToFile("SSL Stream authenticated...");
                     if (sslStream.RemoteCertificate != null)
                     {
-                        LogToFile("Remote Certificate data - subject/issuer/format/effectivedate/expirationdate");
                         var subject = sslStream.RemoteCertificate.Subject;
-                        LogToFile(subject + "\t - \t" + sslStream.RemoteCertificate.Issuer + "\t - \t" +
-                                  sslStream.RemoteCertificate.GetFormat() + "\t - \t" +
-                                  sslStream.RemoteCertificate.GetEffectiveDateString() + "\t - \t" +
-                                  sslStream.RemoteCertificate.GetExpirationDateString());
+                        if (printCertificates)
+                        {
+                            LogToFile("Remote Certificate data - subject/issuer/format/effectivedate/expirationdate");
+                            LogToFile(subject + "\t - \t" + sslStream.RemoteCertificate.Issuer + "\t - \t" +
+                                      sslStream.RemoteCertificate.GetFormat() + "\t - \t" +
+                                      sslStream.RemoteCertificate.GetEffectiveDateString() + "\t - \t" +
+                                      sslStream.RemoteCertificate.GetExpirationDateString());
+                        }
                         if (!subject.Substring(3).Equals(VndbHost))
                         {
                             LogToFile(
@@ -166,10 +181,11 @@ namespace Happy_Apps_Core
         /// <param name="clientVersion">Version of Client accessing VNDB API</param>
         /// <param name="username">Username of user to log in as</param>
         /// <param name="password">Password of user to log in as</param>
-        public void Login(string clientName, string clientVersion, string username = null, char[] password = null)
+        /// <param name="printCertificates">Default is true, logs certificates and prints to debug</param>
+        public void Login(string clientName, string clientVersion, string username = null, char[] password = null, bool printCertificates = true)
         {
             if (Status != APIStatus.Closed) Close();
-            Open();
+            Open(printCertificates);
             string loginBuffer;
 
             if (username != null && password != null)
@@ -195,7 +211,7 @@ namespace Happy_Apps_Core
             }
         }
 
-        public void Query(string command)
+        private void Query(string command)
         {
             if (Status == APIStatus.Error) return;
             if(GSettings.AdvancedMode) _advancedAction?.Invoke(command, true);
@@ -223,7 +239,7 @@ namespace Happy_Apps_Core
             SetStatusFromLastResponseType();
         }
 
-        public async Task QueryAsync(string query)
+        private async Task QueryAsync(string query)
         {
             byte[] encoded = Encoding.UTF8.GetBytes(query);
             var requestBuffer = new byte[encoded.Length + 1];

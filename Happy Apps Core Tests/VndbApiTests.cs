@@ -5,26 +5,35 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Happy_Apps_Core;
 using Newtonsoft.Json;
 using static Happy_Apps_Core.StaticHelpers;
-using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
 
 namespace Happy_Apps_Core_Tests
 {
     [TestClass]
     public class VndbApiTests
     {
-        private readonly VndbConnection _conn = new VndbConnection(null, null, null);
+        private readonly VndbConnection _conn = new VndbConnection((message, severity) => Debug.WriteLine($"Severity: {severity}\t {message}"), null, null);
+        private readonly MethodInfo _tryQueryNoReplyMethod;
 
         public VndbApiTests()
         {
-            _conn.Login(ClientName, ClientVersion);
+            _conn.Login(ClientName, ClientVersion, printCertificates: false);
+            _tryQueryNoReplyMethod = typeof(VndbConnection).GetMethod("TryQueryNoReply", BindingFlags.NonPublic | BindingFlags.Instance);
+        }
+
+        private async Task TryQueryNoReply(string query)
+        {
+            var result = await (Task<bool>)_tryQueryNoReplyMethod.Invoke(_conn, new object[] { query });
+            if (!result) throw new Exception("Query Failed");
+            Debug.Print(_conn.LastResponse.JsonPayload);
         }
 
         [TestMethod]
         public async Task GetVN()
         {
             string multiVNQuery = $"get vn basic,details,tags,stats (id = 1) {{{MaxResultsString}}}";
-            var queryResult = await _conn.TryQueryNoReply(multiVNQuery);
-            if (!queryResult) throw new Exception("GetVN Query Failed");
+            await TryQueryNoReply(multiVNQuery);
             var vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(_conn.LastResponse.JsonPayload);
             var vn = vnRoot.Items.Single();
             //basic
@@ -43,8 +52,7 @@ namespace Happy_Apps_Core_Tests
         public async Task GetRelease()
         {
             string developerQuery = $"get release basic,producers (vn = 1) {{{MaxResultsString}}}";
-            var queryResult = await _conn.TryQueryNoReply(developerQuery);
-            if (!queryResult) throw new Exception("GetRelease Query Failed");
+            await TryQueryNoReply(developerQuery);
             var relRoot = JsonConvert.DeserializeObject<ResultsRoot<ReleaseItem>>(_conn.LastResponse.JsonPayload);
             var releaseItems = relRoot.Items.OrderBy(x => x.ID);
             var release = releaseItems.First();
@@ -61,8 +69,7 @@ namespace Happy_Apps_Core_Tests
         public async Task GetProducer()
         {
             string producerQuery = "get producer basic (id = 1)";
-            var producerResult = await _conn.TryQueryNoReply(producerQuery);
-            if (!producerResult) throw new Exception("GetProducer Query Failed");
+            await TryQueryNoReply(producerQuery);
             var root = JsonConvert.DeserializeObject<ResultsRoot<ProducerItem>>(_conn.LastResponse.JsonPayload);
             ProducerItem producer = root.Items.Single();
             //basic
@@ -74,33 +81,28 @@ namespace Happy_Apps_Core_Tests
         public async Task GetCharacter()
         {
             string charsForVNQuery = $"get character traits,vns (vn = 1) {{{MaxResultsString}}}";
-            var queryResult = await _conn.TryQueryNoReply(charsForVNQuery);
-            if (!queryResult) throw new Exception("GetCharacter Query Failed");
+            await TryQueryNoReply(charsForVNQuery);
             var charRoot = JsonConvert.DeserializeObject<ResultsRoot<CharacterItem>>(_conn.LastResponse.JsonPayload);
             var characters = charRoot.Items.OrderBy(x => x.ID);
             var character = characters.First();
-            var traits = JsonConvert.DeserializeObject<List<CharacterItem.TraitItem>>(character.Traits);
-            var vns = JsonConvert.DeserializeObject<List<CharacterItem.VNItem>>(character.VNs);
             Assert.AreEqual(1783, character.ID, "Failed at basic, Payload: " + _conn.LastResponse.JsonPayload);
             //traits
-            Assert.IsTrue(traits.Any(x => x.ID == 7), "Failed at traits, Payload: " + _conn.LastResponse.JsonPayload);
+            Assert.IsTrue(character.Traits.Any(x => x.ID == 7), "Failed at traits, Payload: " + _conn.LastResponse.JsonPayload);
             //vns
-            Assert.IsTrue(vns.First().ID == 1, "Failed at vns, Payload: " + _conn.LastResponse.JsonPayload);
+            Assert.IsTrue(character.VNs.First().ID == 1, "Failed at vns, Payload: " + _conn.LastResponse.JsonPayload);
         }
 
         [TestMethod]
         public async Task GetUser()
         {
             string userQuery = "get user basic (id = 1) ";
-            var queryResult = await _conn.TryQueryNoReply(userQuery);
-            if (!queryResult) throw new Exception("GetUser Query Failed");
+            await TryQueryNoReply(userQuery);
             var userRoot = JsonConvert.DeserializeObject<ResultsRoot<UserItem>>(_conn.LastResponse.JsonPayload);
             var user = userRoot.Items.Single();
             //basic
             Assert.AreEqual("multi", user.Username, "Failed at basic, Payload: " + _conn.LastResponse.JsonPayload);
             userQuery = "get user basic (username = \"multi\") ";
-            queryResult = await _conn.TryQueryNoReply(userQuery);
-            if (!queryResult) throw new Exception("GetUser Query Failed");
+            await TryQueryNoReply(userQuery);
             userRoot = JsonConvert.DeserializeObject<ResultsRoot<UserItem>>(_conn.LastResponse.JsonPayload);
             user = userRoot.Items.Single();
             //basic
@@ -111,19 +113,19 @@ namespace Happy_Apps_Core_Tests
     [TestClass]
     public class VndbApiLoginTests
     {
-        private readonly VndbConnection _conn = new VndbConnection(null, null, null);
+        private readonly VndbConnection _conn = new VndbConnection((message, severity) => Debug.WriteLine($"Severity: {severity}\t {message}"), null, null);
 
         [TestMethod]
         public void LoginWithoutCredentials()
         {
-            _conn.Login(ClientName, ClientVersion);
+            _conn.Login(ClientName, ClientVersion, printCertificates: false);
             Assert.AreEqual(VndbConnection.APIStatus.Ready, _conn.Status, _conn.LastResponse.JsonPayload);
         }
 
         [TestMethod, Ignore]
         public void LoginWithCredentials()
         {
-            _conn.Login(ClientName, ClientVersion, "hacTest", "hacTest".ToCharArray());
+            _conn.Login(ClientName, ClientVersion, "hacTest", "hacTest".ToCharArray(), printCertificates: false);
             Assert.AreEqual(ResponseType.Ok, _conn.LastResponse.Type, _conn.LastResponse.JsonPayload);
         }
 

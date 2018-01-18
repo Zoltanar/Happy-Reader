@@ -159,10 +159,26 @@ throw;
                 {
                     dbCharacter = new CharacterItem { ID = character.ID };
                     Characters.Add(dbCharacter);
+                    StaticHelpers.Conn.CharactersAdded++;
                 }
+                else StaticHelpers.Conn.CharactersUpdated++;
 
+                dbCharacter.Name = character.Name;
+                dbCharacter.Original = character.Original;
+                dbCharacter.Gender = character.Gender;
+                dbCharacter.BloodT = character.BloodT;
+                // ReSharper disable PossibleInvalidOperationException
+                if(character.Birthday?.Length == 2 && character.Birthday.All(x=> x != null)) dbCharacter.BirthDate = new DateTime(2000,character.Birthday[1].Value,character.Birthday[0].Value);
+                // ReSharper restore PossibleInvalidOperationException
+                dbCharacter.Aliases = character.Aliases;
+                dbCharacter.Description = character.Description;
+                dbCharacter.Image = character.Image;
                 foreach (var trait in character.Traits) dbCharacter.DbTraits.Add(DbTrait.From(trait));
                 foreach (var vn in character.VNs) dbCharacter.CharacterVns.Add(CharacterVN.From(vn));
+                if (character.Voiced != null)
+                {
+                    foreach (var staff in character.Voiced) dbCharacter.DbStaff.Add(CharacterStaff.From(staff));
+                }
                 dbCharacter.DateUpdated = DateTime.UtcNow;
                 if (saveChanges) SaveChanges();
             }
@@ -172,7 +188,6 @@ throw;
 #if !DEBUG
                 throw;
 #endif
-
             }
         }
 

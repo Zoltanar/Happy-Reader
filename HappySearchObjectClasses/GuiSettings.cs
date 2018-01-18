@@ -8,6 +8,7 @@
         private bool _sexualTags;
         private bool _technicalTags;
         private string _ithPath;
+        private int _maxClipboardSize = 700;
 
         public bool NSFWImages
         {
@@ -71,6 +72,17 @@
             {
                 if (_ithPath == value) return;
                 _ithPath = value;
+                Save();
+            }
+        }
+
+        public int MaxClipboardSize
+        {
+            get => _maxClipboardSize;
+            set
+            {
+                if (_maxClipboardSize == value) return;
+                _maxClipboardSize = value;
                 Save();
             }
         }

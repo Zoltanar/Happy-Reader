@@ -118,6 +118,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="API Objects\SubLevel\CharacterItem.cs" />
+    <Compile Include="Database\CharacterStaff.cs" />
     <Compile Include="Database\CharacterVN.cs" />
     <Compile Include="API Objects\SubLevel\ProducerItem.cs" />
     <Compile Include="API Objects\SubLevel\ReleaseItem.cs" />

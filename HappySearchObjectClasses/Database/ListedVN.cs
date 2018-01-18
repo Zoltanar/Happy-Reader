@@ -191,7 +191,7 @@ namespace Happy_Apps_Core.Database
             get
             {
                 if (VNID == 0) return new List<string>();
-                var vnCharacters =  StaticHelpers.LocalDatabase.CharacterVNs.Where(x=>x.ListedVNId == VNID).Select(y=>y.CharacterItem).ToArray();
+                var vnCharacters =  StaticHelpers.LocalDatabase.CharacterVNs.Where(x=>x.ListedVNId == VNID).Select(y=>y.CharacterItem).Distinct().ToArray();
                 var stringList = new List<string> { $"{vnCharacters.Length} Characters" };
                 for (var index = 0; index < vnCharacters.Length; index++)
                 {

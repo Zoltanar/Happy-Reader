@@ -21,38 +21,54 @@ namespace Happy_Apps_Core
 	    {
             DbTraits = new HashSet<DbTrait>();
             CharacterVns = new HashSet<CharacterVN>();
+            DbStaff = new HashSet<CharacterStaff>();
 	    }
 
 	    [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
-		[Column("CharacterID")]
 		public int ID { get; set; }
-		public string Name { get; set; }
-		public string Image { get; set; }
+        
+	    #region Basic Flag
+	    public string Name { get; set; }
+	    public string Original { get; set; }
+	    public string Gender { get; set; }
+	    public string BloodT { get; set; }
+	    /// <summary>
+	    /// Only used in json convert from vndb
+	    /// </summary>
+        [NotMapped]
+	    public int?[] Birthday { get; set; }
+        public DateTime? BirthDate { get; set; }
+        #endregion
+
+        #region Details Flag
+        public string Aliases { get; set; }
+	    public string Description { get; set; }
+        public string Image { get; set; }
+        #endregion
+
 		public DateTime? DateUpdated { get; set; }
 
 	    /// <summary>
 	    /// Only used in json convert from vndb
 	    /// </summary>
-        [NotMapped]
-	    public VNItem[] VNs { get; set; }
+	    [NotMapped]
+	    public TraitItem[] Traits { get; set; }
 
         /// <summary>
         /// Only used in json convert from vndb
         /// </summary>
         [NotMapped]
-        public TraitItem[] Traits { get; set; }
+	    public VNItem[] VNs { get; set; }
+
+	    [NotMapped]
+        public StaffItem[] Voiced { get; set; }
 
 	    public virtual ICollection<DbTrait> DbTraits { get; set; }
-
 	    public virtual ICollection<CharacterVN> CharacterVns { get; set; }
-        
-	    [NotMapped]
-		public string Description { get; set; }
-		[NotMapped]
-		public string Aliases { get; set; }
-        
-		public bool ContainsTraits(IEnumerable<DumpFiles.WrittenTrait> traitFilters)
+	    public virtual ICollection<CharacterStaff> DbStaff { get; set; }
+
+        public bool ContainsTraits(IEnumerable<DumpFiles.WrittenTrait> traitFilters)
 		{
 			//remove all numbers in traits from traitIDs, if nothing is left then it matched all
 			int[] traits = DbTraits.Select(x => x.TraitId).ToArray();
@@ -96,6 +112,17 @@ namespace Happy_Apps_Core
 				set => this[3] = value;
 			}
 		}
+
+	    public class StaffItem
+	    {
+	        public int ID { get; set; }
+            /// <summary>
+            /// the staff alias ID being used
+            /// </summary>
+	        public int AID { get; set; }
+	        public int VID { get; set; }
+	        public string Note { get; set; }
+        }
 
 	}
 }
