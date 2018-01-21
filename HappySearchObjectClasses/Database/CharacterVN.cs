@@ -1,7 +1,11 @@
-﻿namespace Happy_Apps_Core.Database
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Happy_Apps_Core.Database
 {
+    // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
     public class CharacterVN
     {
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public int RId { get; set; }
         public int Spoiler { get; set; }
@@ -21,5 +25,7 @@
             };
             return result;
         }
+
+        public override string ToString() => $"[VNID: {ListedVNId}, CID: {CharacterItem.ID}] {CharacterItem.Name}";
     }
 }

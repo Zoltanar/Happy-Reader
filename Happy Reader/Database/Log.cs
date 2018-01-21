@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 
@@ -33,6 +34,7 @@ namespace Happy_Reader.Database
         {
             var log = new Log(LogKind.TimePlayed, usergameId, timePlayed.ToString(), timePlayed);
             if(notify) log.Notify();
+            else Debug.WriteLine(log.GetMessage());
             return log;
         }
 

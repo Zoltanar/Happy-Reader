@@ -1,5 +1,7 @@
-﻿using System.Windows;
+﻿using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
+using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 
 namespace Happy_Reader.View
@@ -15,6 +17,8 @@ namespace Happy_Reader.View
             InitializeComponent();
             _viewModel = vn;
             DataContext = vn;
+            var cvnItems = StaticHelpers.LocalDatabase.CharacterVNs.Where(cvn => cvn.ListedVNId == vn.VNID).ToArray();
+            CharacterTiles.ItemsSource = cvnItems.Select(CharacterTile.FromCharacterVN);
         }
 
         private async void VNPanel_OnLoaded(object sender, RoutedEventArgs e)
@@ -22,7 +26,6 @@ namespace Happy_Reader.View
             await _viewModel.GetRelationsAnimeScreens();
             RelationsCombobox.SelectedIndex = 0;
             AnimeCombobox.SelectedIndex = 0;
-            //ScreensCombobox.SelectedIndex = 0;
         }
 
         private void ScrollViewer_OnPreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)

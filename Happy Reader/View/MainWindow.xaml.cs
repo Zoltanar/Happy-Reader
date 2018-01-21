@@ -165,6 +165,11 @@ namespace Happy_Reader.View
                 StaticHelpers.GSettings.IthPath = dialog.FileName;
             }
         }
+
+        private void SetClipboardSize(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
+        {
+            StaticHelpers.GSettings.MaxClipboardSize = (int)((Slider)e.Source).Value;
+        }
     }
 }
 

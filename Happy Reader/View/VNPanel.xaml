@@ -15,15 +15,19 @@
         </Style>
     </UserControl.Resources>
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="559"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="329*"/>
-            <RowDefinition Height="272*"/>
+            <RowDefinition Height="260"/>
+            <RowDefinition Height="86"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Grid>
+        <Grid Grid.Column="0" Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="108"/>
                 <ColumnDefinition Width="213*"/>
-                <ColumnDefinition Width="133*"/>
             </Grid.ColumnDefinitions>
             <Grid Grid.Row="0" Grid.Column="0" Margin="5" Background="LightGray">
                 <Grid.RowDefinitions >
@@ -45,7 +49,6 @@
                 <Label Grid.Row="5" Style="{StaticResource RightLabel}" Content="Rating"/>
                 <Label Grid.Row="6" Style="{StaticResource RightLabel}" Content="Relations"/>
                 <Label Grid.Row="7" Style="{StaticResource RightLabel}" Content="Anime"/>
-                <Label Grid.Row="8" Style="{StaticResource RightLabel}" Content="Character Traits"/>
             </Grid>
             <Grid Grid.Row="0" Grid.Column="1" Margin="5" Background="LightGray">
                 <Grid.RowDefinitions >
@@ -90,22 +93,36 @@
                 </Grid>
                 <ComboBox Grid.Row="6" x:Name="RelationsCombobox" ItemsSource="{Binding DisplayRelations}" SelectedIndex="0" IsReadOnly="True"/>
                 <ComboBox Grid.Row="7" x:Name="AnimeCombobox" ItemsSource="{Binding DisplayAnime}" SelectedIndex="0" IsReadOnly="True"/>
-                <ComboBox Grid.Row="8" ItemsSource="{Binding DisplayTraits}" SelectedIndex="0" IsReadOnly="True"/>
             </Grid>
-            <Image Grid.Row="0" Grid.Column="2" Source="{Binding CoverSource}" Margin="5"/>
-            <Label Grid.Row="0" VerticalContentAlignment="Top" HorizontalContentAlignment="Right" Grid.Column="2" >
-                <Hyperlink Click="ID_OnClick">
-                    <Run Text="{Binding VNID}"/>
-                </Hyperlink>
-            </Label>
         </Grid>
-        <Grid Grid.Row="1">
+        <TextBox Grid.Column="0" Grid.Row="1" Text="{Binding Description}" TextWrapping="Wrap" Margin="5" Background="LightGray"/>
+        <Image Grid.Row="0" Grid.RowSpan="2" Source="{Binding CoverSource}" Margin="5" Grid.Column="1"/>
+        <Label Grid.Row="0" VerticalContentAlignment="Top" HorizontalContentAlignment="Right" Grid.Column="1" >
+            <Hyperlink Click="ID_OnClick">
+                <Run Text="{Binding VNID}"/>
+            </Hyperlink>
+        </Label>
+        <Grid Grid.Row="2" Grid.ColumnSpan="2" Grid.Column="0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="230"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="470"/>
             </Grid.ColumnDefinitions>
-            <TextBox Grid.Column="0" Text="{Binding Description}" TextWrapping="Wrap" Margin="5" Background="LightGray"/>
-            <ItemsControl ItemsSource="{Binding DisplayScreenshots}"  Grid.Column="1">
+            <ItemsControl ItemsSource="{Binding DisplayScreenshots}"  Grid.Column="0" Margin="5">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.Template>
+                    <ControlTemplate>
+                        <ScrollViewer x:Name="ScrollViewer" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Disabled" 
+                                      CanContentScroll="True" PreviewMouseWheel="ScrollViewer_OnPreviewMouseWheel">
+                            <ItemsPresenter />
+                        </ScrollViewer>
+                    </ControlTemplate>
+                </ItemsControl.Template>
+            </ItemsControl>
+            <ItemsControl x:Name="CharacterTiles"  Grid.Column="1" Margin="5">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel Orientation="Horizontal"/>

@@ -1,6 +1,6 @@
 ﻿namespace Happy_Apps_Core
 {
-    public class GuiSettings
+    public class GuiSettings : SettingsJsonFile
     {
         private bool _nsfwImages;
         private bool _advancedMode;
@@ -8,7 +8,13 @@
         private bool _sexualTags;
         private bool _technicalTags;
         private string _ithPath;
-        private int _maxClipboardSize = 700;
+        private int _maxClipboardSize;
+        private bool _captureClipboardOnStart;
+
+        public GuiSettings()
+        {
+            MaxClipboardSize = 700;
+        }
 
         public bool NSFWImages
         {
@@ -17,7 +23,7 @@
             {
                 if (_nsfwImages == value) return;
                 _nsfwImages = value;
-                Save();
+                if (Loaded) Save();
             }
         }
 
@@ -28,7 +34,7 @@
             {
                 if (_advancedMode == value) return;
                 _advancedMode = value;
-                Save();
+                if (Loaded) Save();
             }
         }
 
@@ -39,7 +45,7 @@
             {
                 if (_contentTags == value) return;
                 _contentTags = value;
-                Save();
+                if (Loaded) Save();
             }
         }
 
@@ -50,7 +56,7 @@
             {
                 if (_sexualTags == value) return;
                 _sexualTags = value;
-                Save();
+                if (Loaded) Save();
             }
         }
 
@@ -61,7 +67,7 @@
             {
                 if (_technicalTags == value) return;
                 _technicalTags = value;
-                Save();
+                if (Loaded) Save();
             }
         }
 
@@ -72,7 +78,7 @@
             {
                 if (_ithPath == value) return;
                 _ithPath = value;
-                Save();
+                if (Loaded) Save();
             }
         }
 
@@ -83,12 +89,20 @@
             {
                 if (_maxClipboardSize == value) return;
                 _maxClipboardSize = value;
-                Save();
+                if (Loaded) Save();
             }
         }
 
-        public static GuiSettings Load() => StaticHelpers.LoadJson<GuiSettings>(StaticHelpers.GuiSettingsJson);
-
-        public void Save() => this.SaveJson(StaticHelpers.GuiSettingsJson);
+        public bool CaptureClipboardOnStart
+        {
+            get => _captureClipboardOnStart;
+            set
+            {
+                if (_captureClipboardOnStart == value) return;
+                _captureClipboardOnStart = value;
+                if(Loaded) Save();
+            }
+        }
     }
+
 }

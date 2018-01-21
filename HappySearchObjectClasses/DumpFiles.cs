@@ -14,6 +14,10 @@ namespace Happy_Apps_Core
         private const string TraitsJsonGz = StoredDataFolder + "traits.json.gz";
         private const string TagsJson = StoredDataFolder + "tags.json";
         private const string TraitsJson = StoredDataFolder + "traits.json";
+        
+        public const string ContentTag = "cont";
+        public const string SexualTag = "ero";
+        public const string TechnicalTag = "tech";
 
         // ReSharper disable UnusedMember.Global
         public class ItemWithParents
@@ -269,11 +273,11 @@ namespace Happy_Apps_Core
 
         public static void Load()
         {
-            if (DaysSince(CSettings.DumpfileDate) > 2 || DaysSince(CSettings.DumpfileDate) == -1)
+            var daysSince = CSettings.DumpfileDate.DaysSince();
+            if (daysSince > 2 || daysSince == -1)
             {
                 if (!GetNewDumpFiles()) return;
                 CSettings.DumpfileDate = DateTime.UtcNow;
-                CSettings.Save();
             }
             else
             {

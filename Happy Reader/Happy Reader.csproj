@@ -201,6 +201,7 @@
     </Compile>
     <Compile Include="Model\RoleProxy.cs" />
     <Compile Include="Model\StaticMethods.cs" />
+    <Compile Include="ViewModel\OutputWindowViewModel.cs" />
     <Compile Include="View\TestTranslationPanel.xaml.cs">
       <DependentUpon>TestTranslationPanel.xaml</DependentUpon>
     </Compile>
@@ -219,6 +220,9 @@
     <Compile Include="View\VNTab.xaml.cs">
       <DependentUpon>VNTab.xaml</DependentUpon>
     </Compile>
+    <Compile Include="View\CharacterTile.xaml.cs">
+      <DependentUpon>CharacterTile.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\VNTile.xaml.cs">
       <DependentUpon>VNTile.xaml</DependentUpon>
     </Compile>
@@ -227,10 +231,14 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\ListedVNSampleData.xaml">
+    <DesignData Include="View\CharacterItemSampleData.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </DesignData>
+    <DesignData Include="View\ListedVNSampleData.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
-    </Page>
+    </DesignData>
     <Page Include="View\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -270,6 +278,10 @@
     <Page Include="View\VNTab.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\CharacterTile.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="View\VNTile.xaml">
       <SubType>Designer</SubType>

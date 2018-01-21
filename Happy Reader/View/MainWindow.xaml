@@ -62,13 +62,26 @@
                             <ColumnDefinition/>
                             <ColumnDefinition Width="435"/>
                         </Grid.ColumnDefinitions>
-                        <TextBox TextWrapping="Wrap" IsReadOnly="True" Text="Information About This Program" Margin="10" Background="Black" Foreground="White"/>
+                        <TextBox TextWrapping="Wrap" IsReadOnly="True" Text="Information About This Program" Margin="10,5" Background="Black" Foreground="White"/>
                         <GroupBox Grid.Column="1" Header="Settings" Foreground="White" BorderThickness="1" Margin="5">
                             <StackPanel>
                                 <CheckBox Content="Show Content Tags" IsChecked="{Binding GSettings.ContentTags}"/>
                                 <CheckBox Content="Show Sexual Tags" IsChecked="{Binding GSettings.SexualTags}"/>
                                 <CheckBox Content="Show Technical Tags" IsChecked="{Binding GSettings.TechnicalTags}"/>
                                 <CheckBox Content="Show NSFW Images" IsChecked="{Binding GSettings.NSFWImages}"/>
+                                <CheckBox Content="Start Capturing Clipboard From Launch" IsChecked="{Binding GSettings.CaptureClipboardOnStart}"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="160"/>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition Width="53"/>
+                                        <ColumnDefinition Width="53"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Grid.Column="0" Content="Max Clipboard Capture Size:"/>
+                                    <Slider Grid.Column="1" Name="ClipboardSizeSlider" Value="{Binding GSettings.MaxClipboardSize, Mode=OneWay}" Minimum="0" Maximum="1000" Foreground="White" IsSnapToTickEnabled="True" Thumb.DragCompleted="SetClipboardSize"/>
+                                    <TextBox Grid.Column="2" Text="{Binding ElementName=ClipboardSizeSlider, Path=Value}" Foreground="White" Style="{StaticResource NoBorderTextBox}"/>
+                                    <Button Grid.Column="3" Content="Change" Click="ChangeIthPath"/>
+                                </Grid>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="57"/>

@@ -119,11 +119,13 @@ namespace Happy_Reader
 
         public static void SaveTranslationCache()
         {
+            Debug.WriteLine("Saving Translation Cache...");
             foreach (var translation in Translator.GetNewCache())
             {
                 Data.CachedTranslations.Add(translation);
             }
-            Data.SaveChanges();
+            var rows = Data.SaveChanges();
+            Debug.WriteLine($"Finished saving translation cache ({rows} entries).");
         }
 
         /// <summary>

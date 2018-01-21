@@ -1,11 +1,11 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using Happy_Reader.ViewModel;
 
 namespace Happy_Reader.View
 {
@@ -20,20 +20,19 @@ namespace Happy_Reader.View
         private bool _original = true;
         private bool _romaji = true;
         private readonly GridLength _settingsColumnLength;
+        private readonly MainWindow _mainWindow;
 
         public OutputWindow(MainWindow mainWindow)
         {
             InitializeComponent();
-            var viewModel = (OutputWindowViewModel) DataContext;
-            viewModel.TextArea = DebugTextbox;
-            viewModel.MainWindow = mainWindow;
+            _mainWindow = mainWindow;
             _settingsColumnLength = SettingsColumn.Width;
         }
 
         public void SetText(Translation translation)
         {
             var blocks = new System.Collections.Generic.List<Paragraph>(3);
-            if ( _original && !string.IsNullOrWhiteSpace(translation.Original))
+            if (_original && !string.IsNullOrWhiteSpace(translation.Original))
             {
                 var originalP = new Paragraph(new Run(translation.Original));
                 originalP.Inlines.FirstInline.Foreground = Brushes.Ivory;
@@ -92,46 +91,11 @@ namespace Happy_Reader.View
         private void ToggleOriginal(object sender, RoutedEventArgs e) => _original = ((CheckBox)sender).IsChecked ?? false;
 
         private void ToggleRomaji(object sender, RoutedEventArgs e) => _romaji = ((CheckBox)sender).IsChecked ?? false;
-    }
 
-    public class OutputWindowViewModel
-    {
-        public RichTextBox TextArea { get; set; }
-
-        public MainWindow MainWindow { get; set; }
-
-        public OutputWindowViewModel()
+        private void OutputWindow_OnLoaded(object sender, RoutedEventArgs e)
         {
-            AddEntryForText = new CommandHandler(AddEntry, true);
-        }
-        private void AddEntry()
-        {
-            MainWindow.AddEntryFromOutputWindow(TextArea.Selection.Text);
-        }
-
-        public ICommand AddEntryForText { get; set; }
-
-        private class CommandHandler : ICommand
-        {
-            private readonly Action _action;
-            private readonly bool _canExecute;
-            public CommandHandler(Action action, bool canExecute)
-            {
-                _action = action;
-                _canExecute = canExecute;
-            }
-
-            public bool CanExecute(object parameter)
-            {
-                return _canExecute;
-            }
-
-            public event EventHandler CanExecuteChanged;
-
-            public void Execute(object parameter)
-            {
-                _action();
-            }
+            var viewModel = (OutputWindowViewModel)DataContext;
+            viewModel.Initialize(_mainWindow, DebugTextbox);
         }
     }
 }

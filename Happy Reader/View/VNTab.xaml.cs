@@ -55,39 +55,50 @@ namespace Happy_Reader.View
 
         private async void UpdateForYear(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(SearchTexBox.Text) || !int.TryParse(SearchTexBox.Text, out int year)) return; //show error
-            if (year < 1970 || year > 2030) return; //show error;
-            await _viewModel.UpdateForYear(year);
+            if (!DetermineYears(out int fromYear, out int _)) return;
+            await _viewModel.UpdateForYear(fromYear);
+        }
+
+        private async void UpdateCharactersForYear(object sender, RoutedEventArgs e)
+        {
+            if (!DetermineYears(out int fromYear, out int _)) return;
+            await _viewModel.UpdateCharactersForYear(fromYear);
         }
 
         private async void FetchForYear(object sender, RoutedEventArgs e)
         {
+            if (!DetermineYears(out int fromYear, out int toYear)) return;
+            await _viewModel.FetchForYear(fromYear, toYear);
+        }
+
+        private bool DetermineYears(out int fromYear, out int toYear)
+        {
+            fromYear = 0;
+            toYear = VndbConnection.VndbAPIMaxYear;
             string text = SearchTexBox.Text;
-            if (string.IsNullOrWhiteSpace(text)) return;
-            int fromYear = 0;
-            int toYear = VndbConnection.VndbAPIMaxYear;
+            if (string.IsNullOrWhiteSpace(text)) return false;
             if (text.StartsWith(">") && text.Length > 1)
             {
                 text = text.Substring(1);
-                if (!int.TryParse(text, out fromYear)) return; //show error
+                if (!int.TryParse(text, out fromYear)) return false; //show error
             }
             else if (text.StartsWith("<") && text.Length > 1)
             {
                 text = text.Substring(1);
-                if (!int.TryParse(text, out toYear)) return; //show error
+                if (!int.TryParse(text, out toYear)) return false; //show error
             }
             else if (text.Contains("-") && text.Length > 2)
             {
                 int index = text.IndexOf("-", StringComparison.Ordinal);
-                if (!int.TryParse(text.Substring(0, index), out fromYear)) return; //show error
-                if (!int.TryParse(text.Substring(index+1), out toYear)) return; //show error
+                if (!int.TryParse(text.Substring(0, index), out fromYear)) return false; //show error
+                if (!int.TryParse(text.Substring(index + 1), out toYear)) return false; //show error
             }
             else
             {
-                if (!int.TryParse(text, out fromYear)) return; //show error
+                if (!int.TryParse(text, out fromYear)) return false; //show error
                 toYear = fromYear;
             }
-            await _viewModel.FetchForYear(fromYear, toYear);
+            return true;
         }
     }
 }

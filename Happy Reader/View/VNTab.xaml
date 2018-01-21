@@ -18,6 +18,9 @@
                     <Setter Property="HorizontalContentAlignment" Value="Left" />
                     <Setter Property="VerticalContentAlignment" Value="Top" />
                 </Style>
+                <Style TargetType="Button">
+                    <Setter Property="Padding" Value="0,5" />
+                </Style>
             </ListBox.Resources>
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
@@ -31,16 +34,17 @@
                 </ItemsPanelTemplate>
             </ListBox.ItemsPanel>
         </ListBox>
-        <Label Content="{Binding ListedVNs.Count}" ContentStringFormat="Items: {0}" Margin="0,0,10,35" Height="30" VerticalAlignment="Bottom" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="73"/>
-        <Label Content="{Binding CSettings.URTDate}" ContentStringFormat="Last URT Update: {0}" HorizontalAlignment="Left" Margin="10,0,0,0" Height="30" VerticalAlignment="Bottom" VerticalContentAlignment="Center" Width="266"/>
-        <Button Content="Update" HorizontalAlignment="Left" Margin="281,0,0,0" Width="75" Click="UpdateURT" Height="30" VerticalAlignment="Bottom" Padding="5,5,7,5"/>
-        <Label Foreground="{Binding VndbConnectionColor}" Content="{Binding VndbConnectionReply}" Margin="361,0,10,0" Height="30" VerticalAlignment="Bottom" VerticalContentAlignment="Center"/>
+        <Label Content="{Binding ListedVNs.Count}" ContentStringFormat="Items: {0}" Margin="0,0,10,35" Height="30" VerticalAlignment="Bottom" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="109" Padding="0,5"/>
+        <Label Content="{Binding CSettings.URTDate}" ContentStringFormat="Last URT Update: {0}" HorizontalAlignment="Left" Margin="10,0,0,0" Height="30" VerticalAlignment="Bottom" VerticalContentAlignment="Center" Width="251"/>
+        <Button Content="Update URT" HorizontalAlignment="Left" Margin="605,0,0,35" Width="71" Click="UpdateURT" Height="30" VerticalAlignment="Bottom"/>
+        <Label Foreground="{Binding VndbConnectionColor}" Content="{Binding VndbConnectionReply}" Margin="411,0,10,0" Height="30" VerticalAlignment="Bottom" VerticalContentAlignment="Center"/>
         <Label Content="Search:" HorizontalAlignment="Left" Margin="10,0,0,35" Height="30" VerticalAlignment="Bottom" VerticalContentAlignment="Center"/>
-        <TextBox x:Name="SearchTexBox" HorizontalAlignment="Left" Margin="63,0,0,36" TextWrapping="Wrap" Width="213" Padding="5" VerticalContentAlignment="Center" PreviewKeyUp="SearchForVN" Height="29" VerticalAlignment="Bottom"/>
-        <Button Content="Reset" HorizontalAlignment="Left" Margin="281,0,0,35" Width="43" Click="ShowAll" Height="30" VerticalAlignment="Bottom" Padding="5,5,7,5"/>
-        <Button Content="Show URT" HorizontalAlignment="Left" Margin="329,0,0,35" Width="67" Click="ShowURT" Height="30" VerticalAlignment="Bottom" Padding="5,5,7,5"/>
-        <Button Content="Preset 2" HorizontalAlignment="Left" Margin="401,0,0,35" Width="63" Click="Preset2" Height="30" VerticalAlignment="Bottom" Padding="5,5,7,5"/>
-        <Button Content="Update for Year" HorizontalAlignment="Left" Margin="469,0,0,35" Width="97" Click="UpdateForYear" Height="30" VerticalAlignment="Bottom" Padding="5,5,7,5"/>
-        <Button Content="Fetch for Year" HorizontalAlignment="Left" Margin="571,0,0,36" Width="88" Click="FetchForYear" Height="30" VerticalAlignment="Bottom" Padding="5,5,7,5"/>
+        <TextBox x:Name="SearchTexBox" HorizontalAlignment="Left" Margin="63,0,0,36" TextWrapping="Wrap" Width="198" Padding="5" VerticalContentAlignment="Center" PreviewKeyUp="SearchForVN" Height="29" VerticalAlignment="Bottom"/>
+        <Button Content="Reset" HorizontalAlignment="Left" Margin="266,0,0,35" Width="43" Click="ShowAll" Height="30" VerticalAlignment="Bottom"/>
+        <Button Content="Show URT" HorizontalAlignment="Left" Margin="314,0,0,35" Width="59" Click="ShowURT" Height="30" VerticalAlignment="Bottom"/>
+        <Button Content="Preset 2" HorizontalAlignment="Left" Margin="378,0,0,35" Width="46" Click="Preset2" Height="30" VerticalAlignment="Bottom"/>
+        <Button Content="Update for Year" HorizontalAlignment="Left" Margin="429,0,0,35" Width="87" Click="UpdateForYear" Height="30" VerticalAlignment="Bottom"/>
+        <Button Content="Fetch for Year" HorizontalAlignment="Left" Margin="521,0,0,35" Width="79" Click="FetchForYear" Height="30" VerticalAlignment="Bottom"/>
+        <Button Content="Fetch Characters for Year" HorizontalAlignment="Left" Margin="266,0,0,0" Width="140" Click="UpdateCharactersForYear" Height="30" VerticalAlignment="Bottom"/>
     </Grid>
 </UserControl>

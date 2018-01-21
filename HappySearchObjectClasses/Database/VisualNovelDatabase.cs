@@ -162,19 +162,35 @@ throw;
                     StaticHelpers.Conn.CharactersAdded++;
                 }
                 else StaticHelpers.Conn.CharactersUpdated++;
-
                 dbCharacter.Name = character.Name;
                 dbCharacter.Original = character.Original;
                 dbCharacter.Gender = character.Gender;
                 dbCharacter.BloodT = character.BloodT;
                 // ReSharper disable PossibleInvalidOperationException
-                if(character.Birthday?.Length == 2 && character.Birthday.All(x=> x != null)) dbCharacter.BirthDate = new DateTime(2000,character.Birthday[1].Value,character.Birthday[0].Value);
+                try
+                {
+                    if (character.Birthday?.Length == 2 && character.Birthday.All(x => x != null))
+                        dbCharacter.BirthDate =
+                            new DateTime(2000, character.Birthday[1].Value, character.Birthday[0].Value);
+                }
+                catch (ArgumentOutOfRangeException ex)
+                {
+                    Debug.Assert(character.Birthday != null, "character.Birthday != null");
+                    StaticHelpers.LogToFile($"Exception in {nameof(UpsertSingleCharacter)} (CID: {character.ID}), {ex.Message} ({character.Birthday[1].Value}, {character.Birthday[0].Value})");
+                }
                 // ReSharper restore PossibleInvalidOperationException
                 dbCharacter.Aliases = character.Aliases;
                 dbCharacter.Description = character.Description;
                 dbCharacter.Image = character.Image;
+                Traits.RemoveRange(dbCharacter.DbTraits);
                 foreach (var trait in character.Traits) dbCharacter.DbTraits.Add(DbTrait.From(trait));
-                foreach (var vn in character.VNs) dbCharacter.CharacterVns.Add(CharacterVN.From(vn));
+                CharacterVNs.RemoveRange(dbCharacter.CharacterVns);
+                foreach (var vn in character.VNs)
+                {
+                    if (dbCharacter.CharacterVns.Any(x => x.ListedVNId == vn.ID)) continue;
+                    dbCharacter.CharacterVns.Add(CharacterVN.From(vn));
+                }
+                CharacterStaffs.RemoveRange(dbCharacter.DbStaff);
                 if (character.Voiced != null)
                 {
                     foreach (var staff in character.Voiced) dbCharacter.DbStaff.Add(CharacterStaff.From(staff));
@@ -231,6 +247,14 @@ throw;
             var vn = VisualNovels.FirstOrDefault(x => x.VNID == vnid);
             if (vn == null) return;
             VisualNovels.Remove(vn);
+            if (saveChanges) SaveChanges();
+        }
+
+        public void RemoveCharacter(int cid, bool saveChanges)
+        {
+            var character = Characters.FirstOrDefault(x => x.ID == cid);
+            if (character == null) return;
+            Characters.Remove(character);
             if (saveChanges) SaveChanges();
         }
 

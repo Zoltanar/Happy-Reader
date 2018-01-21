@@ -73,6 +73,7 @@ namespace Happy_Reader.ViewModel
         public BindingList<string> VndbResponses { get; set; }
         public TranslationTester TestViewModel { get; }
         public VNTabViewModel DatabaseViewModel { get; }
+        public bool TranslateOn { get; set; } = true;
 
         public MainWindowViewModel(MainWindow mainWindow)
         {
@@ -156,6 +157,7 @@ namespace Happy_Reader.ViewModel
 
         public async Task Initialize(Stopwatch watch)
         {
+            CaptureClipboard = GSettings.CaptureClipboardOnStart;
             await DatabaseViewModel.Initialize();
             StaticMethods.Data.UserGames.Load();
             await Task.Run(() =>
@@ -267,7 +269,7 @@ namespace Happy_Reader.ViewModel
 
         public void ClipboardChanged(object sender, EventArgs e)
         {
-            if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)) return;
+            if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl) || !TranslateOn) return;
             if (_hookedProcess == null) return;
             var cpOwner = StaticMethods.GetClipboardOwner();
             var b1 = cpOwner == null;
@@ -283,6 +285,7 @@ namespace Happy_Reader.ViewModel
             try
             {
                 var text = Clipboard.GetText();
+                if (text.Length > GSettings.MaxClipboardSize) return; //todo show error
                 var latinOnly = new System.Text.RegularExpressions.Regex(@"^[a-zA-Z0-9:/\\\\r\\n .!?,;()""]+$");
                 if (string.IsNullOrWhiteSpace(text)) return;
                 if (latinOnly.IsMatch(text)) return;
@@ -349,7 +352,6 @@ namespace Happy_Reader.ViewModel
 
         public void DebugButton()
         {
-            _outputWindow.Show();
         }
     }
 }

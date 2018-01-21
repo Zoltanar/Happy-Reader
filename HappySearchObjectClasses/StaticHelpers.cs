@@ -5,14 +5,10 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Security;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using Happy_Apps_Core.Database;
 using Newtonsoft.Json;
 using System.Windows.Media;
@@ -58,9 +54,6 @@ namespace Happy_Apps_Core
         public const string APIVersion = "2.25";
         public const int APIMaxResults = 25;
         public static readonly string MaxResultsString = "\"results\":" + APIMaxResults;
-        public const string ContentTag = "cont";
-        public const string SexualTag = "ero";
-        public const string TechnicalTag = "tech";
 
         //tile background colors
         public static readonly Brush DefaultTileBrush = Brushes.LightBlue;
@@ -79,21 +72,23 @@ namespace Happy_Apps_Core
         public static readonly Brush UnreleasedBrush = Brushes.White;
 
         //text colors
-        private static readonly Color ErrorColor = Colors.Red;
         private static readonly Color NormalColor = Colors.White;
-        private static readonly Color NormalLinkColor = Color.FromRgb(0, 192, 192);
         private static readonly Color WarningColor = Colors.DarkKhaki;
-        // ReSharper restore UnusedMember.Local
-
-        public static bool DontTriggerEvent; //used to skip indexchanged events
+        private static readonly Color ErrorColor = Colors.Red;
 
         /// <summary>
         /// Categories of VN Tags
         /// </summary>
-        public enum TagCategory { Null, Content, Sexual, Technical }
+        public enum TagCategory
+        {
+            Null,
+            Content,
+            Sexual,
+            Technical
+        }
 
-        public static readonly CoreSettings CSettings = CoreSettings.Load();
-        public static readonly GuiSettings GSettings = GuiSettings.Load();
+        public static readonly CoreSettings CSettings = SettingsJsonFile.Load<CoreSettings>(CoreSettingsJson);
+        public static readonly GuiSettings GSettings = SettingsJsonFile.Load<GuiSettings>(GuiSettingsJson);
 
         public static VndbConnection Conn;
 #pragma warning restore 1591
@@ -124,24 +119,6 @@ namespace Happy_Apps_Core
             {
                 LogToFile(e);
             }
-        }
-
-        /// <summary>
-        /// Deserialize object from JSON string in file.
-        /// </summary>
-        public static T LoadObjectFromJsonFile<T>(string filePath)
-        {
-            T returned;
-            try
-            {
-                returned = JsonConvert.DeserializeObject<T>(File.ReadAllText(filePath));
-            }
-            catch (Exception e)
-            {
-                LogToFile(e);
-                returned = default(T);
-            }
-            return returned;
         }
 
         /// <summary>
@@ -183,10 +160,7 @@ namespace Happy_Apps_Core
                 if (counter > 5) throw new IOException("Logfile is locked!");
                 Thread.Sleep(25);
             }
-            using (var writer = new StreamWriter(LogFile, true))
-            {
-                writer.WriteLine(message);
-            }
+            using (var writer = new StreamWriter(LogFile, true)) writer.WriteLine(message);
         }
 
         /// <summary>
@@ -194,7 +168,7 @@ namespace Happy_Apps_Core
         /// </summary>
         /// <param name="exception">Exception to be written to file</param>
         /// <param name="source">Source of error, CallerMemberName by default</param>
-        public static void LogToFile(Exception exception, [CallerMemberName]string source = null)
+        public static void LogToFile(Exception exception, [CallerMemberName] string source = null)
         {
             Debug.Print($"Source: {source}");
             Debug.Print(exception.Message);
@@ -245,7 +219,10 @@ namespace Happy_Apps_Core
         {
             if (value == null) return "N/A";
             FieldInfo field = value.GetType().GetField(value.ToString());
-            return !(Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is DescriptionAttribute attribute) ? value.ToString() : attribute.Description;
+            return !(Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is DescriptionAttribute attribute
+            )
+                ? value.ToString()
+                : attribute.Description;
         }
 
         /// <summary>
@@ -341,7 +318,7 @@ namespace Happy_Apps_Core
         /// </summary>
         /// <param name="updatedDate">Date of last update</param>
         /// <returns>Number of days since last update</returns>
-        public static int DaysSince(DateTime updatedDate)
+        public static int DaysSince(this DateTime updatedDate)
         {
             if (updatedDate == DateTime.MinValue) return -1;
             return (DateTime.UtcNow - updatedDate).Days;
@@ -370,149 +347,7 @@ namespace Happy_Apps_Core
                     new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
         }
 
-        /// <summary>
-        ///     Saves a VN's cover image (unless it already exists)
-        /// </summary>
-        /// <param name="vn">VN whose image is to be saved</param>
-        /// <param name="update">Get new image regardless of whether one already exists?</param>
-        public static void SaveImage(VNItem vn, bool update = false)
-        {
-            if (!Directory.Exists(VNImagesFolder)) Directory.CreateDirectory(VNImagesFolder);
-            if (vn.Image == null || vn.Image.Equals("")) return;
-            string imageLocation = $"{VNImagesFolder}{vn.ID}{Path.GetExtension(vn.Image)}";
-            if (File.Exists(imageLocation) && update == false) return;
-            LogToFile($"Start downloading cover image for {vn}");
-            try
-            {
-                var requestPic = WebRequest.Create(vn.Image);
-                using (var responsePic = requestPic.GetResponse())
-                {
-                    using (var stream = responsePic.GetResponseStream())
-                    {
-                        if (stream == null) return;
-                        var webImage = System.Drawing.Image.FromStream(stream);
-                        webImage.Save(imageLocation);
-                    }
-                }
-            }
-            catch (Exception ex)
-            when (ex is NotSupportedException || ex is ArgumentNullException || ex is SecurityException || ex is UriFormatException || ex is ExternalException)
-            {
-                LogToFile(ex);
-            }
-        }
+        
 
-        /// <summary>
-        /// Saves screenshot (by URL) to specified location.
-        /// </summary>
-        /// <param name="imageUrl">URL of image</param>
-        /// <param name="savedLocation">Location to save image to</param>
-        public static void SaveScreenshot(string imageUrl, string savedLocation)
-        {
-            if (!Directory.Exists(VNScreensFolder)) Directory.CreateDirectory(VNScreensFolder);
-            string[] urlSplit = imageUrl.Split('/');
-            if (!Directory.Exists($"{VNScreensFolder}\\{urlSplit[urlSplit.Length - 2]}"))
-                Directory.CreateDirectory($"{VNScreensFolder}\\{urlSplit[urlSplit.Length - 2]}");
-            if (imageUrl.Equals("")) return;
-            if (File.Exists(savedLocation)) return;
-            var requestPic = WebRequest.Create(imageUrl);
-            using (var responsePic = requestPic.GetResponse())
-            {
-                using (var stream = responsePic.GetResponseStream())
-                {
-                    if (stream == null) return;
-                    var webImage = System.Drawing.Image.FromStream(stream);
-                    webImage.Save(savedLocation);
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Saves a title's cover image (unless it already exists)
-        /// </summary>
-        /// <param name="vnBase">Title</param>
-        public static async Task SaveImageAsync(ListedVN vnBase)
-        {
-            if (!Directory.Exists(VNImagesFolder)) Directory.CreateDirectory(VNImagesFolder);
-            if (vnBase.ImageURL == null || vnBase.ImageURL.Equals("")) return;
-            string imageLocation = $"{VNImagesFolder}{vnBase.VNID}{Path.GetExtension(vnBase.ImageURL)}";
-            if (File.Exists(imageLocation)) return;
-            LogToFile($"Start downloading cover image for {vnBase}");
-            try
-            {
-                var requestPic = WebRequest.Create(vnBase.ImageURL);
-                using (var responsePic = await requestPic.GetResponseAsync())
-                {
-                    using (var stream = responsePic.GetResponseStream())
-                    {
-                        if (stream == null) return;
-                        var webImage = System.Drawing.Image.FromStream(stream);
-                        webImage.Save(imageLocation);
-                    }
-                }
-            }
-            catch (Exception ex) when (ex is NotSupportedException || ex is ArgumentNullException || ex is SecurityException || ex is UriFormatException)
-            {
-                LogToFile(ex);
-            }
-        }
-
-        /// <summary>
-        ///     Check if date is in the future.
-        /// </summary>
-        /// <param name="date">Date to be checked</param>
-        /// <returns>Whether date is in the future</returns>
-        public static bool DateIsUnreleased(string date)
-        {
-            return StringToDate(date) > DateTime.UtcNow;
-        }
-
-        /// <summary>
-        /// Get path of stored screenshot (Doesn't check if it exists).
-        /// </summary>
-        public static string StoredLocation(this VNItem.ScreenItem screenItem)
-        {
-            string[] urlSplit = screenItem.Image.Split('/');
-            return $"{VNScreensFolder}{urlSplit[urlSplit.Length - 2]}\\{urlSplit[urlSplit.Length - 1]}";
-        }
-
-        public static T LoadJson<T>(string jsonPath) where T : new()
-        {
-            T settings;
-            if (!File.Exists(jsonPath))
-            {
-                var result = new T();
-                result.SaveJson(jsonPath);
-                return result;
-            }
-            try
-            {
-                settings = JsonConvert.DeserializeObject<T>(File.ReadAllText(jsonPath));
-            }
-            catch (JsonException exception)
-            {
-                LogToFile(exception, $"LoadJson error, type: {typeof(T)}");
-                return new T();
-            }
-
-            if (settings == null)
-            {
-                settings = new T();
-                settings.SaveJson(jsonPath);
-            }
-            return settings;
-        }
-
-        public static void SaveJson<T>(this T item, string jsonPath)
-        {
-            try
-            {
-                File.WriteAllText(jsonPath, JsonConvert.SerializeObject(item, Formatting.Indented));
-            }
-            catch (JsonException exception)
-            {
-                LogToFile(exception, $"SaveJson error, type: {typeof(T)}");
-            }
-        }
     }
 }

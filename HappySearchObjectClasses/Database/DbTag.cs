@@ -19,13 +19,13 @@
             string cat = DumpFiles.PlainTags.Find(item => item.ID == TagId)?.Cat;
             switch (cat)
             {
-                case StaticHelpers.ContentTag:
+                case DumpFiles.ContentTag:
                     Category = StaticHelpers.TagCategory.Content;
                     return;
-                case StaticHelpers.SexualTag:
+                case DumpFiles.SexualTag:
                     Category = StaticHelpers.TagCategory.Sexual;
                     return;
-                case StaticHelpers.TechnicalTag:
+                case DumpFiles.TechnicalTag:
                     Category = StaticHelpers.TagCategory.Technical;
                     return;
                 default:

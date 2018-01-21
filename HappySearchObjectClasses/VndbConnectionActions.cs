@@ -17,6 +17,7 @@ namespace Happy_Apps_Core
         private enum QueryResult { Fail, Success, Throttled }
 
         private ApiQuery _activeQuery;
+        private int _throttleWaitTime;
         /// <summary>
         /// string is text to be passed, bool is true if query, false if response
         /// </summary>
@@ -42,8 +43,7 @@ namespace Happy_Apps_Core
         /// Count of characters updated in last query.
         /// </summary>
         public int CharactersUpdated { get; set; }
-        private int _throttleWaitTime;
-
+        
         /// <summary>
         /// Check if API Connection is ready, change status accordingly and write error if it isnt ready.
         /// </summary>
@@ -189,7 +189,7 @@ namespace Happy_Apps_Core
             int done = 0;
             do
             {
-                List<int> currentArray = vnsToGet.Skip(done).Take(APIMaxResults).ToList();
+                HashSet<int> currentArray = new HashSet<int>(vnsToGet.Skip(done).Take(APIMaxResults));
                 string currentArrayString = '[' + string.Join(",", currentArray) + ']';
                 string multiVNQuery =
                     $"get vn basic,details,tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
@@ -221,7 +221,7 @@ namespace Happy_Apps_Core
                     LogToFile(ex);
                     throw;
                 }
-                await GetCharactersForMultipleVN(currentArray);
+                await GetCharacters(currentArray, false);
                 done += APIMaxResults;
             } while (done < vnsToGet.Count);
 
@@ -229,7 +229,7 @@ namespace Happy_Apps_Core
             {
                 foreach (var vnItem in itemList)
                 {
-                    SaveImage(vnItem);
+                    vnItem.SaveCover();
                     var releases = await GetReleases(vnItem.ID, Resources.svn_query_error);
                     var mainRelease = releases.FirstOrDefault(item => item.Producers.Exists(x => x.Developer));
                     var relProducer = mainRelease?.Producers.FirstOrDefault(p => p.Developer);
@@ -250,7 +250,7 @@ namespace Happy_Apps_Core
             }
         }
 
-        private void RemoveDeletedVNs(ResultsRoot<VNItem> root, List<int> currentArray)
+        private void RemoveDeletedVNs(ResultsRoot<VNItem> root, ICollection<int> currentArray)
         {
             if (root.Num >= currentArray.Count) return;
             //some vns were deleted, find which ones and remove them
@@ -263,34 +263,40 @@ namespace Happy_Apps_Core
             LocalDatabase.SaveChanges();
         }
 
+        private void RemoveDeletedCharacters(ResultsRoot<CharacterItem> root, ICollection<int> currentArray)
+        {
+            if (root.Num >= currentArray.Count) return;
+            //some vns were deleted, find which ones and remove them
+            IEnumerable<int> deletedChars = currentArray.Where(presentCharId => root.Items.All(receivedCharacter => receivedCharacter.ID != presentCharId)).ToArray();
+            foreach (var deletedCharacter in deletedChars)
+            {
+                LocalDatabase.RemoveCharacter(deletedCharacter, false);
+                currentArray.Remove(deletedCharacter);
+            }
+            LocalDatabase.SaveChanges();
+        }
+
+        private string FormatQuery(string format, IEnumerable<int> idArray, int pageNo)
+        {
+           var arrayString = '[' + string.Join(",", idArray) + ']';
+            return format.Replace("{0}", arrayString).Replace("{1}", pageNo.ToString());
+        }
+
         /// <summary>
         /// Get character data about multiple visual novels.
-        /// Creates its own SQLite Transactions.
         /// </summary>
-        /// <param name="vnIDs">List of VNs</param>
-        private async Task GetCharactersForMultipleVN(List<int> vnIDs)
+        /// <param name="ids">List of Ids to fetch by</param>
+        /// <param name="isCharacterList">true if list of ids is characters ids, false if its vnids</param>
+        private async Task GetCharacters(HashSet<int> ids, bool isCharacterList)
         {
-            if (!vnIDs.Any()) return;
-            int[] currentArray = vnIDs.Take(APIMaxResults).ToArray();
-            string currentArrayString = '[' + string.Join(",", currentArray) + ']';
-            string charsForVNQuery = $"get character basic,details,traits,vns,voiced (vn = {currentArrayString}) {{{MaxResultsString}}}";
-            var queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error");
+            if (!ids.Any()) return;
+            int[] currentArray = ids.Take(APIMaxResults).ToArray();
+            string queryFormat = $"get character basic,details,traits,vns,voiced ({(isCharacterList ? "id" : "vn")} = {{0}}) {{{MaxResultsString}, \"page\":{{1}}}}";
+            string charsForVNQuery = FormatQuery(queryFormat, currentArray, 1);
+            var queryResult = await TryQuery(charsForVNQuery, $"{nameof(GetCharacters)} Query Error");
             if (!queryResult) return;
-            ResultsRoot<CharacterItem> charRoot;
-            try
-            {
-                charRoot = JsonConvert.DeserializeObject<ResultsRoot<CharacterItem>>(LastResponse.JsonPayload);
-            }
-            catch (Exception ex)
-            {
-                LogToFile(ex);
-                throw;
-            }
-            if (charRoot == null)
-            {
-                LogToFile("charRoot was null, unexpected.");
-                return;
-            }
+            ResultsRoot<CharacterItem> charRoot = JsonConvert.DeserializeObject<ResultsRoot<CharacterItem>>(LastResponse.JsonPayload);
+            RemoveDeletedCharacters(charRoot, currentArray);
             foreach (var character in charRoot.Items) LocalDatabase.UpsertSingleCharacter(character, false);
             LocalDatabase.SaveChanges();
             bool moreResults = charRoot.More;
@@ -300,16 +306,24 @@ namespace Happy_Apps_Core
                 if (!await HandleMoreResults()) return;
             }
             int done = APIMaxResults;
-            while (done < vnIDs.Count)
+            while (done < ids.Count)
             {
-                currentArray = vnIDs.Skip(done).Take(APIMaxResults).ToArray();
-                currentArrayString = '[' + string.Join(",", currentArray) + ']';
-                charsForVNQuery = $"get character basic,details,traits,vns,voiced (vn = {currentArrayString}) {{{MaxResultsString}}}";
-                queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error");
+                currentArray = ids.Skip(done).Take(APIMaxResults).ToArray();
+                charsForVNQuery = FormatQuery(queryFormat, currentArray, 1);
+                queryResult = await TryQuery(charsForVNQuery, $"{nameof(GetCharacters)} Query Error");
                 if (!queryResult) return;
                 charRoot = JsonConvert.DeserializeObject<ResultsRoot<CharacterItem>>(LastResponse.JsonPayload);
+                RemoveDeletedCharacters(charRoot, currentArray);
                 foreach (var character in charRoot.Items) LocalDatabase.UpsertSingleCharacter(character, false);
-                LocalDatabase.SaveChanges();
+                try
+                {
+                    LocalDatabase.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    LogToFile(ex);
+                    throw;
+                }
                 moreResults = charRoot.More;
                 pageNo = 1;
                 while (moreResults)
@@ -323,12 +337,20 @@ namespace Happy_Apps_Core
             {
                 // ReSharper disable AccessToModifiedClosure
                 pageNo++;
-                charsForVNQuery = $"get character basic,details,traits,vns,voiced (vn = {currentArrayString}) {{{MaxResultsString}, \"page\":{pageNo}}}";
-                queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error");
+                charsForVNQuery = FormatQuery(queryFormat, currentArray, pageNo);
+                queryResult = await TryQuery(charsForVNQuery, $"{nameof(GetCharacters)} Query Error");
                 if (!queryResult) return false;
                 charRoot = JsonConvert.DeserializeObject<ResultsRoot<CharacterItem>>(LastResponse.JsonPayload);
                 foreach (var character in charRoot.Items) LocalDatabase.UpsertSingleCharacter(character, false);
-                LocalDatabase.SaveChanges();
+                try
+                {
+                    LocalDatabase.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    LogToFile(ex);
+                    throw;
+                }
                 moreResults = charRoot.More;
                 // ReSharper restore AccessToModifiedClosure
                 return true;
@@ -361,7 +383,7 @@ namespace Happy_Apps_Core
         /// <param name="errorMessage">Message to be printed in case of error</param>
         /// <param name="update">Should producer data be fetched even if it is already present in local db?</param>
         /// <returns>Tuple of bool (indicating successful api connection) and ListedProducer (null if none found or already added)</returns>
-        public async Task<(bool, ProducerItem)> GetProducer(int producerID, string errorMessage, bool update)
+        private async Task<(bool, ProducerItem)> GetProducer(int producerID, string errorMessage, bool update)
         {
             if (!update && (producerID == -1 || LocalDatabase.Producers.Any(p => p.ID == producerID))) return (true, null);
             string producerQuery = $"get producer basic (id={producerID})";
@@ -383,7 +405,7 @@ namespace Happy_Apps_Core
         {
             List<int> vnsToGet = vnIDs.ToList();
             if (!vnsToGet.Any()) return;
-            List<int> currentArray = vnsToGet.Take(APIMaxResults).ToList();
+            HashSet<int> currentArray = new HashSet<int>(vnsToGet.Take(APIMaxResults));
             string currentArrayString = '[' + string.Join(",", currentArray) + ']';
             string multiVNQuery = $"get vn tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
             var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error);
@@ -397,11 +419,11 @@ namespace Happy_Apps_Core
                 TitlesAdded++;
             }
             LocalDatabase.SaveChanges();
-            await GetCharactersForMultipleVN(currentArray);
+            await GetCharacters(currentArray, false);
             int done = APIMaxResults;
             while (done < vnsToGet.Count)
             {
-                currentArray = vnsToGet.Skip(done).Take(APIMaxResults).ToList();
+                currentArray = new HashSet<int>(vnsToGet.Skip(done).Take(APIMaxResults));
                 currentArrayString = '[' + string.Join(",", currentArray) + ']';
                 multiVNQuery = $"get vn tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
                 queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error);
@@ -415,7 +437,7 @@ namespace Happy_Apps_Core
                     TitlesAdded++;
                 }
                 LocalDatabase.SaveChanges();
-                await GetCharactersForMultipleVN(currentArray);
+                await GetCharacters(currentArray, false);
                 done += APIMaxResults;
             }
         }
@@ -611,10 +633,13 @@ namespace Happy_Apps_Core
         public async Task UpdateCharactersForYear(int year)
         {
             if (!StartQuery(nameof(UpdateCharactersForYear), true, true, true)) return;
-            var allYear = LocalDatabase.VisualNovels.Where(x => x.ReleaseDate.Year == year).ToArray();
-            var fewerYear = allYear.Where(x => x.DateUpdated < DateTime.UtcNow.AddDays(-2)).ToArray();
-            await GetCharactersForMultipleVN(fewerYear.Select(x => x.VNID).ToList());
-            _textAction($"Updated characters for titles released in {year}, ({CharactersAdded}/{CharactersUpdated} added/updated).", MessageSeverity.Normal);
+            var startTime = DateTime.UtcNow.ToLocalTime();
+            var startTimeString = startTime.ToString("HH:mm");
+            _textAction($"Updating characters for titles from {year}.  Started at {startTimeString}", MessageSeverity.Normal);
+            var vnids = LocalDatabase.VisualNovels.Where(x => x.ReleaseDate.Year == year && x.DateUpdated < DateTime.UtcNow.AddDays(-2)).OrderByDescending(x => x.VNID).Select(x => x.VNID);
+            var set = new HashSet<int>(vnids);
+            await Task.Run(() => GetCharacters(set, false));
+            _textAction($"Updated characters for titles from {year}, ({CharactersAdded}/{CharactersUpdated} added/updated).", MessageSeverity.Normal);
             _changeStatusAction(Status);
         }
 
@@ -626,10 +651,10 @@ namespace Happy_Apps_Core
             var startTimeString = startTime.ToString("HH:mm");
             var yearString = $"{fromYear}-{toYear}";
             if (fromYear == toYear) yearString = $"{fromYear}";
-            else if(fromYear == 0 && toYear == 9999) yearString = "all years";
+            else if (fromYear == 0 && toYear == 9999) yearString = "all years";
             else if (fromYear == 0) yearString = $"<{toYear}";
             else if (toYear == 9999) yearString = $">{toYear}";
-            _textAction($"Getting All VNs For year {yearString}.  Started at {startTimeString}", MessageSeverity.Normal);
+            _textAction($"Getting all titles from {yearString}.  Started at {startTimeString}", MessageSeverity.Normal);
             string vnInfoQuery = $"get vn basic (released > \"{fromYear - 1}\" and released <= \"{toYear}\") {{{MaxResultsString}}}";
             result = await TryQuery(vnInfoQuery, Resources.gyt_query_error);
             if (!result) return;
@@ -651,9 +676,7 @@ namespace Happy_Apps_Core
                 moreResults = vnMoreRoot.More;
             }
             var span = DateTime.UtcNow.ToLocalTime() - startTime;
-            _textAction(span < TimeSpan.FromMinutes(1)
-                    ? $"Got VNs for {yearString} in <1 min. {TitlesAdded}/{TitlesAdded + TitlesSkipped} added."
-                    : $"Got VNs for {yearString} in {span:hh\\:mm}. {TitlesAdded}/{TitlesAdded + TitlesSkipped} added.", MessageSeverity.Normal);
+            _textAction($"Got titles from {yearString} in {span:hh\\:mm}. {TitlesAdded}/{TitlesAdded + TitlesSkipped} added.", MessageSeverity.Normal);
             _changeStatusAction(Status);
         }
 
@@ -682,7 +705,6 @@ namespace Happy_Apps_Core
                 //UpdateUserStats();
                 _textAction($"Updated URT ({TitlesAdded} added).", MessageSeverity.Normal);
                 CSettings.URTDate = DateTime.UtcNow;
-                CSettings.Save();
                 _changeStatusAction(Status);
             }
             catch (Exception ex)

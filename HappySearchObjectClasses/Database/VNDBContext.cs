@@ -31,6 +31,7 @@ namespace Happy_Apps_Core.Database
         public virtual DbSet<UserVN> UserVisualNovels { get; set; }
         public virtual DbSet<CharacterItem> Characters { get; set; }
         public virtual DbSet<CharacterVN> CharacterVNs { get; set; }
+        public virtual DbSet<CharacterStaff> CharacterStaffs { get; set; }
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<TableDetail> TableDetails { get; set; }
         public virtual DbSet<DbTag> Tags { get; set; }
@@ -47,6 +48,10 @@ namespace Happy_Apps_Core.Database
             context.TableDetails.Add(new TableDetail { Key = "author", Value = "Zoltanar" });
             context.TableDetails.Add(new TableDetail { Key = "projecturl", Value = "https://github.com/Zoltanar/Happy-Reader" });
             context.TableDetails.Add(new TableDetail { Key = "databaseversion", Value = "2.0.0" });
+            context.Database.ExecuteSqlCommand("CREATE UNIQUE INDEX `UniqueCIDToAliasToVN` ON `CharacterStaffs` (`AliasId` ,`ListedVNId` ,`CharacterItem_Id` )");
+            context.Database.ExecuteSqlCommand("CREATE UNIQUE INDEX `UniqueCIDToTrait` ON `DbTraits` (`TraitId` ,`CharacterItem_ID` )");
+            context.Database.ExecuteSqlCommand("CREATE UNIQUE INDEX `UniqueCIDToVNID` ON `CharacterVNs` (`ListedVNId` ,`CharacterItem_Id` )");
+            context.Database.ExecuteSqlCommand("CREATE UNIQUE INDEX `UniqueTagIdToVNID` ON `DbTags` (`ListedVN_VNID` ,`TagId` )");
             base.Seed(context);
         }
 

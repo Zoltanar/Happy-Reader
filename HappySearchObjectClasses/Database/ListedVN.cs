@@ -68,7 +68,7 @@ namespace Happy_Apps_Core.Database
         public int? ProducerID { get; set; }
 
         public virtual ListedProducer Producer { get; set; }
-        
+
         public DateTime DateUpdated { get; set; }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace Happy_Apps_Core.Database
         /// Newline separated string of aliases
         /// </summary>
         public string Aliases { get; set; }
-        
+
         public string Languages { get; set; }
 
         public DateTime DateFullyUpdated { get; set; }
@@ -155,7 +155,7 @@ namespace Happy_Apps_Core.Database
                 return _daysSinceFullyUpdated.Value;
             }
         }
-        
+
         [NotMapped, NotNull]
         public IEnumerable<string> DisplayTags
         {
@@ -181,25 +181,6 @@ namespace Happy_Apps_Core.Database
                 if (visibleTags.Count == 0) return new[] { "No Tags Found" };
                 List<string> stringList = visibleTags.Select(x => x.Print()).ToList();
                 stringList.Sort();
-                return stringList;
-            }
-        }
-
-        [NotMapped, NotNull]
-        public IEnumerable<string> DisplayTraits
-        {
-            get
-            {
-                if (VNID == 0) return new List<string>();
-                var vnCharacters =  StaticHelpers.LocalDatabase.CharacterVNs.Where(x=>x.ListedVNId == VNID).Select(y=>y.CharacterItem).Distinct().ToArray();
-                var stringList = new List<string> { $"{vnCharacters.Length} Characters" };
-                for (var index = 0; index < vnCharacters.Length; index++)
-                {
-                    var characterItem = vnCharacters[index];
-                    stringList.Add($"Character {characterItem.ID}");
-                    foreach (var trait in characterItem.DbTraits) stringList.Add(DumpFiles.PlainTraits.Find(x => x.ID == trait.TraitId)?.ToString());
-                    if (index < vnCharacters.Length - 1) stringList.Add("---------------");
-                }
                 return stringList;
             }
         }
@@ -277,7 +258,7 @@ namespace Happy_Apps_Core.Database
                 return _screensObject;
             }
         }
-        
+
         private VNItem.RelationsItem[] _relationsObject;
         private VNItem.AnimeItem[] _animeObject;
         private VNItem.ScreenItem[] _screensObject;
@@ -456,22 +437,24 @@ namespace Happy_Apps_Core.Database
                     }
                     else
                     {
-                        var loc = screen.StoredLocation();
-                        if (!File.Exists(loc)) continue;
+                        var loc = screen.StoredLocation;
+                        if (!File.Exists(loc))
+                        {
+                            screen.Download();
+                            if (!File.Exists(loc)) continue;
+                        }
                         images.Add(new Image { Source = new BitmapImage(new Uri(Path.GetFullPath(loc))) });
                     }
                 }
-
                 return images;
             }
         }
-
 
         /// <summary>
         /// Get brush from vn UL or WL status or null if no statuses are found.
         /// </summary>
         [NotNull]
-        public Brush GetBrushFromStatuses()
+        private Brush GetBrushFromStatuses()
         {
             var brush = StaticHelpers.DefaultTileBrush;
             var success = GetColorFromULStatus(ref brush);
@@ -482,7 +465,8 @@ namespace Happy_Apps_Core.Database
         /// <summary>
         /// Return color based on wishlist status, or null if no status
         /// </summary>
-        public bool GetColorFromWLStatus(ref Brush color)
+        // ReSharper disable once UnusedMethodReturnValue.Local
+        private bool GetColorFromWLStatus(ref Brush color)
         {
             if (UserVN?.WLStatus == null) return false;
             switch (UserVN.WLStatus)
@@ -503,7 +487,7 @@ namespace Happy_Apps_Core.Database
         /// <summary>
         /// Return color based on userlist status, or null if no status
         /// </summary>
-        public bool GetColorFromULStatus(ref Brush color)
+        private bool GetColorFromULStatus(ref Brush color)
         {
             if (UserVN?.ULStatus == null) return false;
             switch (UserVN?.ULStatus)
@@ -588,6 +572,7 @@ namespace Happy_Apps_Core.Database
             Screens = screensString;
             _screensObject = screensObject;
         }
+        
     }
 
     /// <summary>

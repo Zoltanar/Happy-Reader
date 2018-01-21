@@ -147,6 +147,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="SettingsJsonFile.cs" />
     <Compile Include="StaticHelpers.cs" />
     <Compile Include="VndbConnection.cs" />
     <Compile Include="VndbConnectionActions.cs" />
