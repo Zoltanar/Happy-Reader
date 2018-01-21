@@ -18,9 +18,9 @@ namespace Happy_Apps_Core
     /// </summary>
     public partial class VndbConnection
     {
-        public VndbConnection([NotNull]Action<string, MessageSeverity> changeTextAction, Action<string,bool> advancedModeAction, Action refreshListAction,Action<APIStatus> changeStatusAction = null)
+        public VndbConnection([NotNull]Action<string,MessageSeverity> textAction, Action<string,bool> advancedModeAction, Action refreshListAction, Action<APIStatus> changeStatusAction = null)
         {
-            _textAction = changeTextAction;
+            TextAction = textAction;
             _advancedAction = advancedModeAction;
             _refreshListAction = refreshListAction;
             if (changeStatusAction != null)
@@ -33,12 +33,6 @@ namespace Happy_Apps_Core
                 };
             }
             else _changeStatusAction = ChangeAPIStatus;
-        }
-
-        public VndbConnection([NotNull]Action<string, MessageSeverity> changeTextAction, Action<APIStatus> changeStatusAction = null)
-        {
-            _textAction = changeTextAction;
-            _changeStatusAction = changeStatusAction ?? ChangeAPIStatus;
         }
 
         public const int VndbAPIMaxYear = 99999999;

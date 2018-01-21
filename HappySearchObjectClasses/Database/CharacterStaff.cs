@@ -1,5 +1,6 @@
 ﻿namespace Happy_Apps_Core.Database
 {
+    // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
     public class CharacterStaff
     {
         public int Id { get; set; }

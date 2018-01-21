@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Happy_Apps_Core
+﻿namespace Happy_Apps_Core
 {
     /// <summary>
     /// Contains settings for API Query
@@ -39,7 +37,7 @@ namespace Happy_Apps_Core
         /// <param name="refreshList">Refresh OLV on throttled connection</param>
         /// <param name="additionalMessage">Print Added/Skipped message on throttled connection</param>
         /// <param name="ignoreDateLimit">Ignore 10 year limit (if applicable)</param>
-        public ApiQuery(string actionName,bool refreshList, bool additionalMessage, bool ignoreDateLimit)
+        public ApiQuery(string actionName, bool refreshList, bool additionalMessage, bool ignoreDateLimit)
         {
             ActionName = actionName;
             RefreshList = refreshList;
@@ -47,20 +45,33 @@ namespace Happy_Apps_Core
             IgnoreDateLimit = ignoreDateLimit;
             Completed = false;
         }
-
+        
         /// <summary>
-        /// Constructor for initializing ActiveQuery.
+        /// Count of titles added in last query.
         /// </summary>
-        /// <param name="isStartup">Necessary parameter</param>
-        public ApiQuery(bool isStartup)
-        {
-            if (!isStartup) throw new ArgumentException("This method should only be used for startup.");
-            ActionName = "Startup";
-            RefreshList = false;
-            AdditionalMessage = false;
-            IgnoreDateLimit = false;
-            Completed = true;
-        }
+        public uint TitlesAdded { get; private set; }
+        /// <summary>
+        /// Count of titles skipped in last query.
+        /// </summary>
+        public uint TitlesSkipped { get; private set; }
+        /// <summary>
+        /// Count of characters added in last query.
+        /// </summary>
+        public uint CharactersAdded { get; private set; }
+        /// <summary>
+        /// Count of characters updated in last query.
+        /// </summary>
+        public uint CharactersUpdated { get; private set; }
+
+        public object TotalTitles => TitlesAdded + TitlesSkipped;
+
+        public void AddTitlesSkipped(uint count = 1) => TitlesSkipped += count;
+
+        public void AddTitlesAdded(uint count = 1) => TitlesAdded += count;
+
+        public void AddCharactersAdded(uint count = 1) => CharactersAdded += count;
+
+        public void AddCharactersUpdated(uint count = 1) => CharactersUpdated += count;
     }
 
 }

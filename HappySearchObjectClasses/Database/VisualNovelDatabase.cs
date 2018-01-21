@@ -14,25 +14,6 @@ namespace Happy_Apps_Core.Database
 {
     public partial class VisualNovelDatabase
     {
-        /// <summary>
-        /// Contains all favorite producers for logged in user
-        /// </summary>
-        public ICollection<ListedProducer> FavoriteProducerList
-        {
-            get
-            {
-                var user = Users.SingleOrDefault(x => x.Id == StaticHelpers.CSettings.UserID);
-                if (user == null)
-                {
-                    var nUser = new User { Id = StaticHelpers.CSettings.UserID };
-                    Users.Add(nUser);
-                    SaveChanges();
-                    user = Users.Single(x => x.Id == StaticHelpers.CSettings.UserID);
-                }
-                return user.FavoriteProducers;
-            }
-        }
-
         #region Set Methods
 
         public void AddNoteToVN(int vnid, string note, int userID)
@@ -150,18 +131,23 @@ throw;
             SaveChanges();
         }
 
-        public void UpsertSingleCharacter(CharacterItem character, bool saveChanges)
+        /// <summary>
+        /// Returns true if added or false if updated/failed
+        /// </summary>
+        /// <returns>True if added or false if updated</returns>
+        public bool UpsertSingleCharacter(CharacterItem character, bool saveChanges)
         {
             try
             {
+                bool result;
                 var dbCharacter = Characters.SingleOrDefault(x => x.ID == character.ID);
                 if (dbCharacter == null)
                 {
-                    dbCharacter = new CharacterItem { ID = character.ID };
+                    dbCharacter = new CharacterItem {ID = character.ID};
                     Characters.Add(dbCharacter);
-                    StaticHelpers.Conn.CharactersAdded++;
+                    result = true;
                 }
-                else StaticHelpers.Conn.CharactersUpdated++;
+                else result = false;
                 dbCharacter.Name = character.Name;
                 dbCharacter.Original = character.Original;
                 dbCharacter.Gender = character.Gender;
@@ -197,13 +183,12 @@ throw;
                 }
                 dbCharacter.DateUpdated = DateTime.UtcNow;
                 if (saveChanges) SaveChanges();
+                return result;
             }
             catch (Exception ex)
             {
                 StaticHelpers.LogToFile(ex);
-#if !DEBUG
                 throw;
-#endif
             }
         }
 

@@ -43,7 +43,7 @@ namespace Happy_Apps_Core.Database
             double userAverageVote, int userDropRate)
         {
             Name = name;
-            Updated = StaticHelpers.DaysSince(updated);
+            Updated = updated.DaysSince();
             ID = id;
             Language = language;
             UserAverageVote = Math.Round(userAverageVote, 2);

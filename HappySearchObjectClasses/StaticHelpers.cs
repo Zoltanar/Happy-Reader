@@ -10,7 +10,6 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Happy_Apps_Core.Database;
-using Newtonsoft.Json;
 using System.Windows.Media;
 
 namespace Happy_Apps_Core
@@ -34,7 +33,6 @@ namespace Happy_Apps_Core
         public const string FlagsFolder = "Program Data\\Flags\\";
 
         public const string StoredDataFolder = @"..\..\Stored Data\"; //this is in order to use same folder for all builds (32/64 and debug/release)
-
         public const string VNImagesFolder = StoredDataFolder + "Saved Cover Images\\";
         public const string VNScreensFolder = StoredDataFolder + "Saved Screenshots\\";
         public const string DBStatsJson = StoredDataFolder + "dbs.json";
@@ -46,7 +44,7 @@ namespace Happy_Apps_Core
         public const string GuiSettingsJson = StoredDataFolder + "guisettings.json";
 #pragma warning restore 1591
 
-        #endregion
+#endregion
 
 #pragma warning disable 1591
         public const string ClientName = "Happy Reader";
@@ -101,26 +99,8 @@ namespace Happy_Apps_Core
 
         public static VisualNovelDatabase LocalDatabase;
 
-        public static bool VNIsByFavoriteProducer(ListedVN vn)
-        {
-            return LocalDatabase.FavoriteProducerList.Any(x => x.ID == vn.ProducerID);
-        }
-
-        /// <summary>
-        /// Serialize object to JSON string and save to file.
-        /// </summary>
-        public static void SaveObjectToJsonFile<T>(T objectToSave, string filePath)
-        {
-            try
-            {
-                File.WriteAllText(filePath, JsonConvert.SerializeObject(objectToSave, Formatting.Indented));
-            }
-            catch (Exception e)
-            {
-                LogToFile(e);
-            }
-        }
-
+        public static bool VNIsByFavoriteProducer(ListedVN vn) => LocalDatabase.CurrentUser.FavoriteProducers.Any(x => x.ID == vn.ProducerID);
+        
         /// <summary>
         /// Pause RaiseListChangedEvents and add items then call the event when done adding.
         /// </summary>

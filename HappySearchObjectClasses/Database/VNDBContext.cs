@@ -38,6 +38,7 @@ namespace Happy_Apps_Core.Database
         public virtual DbSet<DbTrait> Traits { get; set; }
 
         public IQueryable<ListedVN> URTVisualNovels => VisualNovels.Where(x => x.UserVNId != null);
+        public User CurrentUser { get; set; }
     }
 
     public class VNDatabaseInitializer : SqliteCreateDatabaseIfNotExists<VisualNovelDatabase>
@@ -58,6 +59,7 @@ namespace Happy_Apps_Core.Database
         public VNDatabaseInitializer(DbModelBuilder modelBuilder) : base(modelBuilder){}
     }
 
+    // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
     public class User
     {
         public User()

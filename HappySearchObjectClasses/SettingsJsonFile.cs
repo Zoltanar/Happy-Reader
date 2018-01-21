@@ -23,7 +23,11 @@ namespace Happy_Apps_Core
             try
             {
                 settings = JsonConvert.DeserializeObject<T>(File.ReadAllText(jsonPath));
-                if(settings != null) settings.Loaded = true;
+                if (settings != null)
+                {
+                    settings.FilePath = jsonPath;
+                    settings.Loaded = true;
+                }
             }
             catch (JsonException exception)
             {

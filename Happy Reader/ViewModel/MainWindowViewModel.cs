@@ -190,7 +190,6 @@ namespace Happy_Reader.ViewModel
 
         public async Task SetUser(int userid, bool newId)
         {
-            StaticHelpers.CSettings.UserID = userid;
             if (newId)
             {
                 await StaticHelpers.LocalDatabase.VisualNovels.ForEachAsync(vn => vn.UserVNId = StaticHelpers.LocalDatabase.UserVisualNovels
@@ -198,6 +197,7 @@ namespace Happy_Reader.ViewModel
                 await StaticMethods.Data.SaveChangesAsync();
             }
             User = StaticHelpers.LocalDatabase.Users.Single(x => x.Id == StaticHelpers.CSettings.UserID);
+            StaticHelpers.LocalDatabase.CurrentUser = User;
         }
 
         private void PopulateProxies()
@@ -329,7 +329,7 @@ namespace Happy_Reader.ViewModel
             Application.Current.Dispatcher.Invoke(() => (isQuery ? _vndbQueriesList : _vndbResponsesList).AddWithId(text));
         }
 
-        public Process HookUserGame(UserGame userGame)
+        public void HookUserGame(UserGame userGame)
         {
             UserGame = userGame;
             var process = StaticMethods.StartProcess(userGame.FilePath);
@@ -342,7 +342,6 @@ namespace Happy_Reader.ViewModel
             _hookedProcess = process;
             _hookedProcess.EnableRaisingEvents = true;
             _hookedProcess.Exited += HookedProcessOnExited;
-            return process;
         }
 
         private void HookedProcessOnExited(object sender, EventArgs eventArgs)
