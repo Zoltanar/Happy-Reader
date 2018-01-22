@@ -236,11 +236,11 @@ namespace Happy_Reader.ViewModel
                             if (process.Is64BitProcess()) continue;
                             if (process.HasExited) continue;
                             if (UserGame?.Process != null) continue;
-                            var userGame =
-                                StaticMethods.Data.UserGames.FirstOrDefault(x => x.FilePath.Equals(process.MainModule.FileName));
+                            var userGame = StaticMethods.Data.UserGames.FirstOrDefault(x => x.FilePath.Equals(process.MainModule.FileName));
                             if (userGame == null || userGame.Process != null) continue;
                             userGame.Process = process;
                             HookUserGame(userGame);
+                            return; //end monitor
                         }
                         catch (InvalidOperationException) { } //can happen if process is closed after getting reference
                     }
@@ -347,6 +347,9 @@ namespace Happy_Reader.ViewModel
         private void HookedProcessOnExited(object sender, EventArgs eventArgs)
         {
             Application.Current.Dispatcher.Invoke(() => _outputWindow.Hide());
+            //restart monitor
+            _monitor = new Thread(MonitorStart) { IsBackground = true };
+            _monitor.Start();
         }
 
         public void DebugButton()
