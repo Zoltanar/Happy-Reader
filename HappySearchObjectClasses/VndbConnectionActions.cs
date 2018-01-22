@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Happy_Apps_Core.Database;
 using Happy_Apps_Core.Properties;
@@ -18,7 +17,7 @@ namespace Happy_Apps_Core
 
         public ApiQuery ActiveQuery { get; private set; }
 
-        private int _throttleWaitTime;
+
         /// <summary>
         /// string is text to be passed, bool is true if query, false if response
         /// </summary>
@@ -28,6 +27,23 @@ namespace Happy_Apps_Core
         private readonly Action<APIStatus> _changeStatusAction;
         [NotNull]
         public readonly Action<string, MessageSeverity> TextAction;
+
+        public VndbConnection([NotNull]Action<string, MessageSeverity> textAction, Action<string, bool> advancedModeAction, Action refreshListAction, Action<APIStatus> changeStatusAction = null)
+        {
+            TextAction = textAction;
+            _advancedAction = advancedModeAction;
+            _refreshListAction = refreshListAction;
+            if (changeStatusAction != null)
+            {
+                _changeStatusAction = status =>
+                {
+                    //runs the mandatory part of changeApiStatus first, then runs provided action
+                    ChangeAPIStatus(status);
+                    changeStatusAction(status);
+                };
+            }
+            else _changeStatusAction = ChangeAPIStatus;
+        }
 
         /// <summary>
         /// Check if API Connection is ready, change status accordingly and write error if it isnt ready.
@@ -53,105 +69,6 @@ namespace Happy_Apps_Core
         {
             ActiveQuery.Completed = true;
             _changeStatusAction(Status);
-        }
-
-        /// <summary>
-        /// Send query through API Connection.
-        /// </summary>
-        /// <param name="query">Command to be sent</param>
-        /// <param name="errorMessage">Message to be printed in case of error</param>
-        /// <returns>Returns whether it was successful.</returns>
-        private async Task<QueryResult> TryQueryInner(string query, string errorMessage)
-        {
-            if (Status != APIStatus.Ready)
-            {
-                TextAction("API Connection isn't ready.", MessageSeverity.Error);
-                return QueryResult.Fail;
-            }
-            Status = APIStatus.Busy;
-            _changeStatusAction(Status);
-            await Task.Run(() =>
-            {
-                if (CSettings.DecadeLimit && (!ActiveQuery?.IgnoreDateLimit ?? false) && query.StartsWith("get vn ") && !query.Contains("id = "))
-                {
-                    query = Regex.Replace(query, "\\)", $" and released > \"{DateTime.UtcNow.Year - 10}\")");
-                }
-                LogToFile(query);
-                Query(query);
-            });
-            if (LastResponse.Type == ResponseType.Unknown)
-            {
-                return QueryResult.Fail;
-            }
-            while (LastResponse.Type == ResponseType.Error)
-            {
-                if (!LastResponse.Error.ID.Equals("throttled"))
-                {
-                    TextAction(errorMessage, MessageSeverity.Error);
-                    return QueryResult.Fail;
-                }
-                string fullThrottleMessage = "";
-                double minWait = 0;
-                await Task.Run(() =>
-                {
-                    minWait = Math.Min(5 * 60, LastResponse.Error.Fullwait); //wait 5 minutes
-                    string normalWarning = $"Throttled for {Math.Floor(minWait / 60)} mins.";
-                    string additionalWarning = "";
-                    if (ActiveQuery.TitlesAdded > 0) additionalWarning += $" Added {ActiveQuery.TitlesAdded}.";
-                    if (ActiveQuery.TitlesSkipped > 0) additionalWarning += $" Skipped {ActiveQuery.TitlesSkipped}.";
-                    fullThrottleMessage = ActiveQuery.AdditionalMessage ? normalWarning + additionalWarning : normalWarning;
-                });
-                TextAction(fullThrottleMessage, MessageSeverity.Warning);
-                LogToFile($"Local: {DateTime.Now} - {fullThrottleMessage}");
-                var waitMS = minWait * 1000;
-                _throttleWaitTime = Convert.ToInt32(waitMS);
-                return QueryResult.Throttled;
-            }
-            return QueryResult.Success;
-        }
-
-        /// <summary>
-        /// Send query through API Connection.
-        /// </summary>
-        /// <param name="query">Command to be sent</param>
-        /// <param name="errorMessage">Message to be printed in case of error</param>
-        /// <param name="setStatusOnEnd">Set to true to change status when ending this query (Only for direct calls)</param>
-        /// <returns>Returns whether it was successful.</returns>
-        private async Task<bool> TryQuery(string query, string errorMessage, bool setStatusOnEnd = false)
-        {
-            var result = await TryQueryInner(query, errorMessage);
-            while (result == QueryResult.Throttled)
-            {
-                if (ActiveQuery.RefreshList && _refreshListAction != null)
-                {
-                    await Task.Run(_refreshListAction);
-                }
-                _changeStatusAction(Status);
-                await Task.Delay(_throttleWaitTime);
-                Status = APIStatus.Ready;
-                result = await TryQueryInner(query, errorMessage);
-            }
-            if (setStatusOnEnd) _changeStatusAction(Status);
-            return result == QueryResult.Success;
-        }
-
-        /// <summary>
-        /// Send query through API Connection, don't post error messages back.
-        /// </summary>
-        /// <param name="query">Command to be sent</param>
-        /// <returns>Returns whether it was successful.</returns>
-        private async Task<bool> TryQueryNoReply(string query)
-        {
-            if (Status != APIStatus.Ready)
-            {
-                return false;
-            }
-            await Task.Run(() =>
-            {
-                LogToFile(query);
-                Query(query);
-            });
-            return LastResponse.Type != ResponseType.Unknown && LastResponse.Type != ResponseType.Error;
         }
 
         #region Static

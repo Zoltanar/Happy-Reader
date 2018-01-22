@@ -119,14 +119,14 @@ namespace Happy_Apps_Core_Tests
         public void LoginWithoutCredentials()
         {
             _conn.Login(ClientName, ClientVersion, printCertificates: false);
-            Assert.AreEqual(VndbConnection.APIStatus.Ready, _conn.Status, _conn.LastResponse.JsonPayload);
+            Assert.AreEqual(_conn.LogIn == VndbConnection.LogInStatus.Yes, _conn.LogIn, _conn.LastResponse.JsonPayload);
         }
 
         [TestMethod, Ignore]
         public void LoginWithCredentials()
         {
             _conn.Login(ClientName, ClientVersion, "hacTest", "hacTest".ToCharArray(), printCertificates: false);
-            Assert.AreEqual(ResponseType.Ok, _conn.LastResponse.Type, _conn.LastResponse.JsonPayload);
+            Assert.AreEqual(_conn.LogIn == VndbConnection.LogInStatus.YesWithPassword, _conn.LogIn, _conn.LastResponse.JsonPayload);
         }
 
     }

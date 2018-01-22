@@ -5,9 +5,9 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 using Newtonsoft.Json;
 using static Happy_Apps_Core.StaticHelpers;
 
@@ -18,28 +18,12 @@ namespace Happy_Apps_Core
     /// </summary>
     public partial class VndbConnection
     {
-        public VndbConnection([NotNull]Action<string,MessageSeverity> textAction, Action<string,bool> advancedModeAction, Action refreshListAction, Action<APIStatus> changeStatusAction = null)
-        {
-            TextAction = textAction;
-            _advancedAction = advancedModeAction;
-            _refreshListAction = refreshListAction;
-            if (changeStatusAction != null)
-            {
-                _changeStatusAction = status =>
-                {
-                    //runs the mandatory part of changeApiStatus first, then runs provided action
-                    ChangeAPIStatus(status);
-                    changeStatusAction(status);
-                };
-            }
-            else _changeStatusAction = ChangeAPIStatus;
-        }
-
         public const int VndbAPIMaxYear = 99999999;
         private const string VndbHost = "api.vndb.org";
         private const ushort VndbPort = 19534;
         private const ushort VndbPortTLS = 19535;
         private const byte EndOfStreamByte = 0x04;
+        private int _throttleWaitTime;
         private Stream _stream;
         private TcpClient _tcpClient;
         public Response LastResponse;
@@ -274,9 +258,7 @@ namespace Happy_Apps_Core
                     break;
             }
         }
-
-
-
+        
         /// <summary>
         /// Close connection with VNDB API
         /// </summary>
@@ -295,8 +277,7 @@ namespace Happy_Apps_Core
             }
             Status = APIStatus.Closed;
         }
-
-
+        
         private static bool IsCompleteMessage(byte[] message, int bytesUsed)
         {
             if (bytesUsed == 0)
@@ -340,6 +321,106 @@ namespace Happy_Apps_Core
             }
         }
 
+
+        /// <summary>
+        /// Send query through API Connection.
+        /// </summary>
+        /// <param name="query">Command to be sent</param>
+        /// <param name="errorMessage">Message to be printed in case of error</param>
+        /// <returns>Returns whether it was successful.</returns>
+        private async Task<QueryResult> TryQueryInner(string query, string errorMessage)
+        {
+            if (Status != APIStatus.Ready)
+            {
+                TextAction("API Connection isn't ready.", MessageSeverity.Error);
+                return QueryResult.Fail;
+            }
+            Status = APIStatus.Busy;
+            _changeStatusAction(Status);
+            await Task.Run(() =>
+            {
+                if (CSettings.DecadeLimit && (!ActiveQuery?.IgnoreDateLimit ?? false) && query.StartsWith("get vn ") && !query.Contains("id = "))
+                {
+                    query = Regex.Replace(query, "\\)", $" and released > \"{DateTime.UtcNow.Year - 10}\")");
+                }
+                LogToFile(query);
+                Query(query);
+            });
+            if (LastResponse.Type == ResponseType.Unknown)
+            {
+                return QueryResult.Fail;
+            }
+            while (LastResponse.Type == ResponseType.Error)
+            {
+                if (!LastResponse.Error.ID.Equals("throttled"))
+                {
+                    TextAction(errorMessage, MessageSeverity.Error);
+                    return QueryResult.Fail;
+                }
+                string fullThrottleMessage = "";
+                double minWait = 0;
+                await Task.Run(() =>
+                {
+                    minWait = Math.Min(5 * 60, LastResponse.Error.Fullwait); //wait 5 minutes
+                    string normalWarning = $"Throttled for {Math.Floor(minWait / 60)} mins.";
+                    string additionalWarning = "";
+                    if (ActiveQuery.TitlesAdded > 0) additionalWarning += $" Added {ActiveQuery.TitlesAdded}.";
+                    if (ActiveQuery.TitlesSkipped > 0) additionalWarning += $" Skipped {ActiveQuery.TitlesSkipped}.";
+                    fullThrottleMessage = ActiveQuery.AdditionalMessage ? normalWarning + additionalWarning : normalWarning;
+                });
+                TextAction(fullThrottleMessage, MessageSeverity.Warning);
+                LogToFile($"Local: {DateTime.Now} - {fullThrottleMessage}");
+                var waitMS = minWait * 1000;
+                _throttleWaitTime = Convert.ToInt32(waitMS);
+                return QueryResult.Throttled;
+            }
+            return QueryResult.Success;
+        }
+
+        /// <summary>
+        /// Send query through API Connection.
+        /// </summary>
+        /// <param name="query">Command to be sent</param>
+        /// <param name="errorMessage">Message to be printed in case of error</param>
+        /// <param name="setStatusOnEnd">Set to true to change status when ending this query (Only for direct calls)</param>
+        /// <returns>Returns whether it was successful.</returns>
+        private async Task<bool> TryQuery(string query, string errorMessage, bool setStatusOnEnd = false)
+        {
+            var result = await TryQueryInner(query, errorMessage);
+            while (result == QueryResult.Throttled)
+            {
+                if (ActiveQuery.RefreshList && _refreshListAction != null)
+                {
+                    await Task.Run(_refreshListAction);
+                }
+                _changeStatusAction(Status);
+                await Task.Delay(_throttleWaitTime);
+                Status = APIStatus.Ready;
+                result = await TryQueryInner(query, errorMessage);
+            }
+            if (setStatusOnEnd) _changeStatusAction(Status);
+            return result == QueryResult.Success;
+        }
+
+        /// <summary>
+        /// Send query through API Connection, don't post error messages back.
+        /// </summary>
+        /// <param name="query">Command to be sent</param>
+        /// <returns>Returns whether it was successful.</returns>
+        private async Task<bool> TryQueryNoReply(string query)
+        {
+            if (Status != APIStatus.Ready)
+            {
+                return false;
+            }
+            await Task.Run(() =>
+            {
+                LogToFile(query);
+                Query(query);
+            });
+            return LastResponse.Type != ResponseType.Unknown && LastResponse.Type != ResponseType.Error;
+        }
+
         public enum LogInStatus
         {
             No,
@@ -355,64 +436,66 @@ namespace Happy_Apps_Core
             Error,
             Closed
         }
-    }
-
-    /// <summary>
-    /// Holds API's response to commands.
-    /// </summary>
-    public class Response
-    {
-        /// <summary>
-        /// If response is of type 'error', holds ErrorResponse
-        /// </summary>
-        public readonly ErrorResponse Error;
-        /// <summary>
-        /// Response in JSON format
-        /// </summary>
-        public readonly string JsonPayload;
-        /// <summary>
-        /// Type of response
-        /// </summary>
-        public readonly ResponseType Type;
 
         /// <summary>
-        /// Constructor for Response
+        /// Holds API's response to commands.
         /// </summary>
-        /// <param name="type">Type of response</param>
-        /// <param name="jsonPayload">Response in JSON format</param>
-        public Response(ResponseType type, string jsonPayload)
+        public class Response
         {
-            Type = type;
-            JsonPayload = jsonPayload;
-            if (type == ResponseType.Error) Error = JsonConvert.DeserializeObject<ErrorResponse>(jsonPayload);
+            /// <summary>
+            /// If response is of type 'error', holds ErrorResponse
+            /// </summary>
+            public readonly ErrorResponse Error;
+            /// <summary>
+            /// Response in JSON format
+            /// </summary>
+            public readonly string JsonPayload;
+            /// <summary>
+            /// Type of response
+            /// </summary>
+            public readonly ResponseType Type;
+
+            /// <summary>
+            /// Constructor for Response
+            /// </summary>
+            /// <param name="type">Type of response</param>
+            /// <param name="jsonPayload">Response in JSON format</param>
+            public Response(ResponseType type, string jsonPayload)
+            {
+                Type = type;
+                JsonPayload = jsonPayload;
+                if (type == ResponseType.Error) Error = JsonConvert.DeserializeObject<ErrorResponse>(jsonPayload);
+            }
+
         }
+
+        /// <summary>
+        /// Type of API Response
+        /// </summary>
+        public enum ResponseType
+        {
+            /// <summary>
+            /// Returned by login command
+            /// </summary>
+            Ok,
+            /// <summary>
+            /// Returned by get commands 
+            /// </summary>
+            Results,
+            /// <summary>
+            /// Returned by dbstats command
+            /// </summary>
+            DBStats,
+            /// <summary>
+            /// Returned when there is an error
+            /// </summary>
+            Error,
+            /// <summary>
+            /// Returned in all other cases
+            /// </summary>
+            Unknown
+        }
+
     }
 
-
-    /// <summary>
-    /// Type of API Response
-    /// </summary>
-    public enum ResponseType
-    {
-        /// <summary>
-        /// Returned by login command
-        /// </summary>
-        Ok,
-        /// <summary>
-        /// Returned by get commands 
-        /// </summary>
-        Results,
-        /// <summary>
-        /// Returned by dbstats command
-        /// </summary>
-        DBStats,
-        /// <summary>
-        /// Returned when there is an error
-        /// </summary>
-        Error,
-        /// <summary>
-        /// Returned in all other cases
-        /// </summary>
-        Unknown
-    }
 }
