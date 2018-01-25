@@ -211,7 +211,7 @@ throw;
             vn.ImageNSFW = item.Image_Nsfw;
             vn.LengthTime = (LengthFilter?)item.Length;
             vn.Popularity = item.Popularity;
-            vn.Rating = item.Popularity;
+            vn.Rating = item.Rating;
             vn.VoteCount = item.VoteCount;
             vn.Aliases = item.Aliases;
             vn.Languages = languages?.ToString();

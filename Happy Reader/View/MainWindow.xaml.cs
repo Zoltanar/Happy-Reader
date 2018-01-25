@@ -114,8 +114,7 @@ namespace Happy_Reader.View
         public void TabMiddleClick(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton != MouseButton.Middle) return;
-            if (!(sender is TabItem tab)) return;
-            MainTabControl.Items.Remove(tab);
+            MainTabControl.Items.Remove((TabItem)((Grid) sender).Parent);
         }
 
         public void AddEntryFromOutputWindow(string text) => AddEntry(text);
@@ -144,7 +143,10 @@ namespace Happy_Reader.View
 
         public void AddTabItem(TabItem tabItem)
         {
-            tabItem.MouseUp += TabMiddleClick;
+            var header = new Grid();
+            header.Children.Add(new TextBlock {Text = (string) tabItem.Header});
+            header.MouseDown += TabMiddleClick;
+            tabItem.Header = header;
             MainTabControl.Items.Add(tabItem);
             MainTabControl.SelectedItem = tabItem;
         }

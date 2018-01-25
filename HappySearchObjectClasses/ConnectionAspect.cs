@@ -9,14 +9,14 @@ namespace Happy_Apps_Core
     [PSerializable]
     public class ConnectionFunctionAspect : OnMethodBoundaryAspect
     {
-        public override void OnEntry(MethodExecutionArgs args)
+        public sealed override void OnEntry(MethodExecutionArgs args)
         {
             Debug.WriteLine(args.Arguments.Any()
                 ? $"PS: Entered {args.Method.Name}, arguments: {string.Join(", ", args.Arguments.Select(x => $"[{x}]"))}"
                 : $"PS: Entered {args.Method.Name}");
         }
 
-        public override void OnExit(MethodExecutionArgs args)
+        public sealed override void OnExit(MethodExecutionArgs args)
         {
             Debug.WriteLine(args.Arguments.Any()
                 ? $"PS: Exited {args.Method.Name}, arguments: {string.Join(", ", args.Arguments.Select(x => $"[{x}]"))}"
@@ -25,7 +25,7 @@ namespace Happy_Apps_Core
             conn.EndQuery();
         }
 
-        public override void OnException(MethodExecutionArgs args)
+        public sealed override void OnException(MethodExecutionArgs args)
         {
             Debug.WriteLine(args.Arguments.Any()
                 ? $"PS: Exception in {args.Method.Name}, arguments: {string.Join(", ", args.Arguments.Select(x => $"[{x}]"))}"
@@ -49,7 +49,7 @@ namespace Happy_Apps_Core
             IgnoreDateLimit = ignoreDateLimit;
         }
 
-        public override async Task OnInvokeAsync(MethodInterceptionArgs args)
+        public sealed override async Task OnInvokeAsync(MethodInterceptionArgs args)
         {
             VndbConnection conn = (VndbConnection)args.Instance;
             if (StaticHelpers.CSettings.UserID < 1) return;

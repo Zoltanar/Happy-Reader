@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             mc:Ignorable="d" Height="375"
+             mc:Ignorable="d"
              d:DataContext="{d:DesignData Source=CharacterItemSampleData.xaml}">
     <Border BorderBrush="Black" BorderThickness="1" CornerRadius="10" Background="{Binding BackBrush}">
         <Grid>
@@ -30,8 +30,18 @@
                     <Run Text="{Binding ID}"/>
                 </Hyperlink>
             </Label>
-            <ComboBox Grid.Column="0" x:Name="TraitsCb" ItemsSource="{Binding DisplayTraits}" Margin="0,342,0,10" />
-            <TextBox Grid.Column="1" Text="{Binding Description}" Style="{StaticResource NoBorderTextBox}" TextWrapping="Wrap" MinWidth="0" MaxWidth="230"/>
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <TextBox Grid.Row="0" Text="{Binding Description}" Style="{StaticResource NoBorderTextBox}" TextWrapping="Wrap" MinWidth="0" MaxWidth="230" BorderThickness="1" Margin="5" BorderBrush="Black"/>
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="5">
+                    <StackPanel CanVerticallyScroll="True">
+                        <ItemsControl x:Name="TraitsControl"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
         </Grid>
     </Border>
 </UserControl>

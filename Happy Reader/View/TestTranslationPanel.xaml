@@ -53,6 +53,6 @@
         <TextBox Text="{Binding Stage7}" Grid.Row="1" Grid.Column="3" />
         <Label Grid.Row="0" Grid.Column="0" x:Name="TesterGameValid" Content="❌" Margin="0,0,10,35" VerticalAlignment="Bottom" Height="18" VerticalContentAlignment="Center" Padding="0" HorizontalAlignment="Right" Width="16"/>
         <Label Grid.Row="0" Grid.Column="1" Content="Romaji" HorizontalAlignment="Left" Margin="10,0,0,80" VerticalAlignment="Bottom" Height="18" VerticalContentAlignment="Center" Padding="0"/>
-        <TextBox Text="{Binding Romaji}" Grid.Row="0" Grid.Column="1" Margin="10,225,10,10"/>
+        <TextBox Text="{Binding Romaji}" Grid.Row="0" Grid.Column="1" Margin="10,0,10,10" Height="65" VerticalAlignment="Bottom"/>
     </Grid>
 </UserControl>
