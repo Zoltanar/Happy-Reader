@@ -6,11 +6,13 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Windows;
 using System.Windows.Media.Imaging;
-using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
+using IthVnrSharpLib;
 using JetBrains.Annotations;
+using StaticHelpers = Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Reader.Database
 {
@@ -18,7 +20,12 @@ namespace Happy_Reader.Database
     // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
     public class UserGame : INotifyPropertyChanged
     {
-        public UserGame(string file, ListedVN vn)
+	    private Stopwatch _runningTime;
+	    private Process _process;
+	    private ListedVN _vn;
+	    private bool _vnGot;
+
+		public UserGame(string file, ListedVN vn)
         {
             FilePath = file;
             VNID = vn?.VNID;
@@ -29,34 +36,26 @@ namespace Happy_Reader.Database
 
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public long Id { get; set; }
-
-        public string UserDefinedName { get; set; }
-
-        [NotMapped]
-        public bool HookToProcess
-        {
-            get => HookProcess ?? false;
-            set
-            {
-                HookProcess = value;
-                StaticMethods.Data.SaveChanges();
-            }
-        }
-
-        public bool? HookProcess { get; set; }
-
+	    public string UserDefinedName { get; set; }
+	    public string LaunchPath { get; set; }
+        public bool HookProcess { get; set; }
         public int? VNID { get; set; }
-
         public string FilePath { get; set; }
-        
         public string HookCode { get; set; }
+		public bool MergeByHookCode { get; set; }
+	    public string ProcessName { get; set; }
+	    // ReSharper disable once InconsistentNaming
+		public DateTime TimeOpenDT { get; set; }
+		public EncodingEnum PrefEncodingEnum { get; set; }
+		
+	    public bool IsRunning => _process != null;
 
-        public TimeSpan TimeOpen { get; set; }
-
-#if DEBUG
-        private ListedVN _vn;
-        private bool _vnGot;
-
+		[NotMapped]
+        public TimeSpan TimeOpen
+        {
+            get => TimeSpan.FromTicks(TimeOpenDT.Ticks);
+            set => TimeOpenDT = new DateTime(value.Ticks);
+        }
         [NotMapped]
         public ListedVN VN
         {
@@ -65,7 +64,7 @@ namespace Happy_Reader.Database
                 if (Id == 0) return _vn;
                 if (!_vnGot)
                 {
-                    if(VNID != null) _vn = StaticHelpers.LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == VNID);
+                    if (VNID != null) _vn = StaticHelpers.LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == VNID);
                     _vnGot = true;
                 }
                 return _vn;
@@ -74,19 +73,8 @@ namespace Happy_Reader.Database
             {
                 _vn = value;
                 _vnGot = true;
-            } 
+            }
         }
-#else
-        [NotMapped]
-        public ListedVN VN { get; set; }
-#endif
-
-        private Stopwatch _runningTime;
-
-        private Process _process;
-
-        public bool IsRunning => _process != null;
-
         [NotMapped]
         public Process Process
         {
@@ -103,41 +91,23 @@ namespace Happy_Reader.Database
                 _process.EnableRaisingEvents = true;
             }
         }
-
-        public void SaveTimePlayed(bool notify)
-        {
-            _runningTime.Stop();
-            TimeOpen += _runningTime.Elapsed;
-            Process = null;
-            var log = Log.NewTimePlayedLog(Id, _runningTime.Elapsed, notify);
-            StaticMethods.Data.Logs.Add(log);
-            StaticMethods.Data.SaveChanges();
-        }
-
         [NotMapped]
         public string DisplayName =>
             UserDefinedName ?? StaticMethods.TruncateStringFunction30(VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath));
-
         [NotMapped]
         public BitmapImage Image
         {
             get
             {
                 Bitmap image = null;
-                if (VN == null && FilePath != null)
+                if (!File.Exists(FilePath))
                 {
-                    if (File.Exists(FilePath)) image = Icon.ExtractAssociatedIcon(FilePath)?.ToBitmap();
-                    else
-                    {
-                        // ReSharper disable once PossibleNullReferenceException
-                        Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/file-not-found.png")).Stream;
-                        image = new Bitmap(iconStream);
-                    }
+                    // ReSharper disable once PossibleNullReferenceException
+                    Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/file-not-found.png")).Stream;
+                    image = new Bitmap(iconStream);
                 }
-                else if (VN != null)
-                {
-                    if (File.Exists(VN.StoredCover)) image = new Bitmap(VN.StoredCover);
-                }
+                else if (VN == null) image = Icon.ExtractAssociatedIcon(FilePath)?.ToBitmap();
+                else if (File.Exists(VN.StoredCover)) image = new Bitmap(VN.StoredCover);
                 if (image == null)
                 {
                     // ReSharper disable once PossibleNullReferenceException
@@ -158,21 +128,37 @@ namespace Happy_Reader.Database
             }
         }
 
-        public string ProcessName { get; set; }
+		[NotMapped]
+	    public Encoding PrefEncoding
+	    {
+		    get => Encodings[(int)PrefEncodingEnum];
+			set
+			{
+				var index = Array.IndexOf(Encodings, value);
+				PrefEncodingEnum = (EncodingEnum) index;
+			}
+	    }
 
-        private void ProcessExited(object sender, EventArgs e)
-        {
-            SaveTimePlayed(true);
-        }
+	    public event PropertyChangedEventHandler PropertyChanged;
 
-        public event PropertyChangedEventHandler PropertyChanged;
+		public void SaveTimePlayed(bool notify)
+	    {
+		    _runningTime.Stop();
+		    TimeOpen += _runningTime.Elapsed;
+		    Process = null;
+		    var log = Log.NewTimePlayedLog(Id, _runningTime.Elapsed, notify);
+		    StaticMethods.Data.Logs.Add(log);
+		    StaticMethods.Data.SaveChanges();
+	    }
+
+		private void ProcessExited(object sender, EventArgs e) => SaveTimePlayed(true);
 
         [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         public void SaveUserDefinedName([NotNull]string text)
         {
-            UserDefinedName = text.Trim();
+            UserDefinedName = string.IsNullOrWhiteSpace(text) ? null : text.Trim();
             StaticMethods.Data.SaveChanges();
             OnPropertyChanged(nameof(DisplayName));
         }
@@ -189,8 +175,8 @@ namespace Happy_Reader.Database
 
         public void SaveHookCode([NotNull]string text)
         {
-            HookCode = text.Trim();
-            StaticMethods.Data.SaveChanges();
+            HookCode = string.IsNullOrWhiteSpace(text) ? null : text.Trim();
+			StaticMethods.Data.SaveChanges();
             OnPropertyChanged(nameof(HookCode));
         }
 
@@ -201,5 +187,22 @@ namespace Happy_Reader.Database
             OnPropertyChanged(nameof(FilePath));
             OnPropertyChanged(nameof(Image));
         }
+
+		public void SaveLaunchPath([NotNull]string text)
+		{
+			LaunchPath = string.IsNullOrWhiteSpace(text) ? null : text.Trim();
+			StaticMethods.Data.SaveChanges();
+			OnPropertyChanged(nameof(LaunchPath));
+		}
+
+	    public override string ToString() => DisplayName;
+
+	    public static Encoding[] Encodings => IthVnrViewModel.Encodings;
+		public enum EncodingEnum
+	    {
+		    // ReSharper disable once InconsistentNaming
+			ShiftJis, UTF8, Unicode
+	    }
     }
+
 }

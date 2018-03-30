@@ -14,6 +14,8 @@ namespace KakasiNET
     public class KakasiLib : MarshalByRefObject
     {
 
+		public override object InitializeLifetimeService() => null;
+
         #region Externs
 
         /// <summary>
@@ -100,7 +102,6 @@ namespace KakasiNET
         /// </summary>
         public void Init()
         {
-
             // Get executing assembly location
             var executingAssemblyLocation = Assembly.GetExecutingAssembly().Location;
             var executingAssemblyPath = Path.GetDirectoryName(executingAssemblyLocation);
@@ -138,9 +139,9 @@ namespace KakasiNET
 
             // Set search path
             SetDllDirectory(kakasiLibPath);
-
+            var path = Path.Combine(kakasiLibPath, kakasiDll);
             // Load library
-            KakasiLibPtr = LoadLibrary(Path.Combine(kakasiLibPath, kakasiDll));
+            KakasiLibPtr = LoadLibrary(path);
 
             // Check for errors
             if (KakasiLibPtr != IntPtr.Zero)
@@ -168,7 +169,7 @@ namespace KakasiNET
                 {
 
                     // Throw it
-                    throw new Win32Exception(Marshal.GetLastWin32Error());
+                    throw new Win32Exception(win32Error);
 
                 }
 

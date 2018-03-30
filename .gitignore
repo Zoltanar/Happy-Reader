@@ -261,3 +261,7 @@ __pycache__/
 *.pyc
 /Happy Reader/View/OutputWindow bits.txt
 /Happy Reader/image-template.psd
+/Happy Reader/Stored Data/Saved Cover Images
+/Happy Reader/Stored Data/Saved Screenshots
+/Happy Reader/Stored Data/guisettings.json
+/Happy Reader/Stored Data/coresettings2.json

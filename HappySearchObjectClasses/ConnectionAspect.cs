@@ -54,7 +54,7 @@ namespace Happy_Apps_Core
             VndbConnection conn = (VndbConnection)args.Instance;
             if (StaticHelpers.CSettings.UserID < 1) return;
             if (!conn.StartQuery(args.Method.Name, RefreshList, AdditionalMessage, IgnoreDateLimit)) return;
-            await Task.Run(() => args.ProceedAsync());
+            await args.ProceedAsync();
         }
     }
 }

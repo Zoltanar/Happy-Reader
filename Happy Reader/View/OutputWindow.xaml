@@ -4,11 +4,11 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
+        xmlns:view="clr-namespace:Happy_Reader.View"
         mc:Ignorable="d"
-        Title="Output" Height="216" Width="600" 
+        Title="Output" Height="216" Width="800" 
         ShowInTaskbar="False" WindowStyle="None" AllowsTransparency="True"  
         Topmost="True" 
-        MouseLeftButtonDown="DragOnMouseButton"
         Loaded="OutputWindow_OnLoaded"
         ResizeMode="CanResizeWithGrip">
     <Window.DataContext>
@@ -40,39 +40,51 @@
             <Setter Property="Height" Value="18"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="FontSize" Value="10"/>
         </Style>
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
-            <ColumnDefinition x:Name="SettingsColumn" Width="75"/>
+            <ColumnDefinition x:Name="SettingsColumn" Width="88"/>
         </Grid.ColumnDefinitions>
         <RichTextBox Grid.Column="0"  Foreground="GreenYellow" x:Name="DebugTextbox" HorizontalContentAlignment="Center" IsReadOnly="True"
-                     VerticalContentAlignment="Center" Background="{x:Null}" FontSize="22"  BorderBrush="Transparent">
+                     VerticalContentAlignment="Center" Background="{x:Null}" FontSize="22"  BorderBrush="Transparent" AutoWordSelection="False">
+            <RichTextBox.Effect>
+                <DropShadowEffect/>
+            </RichTextBox.Effect>
             <RichTextBox.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Add Entry For Text" 
-                              Command="{Binding AddEntryForText}" />
+                    <MenuItem Header="Add Entry For Text" Command="{Binding AddEntryForText}" />
+                    <MenuItem Header="Ask Jisho" Command="{Binding AskJishoCommand}" />
                     <MenuItem Command="ApplicationCommands.Copy" />
                     <MenuItem Command="ApplicationCommands.Cut" />
                     <MenuItem Command="ApplicationCommands.Paste" />
                 </ContextMenu>
             </RichTextBox.ContextMenu>
         </RichTextBox>
-        <Grid Column="1" Margin="5,5,0,0" >
+        <Grid Column="1" Margin="5,5,0,0" MouseEnter="ShowSettingsOnMouseHover" MouseLeave="HideSettingsOnMouseLeave">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition Width="18"/>
             </Grid.ColumnDefinitions>
-            <Button Content="Close" VerticalAlignment="Top" Click="CloseButton_Click" Height="18" Background="Transparent" BorderBrush="#FFB61C1C" Foreground="White" />
-            <CheckBox Grid.Column="0" Content="🔒" VerticalAlignment="Top" Checked="ToggleLock" Unchecked="ToggleLock" Height="18" Margin="0,18,0,0" FontSize="10"/>
-            <CheckBox Grid.Column="0" Content="FS" VerticalAlignment="Top" Checked="ToggleFullScreen" Unchecked="ToggleFullScreen" Margin="0,36,0,0" FontSize="10"/>
-            <CheckBox Grid.Column="0" Content="漢字" VerticalAlignment="Top" IsChecked="True" Checked="ToggleOriginal" Unchecked="ToggleOriginal" Margin="0,54,0,0" FontSize="10"/>
-            <CheckBox Grid.Column="0" Content="roma" VerticalAlignment="Top" IsChecked="True" Checked="ToggleRomaji" Unchecked="ToggleRomaji" Margin="0,72,0,0" FontSize="10"/>
-            <CheckBox Grid.Column="0" Content="On" VerticalAlignment="Top" IsChecked="{Binding TranslateOn}" Margin="0,90,0,0" FontSize="10"/>
+            <DockPanel Grid.Column="0" LastChildFill="True">
+                <Button DockPanel.Dock="Top" Content="Close" Click="CloseButton_Click" Height="22" Background="Transparent" BorderBrush="DarkRed" BorderThickness="2" Foreground="White" MouseLeftButtonDown="DragOnMouseButton" />
+                <CheckBox DockPanel.Dock="Top" Content="🔒 Lock" IsChecked="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=view:OutputWindow}, Path=LockOn}" Height="18" />
+                <CheckBox DockPanel.Dock="Top" Content="Fullscreen" IsChecked="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=view:OutputWindow}, Path=FullScreenOn}" />
+                <CheckBox DockPanel.Dock="Top" Content="Original" IsChecked="{Binding OriginalOn}" />
+                <CheckBox DockPanel.Dock="Top" Content="Romaji" IsChecked="{Binding RomajiOn}" />
+                <CheckBox DockPanel.Dock="Top" Content="On" IsChecked="{Binding TranslateOn}" />
+                <ToggleButton DockPanel.Dock="Top" IsChecked="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=view:OutputWindow}, Path=SettingsOn}" Background="Transparent">
+                    <TextBlock Text="Click To Toggle Settings" TextWrapping="Wrap" Foreground="White"   />
+                </ToggleButton>
+                <Label DockPanel.Dock="Top" Content="Drag Me" Foreground="White" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" BorderBrush="DarkRed" BorderThickness="2" MouseLeftButtonDown="DragOnMouseButton" Padding="0" />
+            </DockPanel>
             <Slider Grid.Column="1" Name="OpacitySlider" Orientation="Vertical" Value="0.6" Minimum="0.2" Maximum="1" Margin="0,0,0,17"/>
         </Grid>
-        <ToggleButton Grid.Column="0" Content="Settings" Margin="0,5,0,0" VerticalAlignment="Top" HorizontalAlignment="Right" 
-                      Width="54" Click="ShowSettings" Height="24" IsChecked="True" Background="Transparent" Foreground="White"/>
+        <ToggleButton x:Name="SettingsButton" Grid.Column="0" Content="Settings" Margin="0,5,0,0" VerticalAlignment="Top" HorizontalAlignment="Right" 
+                      Width="54" Height="24" IsChecked="True" Background="Transparent" Foreground="White" 
+                      MouseEnter="ShowSettingsOnMouseHover" MouseLeave="HideSettingsOnMouseLeave" Visibility="Collapsed"/>
+        <Label Grid.Column="0" x:Name="IdLabel" Content="{Binding IdText}" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5" Padding="0" Foreground="White"/>
     </Grid>
 </Window>

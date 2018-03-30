@@ -45,7 +45,7 @@
             IgnoreDateLimit = ignoreDateLimit;
             Completed = false;
         }
-        
+
         /// <summary>
         /// Count of titles added in last query.
         /// </summary>
@@ -63,7 +63,12 @@
         /// </summary>
         public uint CharactersUpdated { get; private set; }
 
-        public object TotalTitles => TitlesAdded + TitlesSkipped;
+        public string CompletedMessage { get; set; } = "";
+
+        public VndbConnection.MessageSeverity CompletedMessageSeverity { get; set; } = VndbConnection.MessageSeverity.Normal;
+
+        public uint TotalTitles => TitlesAdded + TitlesSkipped;
+
 
         public void AddTitlesSkipped(uint count = 1) => TitlesSkipped += count;
 

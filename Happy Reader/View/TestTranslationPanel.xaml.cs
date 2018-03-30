@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.ComponentModel;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -41,6 +42,7 @@ namespace Happy_Reader.View
 
         private void TestTranslationPanel_OnLoaded(object sender, RoutedEventArgs e)
         {
+	        if (DesignerProperties.GetIsInDesignMode(this)) return;
             _viewModel = (TranslationTester)DataContext;
         }
     }

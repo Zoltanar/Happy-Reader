@@ -296,7 +296,7 @@ namespace Happy_Apps_Core.Database
         /// <summary>
         /// Gets voted status of vn.
         /// </summary>
-        public bool Voted => UserVN.Vote >= 1;
+        public bool Voted => UserVN != null && UserVN.Vote >= 1;
 
         /// <summary>Returns a string that represents the current object.</summary>
         /// <returns>A string that represents the current object.</returns>
@@ -507,16 +507,7 @@ namespace Happy_Apps_Core.Database
             }
             return false;
         }
-
-        /// <summary>
-        /// Returns whether vn is by a favorite producer.
-        /// </summary>
-        /// <param name="favoriteProducers">List of favorite producers.</param>
-        public bool ByFavoriteProducer(IEnumerable<ListedProducer> favoriteProducers)
-        {
-            return favoriteProducers.FirstOrDefault(fp => fp.ID == ProducerID) != null;
-        }
-
+		
         public bool HasLanguage(string value)
         {
             return LanguagesObject.All.Contains(value);
@@ -552,7 +543,6 @@ namespace Happy_Apps_Core.Database
                 await StaticHelpers.Conn.GetAndSetScreensForVN(this);
                 OnPropertyChanged(nameof(DisplayScreenshots));
             }
-            //todo
         }
 
         public void SetRelations(string relationsString, VNItem.RelationsItem[] relationsObject)

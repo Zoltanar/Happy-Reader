@@ -1,6 +1,8 @@
-auto resize output window height to fit text
 apply translate stage 4 to pre-romaji
 add blacklistedproducers to user
+/HS8@5270:GDI32.dll for Bitch Gakuen - not working with my ITHVNR, check
+make 'ask jisho' use jisho api
+allow user to merge userGames (add gametime from old to new and delete old)
 
 great outstanding problems:
 can't show outputwindow on top of some fullscreen games, steals focus on games where it works

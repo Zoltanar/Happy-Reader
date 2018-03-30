@@ -14,7 +14,7 @@ namespace Happy_Apps_Core
         private const string TraitsJsonGz = StoredDataFolder + "traits.json.gz";
         private const string TagsJson = StoredDataFolder + "tags.json";
         private const string TraitsJson = StoredDataFolder + "traits.json";
-        
+
         public const string ContentTag = "cont";
         public const string SexualTag = "ero";
         public const string TechnicalTag = "tech";
@@ -286,6 +286,36 @@ namespace Happy_Apps_Core
                 LoadTraitdump();
             }
         }
-        
+
+        /// <summary>
+        /// List of possible root traits, their int is their ID
+        /// </summary>
+        public enum RootTrait
+        {
+            None = 0,
+            Hair = 1,
+            Eyes = 35,
+            Body = 36,
+            Clothes = 37,
+            Items = 38,
+            Personality = 39,
+            Role = 40,
+            EngagesIn = 41,
+            SubjectOf = 42,
+            EngagesInSexual = 43,
+            SubjectOfSexual = 1625
+        }
+
+        public static WrittenTrait GetTrait(RootTrait root, string traitName)
+        {
+            return PlainTraits.Find(x => x.Name.Equals(traitName) && x.TopmostParent == (int)root);
+        }
+
+        public static WrittenTag GetTag(string name)
+        {
+            var result =  PlainTags.Find(x => x.Name == name);
+            if(result == null) { }
+            return result;
+        }
     }
 }

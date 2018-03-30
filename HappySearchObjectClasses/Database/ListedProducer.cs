@@ -13,7 +13,7 @@ namespace Happy_Apps_Core.Database
     /// <summary>
     /// Object for Favorite Producers in Object List View.
     /// </summary>
-    public class ListedProducer
+    public class ListedProducer : IComparable<ListedProducer>,IComparable
     {
         /// <summary>
         /// Constructor for ListedProducer, not favorite producers.
@@ -126,5 +126,24 @@ namespace Happy_Apps_Core.Database
         /// <filterpriority>2</filterpriority>
         public override string ToString() => $"ID={ID} Name={Name}";
 
+        public int CompareTo(object other)
+        {
+            if (ReferenceEquals(this, other)) return 0;
+            switch (other)
+            {
+                case null:
+                    return 1;
+                case ListedProducer otherProducer:
+                    return ID.CompareTo(otherProducer.ID);
+                default:
+                    return 1;
+            }
+        }
+
+        public int CompareTo(ListedProducer other)
+        {
+            if (ReferenceEquals(this, other)) return 0;
+            return other is null ? 1 : ID.CompareTo(other.ID);
+        }
     }
 }

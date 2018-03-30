@@ -4,34 +4,83 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:database="clr-namespace:Happy_Reader.Database"
-             mc:Ignorable="d" d:DesignWidth="461.939" d:DesignHeight="300.704">
+             mc:Ignorable="d" d:DesignWidth="461.939" Height="339.704">
     <UserControl.DataContext>
         <database:UserGame/>
     </UserControl.DataContext>
+    <UserControl.Resources>
+        <Style x:Key="Row0Label" TargetType="Label">
+            <Style.Setters>
+                <Setter Property="HorizontalAlignment" Value="Right"/>
+                <Setter Property="HorizontalContentAlignment" Value="Right"/>
+                <Setter Property="Height" Value="26"/>
+            </Style.Setters>
+        </Style>
+        <Style x:Key="Row1TextBoxTransparent" TargetType="TextBox" BasedOn="{StaticResource NoBorderTextBox}">
+            <Style.Setters>
+                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                <Setter Property="Height" Value="26"/>
+            </Style.Setters>
+        </Style>
+        <Style x:Key="Row1TextBox" TargetType="TextBox">
+            <Style.Setters>
+                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                <Setter Property="Height" Value="26"/>
+            </Style.Setters>
+        </Style>
+        <Style x:Key="UniformButton" TargetType="Button">
+            <Style.Setters>
+                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                <Setter Property="Height" Value="26"/>
+                <Setter Property="Margin" Value="5,0"/>
+            </Style.Setters>
+        </Style>
+        <Style x:Key="UniformCheckbox" TargetType="CheckBox">
+            <Style.Setters>
+                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="Height" Value="26"/>
+                <Setter Property="Margin" Value="5,0"/>
+            </Style.Setters>
+        </Style>
+    </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="150"/>
+            <ColumnDefinition Width="Auto" MaxWidth="400"/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <Label Grid.Column="0" Content="Title" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="67" HorizontalContentAlignment="Right"/>
-        <TextBox Grid.Column="0" Style="{StaticResource NoBorderTextBox}" Text="{Binding VN.Title, Mode=OneWay}" Margin="82,10,10,0" VerticalAlignment="Top" Height="26" />
-        <Label Grid.Column="0" Content="Original" HorizontalAlignment="Left" Margin="10,41,0,0" VerticalAlignment="Top" Width="67" HorizontalContentAlignment="Right"/>
-        <TextBox Grid.Column="0" Style="{StaticResource NoBorderTextBox}" Text="{Binding VN.KanjiTitle, Mode=OneWay}" Margin="82,41,10,0" VerticalAlignment="Top" Height="26" />
-        <Label Grid.Column="0" Content="Producer" HorizontalAlignment="Left" Margin="10,72,0,0" VerticalAlignment="Top" Width="67" HorizontalContentAlignment="Right"/>
-        <TextBox Grid.Column="0" Style="{StaticResource NoBorderTextBox}" Text="{Binding VN.Producer.Name, Mode=OneWay}" Margin="82,72,10,0" VerticalAlignment="Top" Height="26" />
-        <Label Grid.Column="0" Content="File" HorizontalAlignment="Left" Margin="10,103,0,0" VerticalAlignment="Top" Width="67" HorizontalContentAlignment="Right"/>
-        <TextBox Grid.Column="0" Style="{StaticResource NoBorderTextBox}" Text="{Binding FilePath, Mode=OneWay}" Margin="82,103,10,0" VerticalAlignment="Top" Height="26" />
-        <Button Grid.Column="0" Content="Browse to file" Margin="116,134,10,0" Height="26" VerticalAlignment="Top" Click="BrowseToFolderClick"/>
-        <Border BorderBrush="Black" BorderThickness="4" Grid.Column="1" Background="#FF3EAE8F"/>
-        <Image Grid.Column="1" Source="{Binding Image, Mode=OneWay}" Margin="10"/>
-        <Label Grid.Column="0" Content="User Defined Name" HorizontalAlignment="Left" Margin="10,173,0,0" VerticalAlignment="Top" Width="78" Height="23" HorizontalContentAlignment="Right"/>
-        <TextBox Grid.Column="0" x:Name="DisplayNameBox" Height="23" Margin="93,173,10,0" Text="{Binding UserDefinedName}" VerticalAlignment="Top" KeyUp="SaveUsedDefinedName" VerticalContentAlignment="Center"/>
-        <Label Grid.Column="0" Content="VNID" HorizontalAlignment="Left" Margin="10,204,0,0" VerticalAlignment="Top" Width="78" Height="23" HorizontalContentAlignment="Right"/>
-        <!-- ReSharper disable once InconsistentNaming -->
-        <TextBox Grid.Column="0" x:Name="VNIDNameBox" Height="23" Margin="93,204,10,0" Text="{Binding VNID}" VerticalAlignment="Top" KeyUp="SaveVNID" PreviewTextInput="DigitsOnly" VerticalContentAlignment="Center"/>
-        <CheckBox Grid.Column="0" Content="Hook to Process" Margin="10,271,10,0" VerticalAlignment="Top" Height="20" IsChecked="{Binding HookToProcess}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" />
-        <Button Grid.Column="0" Content="Change File Path" Margin="10,134,0,0" Height="26" VerticalAlignment="Top" Click="ChangeFileLocationClick" HorizontalAlignment="Left" Width="101"/>
-        <Label Grid.Column="0" Content="Hook Code" HorizontalAlignment="Left" Margin="10,232,0,0" VerticalAlignment="Top" Width="78" Height="23" HorizontalContentAlignment="Right"/>
-        <TextBox Grid.Column="0" x:Name="HookCodeBox" Height="23" Margin="93,232,10,0" Text="{Binding HookCode}" VerticalAlignment="Top" KeyUp="SaveHookCode" VerticalContentAlignment="Center"/>
+        <UniformGrid Grid.Column="0" Rows="11" Columns="1">
+            <Label Style="{StaticResource Row0Label}" Content="Title" />
+            <Label Style="{StaticResource Row0Label}" Content="Original" />
+            <Label Style="{StaticResource Row0Label}" Content="Producer" />
+            <Label Style="{StaticResource Row0Label}" Content="File"/>
+            <Button Style="{StaticResource UniformButton}" Content="Browse to file" Click="BrowseToFolderClick"/>
+            <Label Style="{StaticResource Row0Label}" Content="User Defined Name" />
+            <Label Style="{StaticResource Row0Label}" Content="VNID" />
+            <Label Style="{StaticResource Row0Label}" Content="Hook Code" />
+            <Label Style="{StaticResource Row0Label}" Content="Encoding" />
+            <Label Style="{StaticResource Row0Label}" Content="Launch Path" />
+            <CheckBox Style="{StaticResource UniformCheckbox}" Content="Hook to Process" IsChecked="{Binding HookProcess}" />
+        </UniformGrid>
+        <UniformGrid Grid.Column="1" Rows="11">
+            <TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding VN.Title, Mode=OneWay}" />
+            <TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding VN.KanjiTitle, Mode=OneWay}" />
+            <TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding VN.Producer.Name, Mode=OneWay}" />
+            <TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding FilePath, Mode=OneWay}" />
+            <Button  Style="{StaticResource UniformButton}" Content="Change File Path" Click="ChangeFileLocationClick"/>
+            <TextBox Style="{StaticResource Row1TextBox}" x:Name="DisplayNameBox" Text="{Binding UserDefinedName}" KeyUp="SaveUsedDefinedName" />
+            <TextBox Style="{StaticResource Row1TextBox}" x:Name="VnidNameBox" Text="{Binding VNID}" KeyUp="SaveVNID" PreviewTextInput="DigitsOnly" />
+            <TextBox Style="{StaticResource Row1TextBox}" x:Name="HookCodeBox" Text="{Binding HookCode}" KeyUp="SaveHookCode" />
+            <ComboBox ItemsSource="{Binding Encodings}" SelectedItem="{Binding PrefEncoding}" />
+            <TextBox Style="{StaticResource Row1TextBox}" x:Name="LaunchPathBox" Text="{Binding LaunchPath}" KeyUp="SaveLaunchPath" />
+            <CheckBox Style="{StaticResource UniformCheckbox}" Content="Merge By Hook Code" IsChecked="{Binding MergeByHookCode}"/>
+        </UniformGrid>
+        <Border BorderBrush="Black" BorderThickness="4" Grid.Column="2" Background="#FF3EAE8F"/>
+        <Image Grid.Column="2" Source="{Binding Image, Mode=OneWay}" Margin="10"/>
     </Grid>
 </UserControl>

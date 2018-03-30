@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace HRGoogleTranslate
 {
 
-    public class Translation
+    public class GoogleTranslation
     {
 
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -14,13 +14,13 @@ namespace HRGoogleTranslate
         public string Output { get; set; }
         public DateTime Timestamp { get; set; }
 
-        public Translation(string input, string output)
+        public GoogleTranslation(string input, string output)
         {
             Input = input;
             Output = output;
             Timestamp = DateTime.UtcNow;
         }
         
-        public Translation() { }
+        public GoogleTranslation() { }
     }
 }

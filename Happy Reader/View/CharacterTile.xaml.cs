@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -25,10 +26,15 @@ namespace Happy_Reader.View
                     .GroupBy(x => x.TopmostParentName);
                 foreach (var group in groups)
                 {
-                    List<Inline> inlines = new List<Inline>();
-                    inlines.Add(new Run($"{group.Key}: "));
-                    inlines.AddRange(group.Select(x => new Hyperlink(new Run(x.Name)) { Tag = x }));
-                    linkList.AddRange(inlines);
+                    linkList.Add(new Run($"{group.Key}: "));
+                    foreach (var trait in group)
+                    {
+                        Inline content = new Run(trait.Name);
+
+                        if(StaticHelpers.GSettings.AlertTraitIDs.Contains(trait.ID)) content = new Bold(content);
+                        var link = new Hyperlink(content) { Tag = trait };
+                        linkList.Add(link);
+                    }
                 }
             }
             TraitsControl.ItemsSource = linkList;
@@ -43,7 +49,7 @@ namespace Happy_Reader.View
 
         private void ID_OnClick(object sender, System.Windows.RoutedEventArgs e)
         {
-            System.Diagnostics.Process.Start($"https://vndb.org/c{_viewModel.ID}");
+            Process.Start($"https://vndb.org/c{_viewModel.ID}");
         }
     }
 }

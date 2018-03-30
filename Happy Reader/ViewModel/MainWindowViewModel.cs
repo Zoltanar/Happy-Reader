@@ -16,344 +16,478 @@ using Happy_Reader.Database;
 using JetBrains.Annotations;
 using Newtonsoft.Json.Linq;
 using Happy_Reader.View;
+using IthVnrSharpLib;
+using static Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Reader.ViewModel
 {
-    public class MainWindowViewModel : INotifyPropertyChanged
-    {
-        public User User { get; private set; }
-        public UserGame UserGame { get; private set; }
+	public class MainWindowViewModel : INotifyPropertyChanged
+	{
+		private static readonly object HookLock = new object();
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		public StaticMethods.NotificationEventHandler NotificationEvent;
+		private readonly RecentStringList _vndbQueriesList = new RecentStringList(50);
+		private readonly RecentStringList _vndbResponsesList = new RecentStringList(50);
 
-        public StaticMethods.NotificationEventHandler NotificationEvent;
-        public ObservableCollection<dynamic> EntriesList { get; } = new ObservableCollection<dynamic>();
-        public ObservableCollection<UserGameTile> UserGameItems { get; } = new ObservableCollection<UserGameTile>();
-        private readonly RecentStringList _vndbQueriesList = new RecentStringList(50);
-        private readonly RecentStringList _vndbResponsesList = new RecentStringList(50);
+		private readonly OutputWindow _outputWindow;
+		private string _statusText;
+		private bool _onlyGameEntries;
+		private bool _captureClipboard;
+		private Process _hookedProcess;
+		public ClipboardManager ClipboardManager;
+		private Thread _monitor;
+		private DateTime _lastUpdateTime = DateTime.MinValue;
+		private string _lastUpdateText;
+		private User _user;
+		private UserGame _userGame;
+		private bool _loadingComplete;
+		private bool _closing;
+		private bool _finalizing;
 
-        private readonly OutputWindow _outputWindow;
-        private string _statusText;
-        private bool _onlyGameEntries;
-        private bool _captureClipboard;
-        private Process _hookedProcess;
-        public ClipboardManager ClipboardManager;
-        private Thread _monitor;
+		public string StatusText
+		{
+			get => _statusText;
+			set
+			{
+				_statusText = value;
+				OnPropertyChanged();
+			}
+		}
+		public bool OnlyGameEntries
+		{
+			get => _onlyGameEntries;
+			set
+			{
+				if (_onlyGameEntries == value) return;
+				_onlyGameEntries = value;
+				SetEntries();
+			}
+		}
+		public bool CaptureClipboard
+		{
+			get => _captureClipboard;
+			set
+			{
+				if (value) ClipboardManager.ClipboardChanged += ClipboardChanged;
+				else ClipboardManager.ClipboardChanged -= ClipboardChanged;
+				_captureClipboard = value;
+				OnPropertyChanged();
+			}
+		}
+		public GuiSettings GSettings => StaticMethods.GSettings;
+		public BindingList<string> VndbQueries { get; set; }
+		public BindingList<string> VndbResponses { get; set; }
+		public TranslationTester TestViewModel { get; }
+		public Translator Translator { get; }
+		public VNTabViewModel DatabaseViewModel { get; }
+		public IthViewModel IthViewModel { get; }
+		public bool TranslateOn { get; set; } = true;
+		public ObservableCollection<DisplayEntry> EntriesList { get; } = new ObservableCollection<DisplayEntry>();
+		public ObservableCollection<UserGameTile> UserGameItems { get; } = new ObservableCollection<UserGameTile>();
+		public string DisplayUser => "User: " + (User?.ToString() ?? "(none)");
+		public string DisplayGame => "Game: " + (UserGame?.ToString() ?? "(none)");
+		public User User
+		{
+			get => _user;
+			private set
+			{
+				_user = value;
+				OnPropertyChanged(nameof(DisplayUser));
+			}
+		}
+		public UserGame UserGame
+		{
+			get => _userGame;
+			private set
+			{
+				_userGame = value;
+				OnPropertyChanged(nameof(DisplayGame));
+			}
+		}
 
-        public string StatusText
-        {
-            get => _statusText;
-            set
-            {
-                _statusText = value;
-                OnPropertyChanged();
-            }
-        }
-        public bool OnlyGameEntries
-        {
-            get => _onlyGameEntries;
-            set
-            {
-                if (_onlyGameEntries == value) return;
-                _onlyGameEntries = value;
-                SetEntries();
-            }
-        }
-        public bool CaptureClipboard
-        {
-            get => _captureClipboard;
-            set
-            {
-                if (value) ClipboardManager.ClipboardChanged += ClipboardChanged;
-                else ClipboardManager.ClipboardChanged -= ClipboardChanged;
-                _captureClipboard = value;
-                OnPropertyChanged();
-            }
-        }
-        public GuiSettings GSettings => StaticMethods.GSettings;
-        public BindingList<string> VndbQueries { get; set; }
-        public BindingList<string> VndbResponses { get; set; }
-        public TranslationTester TestViewModel { get; }
-        public VNTabViewModel DatabaseViewModel { get; }
-        public bool TranslateOn { get; set; } = true;
+		public MainWindowViewModel(MainWindow mainWindow)
+		{
+			Application.Current.Exit += ExitProcedures;
+			VndbQueries = _vndbQueriesList.Items;
+			VndbResponses = _vndbResponsesList.Items;
+			Translator = new Translator(StaticMethods.Data);
+			Translation.Translator = Translator;
+			TestViewModel = new TranslationTester(this);
+			DatabaseViewModel = new VNTabViewModel(this);
+			IthViewModel = new IthViewModel(this);
+			OnPropertyChanged(nameof(VndbQueries));
+			_outputWindow = new OutputWindow(mainWindow);
+		}
 
-        public MainWindowViewModel(MainWindow mainWindow)
-        {
-            Application.Current.Exit += ExitProcedures;
-            VndbQueries = _vndbQueriesList.Items;
-            VndbResponses = _vndbResponsesList.Items;
-            TestViewModel = new TranslationTester(this);
-            DatabaseViewModel = new VNTabViewModel(this);
-            OnPropertyChanged(nameof(VndbQueries));
-            _outputWindow = new OutputWindow(mainWindow);
-        }
+		public void SetEntries()
+		{
+			var items = (OnlyGameEntries && UserGame?.VN != null
+				? (string.IsNullOrWhiteSpace(UserGame?.VN.Series)
+					? StaticMethods.Data.GetGameOnlyEntries(UserGame?.VN)
+					: StaticMethods.Data.GetSeriesOnlyEntries(UserGame?.VN))
+				: StaticMethods.Data.Entries).ToArray();
+			Application.Current.Dispatcher.Invoke(() =>
+			{
+				EntriesList.Clear();
+				foreach (var item in items) EntriesList.Add(new DisplayEntry(item));
+			});
+		}
 
-        public void SetEntries()
-        {
-            var items = (OnlyGameEntries && UserGame?.VN != null
-                ? (string.IsNullOrWhiteSpace(UserGame?.VN.Series)
-                    ? StaticMethods.Data.GetGameOnlyEntries(UserGame?.VN)
-                    : StaticMethods.Data.GetSeriesOnlyEntries(UserGame?.VN))
-                : StaticMethods.Data.Entries).ToArray();
-            var items2 = items.Select(i => new
-            {
-                i.Id,
-                i.User,
-                i.Type,
-                i.Game,
-                Role = i.RoleString,
-                i.Input,
-                i.Output,
-                i.SeriesSpecific,
-                i.Regex
-            });
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                EntriesList.Clear();
-                foreach (var item in items2) EntriesList.Add(item);
-            });
-        }
+		public void ExitProcedures(object sender, ExitEventArgs args)
+		{
+			if (_finalizing) return;
+			_finalizing = true;
+			Thread ithFinalize = new Thread(() => IthViewModel.Finalize(null, null)) { IsBackground = true };
+			ithFinalize.Start();
+			bool terminated = ithFinalize.Join(5000); //false if timed out
+			if (!terminated) { }
+			var exitWatch = Stopwatch.StartNew();
+			Debug.WriteLine("(MainWindowViewModel) Starting exit procedures...");
+			try
+			{
+				_closing = true;
+				_outputWindow?.Close();
+				UserGame?.SaveTimePlayed(false);
+				var saveCacheThread = new Thread(StaticMethods.SaveTranslationCache);
+				saveCacheThread.Start();
+				saveCacheThread.Join();
+				_monitor?.Join();
+			}
+			catch (Exception ex)
+			{
+				LogToFile(ex);
+			}
+			Debug.WriteLine($"(MainWindowViewModel) Completed exit procedures, took {exitWatch.Elapsed}");
+		}
 
-        public void ExitProcedures(object sender, ExitEventArgs args)
-        {
-            _monitor.Abort();
-            _outputWindow?.Close();
-            UserGame?.SaveTimePlayed(false);
-            StaticMethods.SaveTranslationCache();
-        }
+		public Translation Translate(string currentText)
+		{
+			if (UserGame == null) return Translation.Error("UserGame is null.");
+			Translation translation = Translator.Translate(User, UserGame.VN, currentText);
+			return translation;
+		}
 
-        public Translation Translate(string currentText)
-        {
-            if (UserGame == null) return Translation.Error("UserGame is null.");
-            Translation translation = Translator.Translate(User, UserGame.VN, currentText);
-            return translation;
-        }
-        
-        public UserGameTile AddGameFile(string file)
-        {
-            if (StaticMethods.Data.UserGames.Select(x => x.FilePath).Contains(file))
-            {
-                StatusText = "This file has already been added.";
-                return null;
-            }
-            //todo cleanup
-            var filename = Path.GetFileNameWithoutExtension(file);
-            ListedVN[] fileResults = VisualNovelDatabase.ListVNByNameOrAliasFunc(filename).Compile().Invoke(StaticHelpers.LocalDatabase).ToArray();
-            ListedVN[] folderResults = { };
-            ListedVN vn = null;
-            if (fileResults.Length == 1) vn = fileResults.First();
-            else
-            {
-                var parent = Directory.GetParent(file);
-                var folder = parent.Name.Equals("data", StringComparison.OrdinalIgnoreCase) ? Directory.GetParent(parent.FullName).Name : parent.Name;
-                folderResults = VisualNovelDatabase.ListVNByNameOrAliasFunc(folder).Compile().Invoke(StaticHelpers.LocalDatabase).ToArray();
-                if (folderResults.Length == 1) vn = folderResults.First();
-            }
-            ListedVN[] allResults = fileResults.Concat(folderResults).ToArray();
-            if (vn == null && allResults.Length > 0) vn = allResults[0];
-            var userGame = new UserGame(file, vn) { Id = StaticMethods.Data.UserGames.Max(x => x.Id) + 1 };
-            StaticMethods.Data.UserGames.Add(userGame);
-            StaticMethods.Data.SaveChanges();
-            return new UserGameTile(userGame);
-        }
+		public UserGameTile AddGameFile(string file)
+		{
+			var userGame = StaticMethods.Data.UserGames.FirstOrDefault(x => x.FilePath == file);
+			if (userGame != null)
+			{
+				StatusText = $"This file has already been added. ({userGame.DisplayName})";
+				return null;
+			}
+			//todo cleanup
+			var filename = Path.GetFileNameWithoutExtension(file);
+			ListedVN[] fileResults = LocalDatabase.VisualNovels.Where(VisualNovelDatabase.ListVNByNameOrAliasFunc(filename)).ToArray();
+			ListedVN vn = null;
+			if (fileResults.Length == 1) vn = fileResults.First();
+			else
+			{
+				var parent = Directory.GetParent(file);
+				var folder = parent.Name.Equals("data", StringComparison.OrdinalIgnoreCase) ? Directory.GetParent(parent.FullName).Name : parent.Name;
+				ListedVN[] folderResults = LocalDatabase.VisualNovels.Where(VisualNovelDatabase.ListVNByNameOrAliasFunc(folder)).ToArray();
+				if (folderResults.Length == 1) vn = folderResults.First();
+			}
+			//ListedVN[] allResults = fileResults.Concat(folderResults).ToArray(); //todo list results and ask user
+			userGame = new UserGame(file, vn) { Id = StaticMethods.Data.UserGames.Max(x => x.Id) + 1 };
+			StaticMethods.Data.UserGames.Add(userGame);
+			StaticMethods.Data.SaveChanges();
+			StatusText = vn == null ? "File was added without VN." : $"File was added as {userGame.DisplayName}.";
+			return new UserGameTile(userGame);
+		}
 
-        public async Task Initialize(Stopwatch watch)
-        {
-            CaptureClipboard = GSettings.CaptureClipboardOnStart;
-            await DatabaseViewModel.Initialize();
-            StaticMethods.Data.UserGames.Load();
-            await Task.Run(() =>
-            {
-                StatusText = "Loading Cached Translations...";
-                StaticMethods.Data.CachedTranslations.Load();
-                Translator.LoadTranslationCache(StaticMethods.Data.CachedTranslations.Local);
-                StatusText = "Populating Proxies...";
-                PopulateProxies();
-                StatusText = "Loading Dumpfiles...";
-                DumpFiles.Load();
-                StatusText = "Loading Entries...";
-                SetEntries();
-                StatusText = "Loading User Games...";
-                foreach (var game in StaticMethods.Data.UserGames.Local)
-                {
-                    game.VN = game.VNID != null
-                        ? StaticHelpers.LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == game.VNID)
-                        : null;
-                }
-            });
-            foreach (var game in StaticMethods.Data.UserGames.Local.OrderBy(x => x.VNID ?? 0)) { UserGameItems.Add(new UserGameTile(game)); }
-            TestViewModel.Initialize();
-            OnPropertyChanged(nameof(TestViewModel));
-            _monitor = new Thread(MonitorStart) { IsBackground = true };
-            _monitor.Start();
-            StatusText = "Loading complete.";
-            NotificationEvent(this, $"Took {watch.Elapsed:ss\\:fff} seconds.", "Loading Complete");
-        }
-
-        public async Task SetUser(int userid, bool newId)
-        {
-            if (newId)
-            {
-                await StaticHelpers.LocalDatabase.VisualNovels.ForEachAsync(vn => vn.UserVNId = StaticHelpers.LocalDatabase.UserVisualNovels
-                    .SingleOrDefault(x => x.UserId == StaticHelpers.CSettings.UserID && x.VNID == vn.VNID)?.Id);
-                await StaticMethods.Data.SaveChangesAsync();
-            }
-            User = StaticHelpers.LocalDatabase.Users.Single(x => x.Id == StaticHelpers.CSettings.UserID);
-            StaticHelpers.LocalDatabase.CurrentUser = User;
-        }
-
-        private void PopulateProxies()
-        {
-            var array = JArray.Parse(File.ReadAllText(StaticMethods.ProxiesJson));
-            // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
-            foreach (JObject item in array)
-            {
-                var r = item["role"].ToString();
-                var i = item["input"].ToString();
-                var o = item["output"].ToString();
-                var proxy = StaticMethods.Data.Entries.SingleOrDefault(x => x.RoleString.Equals(r) && x.Input.Equals(i));
-                if (proxy == null)
-                {
-                    proxy = new Entry { UserId = 0, Type = EntryType.Proxy, RoleString = r, Input = i, Output = o };
-                    StaticMethods.Data.Entries.Add(proxy);
-                    StaticMethods.Data.SaveChanges();
-                }
-            }
-        }
-
-        private void MonitorStart()
-        {
-            //NotificationEvent.Invoke(this, $"Processes to monitor: {StaticMethods.Data.UserGameProcesses.Length}");
-            while (true)
-            {
-                try
-                {
-                    var processes = Process.GetProcesses();
-                    foreach (var processName in StaticMethods.Data.UserGameProcesses)
-                    {
-                        var process = processes.FirstOrDefault(x => x.ProcessName.Equals(processName));
-                        if (process == null) continue;
-                        try
-                        {
-                            if (process.Is64BitProcess()) continue;
-                            if (process.HasExited) continue;
-                            if (UserGame?.Process != null) continue;
-                            var userGame = StaticMethods.Data.UserGames.FirstOrDefault(x => x.FilePath.Equals(process.MainModule.FileName));
-                            if (userGame == null || userGame.Process != null) continue;
-                            userGame.Process = process;
-                            HookUserGame(userGame);
-                            return; //end monitor
-                        }
-                        catch (InvalidOperationException) { } //can happen if process is closed after getting reference
-                    }
-                }
-                catch (Exception ex)
-                {
-                    NotificationEvent.Invoke(this, ex.Message, "Error in MonitorStart");
-                }
-                Thread.Sleep(5000);
-            }
-            // ReSharper disable once FunctionNeverReturns
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        [NotifyPropertyChangedInvocator]
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-        public void RemoveUserGame(UserGameTile item)
-        {
-            UserGameItems.Remove(item);
-            StaticMethods.Data.UserGames.Remove((UserGame)item.DataContext);
-            StaticMethods.Data.SaveChanges();
-            OnPropertyChanged(nameof(TestViewModel));
-        }
-
-        public void ClipboardChanged(object sender, EventArgs e)
-        {
-            if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl) || !TranslateOn) return;
-            if (_hookedProcess == null) return;
-            var cpOwner = StaticMethods.GetClipboardOwner();
-            var b1 = cpOwner == null;
-            var b2 = cpOwner?.Id == _hookedProcess.Id;
-            var b3 = cpOwner?.ProcessName.ToLower().Equals("ithvnr") ?? false;
-            if (!(b1 || b2 || b3)) return; //if process isn't hooked process or named ithvnr
-#if LOGVERBOSE
-            Debug.WriteLine($"Captured clipboard from {cpOwner?.ProcessName} ({cpOwner?.Id})");
+		public async Task Initialize(Stopwatch watch)
+		{
+			CaptureClipboard = GSettings.CaptureClipboardOnStart;
+			await DatabaseViewModel.Initialize();
+			await Task.Run(() =>
+			{
+#if !NOCACHELOAD
+				StatusText = "Loading Cached Translations...";
+				StaticMethods.Data.CachedTranslations.Load();
+				Translator.SetCache();
 #endif
-            var rct = StaticMethods.GetWindowDimensions(_hookedProcess);
-            if (rct.ZeroSized) return; //todo show it somehow or show error.
-            if (!_outputWindow.IsVisible) _outputWindow.Show();
-            try
-            {
-                var text = Clipboard.GetText();
-                if (text.Length > GSettings.MaxClipboardSize) return; //todo show error
-                var latinOnly = new System.Text.RegularExpressions.Regex(@"^[a-zA-Z0-9:/\\\\r\\n .!?,;()""]+$");
-                if (string.IsNullOrWhiteSpace(text)) return;
-                if (latinOnly.IsMatch(text)) return;
-                var unRepeatedString = CheckRepeatedString(text);
-                var translation = Translate(unRepeatedString);
-                if (string.IsNullOrWhiteSpace(translation.Output)) return;
-                _outputWindow.SetLocation(rct.Left, rct.Bottom, rct.Width);
-                _outputWindow.SetText(translation);
-            }
-            catch (Exception ex)
-            {
-                StaticHelpers.LogToFile(ex);
-            }
-        }
+				StatusText = "Populating Proxies...";
+				PopulateProxies();
+				StatusText = "Loading Dumpfiles...";
+				DumpFiles.Load();
+				StatusText = "Loading Entries...";
+				SetEntries();
+			});
+			StatusText = "Loading User Games...";
+			LoadUserGames();
+			TestViewModel.Initialize();
+			OnPropertyChanged(nameof(TestViewModel));
+			_monitor = new Thread(MonitorStart) { IsBackground = true };
+			_monitor.Start();
+			StatusText = "Initializing ITHVNR...";
+			IthViewModel.Initialize(RunTranslation, StaticMethods.VnrProxy, StaticMethods.IthVnrDomain, GetPreferredHookCode);
+			_loadingComplete = true;
+			StatusText = "Loading complete.";
+			NotificationEvent(this, $"Took {watch.Elapsed:ss\\:fff} seconds.", "Loading Complete");
+		}
 
-        private string CheckRepeatedString(string text)
-        {
-            //check if repeated after name
-            var firstBracket = text.IndexOfAny(new[] { '「', '『' });
-            if (firstBracket > 0)
-            {
-                var name = text.Substring(0, firstBracket);
-                var checkText = text.Substring(firstBracket);
-                return name + ReduceRepeatedString(checkText);
-            }
-            return ReduceRepeatedString(text);
-        }
+		public void LoadUserGames()
+		{
+			StaticMethods.Data.UserGames.Load();
+			foreach (var game in StaticMethods.Data.UserGames.Local)
+			{
+				game.VN = game.VNID != null
+					? LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == game.VNID)
+					: null;
+			}
+			foreach (var game in StaticMethods.Data.UserGames.Local.OrderBy(x => x.VNID ?? 0)) { UserGameItems.Add(new UserGameTile(game)); }
+			OnPropertyChanged(nameof(UserGameItems));
+		}
 
-        private string ReduceRepeatedString(string text)
-        {
-            if (text.Length % 2 != 0) return text;
-            var halfLength = text.Length / 2;
-            var p1 = text.Substring(0, halfLength);
-            var p2 = text.Substring(halfLength);
-            if (p1 == p2) return p1;
-            return text;
-        }
+		public async Task SetUser(int userid, bool newId)
+		{
+			CSettings.UserID = userid;
+			if (newId)
+			{
+				await LocalDatabase.VisualNovels.ForEachAsync(vn => vn.UserVNId = LocalDatabase.UserVisualNovels
+					.SingleOrDefault(x => x.UserId == CSettings.UserID && x.VNID == vn.VNID)?.Id);
+				await LocalDatabase.SaveChangesAsync();
+			}
+			User = LocalDatabase.Users.Single(x => x.Id == CSettings.UserID);
+			LocalDatabase.CurrentUser = User;
+		}
 
-        public void VndbAdvancedAction(string text, bool isQuery)
-        {
-            Application.Current.Dispatcher.Invoke(() => (isQuery ? _vndbQueriesList : _vndbResponsesList).AddWithId(text));
-        }
+		private void PopulateProxies()
+		{
+			var array = JArray.Parse(File.ReadAllText(StaticMethods.ProxiesJson));
+			// ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
+			foreach (JObject item in array)
+			{
+				var r = item["role"].ToString();
+				var i = item["input"].ToString();
+				var o = item["output"].ToString();
+				var proxy = StaticMethods.Data.Entries.SingleOrDefault(x => x.RoleString.Equals(r) && x.Input.Equals(i));
+				if (proxy == null)
+				{
+					proxy = new Entry { UserId = 0, Type = EntryType.Proxy, RoleString = r, Input = i, Output = o };
+					StaticMethods.Data.Entries.Add(proxy);
+					StaticMethods.Data.SaveChanges();
+				}
+			}
+		}
 
-        public void HookUserGame(UserGame userGame)
-        {
-            UserGame = userGame;
-            var process = StaticMethods.StartProcess(userGame.FilePath);
-            if (userGame.ProcessName == null)
-            {
-                var game = StaticMethods.Data.UserGames.Single(x => x.Id == userGame.Id);
-                game.ProcessName = process.ProcessName;
-                StaticMethods.Data.SaveChanges();
-            }
-            _hookedProcess = process;
-            _hookedProcess.EnableRaisingEvents = true;
-            _hookedProcess.Exited += HookedProcessOnExited;
-        }
+		private void MonitorStart()
+		{
+			Debug.WriteLine($"MonitorStart starting with ID: {Thread.CurrentThread.ManagedThreadId}");
+			StaticMethods.Data.UserGames.Load();
+			//NotificationEvent.Invoke(this, $"Processes to monitor: {StaticMethods.Data.UserGameProcesses.Length}");
+			while (true)
+			{
+				if (_closing) return;
+				try
+				{
+					var processes = Process.GetProcesses();
+					foreach (var userGame in StaticMethods.Data.UserGames.Local)
+					{
+						if (_closing) return;
+						if (UserGame?.Process != null)
+						{
+							Debug.WriteLine($"MonitorStart ending with ID: {Thread.CurrentThread.ManagedThreadId}");
+							return;
+						}
+						try
+						{
+							var gameProcesses = processes.Where(x => x.ProcessName.Equals(userGame.ProcessName));
+							foreach (var gameProcess in gameProcesses)
+							{
+								if (_closing) return;
+								if (UserGame?.Process != null)
+								{
+									Debug.WriteLine($"MonitorStart ending with ID: {Thread.CurrentThread.ManagedThreadId}");
+									return;
+								}
+								if (gameProcess.Is64BitProcess()) continue;
+								if (gameProcess.HasExited) continue;
+								if (!userGame.FilePath.Equals(gameProcess.MainModule.FileName)) continue;
+								HookUserGame(userGame, gameProcess);
+								Debug.WriteLine($"MonitorStart ending with ID: {Thread.CurrentThread.ManagedThreadId}");
+								return; //end monitor
+							}
+						}
+						catch (InvalidOperationException) { } //can happen if process is closed after getting reference
+					}
+				}
+				catch (Exception ex)
+				{
+					NotificationEvent.Invoke(this, ex.Message, "Error in MonitorStart");
+				}
+				Thread.Sleep(5000);
+			}
+		}
+		
+		[NotifyPropertyChangedInvocator]
+		private void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-        private void HookedProcessOnExited(object sender, EventArgs eventArgs)
-        {
-            Application.Current.Dispatcher.Invoke(() => _outputWindow.Hide());
-            //restart monitor
-            _monitor = new Thread(MonitorStart) { IsBackground = true };
-            _monitor.Start();
-        }
+		public void RemoveUserGame(UserGameTile item)
+		{
+			UserGameItems.Remove(item);
+			StaticMethods.Data.UserGames.Remove(item.UserGame);
+			StaticMethods.Data.SaveChanges();
+			OnPropertyChanged(nameof(TestViewModel));
+		}
+		
+		public void ClipboardChanged(object sender, EventArgs e)
+		{
+			if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl) || !TranslateOn) return;
+			if (_hookedProcess == null) return;
+			var cpOwner = StaticMethods.GetClipboardOwner();
+			var b1 = cpOwner == null;
+			var b2 = cpOwner?.Id == _hookedProcess.Id;
+			var b3 = cpOwner?.ProcessName.ToLower().Equals("ithvnr") ?? false;
+			var b4 = cpOwner?.ProcessName.ToLower().Equals("ithvnrsharp") ?? false;
+			if (!(b1 || b2 || b3 || b4)) return; //if process isn't hooked process or named ithvnr
+			var text = Clipboard.GetText();
+			var timeSinceLast = DateTime.UtcNow - _lastUpdateTime;
+			if (timeSinceLast.TotalMilliseconds < 100 && _lastUpdateText == text) return;
+			LogVerbose($"Capturing clipboard from {cpOwner?.ProcessName ?? "??"}\t {DateTime.UtcNow:HH\\:mm\\:ss\\:fff}\ttimeSinceLast:{timeSinceLast.Milliseconds}\t{text}");
+			_lastUpdateTime = DateTime.UtcNow;
+			_lastUpdateText = text;
+			RunTranslation(this, new TextOutputEventArgs(null, text, cpOwner?.ProcessName, true));
+		}
 
-        public void DebugButton()
-        {
-        }
-    }
+		public bool RunTranslation(object sender, TextOutputEventArgs e)
+		{
+			if (e.TextThread?.IsConsole ?? false) return false;
+			if (string.IsNullOrWhiteSpace(e.Text) || e.Text == "\r\n") return false;
+			try
+			{
+				Func<bool> blockTranslateFunc = () => Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl) ||!TranslateOn;
+				bool blockTranslate = DispatchIfRequired(blockTranslateFunc);
+				if (blockTranslate) return false;
+				LogVerbose($"{nameof(RunTranslation)} - {e}");
+				if (_hookedProcess == null) return false;
+				if ((sender as TextThread)?.IsConsole ?? false) return false;
+				var rect = StaticMethods.GetWindowDimensions(_hookedProcess);
+				if (rect.ZeroSized) return false; //todo show it somehow or show error.
+				if (e.Text.Length > GSettings.MaxClipboardSize) return false; //todo show error
+				var latinOnly = new System.Text.RegularExpressions.Regex(@"^[a-zA-Z0-9:/\\\\r\\n .!?,;()_$^""]+$");
+				if (string.IsNullOrWhiteSpace(e.Text)) return false;
+				if (latinOnly.IsMatch(e.Text)) return false;
+				var unRepeatedString = CheckRepeatedString(e.Text.Replace("\r\n", ""));
+				var translation = Translate(unRepeatedString);
+				if (string.IsNullOrWhiteSpace(translation.Output)) return false;
+				Action postOutput = delegate
+				{
+					IthViewModel.OnPropertyChanged(nameof(IthViewModel.SelectedTextThread));
+					if (!_outputWindow.IsVisible) _outputWindow.Show();
+					_outputWindow.SetLocation(rect.Left, rect.Bottom, rect.Width);
+					_outputWindow.AddTranslation(translation);
+				};
+				DispatchIfRequired(postOutput);
+			}
+			catch (Exception ex)
+			{
+				LogToFile(ex);
+				return false;
+			}
+
+			return true;
+		}
+
+		private static void DispatchIfRequired(Action action)
+		{
+			if (!Application.Current.Dispatcher.CheckAccess()) Application.Current.Dispatcher.Invoke(action);
+			else action();
+		}
+
+		private static T DispatchIfRequired<T>(Func<T> action)
+		{
+			return !Application.Current.Dispatcher.CheckAccess() ? Application.Current.Dispatcher.Invoke(action) : action();
+		}
+
+		private string CheckRepeatedString(string text)
+		{
+			//check if repeated after name
+			var firstBracket = text.IndexOfAny(new[] { '「', '『' });
+			if (firstBracket > 0)
+			{
+				var name = text.Substring(0, firstBracket);
+				var checkText = text.Substring(firstBracket);
+				return name + ReduceRepeatedString(checkText);
+			}
+			return ReduceRepeatedString(text);
+		}
+
+		private static string ReduceRepeatedString(string text)
+		{
+			if (text.Length % 2 != 0) return text;
+			var halfLength = text.Length / 2;
+			var p1 = text.Substring(0, halfLength);
+			var p2 = text.Substring(halfLength);
+			return p1 == p2 ? p1 : text;
+		}
+
+		public void VndbAdvancedAction(string text, bool isQuery)
+		{
+			Application.Current.Dispatcher.Invoke(() => (isQuery ? _vndbQueriesList : _vndbResponsesList).AddWithId(text));
+		}
+
+		public void HookUserGame(UserGame userGame, Process process)
+		{
+			lock (HookLock)
+			{
+				if (UserGame == userGame && UserGame.Process != null) return;
+				if (!File.Exists(userGame.FilePath))
+				{
+					StatusText = $"{userGame.DisplayName} - File not found.";
+					return;
+				}
+				UserGame = userGame;
+				if (process == null)
+				{
+					process = userGame.LaunchPath != null ? StaticMethods.StartProcessThroughProxy(userGame) : StaticMethods.StartProcess(userGame.FilePath);
+				}
+				if (userGame.ProcessName == null)
+				{
+					var game = StaticMethods.Data.UserGames.Single(x => x.Id == userGame.Id);
+					game.ProcessName = process.ProcessName;
+					StaticMethods.Data.SaveChanges();
+				}
+				userGame.Process = process;
+				_hookedProcess = process;
+				_hookedProcess.EnableRaisingEvents = true;
+				_hookedProcess.Exited += HookedProcessOnExited;
+				if (!userGame.HookProcess) return;
+				while (!_loadingComplete) Thread.Sleep(25);
+				IthViewModel.MergeByHookCode = userGame.MergeByHookCode;
+				IthViewModel.PrefEncoding = userGame.PrefEncoding;
+				IthViewModel.Commands?.ProcessCommand($"/P{_hookedProcess.Id}", 0);
+				if(!string.IsNullOrWhiteSpace(UserGame.HookCode)) IthViewModel.Commands?.ProcessCommand(UserGame.HookCode,_hookedProcess.Id);
+			}
+		}
+
+		private void HookedProcessOnExited(object sender, EventArgs eventArgs)
+		{
+			Application.Current.Dispatcher.Invoke(() => _outputWindow.Hide());
+			UserGame = null;
+			//restart monitor
+			if (_monitor != null && _monitor.IsAlive) return;
+			_monitor = new Thread(MonitorStart) { IsBackground = true };
+			_monitor.Start();
+		}
+
+		public void DebugButton()
+		{
+			_outputWindow.Show();
+		}
+
+		public string GetPreferredHookCode(uint processId)
+		{
+			return processId != UserGame?.Process?.Id ? null : UserGame.HookCode;
+		}
+
+		public void DeleteEntry(DisplayEntry displayEntry)
+		{
+			EntriesList.Remove(displayEntry);
+			StaticMethods.Data.Entries.Remove(displayEntry.Entry);
+			StaticMethods.Data.SaveChanges();
+			OnPropertyChanged(nameof(EntriesList));
+		}
+	}
 }

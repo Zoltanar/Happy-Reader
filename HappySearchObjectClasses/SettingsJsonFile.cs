@@ -14,10 +14,12 @@ namespace Happy_Apps_Core
             T settings = null;
             if (!File.Exists(jsonPath))
             {
-                var result = new T();
-                result.FilePath = jsonPath;
-                result.Loaded = true;
-                result.Save();
+	            var result = new T
+	            {
+		            FilePath = jsonPath,
+		            Loaded = true
+	            };
+	            result.Save();
                 return result;
             }
             try
@@ -36,10 +38,12 @@ namespace Happy_Apps_Core
 
             if (settings == null)
             {
-                settings = new T();
-                settings.FilePath = jsonPath;
-                settings.Loaded = true;
-                settings.Save();
+	            settings = new T
+	            {
+		            FilePath = jsonPath,
+		            Loaded = true
+	            };
+	            settings.Save();
             }
             return settings;
         }

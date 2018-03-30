@@ -16,7 +16,7 @@ namespace Happy_Reader.View
         private readonly MainWindowViewModel _mainViewModel;
         private bool _entryAlreadyAdded;
 
-        internal AddEntryControl([NotNull]MainWindowViewModel mainViewModel, string initialInput = "")
+        internal AddEntryControl([NotNull]MainWindowViewModel mainViewModel, string initialInput = "", string initialOutput = "")
         {
             _mainViewModel = mainViewModel;
             InitializeComponent();
@@ -25,9 +25,10 @@ namespace Happy_Reader.View
                 .Cast<EntryType>();
             TypeCb.ItemsSource = enumTypes;
             TypeCb.SelectedValue = EntryType.Name;
-            InputTb.Text = initialInput;
+	        InputTb.Text = initialInput;
+	        OutputTb.Text = initialOutput;
 
-        }
+		}
 
         private void Cancel_Click(object sender, System.Windows.RoutedEventArgs e)
         {
@@ -61,7 +62,7 @@ namespace Happy_Reader.View
             ResponseLabel.Content = $@"Entry was added (id {entry.Id}).";
             _entryAlreadyAdded = true;
             _mainViewModel.SetEntries();
-            Translator.RefreshEntries = true;
+	        _mainViewModel.Translator.RefreshEntries = true;
             Cancel_Click(this, null);
         }
 

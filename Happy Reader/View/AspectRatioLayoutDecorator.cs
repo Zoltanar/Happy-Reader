@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Point = System.Windows.Point;
 using Size = System.Windows.Size;
+// ReSharper disable ArrangeAccessorOwnerBody
 
 namespace Happy_Reader.View
 {

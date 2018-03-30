@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -37,6 +38,7 @@ namespace Happy_Reader.View
 
         private void VNTab_OnLoaded(object sender, RoutedEventArgs e)
         {
+	        if (DesignerProperties.GetIsInDesignMode(this)) return;
             _viewModel = (VNTabViewModel)DataContext;
             _mainWindow = (MainWindow)Window.GetWindow(this);
         }
@@ -100,5 +102,16 @@ namespace Happy_Reader.View
             }
             return true;
         }
-    }
+
+		private async void FilterChanged(object sender, SelectionChangedEventArgs e)
+		{
+			await _viewModel.ChangeFilter(e.AddedItems[0] as CustomVnFilter);
+		}
+
+		private async void ToggleFiltersJapanese(object sender, RoutedEventArgs e)
+		{
+			_viewModel.ToggleFiltersJapanese();
+			if (FiltersCb.SelectedItem != null) await _viewModel.ChangeFilter(FiltersCb.SelectedItem as CustomVnFilter);
+		}
+	}
 }

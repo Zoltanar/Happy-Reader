@@ -87,10 +87,11 @@ namespace Happy_Reader
             return null;
         }
 
+				[Conditional("LOGVERBOSE")]
         private static void HandleCounter()
         {
             _counter++;
-            if (_counter % 50 == 0) Debug.WriteLine($"Kakasi counter at {_counter}");
+						if (_counter % 50 == 0) Debug.WriteLine($"Kakasi counter at {_counter}");
         }
 
 

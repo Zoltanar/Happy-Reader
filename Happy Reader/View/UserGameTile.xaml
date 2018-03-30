@@ -48,7 +48,14 @@
                 <TextBlock Text="{Binding DisplayName}"  VerticalAlignment="Center" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
             </Viewbox>
             <Viewbox Grid.Row="2" Margin="0,0,48,0">
-                <TextBlock Text="{Binding TimeOpen, StringFormat=hh\':\'mm}"  VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="{}{0:N0}:{1:00}">
+                            <Binding Path="TimeOpen.TotalHours"/>
+                            <Binding Path="TimeOpen.Minutes"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
             </Viewbox>
             <ToggleButton Margin="112,5,0,0" Grid.Row="2" Style="{StaticResource ToggleButtonStyle}" IsChecked="{Binding IsRunning, Mode=OneWay}"/>
         </Grid>
@@ -57,6 +64,7 @@
         <ContextMenu>
             <MenuItem Header="See Details" Click="GameDetails"></MenuItem>
             <MenuItem Header="Browse To Location" Click="BrowseToLocation"></MenuItem>
+            <MenuItem Header="Remove" Click="RemoveUserGame"></MenuItem>
         </ContextMenu>
     </UserControl.ContextMenu>
 </UserControl>

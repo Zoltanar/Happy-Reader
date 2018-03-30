@@ -1,0 +1,86 @@
+﻿[
+  {
+    "Name": "No Filters",
+    "AndFilters": [],
+    "OrFilters": []
+  },
+  {
+    "Name": "Favorite Producers",
+    "AndFilters": [
+      {
+        "Type": 5,
+        "Value": true,
+        "Exclude": false
+      }
+    ],
+    "OrFilters": []
+  },
+  {
+    "Name": "Never Played",
+    "AndFilters": [
+      {
+        "Type": 7,
+        "Value": 1,
+        "Exclude": true
+      },
+      {
+        "Type": 7,
+        "Value": 2,
+        "Exclude": true
+      },
+      {
+        "Type": 7,
+        "Value": 3,
+        "Exclude": true
+      },
+      {
+        "Type": 7,
+        "Value": 4,
+        "Exclude": true
+      }
+    ],
+    "OrFilters": []
+  },
+  {
+    "Name": "Hide URT",
+    "AndFilters": [
+      {
+        "Type": 4,
+        "Value": false,
+        "Exclude": true
+      },
+      {
+        "Type": 6,
+        "Value": -1,
+        "Exclude": false
+      },
+      {
+        "Type": 7,
+        "Value": -1,
+        "Exclude": false
+      }
+    ],
+    "OrFilters": []
+  },
+  {
+    "Name": "Only URT",
+    "AndFilters": [],
+    "OrFilters": [
+      {
+        "Type": 4,
+        "Value": true,
+        "Exclude": false
+      },
+      {
+        "Type": 6,
+        "Value": -1,
+        "Exclude": true
+      },
+      {
+        "Type": 7,
+        "Value": -1,
+        "Exclude": true
+      }
+    ]
+  }
+]

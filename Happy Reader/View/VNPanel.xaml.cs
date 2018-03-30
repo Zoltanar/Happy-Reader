@@ -30,9 +30,8 @@ namespace Happy_Reader.View
                 foreach (var group in groups)
                 {
                     if (group.Key == null) continue;
-                    var inlines = new List<Inline>();
-                    inlines.Add(new Run($"{group.Key}: "));
-                    foreach (var tag in group.OrderByDescending(x => x.Score))
+	                var inlines = new List<Inline> {new Run($"{group.Key}: ")};
+	                foreach (var tag in group.OrderByDescending(x => x.Score))
                     {
                         var link = new Hyperlink(new Run(tag.Print())) { Tag = tag };
                         link.PreviewMouseLeftButtonDown += OnTagClick;

@@ -2,74 +2,134 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Windows;
+using System.Windows.Documents;
+using System.Windows.Media;
 using Happy_Apps_Core;
 
 namespace Happy_Reader
 {
-    public class Translation
-    {
-        internal readonly List<(string Part, bool Translate)> Parts = new List<(string Part, bool Translate)>();
-        private readonly List<string[]> _partResults = new List<string[]>();
-        public readonly string[] Results = new string[8];
-        public readonly string Original;
-        public readonly string Romaji;
-        public string Output => Results[7];
+	public class Translation
+	{
+		public static Translator Translator { get; set; }
+		internal readonly List<(string Part, bool Translate)> Parts = new List<(string Part, bool Translate)>();
+		private readonly List<string[]> _partResults = new List<string[]>();
+		public readonly string[] Results = new string[8];
+		public readonly string Original;
+		public readonly string Romaji;
+		public string Output => Results[7];
+		public bool IsCharacterOnly { get; }
 
-        public Translation(string original)
-        {
-            var s1Original = new StringBuilder(original);
-            Translator.TranslateStageOne(s1Original);
-            Original = s1Original.ToString();
-            Romaji = Kakasi.JapaneseToRomaji(Translator.ReplaceNames(s1Original.ToString()));
-        }
+		public Translation(string original)
+		{
+			var s1Original = new StringBuilder(original);
+			Translator.TranslateStageOne(s1Original);
+			Original = s1Original.ToString();
+			var originalForRomaji = Translator.ReplaceNames(s1Original.ToString());
+			var romajiRegex = new System.Text.RegularExpressions.Regex(@"っ(?=[…？！。「」【】、])");
+			originalForRomaji = romajiRegex.Replace(originalForRomaji, "");
+			Romaji = Kakasi.JapaneseToRomaji(originalForRomaji);
+			IsCharacterOnly = Original.StartsWith("【") && Original.EndsWith("】") && Original.Length < 10;
+		}
 
-        private Translation(string original, string romaji,string results)
-        {
-            Original = original;
-            Romaji = romaji;
-            for (int stage = 0; stage < Results.Length; stage++)
-            {
-                Results[stage] = results;
-            }
-        }
+		private Translation(string original, string romaji, string results)
+		{
+			Original = original;
+			Romaji = romaji;
+			for (int stage = 0; stage < Results.Length; stage++)
+			{
+				Results[stage] = results;
+			}
+			IsCharacterOnly = Original.StartsWith("【") && Original.EndsWith("】") && Original.Length < 10;
+		}
 
-        public void TranslateParts()
-        {
-            try
-            {
-                foreach (var (part, translate) in Parts)
-                {
-                    if (!translate)
-                    {
-                        _partResults.Add(Enumerable.Repeat(part, 8).ToArray());
-                        continue;
-                    }
-                    _partResults.Add(Translator.Translate(part));
-                }
-                for (int stage = 0; stage < 7; stage++)
-                {
-                    var stage1 = stage;
-                    Results[stage] = string.Join(stage < 7 || _partResults[stage][0].Length == 1 ? string.Empty : " ", _partResults.Select(c => c[stage1]));
-                }
-                for (int part = 0; part < _partResults.Count; part++)
-                {
-                    var text = _partResults[part][7];
-                    Results[7] += text;
-                    if(part < _partResults.Count-1 && Parts[part].Translate && Parts[part+1].Translate) Results[7] += " ";
-                }
-                
-            }
-            catch (Exception ex)
-            {
-                StaticHelpers.LogToFile(ex.Message);
-            }
+		public Translation(Translation first, Translation second)
+		{
+			Original = $"{first.Original} {second.Original}";
+			Romaji = $"{first.Romaji} {second.Romaji}";
+			for (int stage = 0; stage < Results.Length; stage++)
+			{
+				Results[stage] = $"{first.Results[stage]} {second.Results[stage]}";
+			}
+			IsCharacterOnly = false;
+		}
 
-        }
+		public void TranslateParts()
+		{
+			try
+			{
+				foreach (var (part, translate) in Parts)
+				{
+					if (!translate)
+					{
+						_partResults.Add(Enumerable.Repeat(part, 8).ToArray());
+						continue;
+					}
+					_partResults.Add(Translator.Translate(part));
+				}
+				for (int stage = 0; stage < 7; stage++)
+				{
+					var stage1 = stage;
+					Results[stage] = string.Join(stage < 7 || _partResults[stage][0].Length == 1 ? string.Empty : " ", _partResults.Select(c => c[stage1]));
+				}
+				for (int part = 0; part < _partResults.Count; part++)
+				{
+					var text = _partResults[part][7];
+					Results[7] += text;
+					if (part < _partResults.Count - 1 && Parts[part].Translate && Parts[part + 1].Translate) Results[7] += " ";
+				}
 
-        public static Translation Error(string error)
-        {
-            return new Translation(error, "",error);
-        }
-    }
+			}
+			catch (Exception ex)
+			{
+				StaticHelpers.LogToFile(ex.Message);
+			}
+
+		}
+
+		public Paragraph OriginalBlock { get; private set; }
+		public Paragraph RomajiBlock { get; private set; }
+		public Paragraph TranslatedBlock { get; private set; }
+
+		public void SetParagraphs()
+		{
+			var originalP = new Paragraph(new Run(Original));
+			originalP.Inlines.FirstInline.Foreground = Brushes.Ivory;
+			OriginalBlock = originalP;
+			if (!string.IsNullOrWhiteSpace(Romaji) && !Romaji.Equals(Original))
+			{
+				var romajiP = new Paragraph(new Run(Romaji));
+				romajiP.Inlines.FirstInline.Foreground = Brushes.Pink;
+				RomajiBlock = romajiP;
+			}
+			if (!string.IsNullOrWhiteSpace(Output) && !Output.Equals(Original))
+			{
+				var translatedP = new Paragraph(new Run(Output));
+				translatedP.Inlines.FirstInline.Foreground = Brushes.GreenYellow;
+				TranslatedBlock = translatedP;
+			}
+		}
+
+		public List<Paragraph> GetBlocks(bool original, bool romaji, double fontSize = 19d)
+		{
+			var blocks = new List<Paragraph>();
+			if (original) blocks.Add(OriginalBlock);
+			if (romaji && RomajiBlock != null) blocks.Add(RomajiBlock);
+			if (TranslatedBlock != null) blocks.Add(TranslatedBlock);
+			foreach (Paragraph block in blocks)
+			{
+				block.Margin = new Thickness(0);
+				block.TextAlignment = TextAlignment.Center;
+				block.FontSize = fontSize;
+			}
+			blocks.Add(new Paragraph { FontSize = 6 });
+			return blocks;
+		}
+
+		public static Translation Error(string error)
+		{
+			return new Translation(error, "", error);
+		}
+	}
 }
 

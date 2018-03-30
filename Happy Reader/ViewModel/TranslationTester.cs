@@ -45,7 +45,7 @@ namespace Happy_Reader.ViewModel
         public void Test()
         {
             if (string.IsNullOrWhiteSpace(OriginalText)) return;
-            var translation = Translator.Translate(_mainViewModel.User, Game, OriginalText);
+            var translation = _mainViewModel.Translator.Translate(_mainViewModel.User, Game, OriginalText);
             Romaji = translation.Romaji;
             Stage1 = translation.Results[1].Equals(OriginalText) ? "(no change)" : translation.Results[1];
             Stage2 = translation.Results[2].Equals(Stage1) ? "(no change)" : translation.Results[2];

@@ -1,4 +1,6 @@
-﻿namespace Happy_Apps_Core
+﻿using System.Collections.Generic;
+
+namespace Happy_Apps_Core
 {
     public class GuiSettings : SettingsJsonFile
     {
@@ -103,6 +105,8 @@
                 if(Loaded) Save();
             }
         }
+
+        public HashSet<int> AlertTraitIDs { get; } = new HashSet<int>();
     }
 
 }

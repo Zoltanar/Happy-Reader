@@ -1,0 +1,35 @@
+﻿<Window x:Class="Happy_Reader.View.ProcessExplorer"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        xmlns:ithVnrSharpLib="clr-namespace:IthVnrSharpLib;assembly=IthVnrSharpLib"
+        Title="ProcessExplorer" Height="300" Width="300">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Label Grid.Row="0"  Content="Process" />
+        <DataGrid x:Name="ProcessGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True">
+            <DataGrid.DataContext>
+                <ithVnrSharpLib:ProcessInfo/>
+            </DataGrid.DataContext>
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="PID" Binding="{Binding Process.Id}"/>
+                <DataGridTextColumn Header="Name" Binding="{Binding MainFileName}"/>
+                <DataGridTextColumn Header="Attached" Binding="{Binding Status}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        <UniformGrid Grid.Row="2" Columns="6">
+            <Button Margin="5" Content="Refresh" Click="RefreshProcessList"/>
+            <Button Margin="5" Content="Attach" Click="AttachProcess"/>
+            <Button Margin="5" IsEnabled="False" Content="Detach"/>
+            <Button Margin="5" IsEnabled="False" Content="Add Profile"/>
+            <Button Margin="5" IsEnabled="False" Content="Remove Profile"/>
+            <Button Margin="5" Content="OK"/>
+        </UniformGrid>
+    </Grid>
+</Window>

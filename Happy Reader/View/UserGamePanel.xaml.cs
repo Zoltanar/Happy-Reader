@@ -51,7 +51,7 @@ namespace Happy_Reader.View
         private void SaveVNID(object sender, KeyEventArgs e)
         {
             if (e.Key != Key.Enter) return;
-            _viewModel.SaveVNID(VNIDNameBox.Text.Length == 0 ? null : (int?)int.Parse(VNIDNameBox.Text));
+            _viewModel.SaveVNID(VnidNameBox.Text.Length == 0 ? null : (int?)int.Parse(VnidNameBox.Text));
         }
 
         private void SaveHookCode(object sender, KeyEventArgs e)
@@ -67,5 +67,10 @@ namespace Happy_Reader.View
             if (!DigitRegex.IsMatch(e.Text)) e.Handled = true;
         }
 
-    }
+		private void SaveLaunchPath(object sender, KeyEventArgs e)
+		{
+			if (e.Key != Key.Enter) return;
+			_viewModel.SaveLaunchPath(LaunchPathBox.Text);
+		}
+	}
 }

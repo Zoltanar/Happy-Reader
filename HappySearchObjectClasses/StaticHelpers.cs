@@ -27,12 +27,14 @@ namespace Happy_Apps_Core
         public const string ProjectURL = "https://github.com/Zoltanar/Happy-Search";
         public const string DefaultTraitsJson = "Program Data\\Default Files\\traits.json";
         public const string DefaultTagsJson = "Program Data\\Default Files\\tags.json";
-        public const string DefaultFiltersJson = "Program Data\\Default Files\\defaultfilters.json";
         public const string NsfwImageFile = "Program Data\\Default Files\\nsfw-image.png";
         public const string NoImageFile = "Program Data\\Default Files\\no-image.png";
         public const string FlagsFolder = "Program Data\\Flags\\";
 
-        public const string StoredDataFolder = @"..\..\Stored Data\"; //this is in order to use same folder for all builds (32/64 and debug/release)
+        public const string
+            StoredDataFolder =
+                @"..\..\Stored Data\"; //this is in order to use same folder for all builds (32/64 and debug/release)
+
         public const string VNImagesFolder = StoredDataFolder + "Saved Cover Images\\";
         public const string VNScreensFolder = StoredDataFolder + "Saved Screenshots\\";
         public const string DBStatsJson = StoredDataFolder + "dbs.json";
@@ -44,7 +46,7 @@ namespace Happy_Apps_Core
         public const string GuiSettingsJson = StoredDataFolder + "guisettings.json";
 #pragma warning restore 1591
 
-#endregion
+        #endregion
 
 #pragma warning disable 1591
         public const string ClientName = "Happy Reader";
@@ -85,8 +87,8 @@ namespace Happy_Apps_Core
             Technical
         }
 
-        public static readonly CoreSettings CSettings = SettingsJsonFile.Load<CoreSettings>(CoreSettingsJson);
-        public static readonly GuiSettings GSettings = SettingsJsonFile.Load<GuiSettings>(GuiSettingsJson);
+        public static readonly CoreSettings CSettings;
+        public static readonly GuiSettings GSettings;
 
         public static VndbConnection Conn;
 #pragma warning restore 1591
@@ -95,12 +97,14 @@ namespace Happy_Apps_Core
         {
             Directory.CreateDirectory(StoredDataFolder);
             File.Create(LogFile).Close();
+            CSettings = SettingsJsonFile.Load<CoreSettings>(CoreSettingsJson);
+            GSettings = SettingsJsonFile.Load<GuiSettings>(GuiSettingsJson);
         }
 
         public static VisualNovelDatabase LocalDatabase;
 
         public static bool VNIsByFavoriteProducer(ListedVN vn) => LocalDatabase.CurrentUser.FavoriteProducers.Any(x => x.ID == vn.ProducerID);
-        
+
         /// <summary>
         /// Pause RaiseListChangedEvents and add items then call the event when done adding.
         /// </summary>
@@ -130,9 +134,10 @@ namespace Happy_Apps_Core
         /// Print message to Debug and write it to log file.
         /// </summary>
         /// <param name="message">Message to be written</param>
-        public static void LogToFile(string message)
+        /// <param name="logDebug">Print to debug, true by default</param>
+        public static void LogToFile(string message, bool logDebug = true)
         {
-            Debug.Print(message);
+            if(logDebug) Debug.Print(message);
             int counter = 0;
             while (IsFileLocked(new FileInfo(LogFile)))
             {
@@ -323,11 +328,13 @@ namespace Happy_Apps_Core
         /// <returns>UnixTimestamp (double)</returns>
         public static double DateTimeToUnixTimestamp(DateTime dateTime)
         {
-            return (dateTime -
-                    new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
+            return (dateTime - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
         }
 
-        
-
+		[Conditional("LOGVERBOSE")]
+	    public static void LogVerbose(string text)
+	    {
+		    Debug.WriteLine(text);
+	    }
     }
 }

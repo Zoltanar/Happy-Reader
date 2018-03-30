@@ -13,6 +13,8 @@
 
         public StaticHelpers.TagCategory? Category { get; set; }
 
+        //public int ListedVN_VNID { get; set; }
+
         public virtual ListedVN ListedVN { get; set; }
 
         private void SetCategory()

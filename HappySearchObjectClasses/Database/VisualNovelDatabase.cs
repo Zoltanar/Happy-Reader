@@ -247,13 +247,12 @@ throw;
 
         #region Other
 
-        public static Expression<Func<VisualNovelDatabase, IQueryable<ListedVN>>> ListVNByNameOrAliasFunc(string searchString)
+        public static Expression<Func<ListedVN, bool>> ListVNByNameOrAliasFunc(string searchString)
         {
-            searchString = searchString.ToLower();
-            return db => db.VisualNovels.Where(vn =>
-                vn.Title.ToLower().Contains(searchString) ||
-                vn.KanjiTitle != null && vn.KanjiTitle.ToLower().Contains(searchString) ||
-                vn.Aliases != null && vn.Aliases.ToLower().Contains(searchString));
+            var lowerSearchString = searchString.ToLower();
+            return vn => vn.Title.ToLower().Contains(lowerSearchString) ||
+                vn.KanjiTitle.ToLower().Contains(lowerSearchString) ||
+                vn.Aliases.ToLower().Contains(lowerSearchString);
         }
 
         /// <summary>
@@ -358,6 +357,7 @@ throw;
                 ULAdded = item.Added;
                 ULNote = item.Notes;
                 if (Action != Command.New) Action = Command.Update;
+				else { }
             }
 
 

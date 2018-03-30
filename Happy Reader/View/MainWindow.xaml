@@ -9,29 +9,89 @@
     mc:Ignorable="d"
     Title="Happy Reader" MinWidth="800" MinHeight="600" Width="800" Height="600"  
     Loaded="Window_Loaded"
+    Closing="MainWindow_OnClosing"
     Icon="/Happy Reader;component/Resources/logo-hr.png" d:DataContext="{d:DesignInstance viewModel:MainWindowViewModel}">
+    <Window.Resources>
+        <Style TargetType="TabItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border Name="Border" Padding="0,2,0,0" Background="LightBlue" Margin="-2,-2,0,0" Width="100" Height="50">
+                            <ContentPresenter x:Name="ContentSite" VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Header" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="AliceBlue" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Panel.ZIndex" Value="100"/>
+                                <Setter TargetName="Border" Property="BorderThickness" Value="1" />
+                                <Setter TargetName="Border" Property="BorderBrush" Value="Black" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
     <Grid Background="#FF2E4876">
-        <TabControl x:Name="MainTabControl" Margin="10" >
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TabControl Grid.Row="0" x:Name="MainTabControl" Padding="0" TabStripPlacement="Left">
+            <TabItem Header="ITHVNR" >
+                <view:IthVnrTab DataContext="{Binding IthViewModel}"/>
+            </TabItem>
             <TabItem Header="Games" >
                 <Grid Background="#FFC9E1F5" AllowDrop="True" Drop="DropFileOnGamesTab">
                     <ListBox x:Name="GameFiles"  Margin="10,10,10,53" MouseDoubleClick="GameFiles_MouseDoubleClick" ItemsSource="{Binding UserGameItems}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.GroupStyle>
+                            <GroupStyle x:Name="UserGamesGroupStyle" >
+                            </GroupStyle>
+                        </ListBox.GroupStyle>
                         <ListBox.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel />
                             </ItemsPanelTemplate>
                         </ListBox.ItemsPanel>
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
                     </ListBox>
                     <Button Content="Debug"  Click="Debug_Button"  HorizontalAlignment="Left" Margin="10,0,0,10" Width="49" Height="38" VerticalAlignment="Bottom"/>
-                    <Label x:Name="GameResponseLabel" Content="{Binding StatusText}" Margin="245,0,10,10" Height="38" VerticalAlignment="Bottom" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"/>
-                    <Button Content="Remove"  Click="RemoveUserGame"  HorizontalAlignment="Left" Margin="64,0,0,10" Width="48" Height="38" VerticalAlignment="Bottom"/>
-                    <CheckBox Content="Capture Clipboard" HorizontalAlignment="Left" Margin="117,0,0,10" Width="123" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="38" VerticalAlignment="Bottom"  IsChecked="{Binding CaptureClipboard}"/>
+                    <Button Content="By Producer"  Click="GroupByProducer"  HorizontalAlignment="Left" Margin="192,0,0,11" Width="73" Height="38" VerticalAlignment="Bottom"/>
+                    <Button Content="By Month"  Click="GroupByMonth"  HorizontalAlignment="Left" Margin="270,0,0,11" Width="73" Height="38" VerticalAlignment="Bottom"/>
+                    <CheckBox Content="Capture Clipboard" HorizontalAlignment="Left" Margin="64,0,0,10" Width="123" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="38" VerticalAlignment="Bottom"  IsChecked="{Binding CaptureClipboard}"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Entries">
                 <Grid>
                     <CheckBox Content="Game-only" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="{Binding OnlyGameEntries, Mode=TwoWay}"/>
                     <Button Content="Add Entry" Margin="83,0,0,0" VerticalAlignment="Top" Click="AddEntry_Click" HorizontalAlignment="Left" Width="90"/>
-                    <DataGrid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding EntriesList}" Margin="0,25,0,0" />
+                    <DataGrid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding EntriesList}" Margin="0,25,0,0" AutoGenerateColumns="False" CanUserAddRows="False" >
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Id" Binding="{Binding Id}" />
+                            <DataGridTextColumn Header="User" Binding="{Binding User}" />
+                            <DataGridTextColumn Header="Type" Binding="{Binding Type}" />
+                            <DataGridTextColumn Header="Game" Binding="{Binding Game}" />
+                            <DataGridTextColumn Header="Role" Binding="{Binding Role}" />
+                            <DataGridTextColumn Header="Input" Binding="{Binding Input}" />
+                            <DataGridTextColumn Header="Output" Binding="{Binding Output}" />
+                            <DataGridTextColumn Header="Series-specific" Binding="{Binding SeriesSpecific}" />
+                            <DataGridTextColumn Header="Regex" Binding="{Binding Regex}" />
+                            <DataGridTemplateColumn Header="Delete">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Width="150" Content="Delete" Click="ClickDeleteButton" Background="CornflowerBlue"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
                 </Grid>
             </TabItem>
             <TabItem Header="Test">
@@ -80,7 +140,6 @@
                                     <Label Grid.Column="0" Content="Max Clipboard Capture Size:"/>
                                     <Slider Grid.Column="1" Name="ClipboardSizeSlider" Value="{Binding GSettings.MaxClipboardSize, Mode=OneWay}" Minimum="0" Maximum="1000" Foreground="White" IsSnapToTickEnabled="True" Thumb.DragCompleted="SetClipboardSize"/>
                                     <TextBox Grid.Column="2" Text="{Binding ElementName=ClipboardSizeSlider, Path=Value}" Foreground="White" Style="{StaticResource NoBorderTextBox}"/>
-                                    <Button Grid.Column="3" Content="Change" Click="ChangeIthPath"/>
                                 </Grid>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -128,6 +187,15 @@
                 </Grid>
             </TabItem>
         </TabControl>
-
+        <Grid Grid.Row="1" Grid.Column="0" Background="LightSkyBlue" Height="20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Label x:Name="Label1" Grid.Column="0" Foreground="Black" Content="{Binding DisplayUser}" Padding="5,0,25,0" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"/>
+            <Label x:Name="Label2" Grid.Column="1" Foreground="Black" Content="{Binding DisplayGame}" Padding="5,0" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"/>
+            <Label Grid.Column="2" Foreground="Black" Content="{Binding StatusText}" Padding="0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"/>
+        </Grid>
     </Grid>
 </Window>
