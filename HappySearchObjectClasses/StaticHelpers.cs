@@ -30,11 +30,7 @@ namespace Happy_Apps_Core
         public const string NsfwImageFile = "Program Data\\Default Files\\nsfw-image.png";
         public const string NoImageFile = "Program Data\\Default Files\\no-image.png";
         public const string FlagsFolder = "Program Data\\Flags\\";
-
-        public const string
-            StoredDataFolder =
-                @"..\..\Stored Data\"; //this is in order to use same folder for all builds (32/64 and debug/release)
-
+        public const string StoredDataFolder = @"..\Stored Data\"; //this is to use same folder for debug/release builds
         public const string VNImagesFolder = StoredDataFolder + "Saved Cover Images\\";
         public const string VNScreensFolder = StoredDataFolder + "Saved Screenshots\\";
         public const string DBStatsJson = StoredDataFolder + "dbs.json";

@@ -19,7 +19,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>Debug\</OutputPath>
+    <OutputPath>..\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
@@ -292,6 +292,10 @@
     <ProjectReference Include="..\HRGoogleTranslate\HRGoogleTranslate.csproj">
       <Project>{e78de42e-834a-4baa-8e7f-c876d2be8a01}</Project>
       <Name>HRGoogleTranslate</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\IthVnrSharpLib\IthVnrSharpLib\IthVnrSharpLib.csproj">
+      <Project>{46B6F714-D2A3-48AA-A89E-694BC18FC39E}</Project>
+      <Name>IthVnrSharpLib</Name>
     </ProjectReference>
     <ProjectReference Include="..\Kakasi.NET.Interop\KakasiNET.csproj">
       <Project>{67f3daa6-417d-4f5d-81c4-a191b04f917b}</Project>

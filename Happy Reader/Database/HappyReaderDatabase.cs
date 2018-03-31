@@ -43,6 +43,7 @@ namespace Happy_Reader.Database
 			Debug.WriteLine($"{nameof(HappyReaderDatabase)}.SaveChanges called by {source} - returned {result}");
 		    return result;
 	    }
+
 	    public async Task<int> SaveChangesAsync([CallerMemberName] string source = null)
 		{
 			int result = await base.SaveChangesAsync();

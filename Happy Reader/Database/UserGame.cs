@@ -110,8 +110,8 @@ namespace Happy_Reader.Database
                 else if (File.Exists(VN.StoredCover)) image = new Bitmap(VN.StoredCover);
                 if (image == null)
                 {
-                    // ReSharper disable once PossibleNullReferenceException
-                    Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/no-image.png")).Stream;
+					// ReSharper disable once PossibleNullReferenceException
+					Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/no-image.png")).Stream;
                     image = new Bitmap(iconStream);
                 }
                 using (MemoryStream memory = new MemoryStream())

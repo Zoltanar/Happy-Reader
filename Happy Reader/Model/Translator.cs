@@ -34,7 +34,7 @@ namespace Happy_Reader
 			_allSeparators = _separators.Concat(_inclusiveSeparators).ToArray();
 		}
 
-		public void SetCache() => GoogleTranslate.SetCache(_data.CachedTranslations.Local);
+		public void SetCache() => GoogleTranslate.Initialize(_data.CachedTranslations.Local, Kakasi.JapaneseToKana);
 
 		public Translation Translate(User user, ListedVN game, string input)
 		{
