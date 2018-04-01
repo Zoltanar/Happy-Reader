@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -24,7 +25,7 @@ namespace Happy_Reader.ViewModel
 	public class MainWindowViewModel : INotifyPropertyChanged
 	{
 		private static readonly object HookLock = new object();
-		
+
 		public event PropertyChangedEventHandler PropertyChanged;
 		public StaticMethods.NotificationEventHandler NotificationEvent;
 		private readonly RecentStringList _vndbQueriesList = new RecentStringList(50);
@@ -160,14 +161,7 @@ namespace Happy_Reader.ViewModel
 			}
 			Debug.WriteLine($"(MainWindowViewModel) Completed exit procedures, took {exitWatch.Elapsed}");
 		}
-
-		public Translation Translate(string currentText)
-		{
-			if (UserGame == null) return Translation.Error("UserGame is null.");
-			Translation translation = Translator.Translate(User, UserGame.VN, currentText);
-			return translation;
-		}
-
+		
 		public UserGameTile AddGameFile(string file)
 		{
 			var userGame = StaticMethods.Data.UserGames.FirstOrDefault(x => x.FilePath == file);
@@ -320,7 +314,7 @@ namespace Happy_Reader.ViewModel
 				Thread.Sleep(5000);
 			}
 		}
-		
+
 		[NotifyPropertyChangedInvocator]
 		private void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
@@ -331,7 +325,7 @@ namespace Happy_Reader.ViewModel
 			StaticMethods.Data.SaveChanges();
 			OnPropertyChanged(nameof(TestViewModel));
 		}
-		
+
 		public void ClipboardChanged(object sender, EventArgs e)
 		{
 			if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl) || !TranslateOn) return;
@@ -357,7 +351,7 @@ namespace Happy_Reader.ViewModel
 			if (string.IsNullOrWhiteSpace(e.Text) || e.Text == "\r\n") return false;
 			try
 			{
-				Func<bool> blockTranslateFunc = () => Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl) ||!TranslateOn;
+				Func<bool> blockTranslateFunc = () => Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl) || !TranslateOn;
 				bool blockTranslate = DispatchIfRequired(blockTranslateFunc);
 				if (blockTranslate) return false;
 				LogVerbose($"{nameof(RunTranslation)} - {e}");
@@ -365,13 +359,13 @@ namespace Happy_Reader.ViewModel
 				if ((sender as TextThread)?.IsConsole ?? false) return false;
 				var rect = StaticMethods.GetWindowDimensions(_hookedProcess);
 				if (rect.ZeroSized) return false; //todo show it somehow or show error.
-				if (e.Text.Length > GSettings.MaxClipboardSize) return false; //todo show error
-				var latinOnly = new System.Text.RegularExpressions.Regex(@"^[a-zA-Z0-9:/\\\\r\\n .!?,;()_$^""]+$");
-				if (string.IsNullOrWhiteSpace(e.Text)) return false;
-				if (latinOnly.IsMatch(e.Text)) return false;
-				var unRepeatedString = CheckRepeatedString(e.Text.Replace("\r\n", ""));
-				var translation = Translate(unRepeatedString);
-				if (string.IsNullOrWhiteSpace(translation.Output)) return false;
+				var translation = Translator.Translate(User, UserGame?.VN, e.Text);
+				if (translation == null) return false;
+				if (string.IsNullOrWhiteSpace(translation.Output))
+				{
+					//todo report error
+					return false;
+				}
 				Action postOutput = delegate
 				{
 					IthViewModel.OnPropertyChanged(nameof(IthViewModel.SelectedTextThread));
@@ -399,28 +393,6 @@ namespace Happy_Reader.ViewModel
 		private static T DispatchIfRequired<T>(Func<T> action)
 		{
 			return !Application.Current.Dispatcher.CheckAccess() ? Application.Current.Dispatcher.Invoke(action) : action();
-		}
-
-		private string CheckRepeatedString(string text)
-		{
-			//check if repeated after name
-			var firstBracket = text.IndexOfAny(new[] { '「', '『' });
-			if (firstBracket > 0)
-			{
-				var name = text.Substring(0, firstBracket);
-				var checkText = text.Substring(firstBracket);
-				return name + ReduceRepeatedString(checkText);
-			}
-			return ReduceRepeatedString(text);
-		}
-
-		private static string ReduceRepeatedString(string text)
-		{
-			if (text.Length % 2 != 0) return text;
-			var halfLength = text.Length / 2;
-			var p1 = text.Substring(0, halfLength);
-			var p2 = text.Substring(halfLength);
-			return p1 == p2 ? p1 : text;
 		}
 
 		public void VndbAdvancedAction(string text, bool isQuery)
@@ -458,7 +430,7 @@ namespace Happy_Reader.ViewModel
 				IthViewModel.MergeByHookCode = userGame.MergeByHookCode;
 				IthViewModel.PrefEncoding = userGame.PrefEncoding;
 				IthViewModel.Commands?.ProcessCommand($"/P{_hookedProcess.Id}", 0);
-				if(!string.IsNullOrWhiteSpace(UserGame.HookCode)) IthViewModel.Commands?.ProcessCommand(UserGame.HookCode,_hookedProcess.Id);
+				if (!string.IsNullOrWhiteSpace(UserGame.HookCode)) IthViewModel.Commands?.ProcessCommand(UserGame.HookCode, _hookedProcess.Id);
 			}
 		}
 
@@ -477,10 +449,12 @@ namespace Happy_Reader.ViewModel
 			_outputWindow.Show();
 		}
 
-		public string GetPreferredHookCode(uint processId)
+		// ReSharper disable UnusedTupleComponentInReturnValue
+		public (string HookCode, Encoding PrefEncoding) GetPreferredHookCode(uint processId)
 		{
-			return processId != UserGame?.Process?.Id ? null : UserGame.HookCode;
+			return processId != UserGame?.Process?.Id ? (null, null) : (UserGame.HookCode, UserGame.PrefEncoding);
 		}
+		// ReSharper restore UnusedTupleComponentInReturnValue
 
 		public void DeleteEntry(DisplayEntry displayEntry)
 		{
@@ -489,5 +463,6 @@ namespace Happy_Reader.ViewModel
 			StaticMethods.Data.SaveChanges();
 			OnPropertyChanged(nameof(EntriesList));
 		}
+
 	}
 }

@@ -17,28 +17,31 @@ namespace Happy_Reader
 	{
 		//TODO add regex to all stages
 
-		private readonly object _translateLock = new object();
-		private readonly HappyReaderDatabase _data;
-		private readonly char[] _separators = "『「」』…".ToCharArray();
-		private readonly char[] _inclusiveSeparators = "。？".ToCharArray();
-		private readonly char[] _allSeparators;
+		private static readonly object TranslateLock = new object();
+		private static readonly char[] Separators = "『「」』…".ToCharArray();
+		private static readonly char[] InclusiveSeparators = "。？".ToCharArray();
+		private static readonly char[] AllSeparators = Separators.Concat(InclusiveSeparators).ToArray();
+		private static readonly Regex LatinOnlyRegex = new Regex(@"^[a-zA-Z0-9:/\\\\r\\n .!?,;()_$^""]+$");
 
+		private readonly HappyReaderDatabase _data;
 		private User _lastUser;
 		private ListedVN _lastGame;
 		private Entry[] _entries;
 		public bool RefreshEntries;
 
-		public Translator(HappyReaderDatabase data)
-		{
-			_data = data;
-			_allSeparators = _separators.Concat(_inclusiveSeparators).ToArray();
-		}
+		public Translator(HappyReaderDatabase data) => _data = data;
 
 		public void SetCache() => GoogleTranslate.Initialize(_data.CachedTranslations.Local, Kakasi.JapaneseToKana);
 
 		public Translation Translate(User user, ListedVN game, string input)
 		{
-			lock (_translateLock)
+			if (string.IsNullOrWhiteSpace(input)) return null;
+			if (input.Length > StaticHelpers.GSettings.MaxClipboardSize) return null; //todo report error
+			if (LatinOnlyRegex.IsMatch(input)) return null;
+			input = input.Replace("\r\n", "");
+			input = CheckRepeatedString(input);
+			if (string.IsNullOrWhiteSpace(input)) return null;
+			lock (TranslateLock)
 			{
 				if (user != _lastUser || game != _lastGame || RefreshEntries) SetEntries(user, game);
 				var item = new Translation(input);
@@ -47,16 +50,16 @@ namespace Happy_Reader
 				while (index < input.Length)
 				{
 					var @char = input[index];
-					if (_allSeparators.Contains(@char))
+					if (AllSeparators.Contains(@char))
 					{
-						if (_inclusiveSeparators.Contains(@char))
+						if (InclusiveSeparators.Contains(@char))
 						{
 							currentPart += @char;
-							item.Parts.Add((currentPart, !currentPart.All(c => _separators.Contains(c))));
+							item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
 						}
 						else
 						{
-							if (currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => _separators.Contains(c))));
+							if (currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
 							item.Parts.Add((@char.ToString(), false));
 						}
 						currentPart = "";
@@ -67,7 +70,7 @@ namespace Happy_Reader
 					currentPart += @char;
 					index++;
 				}
-				if (currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => _separators.Contains(c))));
+				if (currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
 				item.TranslateParts();
 				return item;
 			}
@@ -197,15 +200,15 @@ namespace Happy_Reader
 			return usefulEntriesWithProxies;
 		}
 
-		private void TranslateStage4P1(StringBuilder sb, List<Entry> entriesWithProxies, Entry[] entriesOnProxies)
+		private void TranslateStage4P1(StringBuilder sb, IReadOnlyCollection<Entry> entriesWithProxies, IEnumerable<Entry> entriesOnProxies)
 		{
 			foreach (var entry in entriesOnProxies)
 			{
 				var input = Regex.Replace(entry.Input, @"\[\[(.+?)]]", @"\[\[$1#(\d+)]]");
-				var matches = Regex.Matches(sb.ToString(), input);
-				foreach (Match match in matches)
+				var matches = Regex.Matches(sb.ToString(), input).Cast<Match>().Select(x=>Int32.Parse(x.Groups[1].Value)).Distinct();
+				foreach (int match in matches)
 				{
-					entriesWithProxies.Single(x => x.AssignedProxy.Id == int.Parse(match.Groups[1].Value)).AssignedProxy.ProxyMods.Add(entry);
+					entriesWithProxies.Single(x => x.AssignedProxy.Id == match).AssignedProxy.ProxyMods.Add(entry);
 				}
 				var output = new Regex(@"^.*?\[\[(.+)]].*?$").Replace(entry.Output, @"[[$1#$$1]]");
 				LogReplaceRegex(sb, input, output, entry.Id);
@@ -294,7 +297,29 @@ namespace Happy_Reader
 			foreach (var entry in _entries.Where(i => i.Type == EntryType.Output && i.Regex)) LogReplaceRegex(sb, entry.Input, entry.Output, entry.Id);
             StaticHelpers.LogVerbose($"Stage 7: {sb}");
 		}
+		
+		private static string CheckRepeatedString(string text)
+		{
+			//check if repeated after name
+			var firstBracket = text.IndexOfAny(new[] { '「', '『' });
+			if (firstBracket > 0)
+			{
+				var name = text.Substring(0, firstBracket);
+				var checkText = text.Substring(firstBracket);
+				return name + ReduceRepeatedString(checkText);
+			}
+			return ReduceRepeatedString(text);
+		}
 
+		private static string ReduceRepeatedString(string text)
+		{
+			if (text.Length % 2 != 0) return text;
+			var halfLength = text.Length / 2;
+			var p1 = text.Substring(0, halfLength);
+			var p2 = text.Substring(halfLength);
+			return p1 == p2 ? p1 : text;
+		}
+		
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		// ReSharper disable once UnusedParameter.Local
 		private static void LogReplace(StringBuilder sb, string input, string output, long id)
@@ -330,8 +355,7 @@ namespace Happy_Reader
 			sb.Clear();
 			sb.Append(sbReplaced);
 		}
-
-
+		
 		private class ProxiesWithCount
 		{
 			public Queue<RoleProxy> Proxies { get; }
