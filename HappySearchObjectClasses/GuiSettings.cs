@@ -11,9 +11,10 @@ namespace Happy_Apps_Core
         private bool _technicalTags;
         private string _ithPath;
         private int _maxClipboardSize;
-        private bool _captureClipboardOnStart;
+	    private bool _captureClipboardOnStart;
+	    private bool _pauseIthVnrAndTranslate;
 
-        public GuiSettings()
+		public GuiSettings()
         {
             MaxClipboardSize = 700;
         }
@@ -95,18 +96,29 @@ namespace Happy_Apps_Core
             }
         }
 
-        public bool CaptureClipboardOnStart
-        {
-            get => _captureClipboardOnStart;
-            set
-            {
-                if (_captureClipboardOnStart == value) return;
-                _captureClipboardOnStart = value;
-                if(Loaded) Save();
-            }
-        }
+	    public bool CaptureClipboardOnStart
+	    {
+		    get => _captureClipboardOnStart;
+		    set
+		    {
+			    if (_captureClipboardOnStart == value) return;
+			    _captureClipboardOnStart = value;
+			    if (Loaded) Save();
+		    }
+		}
 
-        public HashSet<int> AlertTraitIDs { get; } = new HashSet<int>();
+	    public bool PauseIthVnrAndTranslate
+	    {
+		    get => _pauseIthVnrAndTranslate;
+		    set
+		    {
+			    if (_pauseIthVnrAndTranslate == value) return;
+			    _pauseIthVnrAndTranslate = value;
+			    if (Loaded) Save();
+		    }
+	    }
+
+		public HashSet<int> AlertTraitIDs { get; } = new HashSet<int>();
     }
 
 }

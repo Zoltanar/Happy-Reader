@@ -130,6 +130,7 @@
                                 <CheckBox Content="Show Technical Tags" IsChecked="{Binding GSettings.TechnicalTags}"/>
                                 <CheckBox Content="Show NSFW Images" IsChecked="{Binding GSettings.NSFWImages}"/>
                                 <CheckBox Content="Start Capturing Clipboard From Launch" IsChecked="{Binding GSettings.CaptureClipboardOnStart}"/>
+                                <CheckBox Content="Pause IthVnr when pausing Translation" IsChecked="{Binding GSettings.PauseIthVnrAndTranslate}"/>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="160"/>

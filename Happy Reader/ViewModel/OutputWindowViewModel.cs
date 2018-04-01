@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
+using Happy_Reader.Database;
 using Happy_Reader.View;
 using JetBrains.Annotations;
 
@@ -72,9 +73,8 @@ namespace Happy_Reader.ViewModel
 			var input = TextArea.Selection.Text;
 			var output = Kakasi.JapaneseToRomaji(input);
 			if (output.Length > 0) output = char.ToUpper(output[0]) + output.Substring(1);
-			MainWindow.AddEntryFromOutputWindow(input, output);
+			MainWindow.CreateAddEntryTab(new Entry(input,output));
 		}
-
 
 		public void UpdateOutput()
 		{

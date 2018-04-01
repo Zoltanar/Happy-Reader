@@ -42,6 +42,7 @@ namespace Happy_Reader.ViewModel
 		private string _lastUpdateText;
 		private User _user;
 		private UserGame _userGame;
+		private bool _translateOn = true;
 		private bool _loadingComplete;
 		private bool _closing;
 		private bool _finalizing;
@@ -83,7 +84,21 @@ namespace Happy_Reader.ViewModel
 		public Translator Translator { get; }
 		public VNTabViewModel DatabaseViewModel { get; }
 		public IthViewModel IthViewModel { get; }
-		public bool TranslateOn { get; set; } = true;
+
+		public bool TranslateOn
+		{
+			get => _translateOn;
+			set
+			{
+				_translateOn = value;
+				if (GSettings.PauseIthVnrAndTranslate)
+				{
+					IthViewModel.HookManager.Paused = !value;
+					IthViewModel.OnPropertyChanged(nameof(IthViewModel.HookManager));
+				}
+			}
+		}
+
 		public ObservableCollection<DisplayEntry> EntriesList { get; } = new ObservableCollection<DisplayEntry>();
 		public ObservableCollection<UserGameTile> UserGameItems { get; } = new ObservableCollection<UserGameTile>();
 		public string DisplayUser => "User: " + (User?.ToString() ?? "(none)");

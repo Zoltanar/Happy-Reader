@@ -69,10 +69,7 @@ namespace Happy_Reader.View
 			await _viewModel.Initialize(watch);
 		}
 
-		private void AddEntry_Click(object sender, RoutedEventArgs e)
-		{
-			AddEntry();
-		}
+		private void AddEntry_Click(object sender, RoutedEventArgs e) => CreateAddEntryTab(new Entry());
 
 		private void DropFileOnGamesTab(object sender, DragEventArgs e)
 		{
@@ -114,15 +111,13 @@ namespace Happy_Reader.View
 			MainTabControl.Items.Remove((TabItem)((Grid)sender).Parent);
 		}
 
-		public void AddEntryFromOutputWindow(string text, string output) => AddEntry(text, output);
-
-		private void AddEntry(string initialInput = "", string initialOutput = "")
+		public void CreateAddEntryTab(Entry initialEntry)
 		{
 			var tabItem = new TabItem
 			{
 				Header = "Add Entry",
 				Name = "AddEntryControl",
-				Content = new AddEntryControl(_viewModel, initialInput, initialOutput)
+				Content = new AddEntryControl(_viewModel, initialEntry)
 			};
 			AddTabItem(tabItem);
 		}

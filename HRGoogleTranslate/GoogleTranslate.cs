@@ -16,14 +16,14 @@ namespace HRGoogleTranslate
         private const string GoogleCredential = @"C:\Google\hrtranslate-credential.json";
 
 	    private static readonly TranslationClient Client;
-	    private static Func<string, string> _japaneseToKana;
+	    private static Func<string, string> _japaneseToRomaji;
 		public static uint GotFromCacheCount { get; private set; }
         public static uint GotFromAPICount { get; private set; }
 	    private static ObservableCollection<GoogleTranslation> _linkedCache = new ObservableCollection<GoogleTranslation>();
 
-		public static void Initialize([NotNull]ObservableCollection<GoogleTranslation> cache, [NotNull] Func<string,string> japaneseToKana)
+		public static void Initialize([NotNull]ObservableCollection<GoogleTranslation> cache, [NotNull] Func<string,string> japaneseToRomaji)
 		{
-			_japaneseToKana = japaneseToKana;
+			_japaneseToRomaji = japaneseToRomaji;
 			_linkedCache = cache;
 			foreach (var translation in cache) Cache[translation.Input] = translation;
 	    }
@@ -65,10 +65,9 @@ namespace HRGoogleTranslate
 	        {
 		        var character = input[0];
 		        // ReSharper disable once UnusedVariable
-		        var characterHex = ((int)character).ToString("X");
-		        if (character.IsHiragana())
+		        if (character.IsHiragana() || character.IsKatakana())
 		        {
-			        var output = _japaneseToKana(character.ToString());
+			        var output = _japaneseToRomaji(input);
 			        text.Append(output);
 			        var translation = new GoogleTranslation(input, output);
 			        _linkedCache.Add(translation);
@@ -94,9 +93,14 @@ namespace HRGoogleTranslate
 		[Conditional("LOGVERBOSE")]
 		private static void LogVerbose(string text) => Debug.WriteLine(text);
 
-		/// <summary>
-		/// Character is between points \u3040 and \u309f
-		/// </summary>
+	    /// <summary>
+	    /// Character is between points \u3040 and \u309f
+	    /// </summary>
 	    private static bool IsHiragana(this char character) => character >= 0x3040 && character <= 0x309f;
-    }
+
+	    /// <summary>
+	    /// Character is between points \u30a0 and \u30ff
+	    /// </summary>
+	    private static bool IsKatakana(this char character) => character >= 0x30a0 && character <= 0x30ff;
+	}
 }

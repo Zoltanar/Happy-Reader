@@ -14,20 +14,20 @@ namespace Happy_Reader.View
     {
 
         private readonly MainWindowViewModel _mainViewModel;
+	    private readonly Entry _entry;
         private bool _entryAlreadyAdded;
 
-        internal AddEntryControl([NotNull]MainWindowViewModel mainViewModel, string initialInput = "", string initialOutput = "")
+        internal AddEntryControl([NotNull]MainWindowViewModel mainViewModel, Entry entry)
         {
             _mainViewModel = mainViewModel;
             InitializeComponent();
-            GameTb.Text = _mainViewModel.UserGame?.VN?.Title ?? "None";
-            var enumTypes = Enum.GetValues(typeof(EntryType))
-                .Cast<EntryType>();
-            TypeCb.ItemsSource = enumTypes;
-            TypeCb.SelectedValue = EntryType.Name;
-	        InputTb.Text = initialInput;
-	        OutputTb.Text = initialOutput;
-
+	        var enumTypes = Enum.GetValues(typeof(EntryType)).Cast<EntryType>();
+	        TypeCb.ItemsSource = enumTypes;
+			_entry = entry;
+	        _entry.GameId = _mainViewModel.UserGame?.VN?.VNID;
+	        _entry.UserId = _mainViewModel.User?.Id ?? 0;
+			DataContext = _entry;
+			_entry.OnPropertyChanged();
 		}
 
         private void Cancel_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -41,25 +41,10 @@ namespace Happy_Reader.View
         private void AddEntry_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             if (!ValidateEntry()) return;
-            var entry = new Entry
-            {
-                GameId = _mainViewModel.UserGame?.VN?.VNID,
-                Input = InputTb.Text,
-                Output = OutputTb.Text,
-                RoleString = string.IsNullOrWhiteSpace(RoleTb.Text) ? null : RoleTb.Text,
-                Type = (EntryType)TypeCb.SelectedItem,
-                Private = PrivateChb.IsChecked ?? false,
-                SeriesSpecific = SeriesSpecificChb.IsChecked ?? false,
-                Regex = RegexChb.IsChecked ?? false,
-                Disabled = !(EnabledChb.IsChecked ?? false),
-                Comment = CommentTb.Text,
-                UserId = _mainViewModel.User?.Id ?? 0,
-                Time = DateTime.UtcNow,
-                Id = StaticMethods.Data.Entries.Max(x => x.Id) + 1
-            };
-            StaticMethods.Data.Entries.Add(entry);
+	        _entry.Time = DateTime.UtcNow;
+            StaticMethods.Data.Entries.Add(_entry);
             StaticMethods.Data.SaveChanges();
-            ResponseLabel.Content = $@"Entry was added (id {entry.Id}).";
+            ResponseLabel.Content = $@"Entry was added (id {_entry.Id}).";
             _entryAlreadyAdded = true;
             _mainViewModel.SetEntries();
 	        _mainViewModel.Translator.RefreshEntries = true;
@@ -73,12 +58,12 @@ namespace Happy_Reader.View
                 ResponseLabel.Content = @"Entry was already added.";
                 return false;
             }
-            if (string.IsNullOrWhiteSpace(InputTb.Text))
+            if (string.IsNullOrWhiteSpace(_entry.Input))
             {
                 ResponseLabel.Content = @"Please type something in Input box.";
                 return false;
             }
-            if (TypeCb.SelectedItem == null)
+            if (_entry.Type == 0)
             {
                 ResponseLabel.Content = @"Please select type.";
                 return false;
