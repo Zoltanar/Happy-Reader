@@ -28,8 +28,8 @@
                             <SplineDoubleKeyFrame KeyTime="0:0:0.5" Value="1"/>
                         </DoubleAnimationUsingKeyFrames>
                         <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Completed="Timeline_OnCompleted">
-                            <SplineDoubleKeyFrame KeyTime="0:0:2" Value="1"/>
-                            <SplineDoubleKeyFrame KeyTime="0:0:4" Value="0"/>
+                            <SplineDoubleKeyFrame KeyTime="0:0:4" Value="1"/>
+                            <SplineDoubleKeyFrame KeyTime="0:0:8" Value="0"/>
                         </DoubleAnimationUsingKeyFrames>
                     </Storyboard>
                 </BeginStoryboard>

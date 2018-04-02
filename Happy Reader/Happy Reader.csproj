@@ -118,6 +118,7 @@
     </ApplicationDefinition>
     <Compile Include="Database\Log.cs" />
     <Compile Include="Model\CustomVnFilter.cs" />
+    <Compile Include="Model\Jisho.cs" />
     <Compile Include="Model\VnFilter.cs" />
     <Compile Include="ViewModel\DisplayEntry.cs" />
     <Compile Include="View\IdFromProducerConverter.cs" />

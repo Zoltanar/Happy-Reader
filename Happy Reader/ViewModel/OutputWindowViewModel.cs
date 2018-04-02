@@ -47,17 +47,30 @@ namespace Happy_Reader.ViewModel
 				UpdateOutput();
 			}
 		}
+		public ICommand AddEntryForText { get; set; }
+		public ICommand AskJishoCommand { get; set; }
+		public ICommand AskJishoNotificationCommand { get; set; }
 
 		public OutputWindowViewModel()
 		{
 			AddEntryForText = new CommandHandler(AddEntry, true);
 			AskJishoCommand = new CommandHandler(AskJisho, true);
+			AskJishoNotificationCommand = new CommandHandler(AskJishoNotification, true);
 		}
 
 		private void AskJisho()
 		{
 			var input = TextArea.Selection.Text;
 			Process.Start($"http://jisho.org/search/{input}");
+		}
+
+		private void AskJishoNotification()
+		{
+			var input = TextArea.Selection.Text;
+			var task = System.Threading.Tasks.Task.Run(async()=> await Jisho.Search(input));
+			task.Wait();
+			var text = task.Result.Data.Length < 1 ? "No results found." : task.Result.Data[0].Results();
+			new NotificationWindow("Ask Jisho", text).Show();
 		}
 
 		public void Initialize(MainWindow mainWindow, RichTextBox debugTextbox)
@@ -112,8 +125,6 @@ namespace Happy_Reader.ViewModel
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
-		public ICommand AddEntryForText { get; set; }
-		public ICommand AskJishoCommand { get; set; }
 
 		[NotifyPropertyChangedInvocator]
 		private void OnPropertyChanged([CallerMemberName] string propertyName = null)

@@ -213,8 +213,10 @@ namespace Happy_Reader.ViewModel
 			{
 #if !NOCACHELOAD
 				StatusText = "Loading Cached Translations...";
+				var cacheLoadWatch = Stopwatch.StartNew();
 				StaticMethods.Data.CachedTranslations.Load();
 				Translator.SetCache();
+				Debug.WriteLine($"Loaded cached translations in {cacheLoadWatch.ElapsedMilliseconds} ms");
 #endif
 				StatusText = "Populating Proxies...";
 				PopulateProxies();
@@ -440,6 +442,7 @@ namespace Happy_Reader.ViewModel
 				_hookedProcess = process;
 				_hookedProcess.EnableRaisingEvents = true;
 				_hookedProcess.Exited += HookedProcessOnExited;
+				TestViewModel.Game = userGame.VN;
 				if (!userGame.HookProcess) return;
 				while (!_loadingComplete) Thread.Sleep(25);
 				IthViewModel.MergeByHookCode = userGame.MergeByHookCode;
