@@ -24,7 +24,6 @@ namespace Happy_Reader.Database
         public virtual DbSet<UserGame> UserGames { get; set; }
         public virtual DbSet<HRGoogleTranslate.GoogleTranslation> CachedTranslations { get; set; }
         public virtual DbSet<Log> Logs { get; set; }
-        public IQueryable<string> UserGameProcesses => UserGames.Where(x => x.ProcessName != null).Select(x => x.ProcessName);
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         { }

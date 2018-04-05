@@ -55,7 +55,7 @@
             </RichTextBox.Effect>
             <RichTextBox.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Add Entry For Text" Command="{Binding AddEntryForText}" />
+                    <MenuItem Header="Add Entry For Text" Command="{Binding AddEntryCommand}" />
                     <MenuItem Header="Ask Jisho" Command="{Binding AskJishoNotificationCommand}" />
                     <MenuItem Header="Ask Jisho (Browser)" Command="{Binding AskJishoCommand}" />
                     <MenuItem Command="ApplicationCommands.Copy" />

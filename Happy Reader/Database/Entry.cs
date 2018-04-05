@@ -25,8 +25,7 @@ namespace Happy_Reader.Database
         public bool Private { get; set; }
         public double Priority { get; set; }
 		public bool Regex { get; set; }
-	    [Required]
-		public string Comment { get; set; }
+	    public string Comment { get; set; }
 		public EntryType Type { get; set; }
         public string RoleString { get; set; }
         public bool Disabled { get; set; }
