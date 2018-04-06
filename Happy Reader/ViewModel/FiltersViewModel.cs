@@ -21,7 +21,7 @@ namespace Happy_Reader.ViewModel
 		private CustomVnFilter _customFilter;
 		private int _selectedFilterIndex;
 		public ObservableCollection<CustomVnFilter> Filters { get; private set; }
-		public CustomVnFilter PermanentFilter { get; set; } = new CustomVnFilter();
+		public CustomVnFilter PermanentFilter { get; set; }
 		public CustomVnFilter CustomFilter
 		{
 			get => _customFilter;
@@ -51,14 +51,11 @@ namespace Happy_Reader.ViewModel
 		public ComboBoxItem[] UserlistTypes { get; } = GetEnumValues(typeof(UserlistStatus));
 		public ComboBoxItem[] FilterTypes { get; } = GetEnumValues(typeof(VnFilterType));
 		public string SaveFilterError { get; set; }
-
-		public ObservableCollection<VnFilter> CustomFilterAndFilters => CustomFilter.AndFilters;
-		public ObservableCollection<VnFilter> CustomFilterOrFilters => CustomFilter.OrFilters;
-
-
+		
 		public FiltersViewModel()
 		{
 			SelectedFilterIndex = 0;
+			LoadPermanentFilter();
 			LoadVnFilters();
 			CustomFilter = Filters.FirstOrDefault();
 			AddToCustomFilterCommand = new CommandHandler(AddToCustomFilter, true);
@@ -70,7 +67,7 @@ namespace Happy_Reader.ViewModel
 		{
 			try
 			{
-				if (String.IsNullOrWhiteSpace(CustomFilter.Name))
+				if (string.IsNullOrWhiteSpace(CustomFilter.Name))
 				{
 					SaveFilterError = "Please enter a name.";
 					return; //todo error please enter a name
@@ -106,6 +103,7 @@ namespace Happy_Reader.ViewModel
 		{
 			if (NewFilterOrGroup) PermanentFilter.OrFilters.Add(NewFilter.GetCopy());
 			else PermanentFilter.AndFilters.Add(NewFilter.GetCopy());
+			SavePermanentFilter();
 			OnPropertyChanged(nameof(PermanentFilter));
 		}
 
@@ -116,9 +114,33 @@ namespace Happy_Reader.ViewModel
 			OnPropertyChanged(nameof(CustomFilter));
 		}
 
+		private void LoadPermanentFilter()
+		{
+			try
+			{
+				if (File.Exists(StaticMethods.PermanentFilterJson))
+				{
+					var text = File.ReadAllText(StaticMethods.PermanentFilterJson);
+					PermanentFilter = JsonConvert.DeserializeObject<CustomVnFilter>(text);
+				}
+			}
+			catch (Exception ex)
+			{
+				StaticHelpers.LogToFile(ex);
+			}
+			if (PermanentFilter != null) return;
+			PermanentFilter = new CustomVnFilter();
+		}
+
+		private void SavePermanentFilter()
+		{
+			var text = JsonConvert.SerializeObject(PermanentFilter, Formatting.Indented);
+			File.WriteAllText(StaticMethods.PermanentFilterJson, text);
+		}
 
 		private void LoadVnFilters()
 		{
+			
 			try
 			{
 				if (File.Exists(StaticMethods.CustomFiltersJson))

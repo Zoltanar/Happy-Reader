@@ -178,7 +178,7 @@ namespace Happy_Reader.ViewModel
 			}
 			Debug.WriteLine($"(MainWindowViewModel) Completed exit procedures, took {exitWatch.Elapsed}");
 		}
-		
+
 		public UserGameTile AddGameFile(string file)
 		{
 			var userGame = StaticMethods.Data.UserGames.FirstOrDefault(x => x.FilePath == file);
@@ -370,7 +370,8 @@ namespace Happy_Reader.ViewModel
 			if (string.IsNullOrWhiteSpace(e.Text) || e.Text == "\r\n") return false;
 			try
 			{
-				Func<bool> blockTranslateFunc = () => Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl) || !TranslateOn;
+				if (!TranslateOn) return false;
+				Func<bool> blockTranslateFunc = () => Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl);
 				bool blockTranslate = DispatchIfRequired(blockTranslateFunc);
 				if (blockTranslate) return false;
 				LogVerbose($"{nameof(RunTranslation)} - {e}");
@@ -386,12 +387,12 @@ namespace Happy_Reader.ViewModel
 				}
 				Action postOutput = delegate
 				{
-					IthViewModel.OnPropertyChanged(nameof(IthViewModel.SelectedTextThread));
+					//IthViewModel.OnPropertyChanged(nameof(IthViewModel.SelectedTextThread));
 					if (!_outputWindow.IsVisible) _outputWindow.Show();
 					_outputWindow.SetLocation(rect.Left, rect.Bottom, rect.Width);
 					_outputWindow.AddTranslation(translation);
 				};
-				DispatchIfRequired(postOutput);
+				DispatchIfRequired(postOutput, new TimeSpan(0, 0, 5));
 			}
 			catch (Exception ex)
 			{
@@ -402,15 +403,18 @@ namespace Happy_Reader.ViewModel
 			return true;
 		}
 
-		private static void DispatchIfRequired(Action action)
+		private static void DispatchIfRequired(Action action, TimeSpan timeout)
 		{
-			if (!Application.Current.Dispatcher.CheckAccess()) Application.Current.Dispatcher.Invoke(action);
-			else action();
+			if (Application.Current.Dispatcher.CheckAccess()) action();
+			else Application.Current.Dispatcher.Invoke(action, timeout);
 		}
 
 		private static T DispatchIfRequired<T>(Func<T> action)
 		{
-			return !Application.Current.Dispatcher.CheckAccess() ? Application.Current.Dispatcher.Invoke(action) : action();
+			T result;
+			if (Application.Current.Dispatcher.CheckAccess()) result = action();
+			else result = Application.Current.Dispatcher.Invoke(action);
+			return result;
 		}
 
 		public void VndbAdvancedAction(string text, bool isQuery)

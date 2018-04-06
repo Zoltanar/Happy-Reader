@@ -47,6 +47,7 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
             <ColumnDefinition x:Name="SettingsColumn" Width="88"/>
+            <ColumnDefinition Width="22"/>
         </Grid.ColumnDefinitions>
         <RichTextBox Grid.Column="0"  Foreground="GreenYellow" x:Name="DebugTextbox" HorizontalContentAlignment="Center" IsReadOnly="True"
                      VerticalContentAlignment="Center" Background="{x:Null}" FontSize="22"  BorderBrush="Transparent" AutoWordSelection="False">
@@ -64,6 +65,7 @@
                 </ContextMenu>
             </RichTextBox.ContextMenu>
         </RichTextBox>
+        <Label Grid.Column="0" Content="{Binding IdText}" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5" Padding="0" Foreground="White"/>
         <Grid Column="1" Margin="5,5,0,0" MouseEnter="ShowSettingsOnMouseHover" MouseLeave="HideSettingsOnMouseLeave">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
@@ -79,13 +81,19 @@
                 <ToggleButton DockPanel.Dock="Top" IsChecked="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=view:OutputWindow}, Path=SettingsOn}" Background="Transparent">
                     <TextBlock Text="Click To Toggle Settings" TextWrapping="Wrap" Foreground="White"   />
                 </ToggleButton>
-                <Label DockPanel.Dock="Top" Content="Drag Me" Foreground="White" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" BorderBrush="DarkRed" BorderThickness="2" MouseLeftButtonDown="DragOnMouseButton" Padding="0" />
             </DockPanel>
             <Slider Grid.Column="1" Name="OpacitySlider" Orientation="Vertical" Value="0.6" Minimum="0.2" Maximum="1" Margin="0,0,0,17"/>
         </Grid>
         <ToggleButton x:Name="SettingsButton" Grid.Column="0" Content="Settings" Margin="0,5,0,0" VerticalAlignment="Top" HorizontalAlignment="Right" 
                       Width="54" Height="24" IsChecked="True" Background="Transparent" Foreground="White" 
                       MouseEnter="ShowSettingsOnMouseHover" MouseLeave="HideSettingsOnMouseLeave" Visibility="Collapsed"/>
-        <Label Grid.Column="0" x:Name="IdLabel" Content="{Binding IdText}" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5" Padding="0" Foreground="White"/>
+        <Label Grid.Column="2" Content="Drag Me" Foreground="White" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MouseLeftButtonDown="DragOnMouseButton" Padding="0">
+            <Label.Background >
+                <SolidColorBrush Color="DarkRed" Opacity="{Binding Value, ElementName=OpacitySlider}"/>
+            </Label.Background>
+            <Label.LayoutTransform>
+                <RotateTransform Angle="90"/>
+            </Label.LayoutTransform>
+        </Label>
     </Grid>
 </Window>
