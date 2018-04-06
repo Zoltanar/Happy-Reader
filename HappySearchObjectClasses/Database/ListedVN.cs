@@ -86,7 +86,7 @@ namespace Happy_Apps_Core.Database
         /// </summary>
         public string Description { get; set; }
 
-        public LengthFilter? LengthTime { get; set; }
+        public LengthFilterEnum? LengthTime { get; set; }
 
         /// <summary>
         /// Popularity of VN, percentage of most popular VN
@@ -279,19 +279,19 @@ namespace Happy_Apps_Core.Database
         /// <summary>
         /// Return unreleased status of vn.
         /// </summary>
-        public UnreleasedFilter Unreleased
+        public ReleaseStatusEnum ReleaseStatus
         {
             get
             {
-                if (ReleaseDate == DateTime.MaxValue) return UnreleasedFilter.WithoutReleaseDate;
-                return ReleaseDate > DateTime.Today ? UnreleasedFilter.WithReleaseDate : UnreleasedFilter.Released;
+                if (ReleaseDate == DateTime.MaxValue) return ReleaseStatusEnum.WithoutReleaseDate;
+                return ReleaseDate > DateTime.Today ? ReleaseStatusEnum.WithReleaseDate : ReleaseStatusEnum.Released;
             }
         }
 
         /// <summary>
         /// Gets blacklisted status of vn.
         /// </summary>
-        public bool Blacklisted => UserVN.WLStatus == WishlistStatus.Blacklist;
+        public bool Blacklisted => UserVN != null && UserVN.WLStatus == WishlistStatus.Blacklist;
 
         /// <summary>
         /// Gets voted status of vn.
@@ -615,7 +615,7 @@ namespace Happy_Apps_Core.Database
         }
     }
 
-    public enum UnreleasedFilter
+    public enum ReleaseStatusEnum
     {
         [Description("Unreleased without date")]
         WithoutReleaseDate = 1,
@@ -625,7 +625,7 @@ namespace Happy_Apps_Core.Database
         Released = 3
     }
 
-    public enum LengthFilter
+    public enum LengthFilterEnum
     {
         [Description("Not Available")]
         NA = 0,

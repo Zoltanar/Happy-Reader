@@ -12,7 +12,7 @@ using JetBrains.Annotations;
 
 namespace Happy_Reader.ViewModel
 {
-	public sealed class OutputWindowViewModel : INotifyPropertyChanged
+	public class OutputWindowViewModel : INotifyPropertyChanged
 	{
 		private bool _originalOn = true;
 		private bool _romajiOn = true;
@@ -47,13 +47,13 @@ namespace Happy_Reader.ViewModel
 				UpdateOutput();
 			}
 		}
-		public ICommand AddEntryForText { get; set; }
+		public ICommand AddEntryCommand { get; set; }
 		public ICommand AskJishoCommand { get; set; }
 		public ICommand AskJishoNotificationCommand { get; set; }
 
 		public OutputWindowViewModel()
 		{
-			AddEntryForText = new CommandHandler(AddEntry, true);
+			AddEntryCommand = new CommandHandler(AddEntry, true);
 			AskJishoCommand = new CommandHandler(AskJisho, true);
 			AskJishoNotificationCommand = new CommandHandler(AskJishoNotification, true);
 		}
@@ -124,31 +124,11 @@ namespace Happy_Reader.ViewModel
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
-
-
+		
 		[NotifyPropertyChangedInvocator]
 		private void OnPropertyChanged([CallerMemberName] string propertyName = null)
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-		}
-
-		private class CommandHandler : ICommand
-		{
-			private readonly Action _action;
-			private readonly bool _canExecute;
-			public CommandHandler(Action action, bool canExecute)
-			{
-				_action = action;
-				_canExecute = canExecute;
-			}
-
-			public bool CanExecute(object parameter) => _canExecute;
-
-			public void Execute(object parameter) => _action();
-
-#pragma warning disable CS0067
-			public event EventHandler CanExecuteChanged;
-#pragma warning restore CS0067
 		}
 
 	}

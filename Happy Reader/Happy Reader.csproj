@@ -119,8 +119,14 @@
     <Compile Include="Database\Log.cs" />
     <Compile Include="Model\CustomVnFilter.cs" />
     <Compile Include="Model\Jisho.cs" />
-    <Compile Include="Model\VnFilter.cs" />
+    <Compile Include="Model\VnFilters\VnFilter.cs" />
+    <Compile Include="Model\VnFilters\VnFilterType.cs" />
+    <Compile Include="ViewModel\CommandHandler.cs" />
     <Compile Include="ViewModel\DisplayEntry.cs" />
+    <Compile Include="ViewModel\FiltersViewModel.cs" />
+    <Compile Include="View\FiltersTab.xaml.cs">
+      <DependentUpon>FiltersTab.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\IdFromProducerConverter.cs" />
     <Compile Include="View\IthVnrTab.xaml.cs">
       <DependentUpon>IthVnrTab.xaml</DependentUpon>
@@ -179,6 +185,10 @@
       <DependentUpon>VNTile.xaml</DependentUpon>
     </Compile>
     <Compile Include="ViewModel\VNTabViewModel.cs" />
+    <Page Include="View\FiltersTab.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\IthVnrTab.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -266,9 +276,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="Config\defaultfilters.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="Config\proxies.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -312,7 +319,9 @@
     <Resource Include="Resources\no-image.png" />
     <Resource Include="Resources\nsfw-image.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="View\Filters\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

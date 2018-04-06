@@ -102,12 +102,7 @@ namespace Happy_Reader.View
             }
             return true;
         }
-
-		private async void FilterChanged(object sender, SelectionChangedEventArgs e)
-		{
-			await _viewModel.ChangeFilter(e.AddedItems[0] as CustomVnFilter);
-		}
-
+		
 		private async void ToggleFiltersJapanese(object sender, RoutedEventArgs e)
 		{
 			_viewModel.ToggleFiltersJapanese();

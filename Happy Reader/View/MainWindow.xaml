@@ -40,9 +40,6 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <TabControl Grid.Row="0" x:Name="MainTabControl" Padding="0" TabStripPlacement="Left">
-            <TabItem Header="ITHVNR" >
-                <view:IthVnrTab DataContext="{Binding IthViewModel}"/>
-            </TabItem>
             <TabItem Header="Games" >
                 <Grid Background="#FFC9E1F5" AllowDrop="True" Drop="DropFileOnGamesTab">
                     <ListBox x:Name="GameFiles"  Margin="10,10,10,53" MouseDoubleClick="GameFiles_MouseDoubleClick" ItemsSource="{Binding UserGameItems}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
@@ -67,6 +64,9 @@
                     <Button Content="By Month"  Click="GroupByMonth"  HorizontalAlignment="Left" Margin="270,0,0,11" Width="73" Height="38" VerticalAlignment="Bottom"/>
                     <CheckBox Content="Capture Clipboard" HorizontalAlignment="Left" Margin="64,0,0,10" Width="123" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="38" VerticalAlignment="Bottom"  IsChecked="{Binding CaptureClipboard}"/>
                 </Grid>
+            </TabItem>
+            <TabItem Header="ITHVNR" >
+                <view:IthVnrTab DataContext="{Binding IthViewModel}"/>
             </TabItem>
             <TabItem Header="Entries">
                 <Grid>
@@ -97,8 +97,11 @@
             <TabItem Header="Test">
                 <view:TestTranslationPanel DataContext="{Binding TestViewModel}"/>
             </TabItem>
-            <TabItem Header="Database">
+            <TabItem Header="VNDB">
                 <view:VNTab DataContext="{Binding DatabaseViewModel}"/>
+            </TabItem>
+            <TabItem Header="Filters">
+                <view:FiltersTab DataContext="{Binding FiltersViewModel}"/>
             </TabItem>
             <TabItem Header="Info/Settings">
                 <Grid Background="DimGray">

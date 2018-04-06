@@ -209,7 +209,7 @@ throw;
             vn.Description = item.Description;
             vn.ImageURL = item.Image;
             vn.ImageNSFW = item.Image_Nsfw;
-            vn.LengthTime = (LengthFilter?)item.Length;
+            vn.LengthTime = (LengthFilterEnum?)item.Length;
             vn.Popularity = item.Popularity;
             vn.Rating = item.Rating;
             vn.VoteCount = item.VoteCount;

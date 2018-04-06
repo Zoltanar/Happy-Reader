@@ -83,6 +83,7 @@ namespace Happy_Reader.ViewModel
 		public TranslationTester TestViewModel { get; }
 		public Translator Translator { get; }
 		public VNTabViewModel DatabaseViewModel { get; }
+		public FiltersViewModel FiltersViewModel { get; }
 		public IthViewModel IthViewModel { get; }
 
 		public bool TranslateOn
@@ -130,7 +131,8 @@ namespace Happy_Reader.ViewModel
 			Translator = new Translator(StaticMethods.Data);
 			Translation.Translator = Translator;
 			TestViewModel = new TranslationTester(this);
-			DatabaseViewModel = new VNTabViewModel(this);
+			FiltersViewModel = new FiltersViewModel();
+			DatabaseViewModel = new VNTabViewModel(this, FiltersViewModel.Filters);
 			IthViewModel = new IthViewModel(this);
 			OnPropertyChanged(nameof(VndbQueries));
 			_outputWindow = new OutputWindow(mainWindow);
@@ -377,8 +379,7 @@ namespace Happy_Reader.ViewModel
 				var rect = StaticMethods.GetWindowDimensions(_hookedProcess);
 				if (rect.ZeroSized) return false; //todo show it somehow or show error.
 				var translation = Translator.Translate(User, UserGame?.VN, e.Text);
-				if (translation == null) return false;
-				if (string.IsNullOrWhiteSpace(translation.Output))
+				if (string.IsNullOrWhiteSpace(translation?.Output))
 				{
 					//todo report error
 					return false;

@@ -1,0 +1,85 @@
+﻿<UserControl x:Class="Happy_Reader.View.FiltersTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
+             mc:Ignorable="d" 
+             d:DesignWidth="800" d:DesignHeight="600" d:DataContext="{d:DesignInstance viewModel:FiltersViewModel}"
+             Loaded="FiltersTab_OnLoaded">
+    <Grid Background="#FFC9E1F5">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <GroupBox Grid.Column="0" Header="Permanent Filter" Margin="5">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Label Grid.Row="0" Content="AND Group (All of these are required)"/>
+                <ListBox ItemsSource="{Binding PermanentFilter.AndFilters}" Grid.Row="1"/>
+                <Label Grid.Row="2" Content="OR Group (One of these is required)"/>
+                <ListBox ItemsSource="{Binding PermanentFilter.OrFilters}" Grid.Row="3"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox Grid.Column="1" Header="Custom Filter" Margin="5,10,5,5">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <ComboBox ItemsSource="{Binding Filters}" SelectedItem="{Binding CustomFilter}" VerticalAlignment="Top" Grid.Row="0" />
+                <Label Grid.Row="1" Content="Name" HorizontalAlignment="Left" Padding="0" Margin="0,5" VerticalContentAlignment="Center" Height="21"/>
+                <TextBox Grid.Row="1" Margin="37,5,34,5" Text="{Binding CustomFilter.Name}" VerticalContentAlignment="Center" Height="21" />
+                <Button Grid.Row="1" Content="Save" HorizontalAlignment="Right" Margin="0,5" Command="{Binding SaveCustomFilterCommand}" VerticalContentAlignment="Center" Height="21"/>
+                <Label Grid.Row="2" Content="AND Group (All of these are required)"/>
+                <ListBox ItemsSource="{Binding CustomFilter.AndFilters}" Grid.Row="3" KeyUp="FilterKeyUp"/>
+                <Label Grid.Row="4" Content="OR Group (One of these is required)"/>
+                <ListBox ItemsSource="{Binding CustomFilter.OrFilters}" Grid.Row="5" KeyUp="FilterKeyUp"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox Grid.Column="2" Header="Add Filter" Margin="5">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <ComboBox ItemsSource="{Binding FilterTypes}" SelectedIndex="{Binding SelectedFilterIndex}" SelectedValue="{Binding NewFilter.Type}" SelectedValuePath="Tag" VerticalAlignment="Top" Grid.ColumnSpan="2" />
+                <CheckBox Grid.Column="0" Content="OR Group" VerticalAlignment="Top" Margin="5,27" IsChecked="{Binding NewFilterOrGroup}" />
+                <CheckBox Grid.Column="1" Content="Exclude"  VerticalAlignment="Top" Margin="5,27" IsChecked="{Binding NewFilter.Exclude}" />
+                <TabControl Grid.ColumnSpan="2" Grid.Column="0" Margin="0,47,0,25" SelectedIndex="{Binding SelectedFilterIndex, Mode=OneWay}">
+                    <TabItem Visibility="Collapsed" Header="Length" >
+                            <ComboBox ItemsSource="{Binding LengthTypes, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag"/>
+                    </TabItem>
+                    <TabItem Visibility="Collapsed" Header="Release Date">
+                        <ComboBox ItemsSource="{Binding ReleaseTypes, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag"/>
+                    </TabItem>
+                    <TabItem Visibility="Collapsed" Content="Blacklisted" Header="Blacklisted"/>
+                    <TabItem Visibility="Collapsed" Content="Voted" Header="Voted"/>
+                    <TabItem Visibility="Collapsed" Content="By Favorite Producer" Header="By Favorite Producer"/>
+                    <TabItem Visibility="Collapsed" Header="Wishlist Status">
+                        <ComboBox ItemsSource="{Binding WishlistTypes, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag"/>
+                    </TabItem>
+                    <TabItem Visibility="Collapsed" Header="Userlist Status">
+                        <ComboBox ItemsSource="{Binding UserlistTypes, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag"/>
+                    </TabItem>
+                    <TabItem Visibility="Collapsed" Content="Language" Header="Language"/>
+                    <TabItem Visibility="Collapsed" Content="Original Language" Header="Original Language"/>
+                    <TabItem Visibility="Collapsed" Content="Tags" Header="Tags"/>
+                    <TabItem Visibility="Collapsed" Content="Traits" Header="Traits"/>
+                </TabControl>
+                <Button Grid.Column="0" Content="Add To Permanent Filter" VerticalAlignment="Bottom" Margin="5,0" Command="{Binding AddToPermanentFilterCommand}"/>
+                <Button Grid.Column="1" Content="Add To Custom Filter"    VerticalAlignment="Bottom" Margin="5,0" Command="{Binding AddToCustomFilterCommand}"/>
+            </Grid>
+        </GroupBox>
+    </Grid>
+</UserControl>

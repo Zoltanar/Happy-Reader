@@ -1,27 +1,29 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
-using Happy_Apps_Core;
+using System.Runtime.CompilerServices;
 using Happy_Apps_Core.Database;
+using JetBrains.Annotations;
 
 namespace Happy_Reader
 {
-	public class CustomVnFilter
+	public class CustomVnFilter : INotifyPropertyChanged
 	{
 		/// <summary>
 		/// Name of custom filter
 		/// </summary>
-		public string Name;
+		public string Name { get; set; }
 
 		/// <summary>
 		/// List of filters which must all be true
 		/// </summary>
-		public readonly BindingList<VnFilter> AndFilters = new BindingList<VnFilter>();
+		public ObservableCollection<VnFilter> AndFilters { get; set; } = new ObservableCollection<VnFilter>();
 		/// <summary>
 		/// List of filters in which at least one must be true
 		/// </summary>
-		public readonly BindingList<VnFilter> OrFilters = new BindingList<VnFilter>();
+		public ObservableCollection<VnFilter> OrFilters { get; set; } = new ObservableCollection<VnFilter>();
 
 		/// <inheritdoc />
 		public override string ToString() => Name;
@@ -33,10 +35,23 @@ namespace Happy_Reader
 		public CustomVnFilter(CustomVnFilter existingVnFilter)
 		{
 			Name = existingVnFilter.Name;
-			AndFilters = new BindingList<VnFilter>();
-			AndFilters.AddRange(existingVnFilter.AndFilters.ToArray());
-			OrFilters = new BindingList<VnFilter>();
-			OrFilters.AddRange(existingVnFilter.OrFilters.ToArray());
+			AndFilters = new ObservableCollection<VnFilter>();
+			foreach (var filter in existingVnFilter.AndFilters) AndFilters.Add(filter.GetCopy());
+			OrFilters = new ObservableCollection<VnFilter>();
+			foreach (var filter in existingVnFilter.OrFilters) OrFilters.Add(filter.GetCopy());
+			OnPropertyChanged();
+		}
+
+		/// <summary>
+		/// The filter is overwritten by the passed filter.
+		/// </summary>
+		/// <param name="customFilter"></param>
+		internal void Overwrite(CustomVnFilter customFilter)
+		{
+			AndFilters.Clear();
+			foreach (var filter in customFilter.AndFilters) AndFilters.Add(filter.GetCopy());
+			OrFilters.Clear();
+			foreach (var filter in customFilter.OrFilters) OrFilters.Add(filter.GetCopy());
 		}
 
 		/// <summary>
@@ -88,12 +103,20 @@ namespace Happy_Reader
 					orExpression = Expression.Or(orExpression, andFunctions[index].Body);
 					index++;
 				}
-				if (andFunctions.Length == 0 ) return  orExpression;
+				if (andFunctions.Length == 0) return orExpression;
 			}
 			// ReSharper disable AssignNullToNotNullAttribute
 			Expression result = Expression.AndAlso(andExpression, orExpression);
 			// ReSharper restore AssignNullToNotNullAttribute
 			return result;
+		}
+
+		public event PropertyChangedEventHandler PropertyChanged;
+
+		[NotifyPropertyChangedInvocator]
+		public void OnPropertyChanged([CallerMemberName] string propertyName = null)
+		{
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 	}
 }

@@ -24,7 +24,8 @@ namespace Happy_Reader
 
 		private const string ConfigFolder = "Config\\";
 		public const string ProxiesJson = ConfigFolder + "proxies.json";
-		public const string DefaultFiltersJson = ConfigFolder + "defaultfilters.json";
+		public const string CustomFiltersJson = StaticHelpers.StoredDataFolder + "customfilters.json";
+		public const string PermanentFilterJson = StaticHelpers.StoredDataFolder + "filters.json";
 		public static HappyReaderDatabase Data { get; } = new HappyReaderDatabase();
 
 		public static VNR VnrProxy { get; private set; }
@@ -44,7 +45,7 @@ namespace Happy_Reader
 
 			}
 		}
-
+		
 		public static void InitVnrProxy()
 		{
 			var path = Path.GetFullPath(@"IthVnrSharpLib.dll");
@@ -72,6 +73,7 @@ namespace Happy_Reader
 			process.WaitForInputIdle(3000);
 			return process;
 		}
+
 		public static Process StartProcessThroughProxy(UserGame userGame)
 		{
 			var lastQuote = userGame.LaunchPath.LastIndexOf('"');

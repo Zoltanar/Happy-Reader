@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -35,8 +36,6 @@ namespace Happy_Apps_Core
         public const string VNScreensFolder = StoredDataFolder + "Saved Screenshots\\";
         public const string DBStatsJson = StoredDataFolder + "dbs.json";
         public const string SettingsJson = StoredDataFolder + "settings.json";
-        public const string CustomFiltersJson = StoredDataFolder + "customfilters.json";
-        public const string PermanentFilterJson = StoredDataFolder + "filters.json";
         public const string LogFile = StoredDataFolder + "message.log";
         public const string CoreSettingsJson = StoredDataFolder + "coresettings.json";
         public const string GuiSettingsJson = StoredDataFolder + "guisettings.json";
@@ -100,7 +99,7 @@ namespace Happy_Apps_Core
         public static VisualNovelDatabase LocalDatabase;
 
         public static bool VNIsByFavoriteProducer(ListedVN vn) => LocalDatabase.CurrentUser.FavoriteProducers.Any(x => x.ID == vn.ProducerID);
-
+		
         /// <summary>
         /// Pause RaiseListChangedEvents and add items then call the event when done adding.
         /// </summary>
@@ -112,12 +111,12 @@ namespace Happy_Apps_Core
             list.RaiseListChangedEvents = true;
             list.ResetBindings();
         }
-
-        /// <summary>
-        /// Pause RaiseListChangedEvents, clear list and add items, then call ResetBindings event.
-        /// </summary>
-        // ReSharper disable once UnusedMember.Global
-        public static void SetRange<T>(this BindingList<T> list, IEnumerable<T> items)
+		
+		/// <summary>
+		/// Pause RaiseListChangedEvents, clear list and add items, then call ResetBindings event.
+		/// </summary>
+		// ReSharper disable once UnusedMember.Global
+		public static void SetRange<T>(this BindingList<T> list, IEnumerable<T> items)
         {
             list.RaiseListChangedEvents = false;
             list.Clear();
@@ -200,10 +199,8 @@ namespace Happy_Apps_Core
         {
             if (value == null) return "N/A";
             FieldInfo field = value.GetType().GetField(value.ToString());
-            return !(Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is DescriptionAttribute attribute
-            )
-                ? value.ToString()
-                : attribute.Description;
+	        Attribute attribute = Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute));
+			return attribute is DescriptionAttribute descriptionAttribute? descriptionAttribute.Description :  value.ToString();
         }
 
         /// <summary>
