@@ -1,3 +1,4 @@
 [submodule "IthVnrSharpLib"]
 	path = IthVnrSharpLib
 	url = https://github.com/Zoltanar/IthVnrSharpLib
+	branch = Master
