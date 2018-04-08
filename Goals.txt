@@ -3,6 +3,8 @@ add blacklistedproducers to user
 /HS8@5270:GDI32.dll for Bitch Gakuen - not working with my ITHVNR, check
 make 'ask jisho' use jisho api
 allow user to merge userGames (add gametime from old to new and delete old)
+add ListedVN.DbTraits and/or ListedVN.Characters
+make all vn filters go through .local parts of database and/or through listedvn navigation properties.
 
 great outstanding problems:
 can't show outputwindow on top of some fullscreen games, steals focus on games where it works

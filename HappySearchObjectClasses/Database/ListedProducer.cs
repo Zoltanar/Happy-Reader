@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Windows;
+using JetBrains.Annotations;
 
 // ReSharper disable VirtualMemberCallInConstructor
 // ReSharper disable ClassWithVirtualMembersNeverInherited.Global
@@ -13,7 +16,7 @@ namespace Happy_Apps_Core.Database
     /// <summary>
     /// Object for Favorite Producers in Object List View.
     /// </summary>
-    public class ListedProducer : IComparable<ListedProducer>,IComparable
+    public class ListedProducer : IComparable<ListedProducer>,IComparable, INotifyPropertyChanged
     {
         /// <summary>
         /// Constructor for ListedProducer, not favorite producers.
@@ -145,5 +148,13 @@ namespace Happy_Apps_Core.Database
             if (ReferenceEquals(this, other)) return 0;
             return other is null ? 1 : ID.CompareTo(other.ID);
         }
+
+	    public event PropertyChangedEventHandler PropertyChanged;
+
+	    [NotifyPropertyChangedInvocator]
+	    public void OnPropertyChanged([CallerMemberName] string propertyName = null)
+		{
+		    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	    }
     }
 }

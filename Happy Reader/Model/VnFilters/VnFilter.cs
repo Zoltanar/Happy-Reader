@@ -12,7 +12,7 @@ namespace Happy_Reader
 	{
 		private VnFilterType _type;
 		private string _typeName;
-		private string _stringValue;
+		private string _stringValue = "";
 #pragma warning disable 1591
 
 		[JsonIgnore]

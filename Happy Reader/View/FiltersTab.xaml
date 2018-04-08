@@ -22,9 +22,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Label Grid.Row="0" Content="AND Group (All of these are required)"/>
-                <ListBox ItemsSource="{Binding PermanentFilter.AndFilters}" Grid.Row="1"/>
-                <Label Grid.Row="2" Content="OR Group (One of these is required)"/>
-                <ListBox ItemsSource="{Binding PermanentFilter.OrFilters}" Grid.Row="3"/>
+                <ListBox Grid.Row="1" KeyUp="FilterKeyUp" ItemsSource="{Binding PermanentFilter.AndFilters}"/>
+                <Label   Grid.Row="2" Content="OR Group (One of these is required)"/>
+                <ListBox Grid.Row="3" KeyUp="FilterKeyUp" ItemsSource="{Binding PermanentFilter.OrFilters}" />
             </Grid>
         </GroupBox>
         <GroupBox Grid.Column="1" Header="Custom Filter" Margin="5,10,5,5">
@@ -63,17 +63,27 @@
                     <TabItem Visibility="Collapsed" Header="Release Date">
                         <ComboBox ItemsSource="{Binding ReleaseTypes, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag"/>
                     </TabItem>
-                    <TabItem Visibility="Collapsed" Content="Blacklisted" Header="Blacklisted"/>
-                    <TabItem Visibility="Collapsed" Content="Voted" Header="Voted"/>
-                    <TabItem Visibility="Collapsed" Content="By Favorite Producer" Header="By Favorite Producer"/>
+                    <TabItem Visibility="Collapsed" Header="Blacklisted">
+                        <CheckBox Content="Blacklisted" IsChecked="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
+                    </TabItem>
+                    <TabItem Visibility="Collapsed" Header="Voted">
+                        <CheckBox Content="Voted" IsChecked="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
+                        </TabItem>
+                    <TabItem Visibility="Collapsed" Header="By Favorite Producer">
+                        <CheckBox Content="By Favorite Producer" IsChecked="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
+                    </TabItem>
                     <TabItem Visibility="Collapsed" Header="Wishlist Status">
                         <ComboBox ItemsSource="{Binding WishlistTypes, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag"/>
                     </TabItem>
                     <TabItem Visibility="Collapsed" Header="Userlist Status">
                         <ComboBox ItemsSource="{Binding UserlistTypes, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag"/>
                     </TabItem>
-                    <TabItem Visibility="Collapsed" Content="Language" Header="Language"/>
-                    <TabItem Visibility="Collapsed" Content="Original Language" Header="Original Language"/>
+                    <TabItem Visibility="Collapsed" Header="Language">
+                        <TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"></TextBox>
+                        </TabItem>
+                    <TabItem Visibility="Collapsed" Header="Original Language">
+                        <TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"></TextBox>
+                    </TabItem>
                     <TabItem Visibility="Collapsed" Content="Tags" Header="Tags"/>
                     <TabItem Visibility="Collapsed" Content="Traits" Header="Traits"/>
                 </TabControl>

@@ -21,12 +21,16 @@ namespace Happy_Reader.View
 
         private async void UpdateURT(object sender, RoutedEventArgs e) => await _viewModel.UpdateURT();
 
-        private async void ScrollViewer_OnScrollChanged(object sender, ScrollChangedEventArgs e)
+        private void ScrollViewer_OnScrollChanged(object sender, ScrollChangedEventArgs e)
         {
             if (!(e.VerticalChange > 0)) return;
             var loc = e.VerticalOffset + e.ViewportHeight;
-            if (loc + 1 >= e.ExtentHeight) await _viewModel.AddListedVNPage();
-        }
+	        if (loc + 1 >= e.ExtentHeight)
+	        {
+		        _viewModel.AddListedVNPage();
+		        //todo scroll to this location after adding new page
+			}
+		}
 
         private async void ShowAll(object sender, RoutedEventArgs e) => await _viewModel.RefreshListedVns(true);
 

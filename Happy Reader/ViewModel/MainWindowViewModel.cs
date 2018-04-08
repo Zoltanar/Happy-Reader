@@ -132,7 +132,7 @@ namespace Happy_Reader.ViewModel
 			Translation.Translator = Translator;
 			TestViewModel = new TranslationTester(this);
 			FiltersViewModel = new FiltersViewModel();
-			DatabaseViewModel = new VNTabViewModel(this, FiltersViewModel.Filters);
+			DatabaseViewModel = new VNTabViewModel(this, FiltersViewModel.Filters, FiltersViewModel.PermanentFilter);
 			IthViewModel = new IthViewModel(this);
 			OnPropertyChanged(nameof(VndbQueries));
 			_outputWindow = new OutputWindow(mainWindow);
@@ -289,6 +289,7 @@ namespace Happy_Reader.ViewModel
 		{
 			Debug.WriteLine($"MonitorStart starting with ID: {Thread.CurrentThread.ManagedThreadId}");
 			StaticMethods.Data.UserGames.Load();
+			var userGames = StaticMethods.Data.UserGames.Local;
 			//NotificationEvent.Invoke(this, $"Processes to monitor: {StaticMethods.Data.UserGameProcesses.Length}");
 			while (true)
 			{
@@ -296,7 +297,7 @@ namespace Happy_Reader.ViewModel
 				try
 				{
 					var processes = Process.GetProcesses();
-					foreach (var userGame in StaticMethods.Data.UserGames.Local)
+					foreach (var userGame in userGames)
 					{
 						if (_closing) return;
 						if (UserGame?.Process != null)
@@ -325,6 +326,7 @@ namespace Happy_Reader.ViewModel
 						}
 						catch (InvalidOperationException) { } //can happen if process is closed after getting reference
 					}
+					foreach (var process in processes) process.Dispose();
 				}
 				catch (Exception ex)
 				{

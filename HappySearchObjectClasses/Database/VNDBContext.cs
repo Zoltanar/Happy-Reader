@@ -18,8 +18,19 @@ namespace Happy_Apps_Core.Database
         // 
         // If you wish to target a different database and/or database provider, modify the 'Model1' 
         // connection string in the application configuration file.
-        public VisualNovelDatabase() : base("name=VNDatabase")
-        { }
+	    public VisualNovelDatabase(bool loadAllTables) : base("name=VNDatabase")
+	    {
+		    if (!loadAllTables) return;
+			VisualNovels.Load();
+			Producers.Load();
+			UserVisualNovels.Load();
+			Characters.Load();
+			CharacterStaffs.Load();
+			Users.Load();
+			TableDetails.Load();
+			Tags.Load();
+			Traits.Load();
+		}
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Windows.Input;
 using IthVnrSharpLib;
 
 namespace Happy_Reader.ViewModel
@@ -19,7 +20,6 @@ namespace Happy_Reader.ViewModel
 			    OnPropertyChanged();
 		    }
 	    }
-
 	    public override Encoding PrefEncoding
 	    {
 		    get => SelectedTextThread?.PrefEncoding ?? Encoding.Unicode;
@@ -29,17 +29,16 @@ namespace Happy_Reader.ViewModel
 			    if(_mainViewModel?.UserGame != null) _mainViewModel.UserGame.PrefEncoding = value;
 			    OnPropertyChanged();
 		    }
-	    }
+		}
+	    public ICommand SetHookCodeCommand { get; }
 
 		public IthViewModel(MainWindowViewModel mainViewModel)
-        {
+		{
             _mainViewModel = mainViewModel;
+			SetHookCodeCommand = new IthCommandHandler(SetHookCode);
         }
-		
-	    public void SetHookCode()
-	    {
-		    _mainViewModel.UserGame.SaveHookCode(SelectedTextThread.HookCode);
-		}
 
-    }
+	    public void SetHookCode() => _mainViewModel.UserGame.SaveHookCode(SelectedTextThread.HookCode);
+
+	}
 }

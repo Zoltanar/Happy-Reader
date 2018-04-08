@@ -49,6 +49,7 @@
             <ColumnDefinition x:Name="SettingsColumn" Width="88"/>
             <ColumnDefinition Width="22"/>
         </Grid.ColumnDefinitions>
+        <Label Grid.Column="0" Content="{Binding IdText}" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5" Padding="0" Foreground="White"/>
         <RichTextBox Grid.Column="0"  Foreground="GreenYellow" x:Name="DebugTextbox" HorizontalContentAlignment="Center" IsReadOnly="True"
                      VerticalContentAlignment="Center" Background="{x:Null}" FontSize="22"  BorderBrush="Transparent" AutoWordSelection="False">
             <RichTextBox.Effect>
@@ -65,7 +66,6 @@
                 </ContextMenu>
             </RichTextBox.ContextMenu>
         </RichTextBox>
-        <Label Grid.Column="0" Content="{Binding IdText}" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5" Padding="0" Foreground="White"/>
         <Grid Column="1" Margin="5,5,0,0" MouseEnter="ShowSettingsOnMouseHover" MouseLeave="HideSettingsOnMouseLeave">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>

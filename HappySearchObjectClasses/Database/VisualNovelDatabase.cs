@@ -247,18 +247,25 @@ throw;
 
         #region Other
 
-        public static Expression<Func<ListedVN, bool>> ListVNByNameOrAliasFunc(string searchString)
+        public static Expression<Func<ListedVN, bool>> ListVNByNameOrAliasExpression(string searchString)
         {
             var lowerSearchString = searchString.ToLower();
             return vn => vn.Title.ToLower().Contains(lowerSearchString) ||
                 vn.KanjiTitle.ToLower().Contains(lowerSearchString) ||
                 vn.Aliases.ToLower().Contains(lowerSearchString);
         }
+	    public static Func<ListedVN, bool> ListVNByNameOrAliasFunc(string searchString)
+	    {
+		    var lowerSearchString = searchString.ToLower();
+		    return vn => vn.Title.ToLower().Contains(lowerSearchString) ||
+		                 vn.KanjiTitle.ToLower().Contains(lowerSearchString) ||
+		                 vn.Aliases.ToLower().Contains(lowerSearchString);
+	    }
 
-        /// <summary>
-        ///     Type of VN status to be changed.
-        /// </summary>
-        public enum ChangeType
+		/// <summary>
+		///     Type of VN status to be changed.
+		/// </summary>
+		public enum ChangeType
         {
             UL,
             WL,

@@ -42,27 +42,35 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+        <!-- row 0 -->
         <UniformGrid Columns="5" Grid.Row="0" Height="70">
-            <Button Content="Process" Margin="5" Click="OpenProcessExplorer"/>
-            <ToggleButton Content="Merge By Hook Code" Margin="5" IsChecked="{Binding MergeByHookCode}"/>
-            <Button Content="Turn Off" Margin="5" Click="FinalizeButton"/>
-            <Button Content="Turn On" Margin="5" Click="InitializeButton"/>
-            <ToggleButton Content="Pause All" Margin="5" IsChecked="{Binding HookManager.Paused}" />
-            <Button Content="Clear" Margin="5" Click="ClearThreadText"/>
-            <ToggleButton Content="Follow Preferred Hook" Margin="5" IsChecked="{Binding HookManager.FollowPreferredHook}"/>
-            <Button Content="Set Hook Code" Margin="5" Click="SetHookCode"/>
-            <ToggleButton Content="Show Latest Thread" Margin="5" IsChecked="{Binding HookManager.ShowLatestThread}" />
-            <Button Content="Pause Other Threads" Margin="5" Click="PauseOtherThreads" />
+            <Button Margin="5" Content="Turn Off" Click="FinalizeButton"/>
+            <Button Margin="5" Content="Turn On"  Click="InitializeButton"/>
+            <ToggleButton Margin="5" Content="Merge By Hook Code"  IsChecked="{Binding MergeByHookCode}"/>
+            <ToggleButton Margin="5" Content="Global Pause"        IsChecked="{Binding HookManager.Paused}" />
+            <ToggleButton Margin="5" Content="Show Latest Thread"  IsChecked="{Binding HookManager.ShowLatestThread}" />
+            <Button Margin="5" Content="Attach To Process" Click="OpenProcessExplorer"/>
+            <Button Margin="5" Content="Clear Others"      Command="{Binding ClearOtherThreadsCommand}"/>
+            <Button Margin="5" Content="Pause Others"      Command="{Binding PauseOtherThreadsCommand}" />
+            <Button Margin="5" Content="Don't Post Others" Command="{Binding DontPostOthersCommand}"/>
         </UniformGrid>
-        <ComboBox x:Name="ProcessComboBox" ItemsSource="{Binding DisplayProcesses}" SelectedItem="{Binding SelectedProcess, Mode=TwoWay}" Grid.Row="1" HorizontalAlignment="Left" Margin="5,5,0,5" Width="120"/>
-        <TextBox Grid.Row="1" Margin="130,5,5,5" TextWrapping="Wrap" Text="Enter command here..." KeyUp="EnterCommand"/>
-        <ComboBox ItemsSource="{Binding DisplayThreads}" SelectedItem="{Binding SelectedTextThread, Mode=TwoWay}" Grid.Row="2" Margin="5,0,340,0" SelectionChanged="TextThreadChanged"/>
-        <Button Grid.Row="2" Content="Only Post This" Margin="0,0,250,0" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="80" Click="PostDisplayedOnly"/>
+        <!-- row 1 -->
+        <ComboBox Grid.Row="1" Margin="5,5,0,5" x:Name="ProcessComboBox" ItemsSource="{Binding DisplayProcesses}" SelectedItem="{Binding SelectedProcess, Mode=TwoWay}"  HorizontalAlignment="Left"  Width="120"/>
+        <TextBox  Grid.Row="1" Margin="130,5,5,5" TextWrapping="Wrap" Text="Enter command here..." KeyUp="EnterCommand"/>
+        <!-- row 2 -->
+        <ComboBox ItemsSource="{Binding DisplayThreads}" SelectedItem="{Binding SelectedTextThread, Mode=TwoWay}" Grid.Row="2" Margin="5,0,239,0" SelectionChanged="TextThreadChanged"/>
         <CheckBox Grid.Row="2" Content="Posting" Margin="0,0,171,0" IsChecked="{Binding SelectedTextThread.IsPosting}" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="63"/>
         <CheckBox Grid.Row="2" Content="Paused" Margin="0,0,103,0" IsChecked="{Binding SelectedTextThread.IsPaused}" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="63"/>
         <ComboBox ItemsSource="{Binding Encodings}" DisplayMemberPath="EncodingName" SelectedItem="{Binding PrefEncoding, Mode=TwoWay}" Grid.Row="2" Margin="0,0,10,0" SelectionChanged="EncodingChanged" HorizontalAlignment="Right" Width="88"/>
-        <TextBox x:Name="MainTextBox" Text="{Binding SelectedTextThread.Text, Mode=OneWay}" Margin="5" Grid.Row="3" IsReadOnly="True" TextWrapping="Wrap" SelectionChanged="MainTextBox_OnSelectionChanged" VerticalScrollBarVisibility="Auto" TextChanged="MainTextBox_OnTextChanged"/>
+        <!--row 3 -->
+        <UniformGrid Grid.Row="3" Rows="1">
+            <Button Margin="5" Content="Clear Text"     Command="{Binding ClearThreadCommand}"/>
+            <Button Margin="5" Content="Set Hook Code"  Command="{Binding SetHookCodeCommand}"/>
+        </UniformGrid>
+        <!--row 4 -->
+        <TextBox x:Name="MainTextBox" Text="{Binding SelectedTextThread.Text, Mode=OneWay}" Margin="5" Grid.Row="4" IsReadOnly="True" TextWrapping="Wrap" SelectionChanged="MainTextBox_OnSelectionChanged" VerticalScrollBarVisibility="Auto" TextChanged="MainTextBox_OnTextChanged"/>
     </Grid>
 </UserControl>

@@ -141,6 +141,7 @@ namespace Happy_Reader.View
 			tabItem.Header = header;
 			MainTabControl.Items.Add(tabItem);
 			MainTabControl.SelectedItem = tabItem;
+			tabItem.Focus();
 		}
 
 		private void ChangeIthPath(object sender, RoutedEventArgs e)

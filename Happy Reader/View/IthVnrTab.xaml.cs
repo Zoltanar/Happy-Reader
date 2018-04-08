@@ -61,14 +61,6 @@ namespace Happy_Reader.View
 			MainTextBox.Background = Brushes.White;
 		}
 
-		private void SetHookCode(object sender, RoutedEventArgs e) => _viewModel.SetHookCode();
-
-		private void ClearThreadText(object sender, RoutedEventArgs e)
-		{
-			_viewModel.SelectedTextThread.Bytes.Clear();
-			_viewModel.OnPropertyChanged(nameof(_viewModel.SelectedTextThread));
-		}
-
 		private void MainTextBox_OnSelectionChanged(object sender, RoutedEventArgs e)
 		{
 			if (MainTextBox.SelectedText.Length == 0) return;
@@ -93,17 +85,10 @@ namespace Happy_Reader.View
 			_selectionTimer?.Close();
 			_selectionTimer = null;
 		}
-
-		private void PostDisplayedOnly(object sender, RoutedEventArgs e) => _viewModel.PostDisplayedOnly();
-
+		
 		private void MainTextBox_OnTextChanged(object sender, TextChangedEventArgs e)
 		{
 			MainTextBox.ScrollToEnd();
-		}
-
-		private void PauseOtherThreads(object sender, RoutedEventArgs e)
-		{
-			_viewModel.PauseOtherThreads();
 		}
 	}
 }

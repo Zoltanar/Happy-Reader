@@ -86,7 +86,8 @@ namespace Happy_Reader.ViewModel
 			var input = TextArea.Selection.Text;
 			var output = Kakasi.JapaneseToRomaji(input);
 			if (output.Length > 0) output = char.ToUpper(output[0]) + output.Substring(1);
-			MainWindow.CreateAddEntryTab(new Entry(input,output));
+			output = output.Replace(" ", "");
+			MainWindow.CreateAddEntryTab(new Entry(input,output){SeriesSpecific = true});
 		}
 
 		public void UpdateOutput()

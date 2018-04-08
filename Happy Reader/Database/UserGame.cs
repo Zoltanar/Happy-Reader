@@ -81,10 +81,11 @@ namespace Happy_Reader.Database
             get => _process;
             set
             {
+				if(value == null) _process.Dispose();
                 _process = value;
                 OnPropertyChanged(nameof(IsRunning));
                 OnPropertyChanged(nameof(TimeOpen));
-                if (value == null) return;
+	            if (value == null) return;
                 Log.NewStartedPlayingLog(Id, DateTime.Now);
                 _runningTime = Stopwatch.StartNew();
                 _process.Exited += ProcessExited;
