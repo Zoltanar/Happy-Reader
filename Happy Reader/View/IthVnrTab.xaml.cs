@@ -56,8 +56,7 @@ namespace Happy_Reader.View
 
 		private void InitializeButton(object sender, RoutedEventArgs e)
 		{
-			StaticMethods.InitVnrProxy();
-			_viewModel.ReInitialize(StaticMethods.VnrProxy, StaticMethods.IthVnrDomain);
+			_viewModel.ReInitialize();
 			MainTextBox.Background = Brushes.White;
 		}
 

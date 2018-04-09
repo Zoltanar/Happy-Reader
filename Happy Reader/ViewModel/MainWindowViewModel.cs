@@ -235,7 +235,7 @@ namespace Happy_Reader.ViewModel
 			_monitor = new Thread(MonitorStart) { IsBackground = true };
 			_monitor.Start();
 			StatusText = "Initializing ITHVNR...";
-			IthViewModel.Initialize(RunTranslation, StaticMethods.VnrProxy, StaticMethods.IthVnrDomain, GetPreferredHookCode);
+			IthViewModel.Initialize(RunTranslation, GetPreferredHookCode);
 			_loadingComplete = true;
 			StatusText = "Loading complete.";
 			NotificationEvent(this, $"Took {watch.Elapsed:ss\\:fff} seconds.", "Loading Complete");

@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using IthVnrSharpLib;
-using static Happy_Reader.StaticMethods;
 
 namespace Happy_Reader.View
 {
@@ -61,10 +60,10 @@ namespace Happy_Reader.View
         {
             if (!(ProcessGrid.SelectedItem is ProcessInfo item)) return; //todo return error
             uint pid = (uint)item.Process.Id;
-            var result = VnrProxy.Host_InjectByPID(pid);
+            var result = _ithViewModel.VnrProxy.Host_InjectByPID(pid);
             if (result)
             {
-                var result2 = VnrProxy.Host_HijackProcess(pid);
+                var result2 = _ithViewModel.VnrProxy.Host_HijackProcess(pid);
                 if (!result2) { }
                 //RefreshThreadWithPID(pid, true);
             }

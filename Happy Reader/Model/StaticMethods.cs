@@ -9,9 +9,7 @@ using System.Windows;
 using Happy_Apps_Core;
 using Happy_Reader.Database;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Threading;
-using IthVnrSharpLib;
 using StaticHelpers = Happy_Apps_Core.StaticHelpers;
 
 // ReSharper disable UnusedMember.Global
@@ -27,9 +25,6 @@ namespace Happy_Reader
 		public const string CustomFiltersJson = StaticHelpers.StoredDataFolder + "customfilters.json";
 		public const string PermanentFilterJson = StaticHelpers.StoredDataFolder + "filters.json";
 		public static HappyReaderDatabase Data { get; } = new HappyReaderDatabase();
-
-		public static VNR VnrProxy { get; private set; }
-		public static AppDomain IthVnrDomain { get; private set; }
 		public static GuiSettings GSettings => StaticHelpers.GSettings;
 
 		static StaticMethods()
@@ -37,7 +32,6 @@ namespace Happy_Reader
 			try
 			{
 				Directory.CreateDirectory(ConfigFolder);
-				InitVnrProxy();
 			}
 			catch (Exception ex)
 			{
@@ -46,14 +40,6 @@ namespace Happy_Reader
 			}
 		}
 		
-		public static void InitVnrProxy()
-		{
-			var path = Path.GetFullPath(@"IthVnrSharpLib.dll");
-			var assembly = Assembly.LoadFile(path);
-			IthVnrDomain = AppDomain.CreateDomain(@"StaticMethodsIthVnrAppDomain");
-			VnrProxy = (VNR)IthVnrDomain.CreateInstanceAndUnwrap(assembly.FullName, @"IthVnrSharpLib.VNR");
-		}
-
 		public static Process StartProcess(string executablePath)
 		{
 			var processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(executablePath));
