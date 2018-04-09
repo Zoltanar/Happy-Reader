@@ -1,10 +1,10 @@
-﻿<UserControl x:Class="Happy_Reader.View.VNTile"
+﻿<UserControl x:Class="Happy_Reader.View.Tiles.VNTile"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d" Height="375" Width="230" 
-             d:DataContext="{d:DesignData Source=ListedVNSampleData.xaml}">
+             d:DataContext="{d:DesignData Source=View/SampleData/ListedVNSampleData.xaml}">
     <Border BorderBrush="Black" BorderThickness="1" CornerRadius="10" Background="{Binding BackBrush}" >
         <Grid>
             <Label Content="{Binding Title}" Margin="10,10,10,0" VerticalAlignment="Top" FontWeight="Bold"/>

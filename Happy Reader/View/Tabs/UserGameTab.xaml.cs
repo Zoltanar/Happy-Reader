@@ -7,16 +7,16 @@ using System.Windows.Input;
 using Happy_Reader.Database;
 using Microsoft.Win32;
 
-namespace Happy_Reader.View
+namespace Happy_Reader.View.Tabs
 {
     /// <summary>
     /// Interaction logic for UserGamePanel.xaml
     /// </summary>
-    public partial class UserGamePanel : UserControl
+    public partial class UserGameTab : UserControl
     {
         private readonly UserGame _viewModel;
 
-        public UserGamePanel(UserGame game)
+        public UserGameTab(UserGame game)
         {
             InitializeComponent();
             DataContext = game;

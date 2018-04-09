@@ -7,21 +7,19 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Forms;
 using System.Windows.Input;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
+using Happy_Reader.View.Tabs;
+using Happy_Reader.View.Tiles;
 using Happy_Reader.ViewModel;
 using JetBrains.Annotations;
-using Application = System.Windows.Application;
-using Button = System.Windows.Controls.Button;
-using ContextMenuStrip = System.Windows.Forms.ContextMenuStrip;
-using DataFormats = System.Windows.DataFormats;
-using DragEventArgs = System.Windows.DragEventArgs;
-using NotifyIcon = System.Windows.Forms.NotifyIcon;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
+using NotifyIcon = System.Windows.Forms.NotifyIcon;
 using ToolTipIcon = System.Windows.Forms.ToolTipIcon;
+using ToolStripMenuItem = System.Windows.Forms.ToolStripMenuItem;
+using ContextMenuStrip = System.Windows.Forms.ContextMenuStrip;
 
 namespace Happy_Reader.View
 {
@@ -128,7 +126,7 @@ namespace Happy_Reader.View
 			{
 				Header = StaticHelpers.TruncateString(vn.Title, 30),
 				Name = "VNPanel",
-				Content = new VNPanel(vn)
+				Content = new VNTab(vn)
 			};
 			AddTabItem(tabItem);
 		}

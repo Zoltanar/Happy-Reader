@@ -6,7 +6,7 @@ using System.Windows.Documents;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 
-namespace Happy_Reader.View
+namespace Happy_Reader.View.Tiles
 {
     /// <summary>
     /// Interaction logic for CharacterTile.xaml

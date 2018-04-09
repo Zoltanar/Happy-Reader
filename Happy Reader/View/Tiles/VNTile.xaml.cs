@@ -1,7 +1,7 @@
 ﻿using System.Windows.Controls;
 using Happy_Apps_Core.Database;
 
-namespace Happy_Reader.View
+namespace Happy_Reader.View.Tiles
 {
     /// <summary>
     /// Interaction logic for VNTile.xaml

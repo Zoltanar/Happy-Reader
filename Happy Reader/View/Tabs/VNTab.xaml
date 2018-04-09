@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="Happy_Reader.View.VNPanel"
+﻿<UserControl x:Class="Happy_Reader.View.Tabs.VNTab"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -6,7 +6,7 @@
              xmlns:view="clr-namespace:Happy_Reader.View"
              mc:Ignorable="d mc" 
              d:DesignHeight="600" d:DesignWidth="800" 
-             d:DataContext="{d:DesignData Source=ListedVNSampleData.xaml}"
+             d:DataContext="{d:DesignData Source=View/SampleData/ListedVNSampleData.xaml}"
              Loaded="VNPanel_OnLoaded">
     <UserControl.Resources>
         <Style TargetType="TextBox"  BasedOn="{StaticResource NoBorderTextBox}">

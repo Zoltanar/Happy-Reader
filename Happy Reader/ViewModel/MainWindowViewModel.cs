@@ -17,6 +17,7 @@ using Happy_Reader.Database;
 using JetBrains.Annotations;
 using Newtonsoft.Json.Linq;
 using Happy_Reader.View;
+using Happy_Reader.View.Tiles;
 using IthVnrSharpLib;
 using static Happy_Apps_Core.StaticHelpers;
 

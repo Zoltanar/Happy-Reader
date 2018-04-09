@@ -6,7 +6,7 @@ using System.Windows.Controls;
 using Happy_Reader.Database;
 using Happy_Reader.ViewModel;
 
-namespace Happy_Reader.View
+namespace Happy_Reader.View.Tiles
 {
 	/// <summary>
 	/// Interaction logic for TitledImage.xaml
@@ -29,7 +29,7 @@ namespace Happy_Reader.View
 
 		private void GameDetails(object sender, EventArgs e)
 		{
-			var tabItem = new TabItem { Header = UserGame.DisplayName, Content = new UserGamePanel(UserGame) };
+			var tabItem = new TabItem { Header = UserGame.DisplayName, Content = new Tabs.UserGameTab(UserGame) };
 			// ReSharper disable once PossibleNullReferenceException
 			((MainWindow)Window.GetWindow(this)).AddTabItem(tabItem);
 		}

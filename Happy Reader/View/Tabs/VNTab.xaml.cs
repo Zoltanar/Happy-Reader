@@ -6,23 +6,24 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
+using Happy_Reader.View.Tiles;
 using Happy_Reader.ViewModel;
 
-namespace Happy_Reader.View
+namespace Happy_Reader.View.Tabs
 {
     /// <summary>
     /// Interaction logic for VNPanel.xaml
     /// </summary>
-    public partial class VNPanel : UserControl
+    public partial class VNTab : UserControl
     {
         private MainWindow _mainWindow;
         private readonly ListedVN _viewModel;
-        public VNPanel(ListedVN vn)
+        public VNTab(ListedVN vn)
         {
             InitializeComponent();
             _viewModel = vn;
             DataContext = vn;
-            var cvnItems = StaticHelpers.LocalDatabase.CharacterVNs.Where(cvn => cvn.ListedVNId == vn.VNID).ToArray();
+            var cvnItems = StaticHelpers.LocalDatabase.CharacterVNs.Local.Where(cvn => cvn.ListedVNId == vn.VNID).ToArray();
             CharacterTiles.ItemsSource = cvnItems.Select(CharacterTile.FromCharacterVN);
             if (vn.VNID != 0 && vn.DbTags.Count > 0)
             {

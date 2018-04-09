@@ -124,11 +124,11 @@
     <Compile Include="ViewModel\CommandHandler.cs" />
     <Compile Include="ViewModel\DisplayEntry.cs" />
     <Compile Include="ViewModel\FiltersViewModel.cs" />
-    <Compile Include="View\FiltersTab.xaml.cs">
+    <Compile Include="View\Tabs\FiltersTab.xaml.cs">
       <DependentUpon>FiltersTab.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\IdFromProducerConverter.cs" />
-    <Compile Include="View\IthVnrTab.xaml.cs">
+    <Compile Include="View\Tabs\IthVnrTab.xaml.cs">
       <DependentUpon>IthVnrTab.xaml</DependentUpon>
     </Compile>
     <Compile Include="Model\ClipboardManager.cs" />
@@ -160,36 +160,36 @@
     <Compile Include="View\ProcessExplorer.xaml.cs">
       <DependentUpon>ProcessExplorer.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View\TestTranslationPanel.xaml.cs">
-      <DependentUpon>TestTranslationPanel.xaml</DependentUpon>
+    <Compile Include="View\Tabs\TestTranslationTab.xaml.cs">
+      <DependentUpon>TestTranslationTab.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View\UserGameTile.xaml.cs">
+    <Compile Include="View\Tiles\UserGameTile.xaml.cs">
       <DependentUpon>UserGameTile.xaml</DependentUpon>
     </Compile>
     <Compile Include="Model\Translation.cs" />
     <Compile Include="Model\Translator.cs" />
-    <Compile Include="View\UserGamePanel.xaml.cs">
-      <DependentUpon>UserGamePanel.xaml</DependentUpon>
+    <Compile Include="View\Tabs\UserGameTab.xaml.cs">
+      <DependentUpon>UserGameTab.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\VirtualizingWrapPanel.cs" />
-    <Compile Include="View\VNPanel.xaml.cs">
-      <DependentUpon>VNPanel.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\VNTab.xaml.cs">
+    <Compile Include="View\Tabs\VNTab.xaml.cs">
       <DependentUpon>VNTab.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View\CharacterTile.xaml.cs">
+    <Compile Include="View\Tabs\DatabaseTab.xaml.cs">
+      <DependentUpon>DatabaseTab.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Tiles\CharacterTile.xaml.cs">
       <DependentUpon>CharacterTile.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View\VNTile.xaml.cs">
+    <Compile Include="View\Tiles\VNTile.xaml.cs">
       <DependentUpon>VNTile.xaml</DependentUpon>
     </Compile>
     <Compile Include="ViewModel\VNTabViewModel.cs" />
-    <Page Include="View\FiltersTab.xaml">
+    <Page Include="View\Tabs\FiltersTab.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\IthVnrTab.xaml">
+    <Page Include="View\Tabs\IthVnrTab.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -197,11 +197,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <DesignData Include="View\CharacterItemSampleData.xaml">
+    <DesignData Include="View\SampleData\CharacterItemSampleData.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </DesignData>
-    <DesignData Include="View\ListedVNSampleData.xaml">
+    <DesignData Include="View\SampleData\ListedVNSampleData.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </DesignData>
@@ -229,31 +229,31 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\TestTranslationPanel.xaml">
+    <Page Include="View\Tabs\TestTranslationTab.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\UserGameTile.xaml">
+    <Page Include="View\Tiles\UserGameTile.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\UserGamePanel.xaml">
+    <Page Include="View\Tabs\UserGameTab.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\VNPanel.xaml">
+    <Page Include="View\Tabs\VNTab.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\VNTab.xaml">
+    <Page Include="View\Tabs\DatabaseTab.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\CharacterTile.xaml">
+    <Page Include="View\Tiles\CharacterTile.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="View\VNTile.xaml">
+    <Page Include="View\Tiles\VNTile.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -319,9 +319,7 @@
     <Resource Include="Resources\no-image.png" />
     <Resource Include="Resources\nsfw-image.png" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="View\Filters\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

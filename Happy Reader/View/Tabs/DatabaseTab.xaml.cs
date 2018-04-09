@@ -7,17 +7,17 @@ using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Reader.ViewModel;
 
-namespace Happy_Reader.View
+namespace Happy_Reader.View.Tabs
 {
     /// <summary>
     /// Interaction logic for VNTab.xaml
     /// </summary>
-    public partial class VNTab : UserControl
+    public partial class DatabaseTab : UserControl
     {
         private VNTabViewModel _viewModel;
         private MainWindow _mainWindow;
 
-        public VNTab() => InitializeComponent();
+        public DatabaseTab() => InitializeComponent();
 
         private async void UpdateURT(object sender, RoutedEventArgs e) => await _viewModel.UpdateURT();
 
@@ -49,7 +49,7 @@ namespace Happy_Reader.View
 
         private void VNTileDoubleClicked(object sender, MouseButtonEventArgs e)
         {
-            var item = VisualNovelItems.SelectedItem as VNTile;
+            var item = VisualNovelItems.SelectedItem as Tiles.VNTile;
             var vn = (ListedVN)item?.DataContext;
             if (vn == null) return;
             _mainWindow.OpenVNPanel(vn);

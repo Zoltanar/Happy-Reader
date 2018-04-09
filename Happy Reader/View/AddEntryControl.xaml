@@ -6,7 +6,7 @@
              xmlns:database="clr-namespace:Happy_Reader.Database"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
-    <UserControl.DataContext><database:Entry></database:Entry></UserControl.DataContext>
+    <UserControl.DataContext><database:Entry/></UserControl.DataContext>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="1*" />

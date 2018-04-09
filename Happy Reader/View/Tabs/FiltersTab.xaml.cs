@@ -5,7 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Happy_Reader.ViewModel;
 
-namespace Happy_Reader.View
+namespace Happy_Reader.View.Tabs
 {
 	/// <summary>
 	/// Interaction logic for FiltersTab.xaml

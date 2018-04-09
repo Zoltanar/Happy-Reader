@@ -11,7 +11,7 @@ using System.Windows;
 using System.Windows.Media;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
-using Happy_Reader.View;
+using Happy_Reader.View.Tiles;
 using JetBrains.Annotations;
 using static Happy_Apps_Core.StaticHelpers;
 

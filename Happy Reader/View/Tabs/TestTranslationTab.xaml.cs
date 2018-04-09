@@ -5,16 +5,16 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Happy_Reader.ViewModel;
 
-namespace Happy_Reader.View
+namespace Happy_Reader.View.Tabs
 {
     /// <summary>
     /// Interaction logic for TestTranslationPanel.xaml
     /// </summary>
-    public partial class TestTranslationPanel : UserControl
+    public partial class TestTranslationTab : UserControl
     {
         private TranslationTester _viewModel;
 
-        public TestTranslationPanel()
+        public TestTranslationTab()
         {
             InitializeComponent();
         }

@@ -8,7 +8,7 @@ using System.Windows.Media;
 using Happy_Reader.ViewModel;
 using IthVnrSharpLib;
 
-namespace Happy_Reader.View
+namespace Happy_Reader.View.Tabs
 {
 	public partial class IthVnrTab
 	{
