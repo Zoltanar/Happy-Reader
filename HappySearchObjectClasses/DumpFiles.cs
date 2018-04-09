@@ -310,12 +310,21 @@ namespace Happy_Apps_Core
         {
             return PlainTraits.Find(x => x.Name.Equals(traitName) && x.TopmostParent == (int)root);
         }
+	    public static WrittenTrait GetTrait(int traitId)
+	    {
+		    return PlainTraits.Find(x => x.ID == traitId);
+	    }
 
-        public static WrittenTag GetTag(string name)
+		public static WrittenTag GetTag(string name)
         {
             var result =  PlainTags.Find(x => x.Name == name);
-            if(result == null) { }
             return result;
         }
-    }
+
+	    public static WrittenTag GetTag(int tagId)
+	    {
+		    var result = PlainTags.Find(x => x.ID == tagId);
+		    return result;
+	    }
+	}
 }

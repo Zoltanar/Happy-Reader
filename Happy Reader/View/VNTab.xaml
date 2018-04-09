@@ -52,7 +52,6 @@
         <TextBox x:Name="SearchTexBox" Margin="53,0,360,0" TextWrapping="Wrap" VerticalContentAlignment="Center" PreviewKeyUp="SearchForVN" Height="30" VerticalAlignment="Stretch" Grid.Row="1"/>
         <Button Content="Reset" HorizontalAlignment="Right" Margin="0,0,325,0" Width="30" Click="ShowAll" Grid.Row="1"/>
         <Button Content="Show URT" HorizontalAlignment="Right" Margin="0,0,261,0" Width="59" Click="ShowURT" Grid.Row="1"/>
-        <Button Content="Preset 2" HorizontalAlignment="Right" Margin="0,0,210,0" Width="46" Click="Preset2" Grid.Row="1"/>
         <Button Content="Update for Year" HorizontalAlignment="Right" Margin="0,0,118,0" Width="87" Click="UpdateForYear" Height="30" Grid.Row="1"/>
         <Button Content="Fetch for Year" Margin="0,0,145,0" Click="FetchForYear" Height="30" Grid.Row="2" HorizontalAlignment="Right" Width="79"/>
         <Label Content="{Binding ListedVNs.Count}" ContentStringFormat="Items: {0}" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="119" Padding="0,5" Grid.Row="1" Height="30" VerticalAlignment="Center"/>

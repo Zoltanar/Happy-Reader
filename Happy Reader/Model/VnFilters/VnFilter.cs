@@ -23,6 +23,7 @@ namespace Happy_Reader
 			{
 				_type = value;
 				_typeName = value.ToString();
+				Value = "";
 			}
 		}
 		public string TypeName
@@ -87,9 +88,12 @@ namespace Happy_Reader
 				}
 			}
 		}
-		
+
 		[JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
 		public bool Exclude { get; set; }
+
+		[JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+		public int AdditionalInt { get; set; }
 #pragma warning restore 1591
 
 		/// <summary>
@@ -136,7 +140,8 @@ namespace Happy_Reader
 				case VnFilterType.OriginalLanguage:
 					return vn => vn.HasOriginalLanguage(StringValue) != Exclude;
 				case VnFilterType.Tags:
-					return vn => vn.DbTags.Any(t => t.TagId == IntValue) != Exclude;
+					if (AdditionalInt != 0) return vn => vn.DbTags.Any(t => t.TagId == IntValue && t.Score >= AdditionalInt) != Exclude;
+					else return vn => vn.DbTags.Any(t => t.TagId == IntValue) != Exclude;
 				case VnFilterType.Traits:
 					//todo vn => vn.DbTraits.Any(t => t.TraitId == Value) != Exclude; //return vn => vn.MatchesSingleTrait(Convert.ToInt32(Value)) != Exclude;
 					throw new NotImplementedException();
@@ -144,7 +149,7 @@ namespace Happy_Reader
 					throw new ArgumentOutOfRangeException();
 			}
 		}
-		
+
 		/// <summary>
 		/// Gets function that determines if vn matches filter.
 		/// </summary>
@@ -172,7 +177,8 @@ namespace Happy_Reader
 				case VnFilterType.OriginalLanguage:
 					return vn => vn.HasOriginalLanguage(StringValue) != Exclude;
 				case VnFilterType.Tags:
-					return vn => vn.DbTags.Any(t => t.TagId == IntValue) != Exclude;
+					if (AdditionalInt != 0) return vn => vn.DbTags.Any(t => t.TagId == IntValue && t.Score >= AdditionalInt) != Exclude;
+					else return vn => vn.DbTags.Any(t => t.TagId == IntValue) != Exclude;
 				case VnFilterType.Traits:
 					// todo vn => vn.DbTraits.Any(t => t.TraitId == IntValue) != Exclude; //return vn => vn.MatchesSingleTrait(Convert.ToInt32(Value)) != Exclude;
 					throw new NotImplementedException();
@@ -183,27 +189,31 @@ namespace Happy_Reader
 
 		public override string ToString()
 		{
+			var typeDesc = Type.GetDescription();
 			switch (Type)
 			{
 				case VnFilterType.Length:
-					return $"{(Exclude ? "Exclude" : "Include")}: {Type.GetDescription()} - {((LengthFilterEnum)IntValue).GetDescription()}";
+					return $"{(Exclude ? "Exclude" : "Include")}: {typeDesc} - {((LengthFilterEnum)IntValue).GetDescription()}";
 				case VnFilterType.ReleaseStatus:
-					return $"{(Exclude ? "Exclude" : "Include")}: {Type.GetDescription()} - {((ReleaseStatusEnum)IntValue).GetDescription()}";
+					return $"{(Exclude ? "Exclude" : "Include")}: {typeDesc} - {((ReleaseStatusEnum)IntValue).GetDescription()}";
 				case VnFilterType.WishlistStatus:
-					return $"{(Exclude ? "Exclude" : "Include")}: {Type.GetDescription()} - {((WishlistStatus)IntValue).GetDescription()}";
+					return $"{(Exclude ? "Exclude" : "Include")}: {typeDesc} - {((WishlistStatus)IntValue).GetDescription()}";
 				case VnFilterType.UserlistStatus:
-					return $"{(Exclude ? "Exclude" : "Include")}: {Type.GetDescription()} - {((UserlistStatus)IntValue).GetDescription()}";
+					return $"{(Exclude ? "Exclude" : "Include")}: {typeDesc} - {((UserlistStatus)IntValue).GetDescription()}";
 				case VnFilterType.Voted:
 				case VnFilterType.Blacklisted:
 				case VnFilterType.ByFavoriteProducer:
-					return $"{(Exclude ? "Exclude" : "Include")}: {Type.GetDescription()}";
+					return $"{(Exclude ? "Exclude" : "Include")}: {typeDesc}";
 				case VnFilterType.Language:
 				case VnFilterType.OriginalLanguage:
-					return $"{(Exclude ? "Exclude" : "Include")}: {Type.GetDescription()} - { CultureInfo.GetCultureInfo(StringValue).DisplayName}";
+					return $"{(Exclude ? "Exclude" : "Include")}: {typeDesc} - { CultureInfo.GetCultureInfo(StringValue).DisplayName}";
 				case VnFilterType.Tags:
-					return $"{(Exclude ? "Exclude" : "Include")}: {Type.GetDescription()} - {DumpFiles.PlainTags.Find(x => x.ID == IntValue).Name}";
+					var tag = DumpFiles.GetTag(IntValue);
+					var result = $"{(Exclude ? "Exclude" : "Include")}: {typeDesc} - {tag.Name}";
+					if (AdditionalInt != 0) result += $" Score >= {AdditionalInt}";
+					return result;
 				case VnFilterType.Traits:
-					return $"{(Exclude ? "Exclude" : "Include")}: {Type.GetDescription()} - {DumpFiles.PlainTraits.Find(x => x.ID == IntValue).Name}";
+					return $"{(Exclude ? "Exclude" : "Include")}: {typeDesc} - {DumpFiles.PlainTraits.Find(x => x.ID == IntValue).Name}";
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
@@ -211,7 +221,7 @@ namespace Happy_Reader
 
 		public VnFilter GetCopy()
 		{
-			var filter = new VnFilter(Type, 0, Exclude) {StringValue = StringValue};
+			var filter = new VnFilter(Type, 0, Exclude) { StringValue = StringValue };
 			return filter;
 		}
 	}

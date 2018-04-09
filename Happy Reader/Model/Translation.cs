@@ -29,7 +29,8 @@ namespace Happy_Reader
 			var romajiRegex = new System.Text.RegularExpressions.Regex(@"っ(?=[…？！。「」【】、])");
 			originalForRomaji = romajiRegex.Replace(originalForRomaji, "");
 			Romaji = Kakasi.JapaneseToRomaji(originalForRomaji);
-			IsCharacterOnly = Original.StartsWith("【") && Original.EndsWith("】") && Original.Length < 10;
+			//IsCharacterOnly = Original.StartsWith("【") && Original.EndsWith("】") && Original.Length < 10;
+			IsCharacterOnly = Original.IndexOfAny(new [] {'「','」'}) < 0 && Original.Length < 10;
 		}
 
 		private Translation(string original, string romaji, string results)

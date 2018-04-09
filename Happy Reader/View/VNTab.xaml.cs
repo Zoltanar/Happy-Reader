@@ -57,8 +57,6 @@ namespace Happy_Reader.View
 
         private async void ShowURT(object sender, RoutedEventArgs e) => await _viewModel.ShowURT();
 
-        private async void Preset2(object sender, RoutedEventArgs e) => await _viewModel.ShowPreset2();
-
         private async void UpdateForYear(object sender, RoutedEventArgs e)
         {
             if (!DetermineYears(out int fromYear, out int _)) return;

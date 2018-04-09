@@ -53,6 +53,7 @@ namespace Happy_Reader.ViewModel
 			set
 			{
 				_statusText = value;
+				Debug.WriteLine($"{DateTime.Now:O} StatusText: {_statusText}");
 				OnPropertyChanged();
 			}
 		}
@@ -289,51 +290,67 @@ namespace Happy_Reader.ViewModel
 		{
 			Debug.WriteLine($"MonitorStart starting with ID: {Thread.CurrentThread.ManagedThreadId}");
 			StaticMethods.Data.UserGames.Load();
-			var userGames = StaticMethods.Data.UserGames.Local;
 			//NotificationEvent.Invoke(this, $"Processes to monitor: {StaticMethods.Data.UserGameProcesses.Length}");
 			while (true)
 			{
 				if (_closing) return;
+				if (UserGame?.Process != null)
+				{
+					Debug.WriteLine($"MonitorStart ending with ID: {Thread.CurrentThread.ManagedThreadId}");
+					return;
+				}
 				try
 				{
-					var processes = Process.GetProcesses();
-					foreach (var userGame in userGames)
-					{
-						if (_closing) return;
-						if (UserGame?.Process != null)
-						{
-							Debug.WriteLine($"MonitorStart ending with ID: {Thread.CurrentThread.ManagedThreadId}");
-							return;
-						}
-						try
-						{
-							var gameProcesses = processes.Where(x => x.ProcessName.Equals(userGame.ProcessName));
-							foreach (var gameProcess in gameProcesses)
-							{
-								if (_closing) return;
-								if (UserGame?.Process != null)
-								{
-									Debug.WriteLine($"MonitorStart ending with ID: {Thread.CurrentThread.ManagedThreadId}");
-									return;
-								}
-								if (gameProcess.Is64BitProcess()) continue;
-								if (gameProcess.HasExited) continue;
-								if (!userGame.FilePath.Equals(gameProcess.MainModule.FileName)) continue;
-								HookUserGame(userGame, gameProcess);
-								Debug.WriteLine($"MonitorStart ending with ID: {Thread.CurrentThread.ManagedThreadId}");
-								return; //end monitor
-							}
-						}
-						catch (InvalidOperationException) { } //can happen if process is closed after getting reference
-					}
-					foreach (var process in processes) process.Dispose();
+					if (MonitorLoop()) return;
 				}
 				catch (Exception ex)
 				{
-					NotificationEvent.Invoke(this, ex.Message, "Error in MonitorStart");
+					NotificationEvent.Invoke(this, ex.Message, "Error in MonitorStart/Loop");
 				}
 				Thread.Sleep(5000);
 			}
+		}
+
+		/// <summary>
+		/// Returns true if loop should be broken.
+		/// </summary>
+		/// <returns></returns>
+		private bool MonitorLoop()
+		{
+			var processes = Process.GetProcesses();
+			try
+			{
+				var userGameProcesses = StaticMethods.Data.UserGames.Local.Select(x => x.ProcessName).ToArray();
+				var gameProcess = processes.FirstOrDefault(p => userGameProcesses.Contains(p.ProcessName));
+				if (gameProcess == null) return false;
+				var possibleUserGames = StaticMethods.Data.UserGames.Local.Where(x => x.ProcessName == gameProcess.ProcessName);
+				foreach (var userGame in possibleUserGames)
+				{
+					if (_closing) return true;
+					if (UserGame?.Process != null)
+					{
+						Debug.WriteLine($"MonitorLoop ending with ID: {Thread.CurrentThread.ManagedThreadId}");
+						return true;
+					}
+					try
+					{
+						if (gameProcess.Is64BitProcess()) continue;
+						if (gameProcess.HasExited) continue;
+						if (!userGame.FilePath.Equals(gameProcess.MainModule.FileName)) continue;
+						HookUserGame(userGame, gameProcess);
+						Debug.WriteLine($"MonitorLoop ending with ID: {Thread.CurrentThread.ManagedThreadId}");
+						return true; //end monitor
+					}
+					catch (InvalidOperationException)
+					{ } //can happen if process is closed after getting reference
+				}
+			}
+			finally
+			{
+				foreach (var process in processes) process.Dispose();
+			}
+
+			return false;
 		}
 
 		[NotifyPropertyChangedInvocator]

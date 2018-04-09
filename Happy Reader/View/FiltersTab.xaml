@@ -58,7 +58,7 @@
                 <CheckBox Grid.Column="1" Content="Exclude"  VerticalAlignment="Top" Margin="5,27" IsChecked="{Binding NewFilter.Exclude}" />
                 <TabControl Grid.ColumnSpan="2" Grid.Column="0" Margin="0,47,0,25" SelectedIndex="{Binding SelectedFilterIndex, Mode=OneWay}">
                     <TabItem Visibility="Collapsed" Header="Length" >
-                            <ComboBox ItemsSource="{Binding LengthTypes, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag"/>
+                        <ComboBox ItemsSource="{Binding LengthTypes, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag"/>
                     </TabItem>
                     <TabItem Visibility="Collapsed" Header="Release Date">
                         <ComboBox ItemsSource="{Binding ReleaseTypes, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag"/>
@@ -68,7 +68,7 @@
                     </TabItem>
                     <TabItem Visibility="Collapsed" Header="Voted">
                         <CheckBox Content="Voted" IsChecked="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
-                        </TabItem>
+                    </TabItem>
                     <TabItem Visibility="Collapsed" Header="By Favorite Producer">
                         <CheckBox Content="By Favorite Producer" IsChecked="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
                     </TabItem>
@@ -80,11 +80,18 @@
                     </TabItem>
                     <TabItem Visibility="Collapsed" Header="Language">
                         <TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"></TextBox>
-                        </TabItem>
+                    </TabItem>
                     <TabItem Visibility="Collapsed" Header="Original Language">
                         <TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"></TextBox>
                     </TabItem>
-                    <TabItem Visibility="Collapsed" Content="Tags" Header="Tags"/>
+                    <TabItem Visibility="Collapsed" Header="Tags">
+                        <UniformGrid Rows="2" Columns="2">
+                            <Label Content="Tag ID"/>
+                            <TextBox Text="{Binding NewFilter.StringValue, Mode=OneWayToSource}"/>
+                            <Label Content="Score Required"/>
+                            <TextBox Text="{Binding NewFilter.AdditionalInt, Mode=OneWayToSource}"/>
+                        </UniformGrid>
+                    </TabItem>
                     <TabItem Visibility="Collapsed" Content="Traits" Header="Traits"/>
                 </TabControl>
                 <Button Grid.Column="0" Content="Add To Permanent Filter" VerticalAlignment="Bottom" Margin="5,0" Command="{Binding AddToPermanentFilterCommand}"/>
