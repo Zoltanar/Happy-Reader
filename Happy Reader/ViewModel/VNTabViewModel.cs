@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Data.Entity;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -34,7 +33,7 @@ namespace Happy_Reader.ViewModel
 		private string _vndbConnectionReply;
 		private Brush _vndbConnectionColor;
 		private readonly MainWindowViewModel _mainViewModel;
-		private Func<VisualNovelDatabase, IEnumerable<ListedVN>> _dbFunction = x => x.VisualNovels.Local;
+		private Func<VisualNovelDatabase, IEnumerable<ListedVN>> _dbFunction = x => x.LocalVisualNovels;
 		private CustomVnFilter _selectedFilter;
 
 		public CoreSettings CSettings => StaticHelpers.CSettings;
@@ -47,7 +46,7 @@ namespace Happy_Reader.ViewModel
 			{
 				if (_selectedFilter == value) return;
 				_selectedFilter = value;
-				Task.Run(()=>ChangeFilter(_selectedFilter));
+				Task.Run(() => ChangeFilter(_selectedFilter));
 
 			}
 		}
@@ -115,19 +114,23 @@ namespace Happy_Reader.ViewModel
 		{
 			return () =>
 			{
+				var watch = Stopwatch.StartNew();
+				_finalPage = false;
+				if (showAll) _dbFunction = x => x.LocalVisualNovels;
+				_listedVnPage = 1;
+				var preFilteredResults = _dbFunction.Invoke(LocalDatabase).OrderByDescending(x => x.ReleaseDate).Select(x => x.VNID).ToArray();
+				var filterResults = LocalDatabase.LocalVisualNovels.Where(PermanentFilter.GetFunction()).Select(x => x.VNID).ToArray();
+				AllVNResults = preFilteredResults.Where(x => filterResults.Contains(x)).ToArray();
+				var firstPage = AllVNResults.Take(PageSize).ToArray();
+				var results = LocalDatabase.LocalVisualNovels.Where(x => firstPage.Contains(x.VNID))
+					.OrderByDescending(x => x.ReleaseDate).ToList();
 				Application.Current.Dispatcher.Invoke(() =>
 				{
-					_finalPage = false;
-					if (showAll) _dbFunction = x => x.VisualNovels.Local;
-					_listedVnPage = 1;
-					var preFilteredResults = _dbFunction.Invoke(LocalDatabase).OrderByDescending(x => x.ReleaseDate).Select(x => x.VNID).ToArray();
-					var filterResults = LocalDatabase.VisualNovels.Local.Where(PermanentFilter.GetFunction()).Select(x => x.VNID).ToArray();
-					AllVNResults = preFilteredResults.Where(x => filterResults.Contains(x)).ToArray();
-					var firstPage = AllVNResults.Take(PageSize).ToArray();
-					ListedVNs.SetRange(LocalDatabase.VisualNovels.Local.Where(x => firstPage.Contains(x.VNID)).OrderByDescending(x=>x.ReleaseDate).Select(VNTile.FromListedVN));
+					ListedVNs.SetRange(results.Select(VNTile.FromListedVN));
 					OnPropertyChanged(nameof(CSettings));
 					OnPropertyChanged(nameof(ListedVNs));
 				});
+				LogDebug($"RefreshListedVns took {watch.Elapsed.ToSeconds()}.");
 			};
 		}
 
@@ -141,27 +144,30 @@ namespace Happy_Reader.ViewModel
 				_finalPage = true;
 				if (newPage.Count == 0) return;
 			}
-			ListedVNs.AddRange(LocalDatabase.VisualNovels.Local.Where(x => newPage.Contains(x.VNID)).Select(VNTile.FromListedVN));
+
+			var newTiles = LocalDatabase.LocalVisualNovels.Where(x => newPage.Contains(x.VNID)).Select(VNTile.FromListedVN);
+			ListedVNs.AddRange(newTiles);
 			OnPropertyChanged(nameof(ListedVNs));
 		}
 
 		public async Task UpdateURT()
 		{
 			await Conn.UpdateURT();
-			await LocalDatabase.VisualNovels.ForEachAsync(SetUserId);
+			await Task.Run(() =>
+			{
+				foreach (var vn in LocalDatabase.LocalVisualNovels)
+				{
+					vn.UserVN = LocalDatabase.LocalUserVisualNovels.SingleOrDefault(x =>
+						x.UserId == CSettings.UserID && x.VNID == vn.VNID);
+				}
+			});
 			var changes = await LocalDatabase.SaveChangesAsync();
 			if (changes > 0) await RefreshListedVns();
 		}
 
-		public void SetUserId(ListedVN vn)
-		{
-			vn.UserVN = LocalDatabase.UserVisualNovels.Local.SingleOrDefault(x => x.UserId == CSettings.UserID && x.VNID == vn.VNID);
-
-		}
-
 		public async Task SearchForVN(string text)
 		{
-			_dbFunction = db => db.VisualNovels.Local.Where(VisualNovelDatabase.ListVNByNameOrAliasFunc(text));
+			_dbFunction = db => db.LocalVisualNovels.Where(VisualNovelDatabase.ListVNByNameOrAliasFunc(text));
 			await RefreshListedVns();
 		}
 
@@ -188,19 +194,18 @@ namespace Happy_Reader.ViewModel
 
 		public async Task ShowURT()
 		{
-			_dbFunction = db => db.VisualNovels.Local.Where(vn => vn.UserVNId != null);
+			_dbFunction = db => db.LocalVisualNovels.Where(vn => vn.UserVNId != null);
 			await RefreshListedVns();
 		}
-		
+
 		public IEnumerable<int> GetTitlesWithTagOrTrait(DumpFiles.WrittenTag tag, DumpFiles.WrittenTrait trait)
 		{
 			try
 			{
 				GSettings.AlertTraitIDs.Add(trait.ID);
-				var chars = LocalDatabase.Characters.Local.Where(x =>
-					x.DbTraits.Any(y => y.TraitId == trait.ID));
+				var chars = LocalDatabase.Characters.Where(x =>x.DbTraits.Any(y => y.TraitId == trait.ID));
 				var vnids1 = chars.SelectMany(x => x.CharacterVns).Select(y => y.ListedVNId).Distinct().ToArray();
-				var vnids2 = LocalDatabase.Tags.Local.Where(x => tag.AllIDs.Contains(x.TagId) && x.ListedVN != null).Select(x => x.ListedVN.VNID).Distinct().ToArray();
+				var vnids2 = LocalDatabase.Tags.Where(x => tag.AllIDs.Contains(x.TagId) && x.ListedVN != null).Select(x => x.ListedVN.VNID).Distinct().ToArray();
 				return vnids1.Union(vnids2);
 			}
 #pragma warning disable 168
@@ -222,7 +227,7 @@ namespace Happy_Reader.ViewModel
 
 		public async Task ChangeFilter(CustomVnFilter item)
 		{
-			_dbFunction = db => db.VisualNovels.Local.Where(item.GetFunction());
+			_dbFunction = db => db.LocalVisualNovels.Where(item.GetFunction());
 			await RefreshListedVns();
 		}
 
@@ -231,7 +236,7 @@ namespace Happy_Reader.ViewModel
 			foreach (var filter in VnFilters)
 			{
 				var vnFilter = filter.AndFilters.FirstOrDefault(x => x.Type == VnFilterType.OriginalLanguage);
-				if (vnFilter == null) filter.AndFilters.Add(new VnFilter(VnFilterType.OriginalLanguage,"ja"));
+				if (vnFilter == null) filter.AndFilters.Add(new VnFilter(VnFilterType.OriginalLanguage, "ja"));
 				else filter.AndFilters.Remove(vnFilter);
 			}
 		}

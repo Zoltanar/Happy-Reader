@@ -53,6 +53,7 @@ namespace Happy_Reader.View
 
         private bool ValidateEntry()
         {
+	        if (_entry.Output == null) _entry.Output = string.Empty;
             if (_entryAlreadyAdded)
             {
                 ResponseLabel.Content = @"Entry was already added.";
@@ -61,11 +62,6 @@ namespace Happy_Reader.View
             if (string.IsNullOrWhiteSpace(_entry.Input))
             {
                 ResponseLabel.Content = @"Please type something in Input box.";
-                return false;
-            }
-            if (_entry.Type == 0)
-            {
-                ResponseLabel.Content = @"Please select type.";
                 return false;
             }
             return true;

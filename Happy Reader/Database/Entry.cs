@@ -13,13 +13,13 @@ namespace Happy_Reader.Database
 
     public class Entry : INotifyPropertyChanged
     {
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
         public int UserId { get; set; }
         
         [Required]
         public string Input { get; set; }
-        public string Output { get; set; }
+	    public string Output { get; set; } = string.Empty;
         public int? GameId { get; set; }
         public bool SeriesSpecific { get; set; }
         public bool Private { get; set; }
@@ -36,9 +36,9 @@ namespace Happy_Reader.Database
 
 
 	    [NotMapped]
-	    public ListedVN Game => GameId == null ? null : StaticHelpers.LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == GameId);
+	    public ListedVN Game => GameId == null ? null : StaticHelpers.LocalDatabase.LocalVisualNovels.FirstOrDefault(x => x.VNID == GameId);
 		[NotMapped]
-	    public User User => StaticHelpers.LocalDatabase.Users.SingleOrDefault(x => x.Id == UserId);
+	    public User User => StaticHelpers.LocalDatabase.LocalUsers.FirstOrDefault(x => x.Id == UserId);
 		[NotMapped]
         public RoleProxy AssignedProxy { get; set; }
 

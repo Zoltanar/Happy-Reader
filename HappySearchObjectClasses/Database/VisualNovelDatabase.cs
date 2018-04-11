@@ -50,7 +50,7 @@ namespace Happy_Apps_Core.Database
 
         public void UpdateVNTagsStats(VNItem vnItem, bool saveChanges)
         {
-            var vn = VisualNovels.Single(x => x.VNID == vnItem.ID);
+            var vn = LocalVisualNovels.First(x => x.VNID == vnItem.ID);
             foreach (var tag in vnItem.Tags) vn.DbTags.Add(DbTag.From(tag));
             vn.Popularity = vnItem.Popularity;
             vn.Rating = vnItem.Rating;
@@ -195,11 +195,11 @@ throw;
         public void UpsertSingleVN((VNItem item, ProducerItem producer, VNLanguages languages) data, bool setFullyUpdated, bool saveChanges)
         {
             var (item, producer, languages) = data;
-            var vn = VisualNovels.SingleOrDefault(x => x.VNID == item.ID);
+            var vn = LocalVisualNovels.FirstOrDefault(x => x.VNID == item.ID);
             if (vn == null)
             {
                 vn = new ListedVN { VNID = item.ID };
-                VisualNovels.Add(vn);
+	            LocalVisualNovels.Add(vn);
             }
             vn.Title = item.Title;
             vn.KanjiTitle = item.Original;
@@ -222,16 +222,16 @@ throw;
 
         public void RemoveFavoriteProducer(int producerID, int userid)
         {
-            Users.Single(x => x.Id == userid).FavoriteProducers
+	        LocalUsers.First(x => x.Id == userid).FavoriteProducers
                 .Remove(Producers.Single(x => x.ID == producerID));
             SaveChanges();
         }
 
         public void RemoveVisualNovel(int vnid, bool saveChanges)
         {
-            var vn = VisualNovels.FirstOrDefault(x => x.VNID == vnid);
+            var vn = LocalVisualNovels.FirstOrDefault(x => x.VNID == vnid);
             if (vn == null) return;
-            VisualNovels.Remove(vn);
+	        LocalVisualNovels.Remove(vn);
             if (saveChanges) SaveChanges();
         }
 
@@ -258,8 +258,8 @@ throw;
 	    {
 		    var lowerSearchString = searchString.ToLower();
 		    return vn => vn.Title.ToLower().Contains(lowerSearchString) ||
-		                 vn.KanjiTitle.ToLower().Contains(lowerSearchString) ||
-		                 vn.Aliases.ToLower().Contains(lowerSearchString);
+		                 vn.KanjiTitle != null && vn.KanjiTitle.ToLower().Contains(lowerSearchString) ||
+		                 vn.Aliases != null && vn.Aliases.ToLower().Contains(lowerSearchString);
 	    }
 
 		/// <summary>

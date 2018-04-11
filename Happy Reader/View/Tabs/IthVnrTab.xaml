@@ -55,6 +55,7 @@
             <Button Margin="5" Content="Attach To Process" Click="OpenProcessExplorer"/>
             <Button Margin="5" Content="Clear Others"      Command="{Binding ClearOtherThreadsCommand}"/>
             <Button Margin="5" Content="Pause Others"      Command="{Binding PauseOtherThreadsCommand}" />
+            <Button Margin="5" Content="Unpause Others"    Command="{Binding UnpauseOtherThreadsCommand}" />
             <Button Margin="5" Content="Don't Post Others" Command="{Binding DontPostOthersCommand}"/>
         </UniformGrid>
         <!-- row 1 -->

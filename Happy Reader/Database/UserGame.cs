@@ -64,7 +64,7 @@ namespace Happy_Reader.Database
                 if (Id == 0) return _vn;
                 if (!_vnGot)
                 {
-                    if (VNID != null) _vn = StaticHelpers.LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == VNID);
+                    if (VNID != null) _vn = StaticHelpers.LocalDatabase.LocalVisualNovels.SingleOrDefault(x => x.VNID == VNID);
                     _vnGot = true;
                 }
                 return _vn;
@@ -168,7 +168,7 @@ namespace Happy_Reader.Database
         {
             VNID = vnid;
             StaticMethods.Data.SaveChanges();
-            VN = vnid == null ? null : StaticHelpers.LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == vnid);
+            VN = vnid == null ? null : StaticHelpers.LocalDatabase.LocalVisualNovels.SingleOrDefault(x => x.VNID == vnid);
             OnPropertyChanged(nameof(DisplayName));
             OnPropertyChanged(nameof(Image));
             OnPropertyChanged(nameof(VN));

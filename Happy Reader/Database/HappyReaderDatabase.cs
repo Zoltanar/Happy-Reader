@@ -32,7 +32,7 @@ namespace Happy_Reader.Database
 
         public IQueryable<Entry> GetSeriesOnlyEntries(ListedVN game)
         {
-            var series = StaticHelpers.LocalDatabase.VisualNovels.Where(i => i.Series == game.Series).Select(i => i.VNID).ToArray();
+            var series = StaticHelpers.LocalDatabase.LocalVisualNovels.Where(i => i.Series == game.Series).Select(i => i.VNID).ToArray();
             return Entries.Where(i => series.Contains(i.GameId.Value));
         }
 

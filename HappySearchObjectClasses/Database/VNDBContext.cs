@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using SQLite.CodeFirst;
@@ -24,12 +25,24 @@ namespace Happy_Apps_Core.Database
 			VisualNovels.Load();
 			Producers.Load();
 			UserVisualNovels.Load();
-			Characters.Load();
 			CharacterStaffs.Load();
 			Users.Load();
 			TableDetails.Load();
-			Tags.Load();
-			Traits.Load();
+		    LocalVisualNovels = VisualNovels.Local;
+		    LocalProducers = Producers.Local;
+		    LocalUserVisualNovels = UserVisualNovels.Local;
+		    LocalCharacterStaffs = CharacterStaffs.Local;
+		    LocalUsers = Users.Local;
+		    LocalTableDetails = TableDetails.Local;
+			//these are too slow to load
+		    //CharacterVNs.Load();
+			//Characters.Load();
+			//Tags.Load();
+			//Traits.Load();
+			//LocalCharacterVNs = CharacterVNs.Local;
+			//LocalCharacters = Characters.Local;
+			//LocalTags = Tags.Local;
+			//LocalTraits = Traits.Local;
 		}
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
@@ -46,9 +59,21 @@ namespace Happy_Apps_Core.Database
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<TableDetail> TableDetails { get; set; }
         public virtual DbSet<DbTag> Tags { get; set; }
-        public virtual DbSet<DbTrait> Traits { get; set; }
+		public virtual DbSet<DbTrait> Traits { get; set; }
 
-        public IQueryable<ListedVN> URTVisualNovels => VisualNovels.Where(x => x.UserVNId != null);
+	    public readonly ObservableCollection<ListedVN> LocalVisualNovels;
+	    public readonly ObservableCollection<ListedProducer> LocalProducers;
+	    public readonly ObservableCollection<UserVN> LocalUserVisualNovels;
+		public readonly ObservableCollection<CharacterStaff> LocalCharacterStaffs;
+	    public readonly ObservableCollection<User> LocalUsers;
+	    public readonly ObservableCollection<TableDetail> LocalTableDetails;
+		//too slow
+	    //public readonly ObservableCollection<CharacterVN> LocalCharacterVNs;
+		//public readonly ObservableCollection<CharacterItem> LocalCharacters;
+		//public readonly ObservableCollection<DbTag> LocalTags;
+		//public readonly ObservableCollection<DbTrait> LocalTraits;
+
+		public IEnumerable<ListedVN> URTVisualNovels => LocalVisualNovels.Where(x => x.UserVNId != null);
         public User CurrentUser { get; set; }
     }
 

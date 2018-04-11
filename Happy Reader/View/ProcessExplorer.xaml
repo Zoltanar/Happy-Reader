@@ -18,9 +18,10 @@
                 <ithVnrSharpLib:ProcessInfo/>
             </DataGrid.DataContext>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="PID" Binding="{Binding Process.Id}"/>
+                <DataGridTextColumn Header="PID" Binding="{Binding Id}"/>
                 <DataGridTextColumn Header="Name" Binding="{Binding MainFileName}"/>
                 <DataGridTextColumn Header="Attached" Binding="{Binding Status}"/>
+                <DataGridTextColumn Header="Path" Binding="{Binding FullMainFilePath}"/>
             </DataGrid.Columns>
         </DataGrid>
         <UniformGrid Grid.Row="2" Columns="6">

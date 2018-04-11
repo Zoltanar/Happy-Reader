@@ -24,13 +24,11 @@ namespace Happy_Reader.View.Tabs
         private void ScrollViewer_OnScrollChanged(object sender, ScrollChangedEventArgs e)
         {
             if (!(e.VerticalChange > 0)) return;
-            var loc = e.VerticalOffset + e.ViewportHeight;
-	        if (loc + 1 >= e.ExtentHeight)
-	        {
-		        _viewModel.AddListedVNPage();
-		        //todo scroll to this location after adding new page
-			}
-		}
+            var loc = e.VerticalOffset + e.ViewportHeight * 2;
+	        if (loc < e.ExtentHeight) return;
+	        _viewModel.AddListedVNPage();
+	        ((ScrollViewer)e.OriginalSource).ScrollToVerticalOffset(loc);
+        }
 
         private async void ShowAll(object sender, RoutedEventArgs e) => await _viewModel.RefreshListedVns(true);
 

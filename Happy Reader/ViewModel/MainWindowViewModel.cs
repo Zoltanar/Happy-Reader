@@ -54,7 +54,7 @@ namespace Happy_Reader.ViewModel
 			set
 			{
 				_statusText = value;
-				Debug.WriteLine($"{DateTime.Now:O} StatusText: {_statusText}");
+				LogDebug($"StatusText: {_statusText}");
 				OnPropertyChanged();
 			}
 		}
@@ -102,7 +102,7 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 
-		public ObservableCollection<DisplayEntry> EntriesList { get; } = new ObservableCollection<DisplayEntry>();
+		public PausableUpdateList<DisplayEntry> EntriesList { get; } = new PausableUpdateList<DisplayEntry>();
 		public ObservableCollection<UserGameTile> UserGameItems { get; } = new ObservableCollection<UserGameTile>();
 		public string DisplayUser => "User: " + (User?.ToString() ?? "(none)");
 		public string DisplayGame => "Game: " + (UserGame?.ToString() ?? "(none)");
@@ -147,10 +147,10 @@ namespace Happy_Reader.ViewModel
 					? StaticMethods.Data.GetGameOnlyEntries(UserGame?.VN)
 					: StaticMethods.Data.GetSeriesOnlyEntries(UserGame?.VN))
 				: StaticMethods.Data.Entries).ToArray();
+			var entries = items.Select(x => new DisplayEntry(x)).ToArray();
 			Application.Current.Dispatcher.Invoke(() =>
 			{
-				EntriesList.Clear();
-				foreach (var item in items) EntriesList.Add(new DisplayEntry(item));
+				EntriesList.SetRange(entries);
 			});
 		}
 
@@ -191,14 +191,14 @@ namespace Happy_Reader.ViewModel
 			}
 			//todo cleanup
 			var filename = Path.GetFileNameWithoutExtension(file);
-			ListedVN[] fileResults = LocalDatabase.VisualNovels.Where(VisualNovelDatabase.ListVNByNameOrAliasFunc(filename)).ToArray();
+			ListedVN[] fileResults = LocalDatabase.LocalVisualNovels.Where(VisualNovelDatabase.ListVNByNameOrAliasFunc(filename)).ToArray();
 			ListedVN vn = null;
 			if (fileResults.Length == 1) vn = fileResults.First();
 			else
 			{
 				var parent = Directory.GetParent(file);
 				var folder = parent.Name.Equals("data", StringComparison.OrdinalIgnoreCase) ? Directory.GetParent(parent.FullName).Name : parent.Name;
-				ListedVN[] folderResults = LocalDatabase.VisualNovels.Where(VisualNovelDatabase.ListVNByNameOrAliasFunc(folder)).ToArray();
+				ListedVN[] folderResults = LocalDatabase.LocalVisualNovels.Where(VisualNovelDatabase.ListVNByNameOrAliasFunc(folder)).ToArray();
 				if (folderResults.Length == 1) vn = folderResults.First();
 			}
 			//ListedVN[] allResults = fileResults.Concat(folderResults).ToArray(); //todo list results and ask user
@@ -239,7 +239,7 @@ namespace Happy_Reader.ViewModel
 			IthViewModel.Initialize(RunTranslation, GetPreferredHookCode);
 			_loadingComplete = true;
 			StatusText = "Loading complete.";
-			NotificationEvent(this, $"Took {watch.Elapsed:ss\\:fff} seconds.", "Loading Complete");
+			NotificationEvent(this, $"Took {watch.Elapsed.ToSeconds()}.", "Loading Complete");
 		}
 
 		public void LoadUserGames()
@@ -248,7 +248,7 @@ namespace Happy_Reader.ViewModel
 			foreach (var game in StaticMethods.Data.UserGames.Local)
 			{
 				game.VN = game.VNID != null
-					? LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == game.VNID)
+					? LocalDatabase.LocalVisualNovels.FirstOrDefault(x => x.VNID == game.VNID)
 					: null;
 			}
 			foreach (var game in StaticMethods.Data.UserGames.Local.OrderBy(x => x.VNID ?? 0)) { UserGameItems.Add(new UserGameTile(game)); }
@@ -260,11 +260,16 @@ namespace Happy_Reader.ViewModel
 			CSettings.UserID = userid;
 			if (newId)
 			{
-				await LocalDatabase.VisualNovels.ForEachAsync(vn => vn.UserVNId = LocalDatabase.UserVisualNovels
-					.SingleOrDefault(x => x.UserId == CSettings.UserID && x.VNID == vn.VNID)?.Id);
+				await Task.Run(() =>
+				{
+					foreach (var vn in LocalDatabase.LocalVisualNovels)
+					{
+						vn.UserVNId = LocalDatabase.LocalUserVisualNovels.SingleOrDefault(x => x.UserId == CSettings.UserID && x.VNID == vn.VNID)?.Id;
+					}
+				});
 				await LocalDatabase.SaveChangesAsync();
 			}
-			User = LocalDatabase.Users.Single(x => x.Id == CSettings.UserID);
+			User = LocalDatabase.LocalUsers.Single(x => x.Id == CSettings.UserID);
 			LocalDatabase.CurrentUser = User;
 		}
 
@@ -348,7 +353,7 @@ namespace Happy_Reader.ViewModel
 			}
 			finally
 			{
-				foreach (var process in processes) process.Dispose();
+				foreach (var process in processes) if(process != _hookedProcess) process.Dispose();
 			}
 
 			return false;
@@ -506,6 +511,5 @@ namespace Happy_Reader.ViewModel
 			StaticMethods.Data.SaveChanges();
 			OnPropertyChanged(nameof(EntriesList));
 		}
-
 	}
 }

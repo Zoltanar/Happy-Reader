@@ -64,7 +64,7 @@ namespace Happy_Reader.ViewModel
             {
                 id = StaticMethods.Data.UserGames.Local.FirstOrDefault(x => x.DisplayName.Contains(item))?.VNID ?? 0;
             }
-            Game = StaticHelpers.LocalDatabase.VisualNovels.SingleOrDefault(x => x.VNID == id);
+            Game = StaticHelpers.LocalDatabase.LocalVisualNovels.SingleOrDefault(x => x.VNID == id);
             outputText = Game?.Title ?? item;
             return Game != null;
 

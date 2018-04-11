@@ -328,5 +328,9 @@ namespace Happy_Apps_Core
 	    {
 		    Debug.WriteLine(text);
 	    }
+
+	    public static void LogDebug(string message) => Debug.WriteLine($"[ {DateTime.Now.ToString("hh:mm:ss:fff").PadRight(13)}] {message}");
+
+	    public static string ToSeconds(this TimeSpan time) => $"{time.TotalSeconds:N0}.{time.Milliseconds} seconds";
     }
 }

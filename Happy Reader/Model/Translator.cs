@@ -86,7 +86,7 @@ namespace Happy_Reader
 			{
 				gamesInSeries = game.Series == null
 					? new[] { game.VNID }
-					: StaticHelpers.LocalDatabase.VisualNovels.Where(g => g.Series == game.Series).Select(gg => gg.VNID).ToArray();
+					: StaticHelpers.LocalDatabase.LocalVisualNovels.Where(g => g.Series == game.Series).Select(gg => gg.VNID).ToArray();
 			}
 			Entry[] generalEntries = _data.Entries.Where(e => (e.Private && e.UserId == user.Id || !e.Private) && !e.SeriesSpecific).ToArray();
 			Entry[] specificEntries = { };

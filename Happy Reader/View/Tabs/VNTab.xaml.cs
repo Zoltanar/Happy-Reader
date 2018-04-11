@@ -23,7 +23,7 @@ namespace Happy_Reader.View.Tabs
             InitializeComponent();
             _viewModel = vn;
             DataContext = vn;
-            var cvnItems = StaticHelpers.LocalDatabase.CharacterVNs.Local.Where(cvn => cvn.ListedVNId == vn.VNID).ToArray();
+            var cvnItems = StaticHelpers.LocalDatabase.CharacterVNs.Where(cvn => cvn.ListedVNId == vn.VNID).ToArray();
             CharacterTiles.ItemsSource = cvnItems.Select(CharacterTile.FromCharacterVN);
             if (vn.VNID != 0 && vn.DbTags.Count > 0)
             {

@@ -115,7 +115,7 @@ namespace Happy_Apps_Core
 		{
 			if (!updateAll)
 			{
-				int[] allVNIds = LocalDatabase.VisualNovels.Select(x => x.VNID).ToArray();
+				int[] allVNIds = LocalDatabase.LocalVisualNovels.Select(x => x.VNID).ToArray();
 				int preCount = vnIDs.Count;
 				vnIDs.ExceptWith(allVNIds);
 				ActiveQuery.AddTitlesSkipped((uint)(vnIDs.Count - preCount));
@@ -294,7 +294,7 @@ namespace Happy_Apps_Core
 		/// <returns>Tuple of bool (indicating successful api connection) and ListedProducer (null if none found or already added)</returns>
 		private async Task<(bool, ProducerItem)> GetProducer(int producerID, string errorMessage, bool update)
 		{
-			if (!update && (producerID == -1 || LocalDatabase.Producers.Any(p => p.ID == producerID))) return (true, null);
+			if (!update && (producerID == -1 || LocalDatabase.LocalProducers.Any(p => p.ID == producerID))) return (true, null);
 			string producerQuery = $"get producer basic (id={producerID})";
 			if (!await TryQuery(producerQuery, errorMessage)) return (false, null);
 			var root = JsonConvert.DeserializeObject<ResultsRoot<ProducerItem>>(LastResponse.JsonPayload);
@@ -306,8 +306,8 @@ namespace Happy_Apps_Core
 
 		private async Task GetRemainingTitles()
 		{
-			var userTitles = LocalDatabase.UserVisualNovels.Where(x => x.UserId == CSettings.UserID).Select(x => x.VNID);
-			var fetchedTitles = LocalDatabase.VisualNovels.Select(x => x.VNID);
+			var userTitles = LocalDatabase.LocalUserVisualNovels.Where(x => x.UserId == CSettings.UserID).Select(x => x.VNID);
+			var fetchedTitles = LocalDatabase.LocalVisualNovels.Select(x => x.VNID);
 			var unfetchedTitles = new HashSet<int>(userTitles.Except(fetchedTitles));
 			if (!unfetchedTitles.Any()) return;
 			await GetMultipleVN(unfetchedTitles, false);
@@ -519,7 +519,7 @@ namespace Happy_Apps_Core
 			if (!hasULStatus && !hasWLStatus && !hasVote)
 			{
 				vn.UserVNId = null;
-				LocalDatabase.UserVisualNovels.Remove(vn.UserVN);
+				LocalDatabase.LocalUserVisualNovels.Remove(vn.UserVN);
 			}
 			LocalDatabase.SaveChanges();
 			_changeStatusAction?.Invoke(Status);
@@ -584,7 +584,7 @@ namespace Happy_Apps_Core
 			}
 			for (int index = prodItems.Count - 1; index >= 0; index--)
 			{
-				if (LocalDatabase.Producers.Any(x => x.Name.Equals(prodItems[index].Name))) prodItems.RemoveAt(index);
+				if (LocalDatabase.LocalProducers.Any(x => x.Name.Equals(prodItems[index].Name))) prodItems.RemoveAt(index);
 			}
 			foreach (var producer in prodItems) LocalDatabase.UpsertProducer(producer, true, false);
 			LocalDatabase.SaveChanges();
@@ -620,7 +620,7 @@ namespace Happy_Apps_Core
 		[ConnectionFunctionAspect, ConnectionInterceptAspect(true, true, true)]
 		public async Task UpdateForYear(int year)
 		{
-			var ids = new HashSet<int>(LocalDatabase.VisualNovels.Where(x => x.ReleaseDate.Year == year && x.DateUpdated < DateTime.UtcNow.AddDays(-2))
+			var ids = new HashSet<int>(LocalDatabase.LocalVisualNovels.Where(x => x.ReleaseDate.Year == year && x.DateUpdated < DateTime.UtcNow.AddDays(-2))
 				.OrderByDescending(x => x.VNID).Select(x => x.VNID));
 			await GetMultipleVN(ids, true);
 			ActiveQuery.CompletedMessage = $"Updated titles released in {year}, ({ActiveQuery.TitlesAdded} items).";
@@ -632,7 +632,7 @@ namespace Happy_Apps_Core
 			var startTime = DateTime.UtcNow.ToLocalTime();
 			var startTimeString = startTime.ToString("HH:mm");
 			TextAction($"Updating characters for titles from {year}.  Started at {startTimeString}", MessageSeverity.Normal);
-			var vnids = LocalDatabase.VisualNovels.Where(x => x.ReleaseDate.Year == year && x.DateUpdated < DateTime.UtcNow.AddDays(-2)).OrderByDescending(x => x.VNID).Select(x => x.VNID);
+			var vnids = LocalDatabase.LocalVisualNovels.Where(x => x.ReleaseDate.Year == year && x.DateUpdated < DateTime.UtcNow.AddDays(-2)).OrderByDescending(x => x.VNID).Select(x => x.VNID);
 			var set = new HashSet<int>(vnids);
 			await Task.Run(() => GetCharacters(set, false));
 			ActiveQuery.CompletedMessage = $"Updated characters for titles from {year}, ({ActiveQuery.CharactersAdded}/{ActiveQuery.CharactersUpdated} added/updated).";
@@ -681,7 +681,7 @@ namespace Happy_Apps_Core
 		{
 			LogToFile($"Starting GetUserRelatedTitles for {CSettings.UserID}, previously had {LocalDatabase.URTVisualNovels.Count()} titles.");
 			//clone list to make sure it doesnt keep command status.
-			var pre = LocalDatabase.UserVisualNovels.Where(x => x.UserId == CSettings.UserID).OrderBy(x => x.VNID).ToArray();
+			var pre = LocalDatabase.LocalUserVisualNovels.Where(x => x.UserId == CSettings.UserID).OrderBy(x => x.VNID).ToArray();
 			List<VisualNovelDatabase.UrtListItem> localURTList = pre.Select(x => new VisualNovelDatabase.UrtListItem(x)).ToList();
 			await GetUserList(localURTList);
 			await GetWishList(localURTList);
