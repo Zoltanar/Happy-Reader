@@ -218,7 +218,6 @@ namespace Happy_Reader.ViewModel
 #if !NOCACHELOAD
 				StatusText = "Loading Cached Translations...";
 				var cacheLoadWatch = Stopwatch.StartNew();
-				StaticMethods.Data.CachedTranslations.Load();
 				Translator.SetCache();
 				Debug.WriteLine($"Loaded cached translations in {cacheLoadWatch.ElapsedMilliseconds} ms");
 #endif
@@ -494,6 +493,7 @@ namespace Happy_Reader.ViewModel
 
 		public void DebugButton()
 		{
+			StaticMethods.Data.SaveChanges();
 			_outputWindow.Show();
 		}
 

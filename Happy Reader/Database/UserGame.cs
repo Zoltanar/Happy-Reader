@@ -16,7 +16,6 @@ using StaticHelpers = Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Reader.Database
 {
-
     // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
     public class UserGame : INotifyPropertyChanged
     {
@@ -47,9 +46,7 @@ namespace Happy_Reader.Database
 	    // ReSharper disable once InconsistentNaming
 		public DateTime TimeOpenDT { get; set; }
 		public EncodingEnum PrefEncodingEnum { get; set; }
-		
 	    public bool IsRunning => _process != null;
-
 		[NotMapped]
         public TimeSpan TimeOpen
         {
@@ -128,7 +125,6 @@ namespace Happy_Reader.Database
                 }
             }
         }
-
 		[NotMapped]
 	    public Encoding PrefEncoding
 	    {
@@ -138,6 +134,39 @@ namespace Happy_Reader.Database
 				var index = Array.IndexOf(Encodings, value);
 				PrefEncodingEnum = (EncodingEnum) index;
 			}
+	    }
+
+	    [NotMapped]
+	    public string MonthGroupingString
+	    {
+		    get
+		    {
+			    if (!File.Exists(FilePath)) return "File not found"; //DateTime.MinValue;
+			    if (VN == null) return "Other"; //DateTime.MinValue.AddDays(1);
+			    if (IsLastPlayed(5)) return "Last Played";
+			    var dt = VN.ReleaseDate;
+			    var newDt = new DateTime(dt.Year, dt.Month, DateTime.DaysInMonth(dt.Year, dt.Month));
+			    return string.Format(System.Globalization.CultureInfo.InvariantCulture,"{0:MMMM} {0:yyyy}",newDt);
+		    }
+	    }
+	    [NotMapped]
+	    public DateTime MonthGrouping
+	    {
+		    get
+		    {
+			    if (!File.Exists(FilePath)) return DateTime.MinValue;
+			    if (VN == null) return DateTime.MinValue.AddDays(1);
+			    if (IsLastPlayed(5)) return DateTime.MaxValue;
+			    var dt = VN.ReleaseDate;
+			    var newDt = new DateTime(dt.Year, dt.Month, DateTime.DaysInMonth(dt.Year, dt.Month));
+			    return newDt;
+		    }
+	    }
+
+		private bool IsLastPlayed(int max)
+	    {
+		    var lastPlayed = StaticMethods.Data.Logs.Local.Where(x => x.Kind == LogKind.TimePlayed).OrderByDescending(x => x.Timestamp).Select(x => x.AssociatedId).Distinct().Take(max);
+			return lastPlayed.Contains(Id);
 	    }
 
 	    public event PropertyChangedEventHandler PropertyChanged;

@@ -205,5 +205,16 @@ namespace Happy_Reader
 		}
 
 		public static readonly Func<string, string> TruncateStringFunction30 = TruncateStringExpression(30).Compile();
+
+		public static string ToHumanReadable(this TimeSpan timeSpan)
+		{
+			if (timeSpan.TotalMinutes < 1) return $"{timeSpan.Seconds} seconds";
+			if (Math.Abs(timeSpan.TotalMinutes - 1) < 0.01) return "1 minute";
+			if (timeSpan.TotalMinutes > 1 && timeSpan.TotalMinutes < 60) return $"{timeSpan.Minutes} minutes";
+			if (timeSpan.TotalMinutes < 1 && timeSpan.TotalMinutes < 60) return $"{timeSpan.Minutes} minutes";
+			if (Math.Abs(timeSpan.TotalMinutes - 60) < 0.01) return "1 hour";
+			if (timeSpan.TotalHours > 1 && timeSpan.TotalHours < 2) return $"1 hour and {timeSpan.Minutes} minutes";
+			return $"{(int)timeSpan.TotalHours} hours and {timeSpan.Minutes} minutes";
+		}
 	}
 }

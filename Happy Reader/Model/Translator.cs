@@ -31,7 +31,7 @@ namespace Happy_Reader
 
 		public Translator(HappyReaderDatabase data) => _data = data;
 
-		public void SetCache() => GoogleTranslate.Initialize(_data.CachedTranslations.Local, Kakasi.JapaneseToRomaji);
+		public void SetCache() => GoogleTranslate.Initialize(_data.CachedTranslations.AsNoTracking().ToDictionary(x=>x.Input),_data.CachedTranslations.Local, Kakasi.JapaneseToRomaji);
 
 		public Translation Translate(User user, ListedVN game, string input)
 		{

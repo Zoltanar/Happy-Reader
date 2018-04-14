@@ -11,7 +11,7 @@ namespace HRGoogleTranslate
 {
     public static class GoogleTranslate
     {
-	    private static readonly Dictionary<string, GoogleTranslation> Cache = new Dictionary<string, GoogleTranslation>();
+	    private static Dictionary<string, GoogleTranslation> _cache = new Dictionary<string, GoogleTranslation>();
 		private static readonly HashSet<string> UntouchedStrings = new HashSet<string>();
         private const string GoogleCredential = @"C:\Google\hrtranslate-credential.json";
 
@@ -21,11 +21,11 @@ namespace HRGoogleTranslate
         public static uint GotFromAPICount { get; private set; }
 	    private static ObservableCollection<GoogleTranslation> _linkedCache = new ObservableCollection<GoogleTranslation>();
 
-		public static void Initialize([NotNull]ObservableCollection<GoogleTranslation> cache, [NotNull] Func<string,string> japaneseToRomaji)
+		public static void Initialize([NotNull] Dictionary<string, GoogleTranslation> existingCache, [NotNull]ObservableCollection<GoogleTranslation> inputCache, [NotNull] Func<string,string> japaneseToRomaji)
 		{
 			_japaneseToRomaji = japaneseToRomaji;
-			_linkedCache = cache;
-			foreach (var translation in cache) Cache[translation.Input] = translation;
+			_linkedCache = inputCache;
+			_cache = existingCache;
 	    }
 
 	    static GoogleTranslate()
@@ -53,7 +53,7 @@ namespace HRGoogleTranslate
             if (UntouchedStrings.Contains(text.ToString())) return;
             var input = text.ToString();
 	        text.Clear();
-			bool inCache1 = Cache.TryGetValue(input, out var cachedTranslation);
+			bool inCache1 = _cache.TryGetValue(input, out var cachedTranslation);
             if (inCache1)
             {
                 LogVerbose($"HRTranslate.Google - Getting string from cache, input: {input}");
@@ -71,7 +71,7 @@ namespace HRGoogleTranslate
 			        text.Append(output);
 			        var translation = new GoogleTranslation(input, output);
 			        _linkedCache.Add(translation);
-			        Cache[input] = translation;
+			        _cache[input] = translation;
 					return;
 		        }
 	        }
@@ -84,7 +84,7 @@ namespace HRGoogleTranslate
                 text.Append(response.TranslatedText);
 	            var translation = new GoogleTranslation(input, response.TranslatedText);
 	            _linkedCache.Add(translation);
-	            Cache[input] = translation;
+	            _cache[input] = translation;
             }
             else text.Append("Failed to translate");
 #endif

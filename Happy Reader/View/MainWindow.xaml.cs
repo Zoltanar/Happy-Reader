@@ -17,7 +17,6 @@ using Happy_Reader.ViewModel;
 using JetBrains.Annotations;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 using NotifyIcon = System.Windows.Forms.NotifyIcon;
-using ToolTipIcon = System.Windows.Forms.ToolTipIcon;
 using ToolStripMenuItem = System.Windows.Forms.ToolStripMenuItem;
 using ContextMenuStrip = System.Windows.Forms.ContextMenuStrip;
 
@@ -29,19 +28,18 @@ namespace Happy_Reader.View
 	public partial class MainWindow
 	{
 		private readonly MainWindowViewModel _viewModel;
-		private readonly NotifyIcon _trayIcon;
 
 		public MainWindow()
 		{
 			InitializeComponent();
 			_viewModel = new MainWindowViewModel(this);
 			DataContext = _viewModel;
-			_trayIcon = BuildNotifyIcon();
+			CreateNotifyIcon();
 			_viewModel.NotificationEvent += ShowNotification;
 			Log.NotificationEvent += ShowNotification;
 		}
 
-		private NotifyIcon BuildNotifyIcon()
+		private void CreateNotifyIcon()
 		{
 			var contextMenu = new ContextMenuStrip();
 			EventHandler open = delegate { Show(); };
@@ -56,7 +54,6 @@ namespace Happy_Reader.View
 				Visible = true
 			};
 			trayIcon.DoubleClick += open;
-			return trayIcon;
 		}
 
 		private async void Window_Loaded(object sender, RoutedEventArgs e)
@@ -100,7 +97,7 @@ namespace Happy_Reader.View
 		public void ShowNotification(object sender, [NotNull]string message, string title = "Notification")
 		{
 			Console.WriteLine($"Log - {title} - {message}");
-			_trayIcon.ShowBalloonTip(5000, title, message, ToolTipIcon.Info);
+			Application.Current.Dispatcher.BeginInvoke(new Action(()=>new NotificationWindow(title,message).Show()));
 		}
 
 		public void TabMiddleClick(object sender, MouseButtonEventArgs e)
@@ -167,7 +164,7 @@ namespace Happy_Reader.View
 		private void GroupByProducer(object sender, RoutedEventArgs e)
 		{
 			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(_viewModel.UserGameItems);
-			PropertyGroupDescription groupDescription = new PropertyGroupDescription("UserGame.VN.Producer"/*,new IdFromProducerConverter()*/);
+			PropertyGroupDescription groupDescription = new PropertyGroupDescription("UserGame.VN.Producer");
 			UserGamesGroupStyle.HeaderStringFormat = null;
 			var sortDescription = new SortDescription(groupDescription.PropertyName, ListSortDirection.Descending);
 			view.GroupDescriptions.Clear();
@@ -179,12 +176,11 @@ namespace Happy_Reader.View
 		private void GroupByMonth(object sender, RoutedEventArgs e)
 		{
 			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(_viewModel.UserGameItems);
-			UserGamesGroupStyle.HeaderStringFormat = "{0:MMMM} {0:yyyy}";
-			PropertyGroupDescription groupDescription = new PropertyGroupDescription("UserGame.VN.ReleaseDate", new MonthFromDateTimeConverter());
+			PropertyGroupDescription groupDescription = new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.MonthGroupingString)}");
 			view.GroupDescriptions.Clear();
 			view.GroupDescriptions.Add(groupDescription);
 			view.SortDescriptions.Clear();
-			view.SortDescriptions.Add(new SortDescription(groupDescription.PropertyName, ListSortDirection.Descending));
+			view.SortDescriptions.Add(new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.MonthGrouping)}", ListSortDirection.Descending));
 		}
 
 		private void ClickDeleteButton(object sender, RoutedEventArgs e)
