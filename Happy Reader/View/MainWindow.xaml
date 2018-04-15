@@ -33,6 +33,18 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="ContainerStyle" TargetType="{x:Type GroupItem}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+                        <Expander Header="{Binding Name}" IsExpanded="True">
+                            <ItemsPresenter />
+                        </Expander>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     <Grid Background="#FF2E4876">
         <Grid.RowDefinitions>
@@ -44,7 +56,7 @@
                 <Grid Background="#FFC9E1F5" AllowDrop="True" Drop="DropFileOnGamesTab">
                     <ListBox x:Name="GameFiles"  Margin="10,10,10,53" MouseDoubleClick="GameFiles_MouseDoubleClick" ItemsSource="{Binding UserGameItems}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                         <ListBox.GroupStyle>
-                            <GroupStyle x:Name="UserGamesGroupStyle" >
+                            <GroupStyle x:Name="UserGamesGroupStyle"  ContainerStyle="{StaticResource ContainerStyle}">
                             </GroupStyle>
                         </ListBox.GroupStyle>
                         <ListBox.ItemsPanel>

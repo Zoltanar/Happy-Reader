@@ -1,11 +1,13 @@
 apply translate stage 4 to pre-romaji
 add blacklistedproducers to user
 /HS8@5270:GDI32.dll for Bitch Gakuen - not working with my ITHVNR, check
-make 'ask jisho' use jisho api
 allow user to merge userGames (add gametime from old to new and delete old)
 add ListedVN.DbTraits and/or ListedVN.Characters
 change order of load to load dumpfiles>filters>vndb>games>proxies>entries>connection
-use full hook information
+look at global hooks for managing infinite text, etc (https://github.com/gmamaladze/globalmousekeyhook)
+better auto-add page on database tab (https://stackoverflow.com/questions/11187382/get-listview-visible-items)
+implement name merging and rdecuded proxy usage [[m#1]][[m#2]] > [[m#3]]
+add logs tab
 
 great outstanding problems:
 can't show outputwindow on top of some fullscreen games, steals focus on games where it works

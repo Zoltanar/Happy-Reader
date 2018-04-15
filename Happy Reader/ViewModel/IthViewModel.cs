@@ -31,14 +31,17 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 		public ICommand SetHookCodeCommand { get; }
+		public ICommand SetDefaultHookCommand { get; }
 
 		public IthViewModel(MainWindowViewModel mainViewModel)
 		{
 			_mainViewModel = mainViewModel;
 			SetHookCodeCommand = new IthCommandHandler(SetHookCode);
+			SetDefaultHookCommand = new IthCommandHandler(SetDefaultHook);
 		}
 
-		public void SetHookCode() => _mainViewModel.UserGame?.SaveHookCode(SelectedTextThread.HookCode);
+		public void SetHookCode() => _mainViewModel.UserGame?.SaveHookCode(SelectedTextThread.HookCode, SelectedTextThread.HookFull);
+		public void SetDefaultHook() => _mainViewModel.UserGame?.SaveHookCode(null, SelectedTextThread.HookFull);
 
 	}
 }

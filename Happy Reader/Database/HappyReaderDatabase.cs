@@ -19,8 +19,6 @@ namespace Happy_Reader.Database
 
 	    public HappyReaderDatabase() : base("name=HappyReaderDatabase")
 	    {
-		    // ReSharper disable once VirtualMemberCallInConstructor
-			Logs.Load();
 	    }
 
         public virtual DbSet<Entry> Entries { get; set; }

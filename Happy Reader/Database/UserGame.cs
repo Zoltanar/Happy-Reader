@@ -40,7 +40,8 @@ namespace Happy_Reader.Database
         public bool HookProcess { get; set; }
         public int? VNID { get; set; }
         public string FilePath { get; set; }
-        public string HookCode { get; set; }
+	    public string HookCode { get; set; }
+	    public string DefaultHookFull { get; set; }
 		public bool MergeByHookCode { get; set; }
 	    public string ProcessName { get; set; }
 	    // ReSharper disable once InconsistentNaming
@@ -139,11 +140,12 @@ namespace Happy_Reader.Database
 	    [NotMapped]
 	    public string MonthGroupingString
 	    {
+		    [UsedImplicitly]
 		    get
 		    {
 			    if (!File.Exists(FilePath)) return "File not found"; //DateTime.MinValue;
 			    if (VN == null) return "Other"; //DateTime.MinValue.AddDays(1);
-			    if (IsLastPlayed(5)) return "Last Played";
+			    if (LastGamesPlayed.Contains(Id)) return "Last Played";
 			    var dt = VN.ReleaseDate;
 			    var newDt = new DateTime(dt.Year, dt.Month, DateTime.DaysInMonth(dt.Year, dt.Month));
 			    return string.Format(System.Globalization.CultureInfo.InvariantCulture,"{0:MMMM} {0:yyyy}",newDt);
@@ -152,22 +154,19 @@ namespace Happy_Reader.Database
 	    [NotMapped]
 	    public DateTime MonthGrouping
 	    {
+		    [UsedImplicitly]
 		    get
 		    {
 			    if (!File.Exists(FilePath)) return DateTime.MinValue;
 			    if (VN == null) return DateTime.MinValue.AddDays(1);
-			    if (IsLastPlayed(5)) return DateTime.MaxValue;
+			    if (LastGamesPlayed.Contains(Id)) return DateTime.MaxValue;
 			    var dt = VN.ReleaseDate;
 			    var newDt = new DateTime(dt.Year, dt.Month, DateTime.DaysInMonth(dt.Year, dt.Month));
 			    return newDt;
 		    }
 	    }
 
-		private bool IsLastPlayed(int max)
-	    {
-		    var lastPlayed = StaticMethods.Data.Logs.Local.Where(x => x.Kind == LogKind.TimePlayed).OrderByDescending(x => x.Timestamp).Select(x => x.AssociatedId).Distinct().Take(max);
-			return lastPlayed.Contains(Id);
-	    }
+	    public static long[] LastGamesPlayed = { };
 
 	    public event PropertyChangedEventHandler PropertyChanged;
 
@@ -203,9 +202,10 @@ namespace Happy_Reader.Database
             OnPropertyChanged(nameof(VN));
         }
 
-        public void SaveHookCode([NotNull]string text)
-        {
-            HookCode = string.IsNullOrWhiteSpace(text) ? null : text.Trim();
+        public void SaveHookCode(string hookCode, string fullHook)
+		{
+			HookCode = string.IsNullOrWhiteSpace(hookCode) ? null : hookCode.Trim();
+			DefaultHookFull = fullHook;
 			StaticMethods.Data.SaveChanges();
             OnPropertyChanged(nameof(HookCode));
         }

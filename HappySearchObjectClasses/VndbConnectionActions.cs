@@ -142,7 +142,7 @@ namespace Happy_Apps_Core
 				}
 				catch (Exception ex)
 				{
-					LogToFile(ex);
+					Logger.ToFile(ex);
 					throw;
 				}
 				foreach (var producer in producersToBeUpserted.Values) LocalDatabase.UpsertProducer(producer, true, false);
@@ -152,7 +152,7 @@ namespace Happy_Apps_Core
 				}
 				catch (Exception ex)
 				{
-					LogToFile(ex);
+					Logger.ToFile(ex);
 					throw;
 				}
 				await GetCharacters(currentArray, false);
@@ -229,7 +229,7 @@ namespace Happy_Apps_Core
 				}
 				catch (Exception ex)
 				{
-					LogToFile(ex);
+					Logger.ToFile(ex);
 					throw;
 				}
 				moreResults = charRoot.More;
@@ -259,7 +259,7 @@ namespace Happy_Apps_Core
 				}
 				catch (Exception ex)
 				{
-					LogToFile(ex);
+					Logger.ToFile(ex);
 					throw;
 				}
 				moreResults = charRoot.More;
@@ -320,7 +320,7 @@ namespace Happy_Apps_Core
 		/// <returns>list of title IDs (avoids duplicate fetching)</returns>
 		private async Task GetUserList(List<VisualNovelDatabase.UrtListItem> urtList)
 		{
-			LogToFile("Starting GetUserList");
+			Logger.ToFile("Starting GetUserList");
 			string userListQuery = $"get vnlist basic (uid = {CSettings.UserID} ) {{\"results\":100}}";
 			//1 - fetch from VNDB using API
 			var result = await TryQuery(userListQuery, Resources.gul_query_error);
@@ -355,7 +355,7 @@ namespace Happy_Apps_Core
 
 		private async Task GetWishList(List<VisualNovelDatabase.UrtListItem> urtList)
 		{
-			LogToFile("Starting GetWishList");
+			Logger.ToFile("Starting GetWishList");
 			string wishListQuery = $"get wishlist basic (uid = {CSettings.UserID} ) {{\"results\":100}}";
 			var result = await TryQuery(wishListQuery, Resources.gwl_query_error);
 			if (!result) return;
@@ -389,7 +389,7 @@ namespace Happy_Apps_Core
 
 		private async Task GetVoteList(List<VisualNovelDatabase.UrtListItem> urtList)
 		{
-			LogToFile("Starting GetVoteList");
+			Logger.ToFile("Starting GetVoteList");
 			string voteListQuery = $"get votelist basic (uid = {CSettings.UserID} ) {{\"results\":100}}";
 			var result = await TryQuery(voteListQuery, Resources.gvl_query_error);
 			if (!result) return;
@@ -679,7 +679,7 @@ namespace Happy_Apps_Core
 		[ConnectionFunctionAspect, ConnectionInterceptAspect(true, true, true)]
 		public async Task<uint> UpdateURT()
 		{
-			LogToFile($"Starting GetUserRelatedTitles for {CSettings.UserID}, previously had {LocalDatabase.URTVisualNovels.Count()} titles.");
+			Logger.ToFile($"Starting GetUserRelatedTitles for {CSettings.UserID}, previously had {LocalDatabase.URTVisualNovels.Count()} titles.");
 			//clone list to make sure it doesnt keep command status.
 			var pre = LocalDatabase.LocalUserVisualNovels.Where(x => x.UserId == CSettings.UserID).OrderBy(x => x.VNID).ToArray();
 			List<VisualNovelDatabase.UrtListItem> localURTList = pre.Select(x => new VisualNovelDatabase.UrtListItem(x)).ToList();

@@ -147,7 +147,6 @@
     <Compile Include="ViewModel\MainWindowViewModel.cs" />
     <Compile Include="Model\NativeMethods.cs" />
     <Compile Include="View\AspectRatioLayoutDecorator.cs" />
-    <Compile Include="View\MonthFromDateTimeConverter.cs" />
     <Compile Include="View\NotificationWindow.xaml.cs">
       <DependentUpon>NotificationWindow.xaml</DependentUpon>
     </Compile>

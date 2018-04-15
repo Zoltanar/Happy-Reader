@@ -54,7 +54,7 @@
             <ColumnDefinition Width="Auto" MaxWidth="400"/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <UniformGrid Grid.Column="0" Rows="11" Columns="1">
+        <UniformGrid Grid.Column="0" Rows="12" Columns="1">
             <Label Style="{StaticResource Row0Label}" Content="Title" />
             <Label Style="{StaticResource Row0Label}" Content="Original" />
             <Label Style="{StaticResource Row0Label}" Content="Producer" />
@@ -63,11 +63,12 @@
             <Label Style="{StaticResource Row0Label}" Content="User Defined Name" />
             <Label Style="{StaticResource Row0Label}" Content="VNID" />
             <Label Style="{StaticResource Row0Label}" Content="Hook Code" />
+            <Label Style="{StaticResource Row0Label}" Content="Default Hook Full" />
             <Label Style="{StaticResource Row0Label}" Content="Encoding" />
             <Label Style="{StaticResource Row0Label}" Content="Launch Path" />
             <CheckBox Style="{StaticResource UniformCheckbox}" Content="Hook to Process" IsChecked="{Binding HookProcess}" />
         </UniformGrid>
-        <UniformGrid Grid.Column="1" Rows="11">
+        <UniformGrid Grid.Column="1" Rows="12">
             <TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding VN.Title, Mode=OneWay}" />
             <TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding VN.KanjiTitle, Mode=OneWay}" />
             <TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding VN.Producer.Name, Mode=OneWay}" />
@@ -76,6 +77,7 @@
             <TextBox Style="{StaticResource Row1TextBox}" x:Name="DisplayNameBox" Text="{Binding UserDefinedName}" KeyUp="SaveUsedDefinedName" />
             <TextBox Style="{StaticResource Row1TextBox}" x:Name="VnidNameBox" Text="{Binding VNID}" KeyUp="SaveVNID" PreviewTextInput="DigitsOnly" />
             <TextBox Style="{StaticResource Row1TextBox}" x:Name="HookCodeBox" Text="{Binding HookCode}" KeyUp="SaveHookCode" />
+            <TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding DefaultHookFull}" />
             <ComboBox ItemsSource="{Binding Encodings}" DisplayMemberPath="EncodingName" SelectedItem="{Binding PrefEncoding}" />
             <TextBox Style="{StaticResource Row1TextBox}" x:Name="LaunchPathBox" Text="{Binding LaunchPath}" KeyUp="SaveLaunchPath" />
             <CheckBox Style="{StaticResource UniformCheckbox}" Content="Merge By Hook Code" IsChecked="{Binding MergeByHookCode}"/>

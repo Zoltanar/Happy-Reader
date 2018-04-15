@@ -35,7 +35,7 @@ namespace Happy_Apps_Core
 		/// </summary>
 		private void Open(bool printCertificates)
 		{
-			LogToFile($"Attempting to open connection to {VndbHost}:{VndbPortTLS}");
+			Logger.ToFile($"Attempting to open connection to {VndbHost}:{VndbPortTLS}");
 			var complete = false;
 			var retries = 0;
 			var certs = new X509CertificateCollection();
@@ -44,8 +44,8 @@ namespace Happy_Apps_Core
 #if !DONTPRINTCERTS
 			if (printCertificates)
 			{
-				LogToFile("Local Certificate data - subject/issuer/format/effectivedate/expirationdate");
-				foreach (var cert in certs) LogToFile($"{cert.Subject}\t{cert.Issuer}\t{cert.GetFormat()}\t{cert.GetEffectiveDateString()}\t{cert.GetExpirationDateString()}");
+				Logger.ToFile("Local Certificate data - subject/issuer/format/effectivedate/expirationdate");
+				foreach (var cert in certs) Logger.ToFile($"{cert.Subject}\t{cert.Issuer}\t{cert.GetFormat()}\t{cert.GetEffectiveDateString()}\t{cert.GetExpirationDateString()}");
 			}
 #endif
 			while (!complete && retries < 5)
@@ -53,28 +53,28 @@ namespace Happy_Apps_Core
 				try
 				{
 					retries++;
-					LogToFile($"Trying for the {retries}'th time...");
+					Logger.ToFile($"Trying for the {retries}'th time...");
 					_tcpClient = new TcpClient();
 					_tcpClient.Connect(VndbHost, VndbPortTLS);
-					LogToFile("TCP Client connection made...");
+					Logger.ToFile("TCP Client connection made...");
 					var sslStream = new SslStream(_tcpClient.GetStream());
-					LogToFile("SSL Stream received...");
+					Logger.ToFile("SSL Stream received...");
 					sslStream.AuthenticateAsClient(VndbHost, certs, SslProtocols.Tls12, true);
-					LogToFile("SSL Stream authenticated...");
+					Logger.ToFile("SSL Stream authenticated...");
 					if (sslStream.RemoteCertificate != null)
 					{
 						var subject = sslStream.RemoteCertificate.Subject;
 						if (printCertificates)
 						{
-							LogToFile("Remote Certificate data - subject/issuer/format/effectivedate/expirationdate", false);
-							LogToFile(subject + "\t - \t" + sslStream.RemoteCertificate.Issuer + "\t - \t" +
+							Logger.ToFile("Remote Certificate data - subject/issuer/format/effectivedate/expirationdate", false);
+							Logger.ToFile(subject + "\t - \t" + sslStream.RemoteCertificate.Issuer + "\t - \t" +
 									  sslStream.RemoteCertificate.GetFormat() + "\t - \t" +
 									  sslStream.RemoteCertificate.GetEffectiveDateString() + "\t - \t" +
 									  sslStream.RemoteCertificate.GetExpirationDateString(), false);
 						}
 						if (!subject.Substring(3).Equals(VndbHost))
 						{
-							LogToFile(
+							Logger.ToFile(
 								$"Certificate received isn't for {VndbHost} so connection is closed (it was for {subject.Substring(3)})");
 							Status = APIStatus.Error;
 							return;
@@ -83,32 +83,32 @@ namespace Happy_Apps_Core
 
 					_stream = sslStream;
 					complete = true;
-					LogToFile($"Connected after {retries} tries.");
+					Logger.ToFile($"Connected after {retries} tries.");
 				}
 				catch (SocketException e)
 				{
-					LogToFile(e, "Conn Socket Error");
+					Logger.ToFile(e, "Conn Socket Error");
 					if (e.InnerException == null) continue;
-					LogToFile(e, "Conn Socket Error - Inner");
+					Logger.ToFile(e, "Conn Socket Error - Inner");
 					Thread.Sleep(1000);
 				}
 				catch (IOException e)
 				{
-					LogToFile(e, "Conn Open Error");
+					Logger.ToFile(e, "Conn Open Error");
 				}
 				catch (AuthenticationException e)
 				{
-					LogToFile(e, "Conn Authentication Error");
+					Logger.ToFile(e, "Conn Authentication Error");
 					if (e.InnerException == null) continue;
-					LogToFile(e, "Conn Authentication Error - Inner");
+					Logger.ToFile(e, "Conn Authentication Error - Inner");
 				}
 				catch (Exception ex) when (ex is ArgumentNullException || ex is InvalidOperationException)
 				{
-					LogToFile(ex, "Conn Other Error");
+					Logger.ToFile(ex, "Conn Other Error");
 				}
 			}
 			if (_stream != null && _stream.CanRead) return;
-			LogToFile($"Failed to connect after {retries} tries.");
+			Logger.ToFile($"Failed to connect after {retries} tries.");
 			Status = APIStatus.Error;
 			AskForNonSsl();
 		}
@@ -118,7 +118,7 @@ namespace Happy_Apps_Core
 			var messageResult = System.Windows.Forms.MessageBox.Show(@"Connection to VNDB failed, do you wish to try without SSL?",
 				@"Connection Failed", System.Windows.Forms.MessageBoxButtons.YesNo);
 			if (messageResult != System.Windows.Forms.DialogResult.Yes) return;
-			LogToFile($"Attempting to open connection to {VndbHost}:{VndbPort} without SSL");
+			Logger.ToFile($"Attempting to open connection to {VndbHost}:{VndbPort} without SSL");
 			Status = APIStatus.Closed;
 			var complete = false;
 			var retries = 0;
@@ -127,30 +127,30 @@ namespace Happy_Apps_Core
 				try
 				{
 					retries++;
-					LogToFile($"Trying for the {retries}'th time...");
+					Logger.ToFile($"Trying for the {retries}'th time...");
 					_tcpClient = new TcpClient();
 					_tcpClient.Connect(VndbHost, VndbPort);
-					LogToFile("TCP Client connection made...");
+					Logger.ToFile("TCP Client connection made...");
 					_stream = _tcpClient.GetStream();
-					LogToFile("Stream received...");
-					LogToFile($"Connected after {retries} tries.");
+					Logger.ToFile("Stream received...");
+					Logger.ToFile($"Connected after {retries} tries.");
 					complete = true;
 				}
 				catch (IOException e)
 				{
-					LogToFile(e, "Conn Open Error");
+					Logger.ToFile(e, "Conn Open Error");
 				}
 				catch (Exception ex) when (ex is ArgumentNullException || ex is InvalidOperationException)
 				{
-					LogToFile(ex, "Conn Other Error");
+					Logger.ToFile(ex, "Conn Other Error");
 				}
 				catch (Exception otherXException)
 				{
-					LogToFile(otherXException, "Conn Other2 Error");
+					Logger.ToFile(otherXException, "Conn Other2 Error");
 				}
 			}
 			if (_stream != null && _stream.CanRead) return;
-			LogToFile($"Failed to connect after {retries} tries.");
+			Logger.ToFile($"Failed to connect after {retries} tries.");
 			Status = APIStatus.Error;
 		}
 
@@ -273,9 +273,9 @@ namespace Happy_Apps_Core
 			}
 			catch (ObjectDisposedException e)
 			{
-				LogToFile("Failed to close connection.");
-				LogToFile(e.Message);
-				LogToFile(e.StackTrace);
+				Logger.ToFile("Failed to close connection.");
+				Logger.ToFile(e.Message);
+				Logger.ToFile(e.StackTrace);
 			}
 			Status = APIStatus.Closed;
 		}
@@ -346,7 +346,7 @@ namespace Happy_Apps_Core
 				{
 					query = Regex.Replace(query, "\\)", $" and released > \"{DateTime.UtcNow.Year - 10}\")");
 				}
-				LogToFile(query);
+				Logger.ToFile(query);
 				Query(query);
 			});
 			if (LastResponse.Type == ResponseType.Unknown)
@@ -373,7 +373,7 @@ namespace Happy_Apps_Core
 					fullThrottleMessage = ActiveQuery.AdditionalMessage ? normalWarning + additionalWarning : normalWarning;
 				});
 				TextAction(fullThrottleMessage, MessageSeverity.Warning);
-				LogToFile($"Local: {DateTime.Now} - {fullThrottleMessage}");
+				Logger.ToFile($"Local: {DateTime.Now} - {fullThrottleMessage}");
 				var waitMS = minWait * 1000;
 				_throttleWaitTime = Convert.ToInt32(waitMS);
 				return QueryResult.Throttled;
@@ -419,7 +419,7 @@ namespace Happy_Apps_Core
 			}
 			await Task.Run(() =>
 			{
-				LogToFile(query);
+				Logger.ToFile(query);
 				Query(query);
 			});
 			return LastResponse.Type != ResponseType.Unknown && LastResponse.Type != ResponseType.Error;

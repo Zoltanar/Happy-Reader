@@ -69,6 +69,7 @@
         <!--row 3 -->
         <UniformGrid Grid.Row="3" Rows="1">
             <Button Margin="5" Content="Clear Text"     Command="{Binding ClearThreadCommand}"/>
+            <Button Margin="5" Content="Set Default Hook"  Command="{Binding SetDefaultHookCommand}"/>
             <Button Margin="5" Content="Set Hook Code"  Command="{Binding SetHookCodeCommand}"/>
         </UniformGrid>
         <!--row 4 -->

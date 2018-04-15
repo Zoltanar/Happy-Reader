@@ -31,6 +31,7 @@ namespace Happy_Reader.ViewModel
 		public StaticMethods.NotificationEventHandler NotificationEvent;
 		private readonly RecentStringList _vndbQueriesList = new RecentStringList(50);
 		private readonly RecentStringList _vndbResponsesList = new RecentStringList(50);
+		private MultiLogger Logger => Happy_Apps_Core.StaticHelpers.Logger;
 
 		private readonly OutputWindow _outputWindow;
 		private string _statusText;
@@ -54,7 +55,7 @@ namespace Happy_Reader.ViewModel
 			set
 			{
 				_statusText = value;
-				LogDebug($"StatusText: {_statusText}");
+				Logger.ToDebug($"StatusText: {_statusText}");
 				OnPropertyChanged();
 			}
 		}
@@ -163,22 +164,20 @@ namespace Happy_Reader.ViewModel
 			bool terminated = ithFinalize.Join(5000); //false if timed out
 			if (!terminated) { }
 			var exitWatch = Stopwatch.StartNew();
-			Debug.WriteLine("(MainWindowViewModel) Starting exit procedures...");
+			Logger.ToDebug("(MainWindowViewModel) Starting exit procedures...");
 			try
 			{
 				_closing = true;
 				_outputWindow?.Close();
 				UserGame?.SaveTimePlayed(false);
-				var saveCacheThread = new Thread(StaticMethods.SaveTranslationCache);
-				saveCacheThread.Start();
-				saveCacheThread.Join();
+				StaticMethods.ExitTranslation();
 				_monitor?.Join();
 			}
 			catch (Exception ex)
 			{
-				LogToFile(ex);
+				Logger.ToFile(ex);
 			}
-			Debug.WriteLine($"(MainWindowViewModel) Completed exit procedures, took {exitWatch.Elapsed}");
+			Logger.ToDebug($"(MainWindowViewModel) Completed exit procedures, took {exitWatch.Elapsed}");
 		}
 
 		public UserGameTile AddGameFile(string file)
@@ -209,7 +208,7 @@ namespace Happy_Reader.ViewModel
 			return new UserGameTile(userGame);
 		}
 
-		public async Task Initialize(Stopwatch watch)
+		public async Task Initialize(Stopwatch watch, RoutedEventHandler defaultUserGameGrouping)
 		{
 			CaptureClipboard = GSettings.CaptureClipboardOnStart;
 			await DatabaseViewModel.Initialize();
@@ -230,6 +229,7 @@ namespace Happy_Reader.ViewModel
 			});
 			StatusText = "Loading User Games...";
 			LoadUserGames();
+			defaultUserGameGrouping(null, null);
 			TestViewModel.Initialize();
 			OnPropertyChanged(nameof(TestViewModel));
 			_monitor = new Thread(MonitorStart) { IsBackground = true };
@@ -352,7 +352,7 @@ namespace Happy_Reader.ViewModel
 			}
 			finally
 			{
-				foreach (var process in processes) if(process != _hookedProcess) process.Dispose();
+				foreach (var process in processes) if (process != _hookedProcess) process.Dispose();
 			}
 
 			return false;
@@ -382,7 +382,7 @@ namespace Happy_Reader.ViewModel
 			var text = Clipboard.GetText();
 			var timeSinceLast = DateTime.UtcNow - _lastUpdateTime;
 			if (timeSinceLast.TotalMilliseconds < 100 && _lastUpdateText == text) return;
-			LogVerbose($"Capturing clipboard from {cpOwner?.ProcessName ?? "??"}\t {DateTime.UtcNow:HH\\:mm\\:ss\\:fff}\ttimeSinceLast:{timeSinceLast.Milliseconds}\t{text}");
+			Logger.Verbose($"Capturing clipboard from {cpOwner?.ProcessName ?? "??"}\t {DateTime.UtcNow:HH\\:mm\\:ss\\:fff}\ttimeSinceLast:{timeSinceLast.Milliseconds}\t{text}");
 			_lastUpdateTime = DateTime.UtcNow;
 			_lastUpdateText = text;
 			RunTranslation(this, new TextOutputEventArgs(null, text, cpOwner?.ProcessName, true));
@@ -398,7 +398,7 @@ namespace Happy_Reader.ViewModel
 				Func<bool> blockTranslateFunc = () => Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl);
 				bool blockTranslate = DispatchIfRequired(blockTranslateFunc);
 				if (blockTranslate) return false;
-				LogVerbose($"{nameof(RunTranslation)} - {e}");
+				Logger.Verbose($"{nameof(RunTranslation)} - {e}");
 				if (_hookedProcess == null) return false;
 				if ((sender as TextThread)?.IsConsole ?? false) return false;
 				var rect = StaticMethods.GetWindowDimensions(_hookedProcess);
@@ -420,10 +420,9 @@ namespace Happy_Reader.ViewModel
 			}
 			catch (Exception ex)
 			{
-				LogToFile(ex);
+				Logger.ToFile(ex);
 				return false;
 			}
-
 			return true;
 		}
 
@@ -435,10 +434,7 @@ namespace Happy_Reader.ViewModel
 
 		private static T DispatchIfRequired<T>(Func<T> action)
 		{
-			T result;
-			if (Application.Current.Dispatcher.CheckAccess()) result = action();
-			else result = Application.Current.Dispatcher.Invoke(action);
-			return result;
+			return Application.Current.Dispatcher.CheckAccess() ? action() : Application.Current.Dispatcher.Invoke(action);
 		}
 
 		public void VndbAdvancedAction(string text, bool isQuery)
@@ -498,9 +494,9 @@ namespace Happy_Reader.ViewModel
 		}
 
 		// ReSharper disable UnusedTupleComponentInReturnValue
-		public (string HookCode, Encoding PrefEncoding) GetPreferredHookCode(uint processId)
+		public (string HookCode, string HookFull, Encoding PrefEncoding) GetPreferredHookCode(uint processId)
 		{
-			return processId != UserGame?.Process?.Id ? (null, null) : (UserGame.HookCode, UserGame.PrefEncoding);
+			return processId != UserGame?.Process?.Id ? (null, null, null) : (UserGame.HookCode, UserGame.DefaultHookFull, UserGame.PrefEncoding);
 		}
 		// ReSharper restore UnusedTupleComponentInReturnValue
 

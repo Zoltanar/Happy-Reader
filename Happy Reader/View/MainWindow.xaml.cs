@@ -59,9 +59,8 @@ namespace Happy_Reader.View
 		private async void Window_Loaded(object sender, RoutedEventArgs e)
 		{
 			Stopwatch watch = Stopwatch.StartNew();
-			GroupByMonth(null, null);
 			_viewModel.ClipboardManager = new ClipboardManager(this);
-			await _viewModel.Initialize(watch);
+			await _viewModel.Initialize(watch, GroupByMonth);
 		}
 
 		private void AddEntry_Click(object sender, RoutedEventArgs e) => CreateAddEntryTab(new Entry());
@@ -97,7 +96,7 @@ namespace Happy_Reader.View
 		public void ShowNotification(object sender, [NotNull]string message, string title = "Notification")
 		{
 			Console.WriteLine($"Log - {title} - {message}");
-			Application.Current.Dispatcher.BeginInvoke(new Action(()=>new NotificationWindow(title,message).Show()));
+			NotificationWindow.Launch(title, message);
 		}
 
 		public void TabMiddleClick(object sender, MouseButtonEventArgs e)
@@ -175,12 +174,27 @@ namespace Happy_Reader.View
 
 		private void GroupByMonth(object sender, RoutedEventArgs e)
 		{
+			SetLastPlayed();
 			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(_viewModel.UserGameItems);
 			PropertyGroupDescription groupDescription = new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.MonthGroupingString)}");
 			view.GroupDescriptions.Clear();
 			view.GroupDescriptions.Add(groupDescription);
 			view.SortDescriptions.Clear();
 			view.SortDescriptions.Add(new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.MonthGrouping)}", ListSortDirection.Descending));
+		}
+
+		private void SetLastPlayed()
+		{
+			var logs = StaticMethods.Data.Logs.AsNoTracking().ToList();
+			var lastPlayed = logs.Where(x => x.Kind == LogKind.TimePlayed).OrderByDescending(x => x.Timestamp).Select(x => x.AssociatedId).Distinct().GetEnumerator();
+			List<long> ids = new List<long>();
+			while (ids.Count < 5 && lastPlayed.MoveNext())
+			{
+				var userGame = StaticMethods.Data.UserGames.First(x => x.Id == lastPlayed.Current);
+				if (File.Exists(userGame.FilePath)) ids.Add(userGame.Id);
+			}
+			lastPlayed.Dispose();
+			UserGame.LastGamesPlayed = ids.ToArray();
 		}
 
 		private void ClickDeleteButton(object sender, RoutedEventArgs e)

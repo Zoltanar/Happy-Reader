@@ -108,7 +108,7 @@ namespace Happy_Reader
 				if (entry.Regex) LogReplaceRegex(sb, entry.Input, entry.Output, entry.Id);
 				else LogReplace(sb, entry.Input, entry.Output, entry.Id);
 			}
-			StaticHelpers.LogVerbose($"Stage 1: {sb}");
+			StaticHelpers.Logger.Verbose($"Stage 1: {sb}");
 		}
 
 		/// <summary>
@@ -122,7 +122,7 @@ namespace Happy_Reader
 				if (entry.Regex) LogReplaceRegex(sb, entry.Input, entry.Output, entry.Id);
 				else LogReplace(sb, entry.Input, entry.Output, entry.Id);
 			}
-            StaticHelpers.LogVerbose($"Stage 2: {sb}");
+            StaticHelpers.Logger.Verbose($"Stage 2: {sb}");
 		}
 
 		/// <summary>
@@ -131,7 +131,7 @@ namespace Happy_Reader
 		private void TranslateStageThree(StringBuilder sb)
 		{
 			foreach (var entry in _entries.Where(i => i.Type == EntryType.Yomi)) LogReplace(sb, entry.Input, entry.Output, entry.Id);
-            StaticHelpers.LogVerbose($"Stage 3: {sb}");
+            StaticHelpers.Logger.Verbose($"Stage 3: {sb}");
 		}
 
 		public string ReplaceNames(string original)
@@ -180,7 +180,7 @@ namespace Happy_Reader
 				proxies[roleString].Count++;
 				if (proxy == null)
 				{
-					StaticHelpers.LogToFile("No proxy available, stopping translate.");
+					StaticHelpers.Logger.ToFile("No proxy available, stopping translate.");
 					throw new Exception("Error - no proxy available.");
 				}
 				proxy.FullRoleString = $"[[{roleString}#{proxies[roleString].Count}]]";
@@ -188,7 +188,7 @@ namespace Happy_Reader
 				entry.AssignedProxy = proxy;
 				LogReplace(sb, entry.Input, entry.AssignedProxy.FullRoleString, entry.Id);
 			}
-			StaticHelpers.LogVerbose($"Stage 4.0: {sb}");
+			StaticHelpers.Logger.Verbose($"Stage 4.0: {sb}");
 			//perform replaces involving proxies
 			var entriesOnProxies = _entries.Where(i => i.Type == EntryType.ProxyMod).ToArray();
 			TranslateStage4P1(sb, usefulEntriesWithProxies, entriesOnProxies);
@@ -196,7 +196,7 @@ namespace Happy_Reader
 			{
 				LogReplace(sb, entry.AssignedProxy.FullRoleString, entry.AssignedProxy.Entry.Input, entry.Id);
 			}
-			StaticHelpers.LogVerbose($"Stage 4.2: {sb}");
+			StaticHelpers.Logger.Verbose($"Stage 4.2: {sb}");
 			return usefulEntriesWithProxies;
 		}
 
@@ -213,7 +213,7 @@ namespace Happy_Reader
 				var output = new Regex(@"^.*?\[\[(.+)]].*?$").Replace(entry.Output, @"[[$1#$$1]]");
 				LogReplaceRegex(sb, input, output, entry.Id);
 			}
-			StaticHelpers.LogVerbose($"Stage 4.1: {sb}");
+			StaticHelpers.Logger.Verbose($"Stage 4.1: {sb}");
 		}
 
 		public string[] Translate(string input)
@@ -242,7 +242,7 @@ namespace Happy_Reader
 			}
 			var sb = new StringBuilder(input);
 			//process in stages
-            StaticHelpers.LogVerbose($"Stage 0: {sb}");
+            StaticHelpers.Logger.Verbose($"Stage 0: {sb}");
 			result[0] = sb.ToString();
 			TranslateStageOne(sb);
 			result[1] = sb.ToString();
@@ -261,7 +261,7 @@ namespace Happy_Reader
 			}
 			result[4] = sb.ToString();
 			GoogleTranslate.Translate(sb);
-            StaticHelpers.LogVerbose($"Stage 5: {sb}");
+            StaticHelpers.Logger.Verbose($"Stage 5: {sb}");
 			result[5] = sb.ToString();
 			TranslateStageSix(sb, usefulEntriesWithProxies);
 			result[6] = sb.ToString();
@@ -285,7 +285,7 @@ namespace Happy_Reader
 				}
 				LogReplace(sb, entry.AssignedProxy.FullRoleString, entry.Output, entry.Id);
 			}
-            StaticHelpers.LogVerbose($"Stage 6: {sb}");
+            StaticHelpers.Logger.Verbose($"Stage 6: {sb}");
 		}
 
 		/// <summary>
@@ -295,7 +295,7 @@ namespace Happy_Reader
 		{
 			foreach (var entry in _entries.Where(i => i.Type == EntryType.Output && !i.Regex)) LogReplace(sb, entry.Input, entry.Output, entry.Id);
 			foreach (var entry in _entries.Where(i => i.Type == EntryType.Output && i.Regex)) LogReplaceRegex(sb, entry.Input, entry.Output, entry.Id);
-            StaticHelpers.LogVerbose($"Stage 7: {sb}");
+            StaticHelpers.Logger.Verbose($"Stage 7: {sb}");
 		}
 		
 		private static string CheckRepeatedString(string text)

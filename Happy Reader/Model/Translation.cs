@@ -83,7 +83,7 @@ namespace Happy_Reader
 			}
 			catch (Exception ex)
 			{
-				StaticHelpers.LogToFile(ex.Message);
+				StaticHelpers.Logger.ToFile(ex.Message);
 			}
 
 		}

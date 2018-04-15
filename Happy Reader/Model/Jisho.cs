@@ -24,7 +24,7 @@ namespace Happy_Reader
 			}
 			catch (Exception ex)
 			{
-				StaticHelpers.LogToFile(ex);
+				StaticHelpers.Logger.ToFile(ex);
 			}
 			return jishoResponse;
 		}

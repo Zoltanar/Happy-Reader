@@ -57,7 +57,7 @@ namespace Happy_Reader.View.Tabs
         private void SaveHookCode(object sender, KeyEventArgs e)
         {
             if (e.Key != Key.Enter) return;
-            _viewModel.SaveHookCode(HookCodeBox.Text);
+            _viewModel.SaveHookCode(HookCodeBox.Text, null);
         }
 
         private static readonly Regex DigitRegex = new Regex(@"\d");

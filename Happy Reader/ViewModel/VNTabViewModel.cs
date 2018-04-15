@@ -130,7 +130,7 @@ namespace Happy_Reader.ViewModel
 					OnPropertyChanged(nameof(CSettings));
 					OnPropertyChanged(nameof(ListedVNs));
 				});
-				LogDebug($"RefreshListedVns took {watch.Elapsed.ToSeconds()}.");
+				Logger.ToDebug($"RefreshListedVns took {watch.Elapsed.ToSeconds()}.");
 			};
 		}
 
@@ -196,25 +196,6 @@ namespace Happy_Reader.ViewModel
 		{
 			_dbFunction = db => db.LocalVisualNovels.Where(vn => vn.UserVNId != null);
 			await RefreshListedVns();
-		}
-
-		public IEnumerable<int> GetTitlesWithTagOrTrait(DumpFiles.WrittenTag tag, DumpFiles.WrittenTrait trait)
-		{
-			try
-			{
-				GSettings.AlertTraitIDs.Add(trait.ID);
-				var chars = LocalDatabase.Characters.Where(x =>x.DbTraits.Any(y => y.TraitId == trait.ID));
-				var vnids1 = chars.SelectMany(x => x.CharacterVns).Select(y => y.ListedVNId).Distinct().ToArray();
-				var vnids2 = LocalDatabase.Tags.Where(x => tag.AllIDs.Contains(x.TagId) && x.ListedVN != null).Select(x => x.ListedVN.VNID).Distinct().ToArray();
-				return vnids1.Union(vnids2);
-			}
-#pragma warning disable 168
-			catch (Exception ex)
-#pragma warning restore 168
-			{
-				//throw;
-			}
-			return new int[0];
 		}
 
 		public async Task ShowTagged(DumpFiles.WrittenTag tag)

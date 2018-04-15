@@ -126,7 +126,7 @@ namespace Happy_Reader.ViewModel
 			}
 			catch (Exception ex)
 			{
-				StaticHelpers.LogToFile(ex);
+				StaticHelpers.Logger.ToFile(ex);
 			}
 			if (PermanentFilter != null) return;
 			PermanentFilter = new CustomVnFilter();
@@ -151,7 +151,7 @@ namespace Happy_Reader.ViewModel
 			}
 			catch (Exception ex)
 			{
-				StaticHelpers.LogToFile(ex);
+				StaticHelpers.Logger.ToFile(ex);
 			}
 			if (Filters != null) return;
 			Filters = new ObservableCollection<CustomVnFilter>();

@@ -67,10 +67,10 @@ namespace Happy_Reader.ViewModel
 		private void AskJishoNotification()
 		{
 			var input = TextArea.Selection.Text;
-			var task = System.Threading.Tasks.Task.Run(async()=> await Jisho.Search(input));
+			var task = System.Threading.Tasks.Task.Run(async () => await Jisho.Search(input));
 			task.Wait();
 			var text = task.Result.Data.Length < 1 ? "No results found." : task.Result.Data[0].Results();
-			new NotificationWindow("Ask Jisho", text).Show();
+			NotificationWindow.Launch("Ask Jisho", text);
 		}
 
 		public void Initialize(MainWindow mainWindow, RichTextBox debugTextbox)
@@ -87,7 +87,7 @@ namespace Happy_Reader.ViewModel
 			var output = Kakasi.JapaneseToRomaji(input);
 			if (output.Length > 0) output = char.ToUpper(output[0]) + output.Substring(1);
 			output = output.Replace(" ", "");
-			MainWindow.CreateAddEntryTab(new Entry(input,output){SeriesSpecific = true});
+			MainWindow.CreateAddEntryTab(new Entry(input, output) { SeriesSpecific = true });
 		}
 
 		public void UpdateOutput()
@@ -125,7 +125,7 @@ namespace Happy_Reader.ViewModel
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
-		
+
 		[NotifyPropertyChangedInvocator]
 		private void OnPropertyChanged([CallerMemberName] string propertyName = null)
 		{

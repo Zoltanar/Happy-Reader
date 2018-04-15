@@ -35,7 +35,7 @@ namespace Happy_Reader
 			}
 			catch (Exception ex)
 			{
-				StaticHelpers.LogToFile(ex);
+				StaticHelpers.Logger.ToFile(ex);
 
 			}
 		}
@@ -144,13 +144,11 @@ namespace Happy_Reader
 			return rct;
 		}
 
-		public static void SaveTranslationCache()
+		public static void ExitTranslation()
 		{
 			Debug.WriteLine($"GoogleTranslate: Got from cache {HRGoogleTranslate.GoogleTranslate.GotFromCacheCount}");
 			Debug.WriteLine($"GoogleTranslate: Got from API {HRGoogleTranslate.GoogleTranslate.GotFromAPICount}");
-			Debug.WriteLine("Saving Translation Cache...");
-			var rows = Data.SaveChanges();
-			Debug.WriteLine($"Finished saving translation cache ({rows} entries).");
+			Data.SaveChanges();
 		}
 
 		/// <summary>
@@ -210,11 +208,10 @@ namespace Happy_Reader
 		{
 			if (timeSpan.TotalMinutes < 1) return $"{timeSpan.Seconds} seconds";
 			if (Math.Abs(timeSpan.TotalMinutes - 1) < 0.01) return "1 minute";
-			if (timeSpan.TotalMinutes > 1 && timeSpan.TotalMinutes < 60) return $"{timeSpan.Minutes} minutes";
-			if (timeSpan.TotalMinutes < 1 && timeSpan.TotalMinutes < 60) return $"{timeSpan.Minutes} minutes";
+			if (timeSpan.TotalMinutes > 1 && timeSpan.TotalMinutes < 60) return $"{timeSpan.Minutes} minute, {timeSpan.Seconds} seconds";
 			if (Math.Abs(timeSpan.TotalMinutes - 60) < 0.01) return "1 hour";
-			if (timeSpan.TotalHours > 1 && timeSpan.TotalHours < 2) return $"1 hour and {timeSpan.Minutes} minutes";
-			return $"{(int)timeSpan.TotalHours} hours and {timeSpan.Minutes} minutes";
+			if (timeSpan.TotalHours > 1 && timeSpan.TotalHours < 2) return $"1 hour, {timeSpan.Minutes} minutes";
+			return $"{(int)timeSpan.TotalHours} hours, {timeSpan.Minutes} minutes";
 		}
 	}
 }

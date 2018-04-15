@@ -27,7 +27,7 @@ namespace Happy_Reader
 			}
 			catch (Exception ex)
 			{
-				StaticHelpers.LogToFile(ex);
+				StaticHelpers.Logger.ToFile(ex);
 			}
 		}
 
@@ -61,7 +61,7 @@ namespace Happy_Reader
 				}
 				catch (Exception ex)
 				{
-					StaticHelpers.LogToFile(ex);
+					StaticHelpers.Logger.ToFile(ex);
 					LoadKakasiJtr();
 				}
 			}
@@ -81,7 +81,7 @@ namespace Happy_Reader
 				}
 				catch (Exception ex)
 				{
-					StaticHelpers.LogToFile(ex);
+					StaticHelpers.Logger.ToFile(ex);
 					LoadKakasiJtk();
 				}
 			}
