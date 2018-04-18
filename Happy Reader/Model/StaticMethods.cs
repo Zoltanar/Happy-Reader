@@ -39,7 +39,7 @@ namespace Happy_Reader
 
 			}
 		}
-		
+
 		public static Process StartProcess(string executablePath)
 		{
 			var processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(executablePath));
@@ -208,7 +208,7 @@ namespace Happy_Reader
 		{
 			if (timeSpan.TotalMinutes < 1) return $"{timeSpan.Seconds} seconds";
 			if (Math.Abs(timeSpan.TotalMinutes - 1) < 0.01) return "1 minute";
-			if (timeSpan.TotalMinutes > 1 && timeSpan.TotalMinutes < 60) return $"{timeSpan.Minutes} minute, {timeSpan.Seconds} seconds";
+			if (timeSpan.TotalMinutes > 1 && timeSpan.TotalMinutes < 60) return $"{timeSpan.Minutes} minutes, {timeSpan.Seconds} seconds";
 			if (Math.Abs(timeSpan.TotalMinutes - 60) < 0.01) return "1 hour";
 			if (timeSpan.TotalHours > 1 && timeSpan.TotalHours < 2) return $"1 hour, {timeSpan.Minutes} minutes";
 			return $"{(int)timeSpan.TotalHours} hours, {timeSpan.Minutes} minutes";

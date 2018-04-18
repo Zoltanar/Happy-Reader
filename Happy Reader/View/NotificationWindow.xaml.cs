@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Documents;
 using System.Windows.Threading;
+using Happy_Reader.Database;
 
 namespace Happy_Reader.View
 {
@@ -9,11 +11,12 @@ namespace Happy_Reader.View
 	/// </summary>
 	public partial class NotificationWindow : Window
 	{
-		private NotificationWindow(string title, string message)
+		private NotificationWindow(string title, Paragraph message)
 		{
 			InitializeComponent();
 			TitleRun.Text = title;
-			MessageRun.Text = message;
+			TextBox.Document.Blocks.Clear();
+			TextBox.Document.Blocks.Add(message);
 			Topmost = true;
 			Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(() =>
 			{
@@ -39,9 +42,13 @@ namespace Happy_Reader.View
 			}));
 		}
 
+		public static void Launch(Log log)
+		{
+			Application.Current.Dispatcher.BeginInvoke(() => new NotificationWindow(log.Kind.ToString(), log.GetParagraph()).Show());
+		}
 		public static void Launch(string title, string message)
 		{
-			Application.Current.Dispatcher.BeginInvoke(() => new NotificationWindow(title, message).Show());
+			Application.Current.Dispatcher.BeginInvoke(() => new NotificationWindow(title, new Paragraph(new Run(message))).Show());
 		}
 
 		private void Timeline_OnCompleted(object sender, EventArgs e) => Close();

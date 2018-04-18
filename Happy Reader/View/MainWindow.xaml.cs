@@ -36,7 +36,7 @@ namespace Happy_Reader.View
 			DataContext = _viewModel;
 			CreateNotifyIcon();
 			_viewModel.NotificationEvent += ShowNotification;
-			Log.NotificationEvent += ShowNotification;
+			Log.NotificationEvent += ShowLogNotification;
 		}
 
 		private void CreateNotifyIcon()
@@ -93,9 +93,15 @@ namespace Happy_Reader.View
 			_viewModel.DebugButton();
 		}
 
+		public void ShowLogNotification([NotNull]Log message)
+		{
+			Console.WriteLine($"Notification - {message.Kind} - {message}");
+			NotificationWindow.Launch(message);
+		}
+
 		public void ShowNotification(object sender, [NotNull]string message, string title = "Notification")
 		{
-			Console.WriteLine($"Log - {title} - {message}");
+			Console.WriteLine($"Notification - {title} - {message}");
 			NotificationWindow.Launch(title, message);
 		}
 

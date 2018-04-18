@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Text;
+using System.Windows.Documents;
+using System.Windows.Media;
 
 namespace Happy_Reader.Database
 {
@@ -21,7 +24,9 @@ namespace Happy_Reader.Database
 		public object ParsedData { get; set; }
 		public DateTime Timestamp { get; set; }
 
-		public static event StaticMethods.NotificationEventHandler NotificationEvent;
+		public delegate void LogNotificationEventHandler(Log log);
+
+		public static event LogNotificationEventHandler NotificationEvent;
 
 		public Log(LogKind kind, long associatedId, string serializedData, object data) : this()
 		{
@@ -33,14 +38,14 @@ namespace Happy_Reader.Database
 
 		public void Notify()
 		{
-			NotificationEvent?.Invoke(this, GetMessage(), Kind.ToString());
+			NotificationEvent?.Invoke(this);
 		}
 
 		public static Log NewTimePlayedLog(long usergameId, TimeSpan timePlayed, bool notify)
 		{
 			var log = new Log(LogKind.TimePlayed, usergameId, timePlayed.ToString(), timePlayed);
 			if (notify) log.Notify();
-			else Debug.WriteLine(log.GetMessage());
+			else Debug.WriteLine(log);
 			return log;
 		}
 
@@ -51,28 +56,70 @@ namespace Happy_Reader.Database
 			return log;
 		}
 
-		public string GetMessage()
+		public Paragraph GetParagraph()
 		{
+			var paragraph = new Paragraph();
 			switch (Kind)
 			{
 				case LogKind.TimePlayed:
 					var userGame1 = StaticMethods.Data.UserGames.FirstOrDefault(g => g.Id == AssociatedId);
-					return $"Played {userGame1?.DisplayName ?? $"Unknown UserGame ID {AssociatedId}"} for {((TimeSpan)ParsedData).ToHumanReadable()}";
+					paragraph.Inlines.Add("Played ");
+					paragraph.Inlines.Add(new Run(userGame1?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame") { Foreground = Brushes.Green });
+					paragraph.Inlines.Add($" for {((TimeSpan)ParsedData).ToHumanReadable()}.");
+					break;
 				case LogKind.StartedPlaying:
 					var userGame2 = StaticMethods.Data.UserGames.FirstOrDefault(g => g.Id == AssociatedId);
-					return $"Started playing {userGame2?.DisplayName ?? $"Unknown UserGame ID {AssociatedId}"} at {((DateTime)ParsedData).ToLongTimeString()}";
+					paragraph.Inlines.Add("Started playing ");
+					paragraph.Inlines.Add(new Run(userGame2?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame") { Foreground = Brushes.Green });
+					paragraph.Inlines.Add($" at {((DateTime)ParsedData).ToLongTimeString()}");
+					break;
 				case LogKind.Simple:
-					return Data;
+					paragraph.Inlines.Add(new Run(Data));
+					break;
+				default:
+					paragraph.Inlines.Add($"[{Kind}] Unknown Kind - ");
+					paragraph.Inlines.Add(new Run($"AssociatedId {AssociatedId}") { Foreground = Brushes.Green });
+					paragraph.Inlines.Add($" - Data {Data}");
+					break;
 			}
-			return $"Unknown Kind {Kind} - AssociatedId {AssociatedId} - Data {Data}";
+			return paragraph;
 		}
-		
+
 
 		public static Log NewSimpleLog(string message)
 		{
 			var log = new Log(LogKind.Simple, 0, message, message);
 			log.Notify();
 			return log;
+		}
+
+		public override string ToString()
+		{
+			var sb = new StringBuilder();
+			switch (Kind)
+			{
+				case LogKind.TimePlayed:
+					var userGame1 = StaticMethods.Data.UserGames.FirstOrDefault(g => g.Id == AssociatedId);
+					sb.Append("Played ");
+					sb.Append(userGame1?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame");
+					sb.Append($" for {((TimeSpan)ParsedData).ToHumanReadable()}.");
+					break;
+				case LogKind.StartedPlaying:
+					var userGame2 = StaticMethods.Data.UserGames.FirstOrDefault(g => g.Id == AssociatedId);
+					sb.Append("Started playing ");
+					sb.Append(userGame2?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame");
+					sb.Append($" at {((DateTime)ParsedData).ToLongTimeString()}");
+					break;
+				case LogKind.Simple:
+					sb.Append(new Run(Data));
+					break;
+				default:
+					sb.Append($"[{Kind}] Unknown Kind - ");
+					sb.Append($"AssociatedId {AssociatedId}");
+					sb.Append($" - Data {Data}");
+					break;
+			}
+			return sb.ToString();
 		}
 	}
 

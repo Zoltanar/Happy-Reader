@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -22,6 +23,7 @@ namespace Happy_Reader.View.Tabs
 
 		private void FiltersTab_OnLoaded(object sender, RoutedEventArgs e)
 		{
+			if (DesignerProperties.GetIsInDesignMode(this)) return;
 			_viewModel = (FiltersViewModel)DataContext;
 		}
 

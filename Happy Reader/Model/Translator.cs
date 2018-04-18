@@ -31,7 +31,7 @@ namespace Happy_Reader
 
 		public Translator(HappyReaderDatabase data) => _data = data;
 
-		public void SetCache() => GoogleTranslate.Initialize(_data.CachedTranslations.AsNoTracking().ToDictionary(x=>x.Input),_data.CachedTranslations.Local, Kakasi.JapaneseToRomaji);
+		public void SetCache() => GoogleTranslate.Initialize(_data.CachedTranslations.AsNoTracking().ToDictionary(x => x.Input), _data.CachedTranslations.Local, Kakasi.JapaneseToRomaji);
 
 		public Translation Translate(User user, ListedVN game, string input)
 		{
@@ -122,7 +122,7 @@ namespace Happy_Reader
 				if (entry.Regex) LogReplaceRegex(sb, entry.Input, entry.Output, entry.Id);
 				else LogReplace(sb, entry.Input, entry.Output, entry.Id);
 			}
-            StaticHelpers.Logger.Verbose($"Stage 2: {sb}");
+			StaticHelpers.Logger.Verbose($"Stage 2: {sb}");
 		}
 
 		/// <summary>
@@ -131,7 +131,7 @@ namespace Happy_Reader
 		private void TranslateStageThree(StringBuilder sb)
 		{
 			foreach (var entry in _entries.Where(i => i.Type == EntryType.Yomi)) LogReplace(sb, entry.Input, entry.Output, entry.Id);
-            StaticHelpers.Logger.Verbose($"Stage 3: {sb}");
+			StaticHelpers.Logger.Verbose($"Stage 3: {sb}");
 		}
 
 		public string ReplaceNames(string original)
@@ -150,6 +150,62 @@ namespace Happy_Reader
 		private IEnumerable<Entry> TranslateStageFour(StringBuilder sb, HappyReaderDatabase data)
 		{
 			var roles = _entries.Select(z => z.RoleString).Distinct().ToArray();
+			var proxies = BuildProxiesList(data, roles);
+			var entriesWithProxiesArray = _entries.Where(i => i.Type == EntryType.Name || i.Type == EntryType.Translation).OrderByDescending(x => x.Input.Length).ToArray();
+			var usefulEntriesWithProxies = entriesWithProxiesArray.OrderByDescending(x => x.Input.Length).ToList();
+			//remove unused entries
+			foreach (var entry in entriesWithProxiesArray)
+			{
+				var indexOfEntry = sb.ToString().IndexOf(entry.Input, StringComparison.Ordinal);
+				if (indexOfEntry < 0)
+				{
+					usefulEntriesWithProxies.Remove(entry);
+					continue;
+				}
+				entry.Location = indexOfEntry;
+			}
+			if (usefulEntriesWithProxies.Count == 0) return usefulEntriesWithProxies;
+			usefulEntriesWithProxies = usefulEntriesWithProxies.OrderBy(x => x.Location).ToList();
+			//merge entries that are together
+			var entriesToRemove = new List<Entry>();
+			var entriesToAdd = new List<Entry>();
+			for (var index = 1; index < usefulEntriesWithProxies.Count; index++)
+			{
+				var previousEntry = usefulEntriesWithProxies[index - 1];
+				var entry = usefulEntriesWithProxies[index];
+				if (previousEntry.Location + previousEntry.Input.Length != entry.Location) continue;
+				//merge entries next to each other
+				var mergedEntry = new Entry
+				{
+					Input = $"{previousEntry.Input}{entry.Input}",
+					Output = $"{previousEntry.Output} {entry.Output}",
+					RoleString = "m"
+				};
+				entriesToAdd.Add(mergedEntry);
+				entriesToRemove.Add(previousEntry);
+				entriesToRemove.Add(entry);
+			}
+			foreach (var entry in entriesToRemove) usefulEntriesWithProxies.Remove(entry);
+			foreach (var entry in entriesToAdd) usefulEntriesWithProxies.Add(entry);
+			foreach (var entry in usefulEntriesWithProxies)
+			{
+				AssignProxy(proxies, entry);
+				LogReplace(sb, entry.Input, entry.AssignedProxy.FullRoleString, entry.Id);
+			}
+			StaticHelpers.Logger.Verbose($"Stage 4.0: {sb}");
+			//perform replaces involving proxies
+			var entriesOnProxies = _entries.Where(i => i.Type == EntryType.ProxyMod).ToArray();
+			TranslateStage4P1(sb, usefulEntriesWithProxies, entriesOnProxies);
+			foreach (var entry in usefulEntriesWithProxies)
+			{
+				LogReplace(sb, entry.AssignedProxy.FullRoleString, entry.AssignedProxy.Entry.Input, entry.Id);
+			}
+			StaticHelpers.Logger.Verbose($"Stage 4.2: {sb}");
+			return usefulEntriesWithProxies;
+		}
+
+		private Dictionary<string, ProxiesWithCount> BuildProxiesList(HappyReaderDatabase data, string[] roles)
+		{
 			var proxies = new Dictionary<string, ProxiesWithCount>();
 			foreach (var role in roles)
 			{
@@ -165,39 +221,21 @@ namespace Happy_Reader
 				}
 				else proxies.Add(role, new ProxiesWithCount(roleProxies.Select(roleProxy => new RoleProxy { Role = role, Entry = roleProxy })));
 			}
-			var entriesWithProxiesArray = _entries.Where(i => (i.Type == EntryType.Name || i.Type == EntryType.Translation) && !i.Input.Contains("[[")).OrderByDescending(x => x.Input.Length).ToArray();
-			var usefulEntriesWithProxies = entriesWithProxiesArray.OrderByDescending(x => x.Input.Length).ToList();
-			//replace these with initial proxies
-			foreach (var entry in entriesWithProxiesArray)
+			return proxies;
+		}
+
+		private void AssignProxy(Dictionary<string, ProxiesWithCount> proxies, Entry entry)
+		{
+			var proxy = proxies[entry.RoleString].Proxies.Count == 0 ? null : proxies[entry.RoleString].Proxies.Dequeue();
+			proxies[entry.RoleString].Count++;
+			if (proxy == null)
 			{
-				if (!sb.ToString().Contains(entry.Input))
-				{
-					usefulEntriesWithProxies.Remove(entry);
-					continue;
-				}
-				var roleString = entry.RoleString ?? (entry.Type == EntryType.Name ? "m" : "n");
-				var proxy = proxies[roleString].Proxies.Count == 0 ? null : proxies[roleString].Proxies.Dequeue();
-				proxies[roleString].Count++;
-				if (proxy == null)
-				{
-					StaticHelpers.Logger.ToFile("No proxy available, stopping translate.");
-					throw new Exception("Error - no proxy available.");
-				}
-				proxy.FullRoleString = $"[[{roleString}#{proxies[roleString].Count}]]";
-				proxy.Id = proxies[roleString].Count;
-				entry.AssignedProxy = proxy;
-				LogReplace(sb, entry.Input, entry.AssignedProxy.FullRoleString, entry.Id);
+				StaticHelpers.Logger.ToFile("No proxy available, stopping translate.");
+				throw new Exception("Error - no proxy available.");
 			}
-			StaticHelpers.Logger.Verbose($"Stage 4.0: {sb}");
-			//perform replaces involving proxies
-			var entriesOnProxies = _entries.Where(i => i.Type == EntryType.ProxyMod).ToArray();
-			TranslateStage4P1(sb, usefulEntriesWithProxies, entriesOnProxies);
-			foreach (var entry in usefulEntriesWithProxies)
-			{
-				LogReplace(sb, entry.AssignedProxy.FullRoleString, entry.AssignedProxy.Entry.Input, entry.Id);
-			}
-			StaticHelpers.Logger.Verbose($"Stage 4.2: {sb}");
-			return usefulEntriesWithProxies;
+			proxy.FullRoleString = $"[[{entry.RoleString}#{proxies[entry.RoleString].Count}]]";
+			proxy.Id = proxies[entry.RoleString].Count;
+			entry.AssignedProxy = proxy;
 		}
 
 		private void TranslateStage4P1(StringBuilder sb, IReadOnlyCollection<Entry> entriesWithProxies, IEnumerable<Entry> entriesOnProxies)
@@ -205,7 +243,7 @@ namespace Happy_Reader
 			foreach (var entry in entriesOnProxies)
 			{
 				var input = Regex.Replace(entry.Input, @"\[\[(.+?)]]", @"\[\[$1#(\d+)]]");
-				var matches = Regex.Matches(sb.ToString(), input).Cast<Match>().Select(x=>Int32.Parse(x.Groups[1].Value)).Distinct();
+				var matches = Regex.Matches(sb.ToString(), input).Cast<Match>().Select(x => Int32.Parse(x.Groups[1].Value)).Distinct();
 				foreach (int match in matches)
 				{
 					entriesWithProxies.Single(x => x.AssignedProxy.Id == match).AssignedProxy.ProxyMods.Add(entry);
@@ -242,7 +280,7 @@ namespace Happy_Reader
 			}
 			var sb = new StringBuilder(input);
 			//process in stages
-            StaticHelpers.Logger.Verbose($"Stage 0: {sb}");
+			StaticHelpers.Logger.Verbose($"Stage 0: {sb}");
 			result[0] = sb.ToString();
 			TranslateStageOne(sb);
 			result[1] = sb.ToString();
@@ -261,7 +299,7 @@ namespace Happy_Reader
 			}
 			result[4] = sb.ToString();
 			GoogleTranslate.Translate(sb);
-            StaticHelpers.Logger.Verbose($"Stage 5: {sb}");
+			StaticHelpers.Logger.Verbose($"Stage 5: {sb}");
 			result[5] = sb.ToString();
 			TranslateStageSix(sb, usefulEntriesWithProxies);
 			result[6] = sb.ToString();
@@ -285,7 +323,7 @@ namespace Happy_Reader
 				}
 				LogReplace(sb, entry.AssignedProxy.FullRoleString, entry.Output, entry.Id);
 			}
-            StaticHelpers.Logger.Verbose($"Stage 6: {sb}");
+			StaticHelpers.Logger.Verbose($"Stage 6: {sb}");
 		}
 
 		/// <summary>
@@ -295,20 +333,21 @@ namespace Happy_Reader
 		{
 			foreach (var entry in _entries.Where(i => i.Type == EntryType.Output && !i.Regex)) LogReplace(sb, entry.Input, entry.Output, entry.Id);
 			foreach (var entry in _entries.Where(i => i.Type == EntryType.Output && i.Regex)) LogReplaceRegex(sb, entry.Input, entry.Output, entry.Id);
-            StaticHelpers.Logger.Verbose($"Stage 7: {sb}");
+			StaticHelpers.Logger.Verbose($"Stage 7: {sb}");
 		}
-		
+
 		private static string CheckRepeatedString(string text)
 		{
+			if (text.Length < 5) return text;
+			var evenCharacters = string.Join("", text.Where((x, i) => i % 2 == 0));
+			var oddCharacters = string.Join("", text.Where((x, i) => i % 2 == 1));
+			if (evenCharacters == oddCharacters) return evenCharacters;
 			//check if repeated after name
 			var firstBracket = text.IndexOfAny(new[] { '「', '『' });
-			if (firstBracket > 0)
-			{
-				var name = text.Substring(0, firstBracket);
-				var checkText = text.Substring(firstBracket);
-				return name + ReduceRepeatedString(checkText);
-			}
-			return ReduceRepeatedString(text);
+			if (firstBracket <= 0) return ReduceRepeatedString(text);
+			var name = text.Substring(0, firstBracket);
+			var checkText = text.Substring(firstBracket);
+			return name + ReduceRepeatedString(checkText);
 		}
 
 		private static string ReduceRepeatedString(string text)
@@ -319,7 +358,7 @@ namespace Happy_Reader
 			var p2 = text.Substring(halfLength);
 			return p1 == p2 ? p1 : text;
 		}
-		
+
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		// ReSharper disable once UnusedParameter.Local
 		private static void LogReplace(StringBuilder sb, string input, string output, long id)
@@ -355,7 +394,7 @@ namespace Happy_Reader
 			sb.Clear();
 			sb.Append(sbReplaced);
 		}
-		
+
 		private class ProxiesWithCount
 		{
 			public Queue<RoleProxy> Proxies { get; }

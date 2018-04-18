@@ -41,6 +41,11 @@ namespace Happy_Reader.Database
 	    public User User => StaticHelpers.LocalDatabase.LocalUsers.FirstOrDefault(x => x.Id == UserId);
 		[NotMapped]
         public RoleProxy AssignedProxy { get; set; }
+		/// <summary>
+		/// Location in string
+		/// </summary>
+		[NotMapped]
+	    public int Location { get; set; }
 
 	    public event PropertyChangedEventHandler PropertyChanged;
 
@@ -58,5 +63,7 @@ namespace Happy_Reader.Database
 		    Output = output;
 		    Type = EntryType.Name;
 	    }
+
+	    public override string ToString() => $"[{Id}] {Input} > {Output}";
     }
 }

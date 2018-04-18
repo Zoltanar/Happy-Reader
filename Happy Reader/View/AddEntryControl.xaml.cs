@@ -54,6 +54,7 @@ namespace Happy_Reader.View
         private bool ValidateEntry()
         {
 	        if (_entry.Output == null) _entry.Output = string.Empty;
+	        if (string.IsNullOrWhiteSpace(_entry.RoleString) && _entry.Type == EntryType.Name) _entry.RoleString = "m";
             if (_entryAlreadyAdded)
             {
                 ResponseLabel.Content = @"Entry was already added.";
