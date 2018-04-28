@@ -40,6 +40,12 @@ namespace Happy_Reader
 			}
 		}
 
+		public static string GetLocalizedTime(this DateTime dateTime)
+		{
+			bool isAmPm = GSettings.CultureInfo.DateTimeFormat.AMDesignator != string.Empty;
+			return dateTime.ToString(isAmPm ? "hh:mm tt" : "HH:mm",GSettings.CultureInfo);
+		}
+
 		public static Process StartProcess(string executablePath)
 		{
 			var processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(executablePath));

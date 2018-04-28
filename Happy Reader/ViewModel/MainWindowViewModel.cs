@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data.Entity;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -33,18 +35,17 @@ namespace Happy_Reader.ViewModel
 		private readonly RecentStringList _vndbResponsesList = new RecentStringList(50);
 		private MultiLogger Logger => Happy_Apps_Core.StaticHelpers.Logger;
 
-		private readonly OutputWindow _outputWindow;
+		public readonly OutputWindow OutputWindow;
 		private string _statusText;
 		private bool _onlyGameEntries;
 		private bool _captureClipboard;
-		private Process _hookedProcess;
 		public ClipboardManager ClipboardManager;
 		private Thread _monitor;
 		private DateTime _lastUpdateTime = DateTime.MinValue;
 		private string _lastUpdateText;
 		private User _user;
 		private UserGame _userGame;
-		private bool _translateOn = true;
+		private bool _translatePaused;
 		private bool _loadingComplete;
 		private bool _closing;
 		private bool _finalizing;
@@ -89,21 +90,20 @@ namespace Happy_Reader.ViewModel
 		public FiltersViewModel FiltersViewModel { get; }
 		public IthViewModel IthViewModel { get; }
 
-		public bool TranslateOn
+		public bool TranslatePaused
 		{
-			get => _translateOn;
+			get => _translatePaused;
 			set
 			{
-				_translateOn = value;
-				if (GSettings.PauseIthVnrAndTranslate)
-				{
-					IthViewModel.HookManager.Paused = !value;
-					IthViewModel.OnPropertyChanged(nameof(IthViewModel.HookManager));
-				}
+				_translatePaused = value;
+				IthViewModel.HookManager.Paused = value;
+				((OutputWindowViewModel)OutputWindow.DataContext).OnPropertyChanged(nameof(OutputWindowViewModel.TranslatePaused));
+				IthViewModel.OnPropertyChanged(null);
 			}
 		}
 
 		public PausableUpdateList<DisplayEntry> EntriesList { get; } = new PausableUpdateList<DisplayEntry>();
+		public PausableUpdateList<DisplayLog> LogsList { get; } = new PausableUpdateList<DisplayLog>();
 		public ObservableCollection<UserGameTile> UserGameItems { get; } = new ObservableCollection<UserGameTile>();
 		public string DisplayUser => "User: " + (User?.ToString() ?? "(none)");
 		public string DisplayGame => "Game: " + (UserGame?.ToString() ?? "(none)");
@@ -126,6 +126,8 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 
+		public CultureInfo[] Cultures { get; } = CultureInfo.GetCultures(CultureTypes.InstalledWin32Cultures);
+
 		public MainWindowViewModel(MainWindow mainWindow)
 		{
 			Application.Current.Exit += ExitProcedures;
@@ -138,7 +140,17 @@ namespace Happy_Reader.ViewModel
 			DatabaseViewModel = new VNTabViewModel(this, FiltersViewModel.Filters, FiltersViewModel.PermanentFilter);
 			IthViewModel = new IthViewModel(this);
 			OnPropertyChanged(nameof(VndbQueries));
-			_outputWindow = new OutputWindow(mainWindow);
+			OutputWindow = new OutputWindow(mainWindow);
+			Log.AddToList += AddLogToList;
+		}
+
+		private void AddLogToList(Log log)
+		{
+			Application.Current.Dispatcher.Invoke(() =>
+			{
+				LogsList.Add(new DisplayLog(log));
+				OnPropertyChanged(nameof(LogsList));
+			});
 		}
 
 		public void SetEntries()
@@ -168,7 +180,7 @@ namespace Happy_Reader.ViewModel
 			try
 			{
 				_closing = true;
-				_outputWindow?.Close();
+				OutputWindow?.Close();
 				UserGame?.SaveTimePlayed(false);
 				StaticMethods.ExitTranslation();
 				_monitor?.Join();
@@ -229,6 +241,8 @@ namespace Happy_Reader.ViewModel
 			});
 			StatusText = "Loading User Games...";
 			LoadUserGames();
+			LoadLogs();
+			SetLastPlayed();
 			defaultUserGameGrouping(null, null);
 			TestViewModel.Initialize();
 			OnPropertyChanged(nameof(TestViewModel));
@@ -240,6 +254,7 @@ namespace Happy_Reader.ViewModel
 			StatusText = "Loading complete.";
 			NotificationEvent(this, $"Took {watch.Elapsed.ToSeconds()}.", "Loading Complete");
 		}
+
 
 		public void LoadUserGames()
 		{
@@ -253,7 +268,25 @@ namespace Happy_Reader.ViewModel
 			foreach (var game in StaticMethods.Data.UserGames.Local.OrderBy(x => x.VNID ?? 0)) { UserGameItems.Add(new UserGameTile(game)); }
 			OnPropertyChanged(nameof(UserGameItems));
 		}
+		public void LoadLogs()
+		{
+			StaticMethods.Data.Logs.Load();
+			LogsList.AddRange(StaticMethods.Data.Logs.Local.Select(x=>new DisplayLog(x)));
+			OnPropertyChanged(nameof(LogsList));
+		}
 
+		private void SetLastPlayed()
+		{
+			var lastPlayed = StaticMethods.Data.Logs.Local.Where(x => x.Kind == LogKind.TimePlayed).OrderByDescending(x => x.Timestamp).Select(x => x.AssociatedId).Distinct().GetEnumerator();
+			var ids = new List<long>();
+			while (ids.Count < 5 && lastPlayed.MoveNext())
+			{
+				var userGame = StaticMethods.Data.UserGames.First(x => x.Id == lastPlayed.Current);
+				if (userGame.VNID != null && File.Exists(userGame.FilePath)) ids.Add(userGame.Id);
+			}
+			lastPlayed.Dispose();
+			UserGame.LastGamesPlayed = ids.ToArray();
+		}
 		public async Task SetUser(int userid, bool newId)
 		{
 			CSettings.UserID = userid;
@@ -352,7 +385,7 @@ namespace Happy_Reader.ViewModel
 			}
 			finally
 			{
-				foreach (var process in processes) if (process != _hookedProcess) process.Dispose();
+				foreach (var process in processes) if (process != UserGame?.Process) process.Dispose();
 			}
 
 			return false;
@@ -371,11 +404,11 @@ namespace Happy_Reader.ViewModel
 
 		public void ClipboardChanged(object sender, EventArgs e)
 		{
-			if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl) || !TranslateOn) return;
-			if (_hookedProcess == null) return;
+			if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl) || TranslatePaused) return;
+			if (UserGame.Process == null) return;
 			var cpOwner = StaticMethods.GetClipboardOwner();
 			var b1 = cpOwner == null;
-			var b2 = cpOwner?.Id == _hookedProcess.Id;
+			var b2 = cpOwner?.Id == UserGame.Process.Id;
 			var b3 = cpOwner?.ProcessName.ToLower().Equals("ithvnr") ?? false;
 			var b4 = cpOwner?.ProcessName.ToLower().Equals("ithvnrsharp") ?? false;
 			if (!(b1 || b2 || b3 || b4)) return; //if process isn't hooked process or named ithvnr
@@ -394,14 +427,14 @@ namespace Happy_Reader.ViewModel
 			if (string.IsNullOrWhiteSpace(e.Text) || e.Text == "\r\n") return false;
 			try
 			{
-				if (!TranslateOn) return false;
+				if (TranslatePaused) return false;
 				Func<bool> blockTranslateFunc = () => Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl);
 				bool blockTranslate = DispatchIfRequired(blockTranslateFunc);
 				if (blockTranslate) return false;
 				Logger.Verbose($"{nameof(RunTranslation)} - {e}");
-				if (_hookedProcess == null) return false;
+				if (UserGame.Process == null) return false;
 				if ((sender as TextThread)?.IsConsole ?? false) return false;
-				var rect = StaticMethods.GetWindowDimensions(_hookedProcess);
+				var rect = StaticMethods.GetWindowDimensions(UserGame.Process);
 				if (rect.ZeroSized) return false; //todo show it somehow or show error.
 				var translation = Translator.Translate(User, UserGame?.VN, e.Text);
 				if (string.IsNullOrWhiteSpace(translation?.Output))
@@ -412,9 +445,7 @@ namespace Happy_Reader.ViewModel
 				Action postOutput = delegate
 				{
 					//IthViewModel.OnPropertyChanged(nameof(IthViewModel.SelectedTextThread));
-					if (!_outputWindow.IsVisible) _outputWindow.Show();
-					_outputWindow.SetLocation(rect.Left, rect.Bottom, rect.Width);
-					_outputWindow.AddTranslation(translation);
+					OutputWindow.AddTranslation(translation);
 				};
 				DispatchIfRequired(postOutput, new TimeSpan(0, 0, 5));
 			}
@@ -455,42 +486,77 @@ namespace Happy_Reader.ViewModel
 				UserGame = userGame;
 				if (process == null)
 				{
-					process = userGame.LaunchPath != null ? StaticMethods.StartProcessThroughProxy(userGame) : StaticMethods.StartProcess(userGame.FilePath);
+					process = UserGame.LaunchPath != null ? StaticMethods.StartProcessThroughProxy(UserGame) : StaticMethods.StartProcess(UserGame.FilePath);
 				}
-				if (userGame.ProcessName == null)
+				if (UserGame.ProcessName == null)
 				{
-					var game = StaticMethods.Data.UserGames.Single(x => x.Id == userGame.Id);
+					var game = StaticMethods.Data.UserGames.Single(x => x.Id == UserGame.Id);
 					game.ProcessName = process.ProcessName;
 					StaticMethods.Data.SaveChanges();
 				}
-				userGame.Process = process;
-				_hookedProcess = process;
-				_hookedProcess.EnableRaisingEvents = true;
-				_hookedProcess.Exited += HookedProcessOnExited;
-				TestViewModel.Game = userGame.VN;
-				if (!userGame.HookProcess) return;
+				UserGame.Process = process;
+				UserGame.Process.EnableRaisingEvents = true;
+				UserGame.Process.Exited += HookedProcessOnExited;
+				TestViewModel.Game = UserGame.VN;
+				if (!UserGame.HookProcess) return;
 				while (!_loadingComplete) Thread.Sleep(25);
-				IthViewModel.MergeByHookCode = userGame.MergeByHookCode;
-				IthViewModel.PrefEncoding = userGame.PrefEncoding;
-				IthViewModel.Commands?.ProcessCommand($"/P{_hookedProcess.Id}", 0);
-				if (!string.IsNullOrWhiteSpace(UserGame.HookCode)) IthViewModel.Commands?.ProcessCommand(UserGame.HookCode, _hookedProcess.Id);
+				OutputWindow.SetLocation(UserGame.OutputRectangle);
+				IthViewModel.MergeByHookCode = UserGame.MergeByHookCode;
+				IthViewModel.PrefEncoding = UserGame.PrefEncoding;
+				IthViewModel.Commands?.ProcessCommand($"/P{UserGame.Process.Id}", 0);
+				if (!string.IsNullOrWhiteSpace(UserGame.HookCode)) IthViewModel.Commands?.ProcessCommand(UserGame.HookCode, UserGame.Process.Id);
 			}
 		}
 
 		private void HookedProcessOnExited(object sender, EventArgs eventArgs)
 		{
-			Application.Current.Dispatcher.Invoke(() => _outputWindow.Hide());
+			UserGame.OutputRectangle = OutputWindow.GetRectangle();
+			Application.Current.Dispatcher.Invoke(() => OutputWindow.Hide());
 			UserGame = null;
+			GC.Collect();
 			//restart monitor
 			if (_monitor != null && _monitor.IsAlive) return;
 			_monitor = new Thread(MonitorStart) { IsBackground = true };
 			_monitor.Start();
 		}
 
+		private bool _debugStop;
+		private Thread _debugObject;
 		public void DebugButton()
 		{
+			//todo simulate repeated redrawing of outputwindow
+			if (_debugObject == null)
+			{
+				_debugStop = false;
+				_debugObject = new Thread(DebugThread);
+				_debugObject.Start();
+			}
+			else
+			{
+				_debugStop = true;
+				_debugObject.Join();
+				_debugObject = null;
+			}
+			//end
+			GC.Collect();
 			StaticMethods.Data.SaveChanges();
-			_outputWindow.Show();
+			OutputWindow.Show();
+		}
+
+		public void DebugThread()
+		{
+			var translation = Translator.Translate(User, UserGame?.VN, "じゃがいもはとっても美味しいですね？");
+			var translation2 = Translator.Translate(User, UserGame?.VN, "にくじゃがはとっても悪いです！");
+			int counter = 0;
+			while (true)
+			{
+				if (_debugStop) return;
+				var trans = (counter % 2 == 0 ? translation : translation2).Clone() as Translation;
+				DispatchIfRequired(()=>OutputWindow.AddTranslation(trans), new TimeSpan(0, 0, 5));
+				counter++;
+				if(counter % 50 == 0) Debug.WriteLine($"Debug Counter {counter}");
+				Thread.Sleep(100);
+			}
 		}
 
 		// ReSharper disable UnusedTupleComponentInReturnValue

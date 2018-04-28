@@ -11,6 +11,8 @@ namespace Happy_Reader
 	{
 		private static KakasiLib _kakasiJtk;
 		private static KakasiLib _kakasiJtr;
+		private static AppDomain _kakasiAppDomainJtr;
+		private static AppDomain _kakasiAppDomainJtk;
 		private static int _counter;
 
 		private static readonly string KakasiAssembly;
@@ -34,16 +36,18 @@ namespace Happy_Reader
 
 		static void LoadKakasiJtk()
 		{
-			var kakasiAppDomainJtk = AppDomain.CreateDomain($"KakasiJapToKana AD1 ");
-			_kakasiJtk = (KakasiLib)kakasiAppDomainJtk.CreateInstanceAndUnwrap(KakasiAssembly, typeof(KakasiLib).FullName);
+			if (_kakasiAppDomainJtk != null) AppDomain.Unload(_kakasiAppDomainJtk);
+			_kakasiAppDomainJtk = AppDomain.CreateDomain($"KakasiJapToKana AD1 ");
+			_kakasiJtk = (KakasiLib)_kakasiAppDomainJtk.CreateInstanceAndUnwrap(KakasiAssembly, typeof(KakasiLib).FullName);
 			_kakasiJtk.Init();
 			_kakasiJtk.SetParams(new string[] { "kakasi", "-ieuc", "-JH", "-s" });
 		}
 
 		static void LoadKakasiJtr()
 		{
-			var kakasiAppDomainJtr = AppDomain.CreateDomain($"KakasiJapToRomaji AD2 ");
-			_kakasiJtr = (KakasiLib)kakasiAppDomainJtr.CreateInstanceAndUnwrap(KakasiAssembly, typeof(KakasiLib).FullName);
+			if(_kakasiAppDomainJtr != null) AppDomain.Unload(_kakasiAppDomainJtr);
+			_kakasiAppDomainJtr = AppDomain.CreateDomain($"KakasiJapToRomaji AD2 ");
+			_kakasiJtr = (KakasiLib)_kakasiAppDomainJtr.CreateInstanceAndUnwrap(KakasiAssembly, typeof(KakasiLib).FullName);
 			_kakasiJtr.InitSpecific("libkakasi2.dll");
 			_kakasiJtr.SetParams(new string[] { "kakasi", "-ieuc", "-Ha", "-Ja", "-Ka", "-s" });
 		}

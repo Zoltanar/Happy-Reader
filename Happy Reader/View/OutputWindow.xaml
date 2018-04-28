@@ -73,11 +73,10 @@
             </Grid.ColumnDefinitions>
             <DockPanel Grid.Column="0" LastChildFill="True">
                 <Button DockPanel.Dock="Top" Content="Close" Click="CloseButton_Click" Height="22" Background="Transparent" BorderBrush="DarkRed" BorderThickness="2" Foreground="White" MouseLeftButtonDown="DragOnMouseButton" />
-                <CheckBox DockPanel.Dock="Top" Content="🔒 Lock" IsChecked="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=view:OutputWindow}, Path=LockOn}" Height="18" />
                 <CheckBox DockPanel.Dock="Top" Content="Fullscreen" IsChecked="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=view:OutputWindow}, Path=FullScreenOn}" />
                 <CheckBox DockPanel.Dock="Top" Content="Original" IsChecked="{Binding OriginalOn}" />
                 <CheckBox DockPanel.Dock="Top" Content="Romaji" IsChecked="{Binding RomajiOn}" />
-                <CheckBox DockPanel.Dock="Top" Content="On" IsChecked="{Binding TranslateOn}" />
+                <CheckBox DockPanel.Dock="Top" Content="Paused" IsChecked="{Binding TranslatePaused}" />
                 <ToggleButton DockPanel.Dock="Top" IsChecked="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=view:OutputWindow}, Path=SettingsOn}" Background="Transparent">
                     <TextBlock Text="Click To Toggle Settings" TextWrapping="Wrap" Foreground="White"   />
                 </ToggleButton>
@@ -95,5 +94,21 @@
                 <RotateTransform Angle="90"/>
             </Label.LayoutTransform>
         </Label>
+        <ResizeGrip x:Name="Resizer" Grid.Column="0" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="17"
+                PreviewMouseLeftButtonDown="Resizer_PreviewMouseLeftButtonDown" PreviewMouseMove="Resizer_PreviewMouseMove" PreviewMouseLeftButtonUp="Resizer_PreviewMouseLeftButtonUp">
+            <ResizeGrip.RenderTransform>
+                <RotateTransform Angle="180"/>
+            </ResizeGrip.RenderTransform>
+            <ResizeGrip.Style>
+                <Style TargetType="ResizeGrip">
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter  Property="Opacity" Value="1.0"/>
+                            <Setter Property="Cursor" Value="SizeNWSE"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </ResizeGrip.Style>
+        </ResizeGrip>
     </Grid>
 </Window>

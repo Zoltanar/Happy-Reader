@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
@@ -24,7 +25,7 @@ namespace Happy_Reader.Database
 	    private ListedVN _vn;
 	    private bool _vnGot;
 
-		public UserGame(string file, ListedVN vn)
+	    public UserGame(string file, ListedVN vn)
         {
             FilePath = file;
             VNID = vn?.VNID;
@@ -44,10 +45,25 @@ namespace Happy_Reader.Database
 	    public string DefaultHookFull { get; set; }
 		public bool MergeByHookCode { get; set; }
 	    public string ProcessName { get; set; }
+		/// <summary>
+		/// Store output window location and dimensions as a string in the 'form x,y,width,height' 
+		/// </summary>
+		public string OutputWindow { get; set; }
+	    [NotMapped]
+	    public Rectangle OutputRectangle
+	    {
+		    get
+		    {
+				if(string.IsNullOrEmpty(OutputWindow)) return new Rectangle(20,20,400,200);
+			    List<int> parts = OutputWindow.Split(',').Select(int.Parse).ToList();
+				return new Rectangle(parts[0],parts[1],parts[2],parts[3]);
+		    }
+		    set => OutputWindow = string.Join(",", value.X, value.Y, value.Width, value.Height);
+	    }
+
 	    // ReSharper disable once InconsistentNaming
-		public DateTime TimeOpenDT { get; set; }
+	    public DateTime TimeOpenDT { get; set; }
 		public EncodingEnum PrefEncodingEnum { get; set; }
-	    public bool IsRunning => _process != null;
 		[NotMapped]
         public TimeSpan TimeOpen
         {
@@ -136,7 +152,6 @@ namespace Happy_Reader.Database
 				PrefEncodingEnum = (EncodingEnum) index;
 			}
 	    }
-
 	    [NotMapped]
 	    public string MonthGroupingString
 	    {
@@ -164,11 +179,10 @@ namespace Happy_Reader.Database
 			    var newDt = new DateTime(dt.Year, dt.Month, DateTime.DaysInMonth(dt.Year, dt.Month));
 			    return newDt;
 		    }
-	    }
-
-	    public static long[] LastGamesPlayed = { };
-
-	    public event PropertyChangedEventHandler PropertyChanged;
+		}
+		[NotMapped]
+	    public bool IsRunning => _process != null;
+		public event PropertyChangedEventHandler PropertyChanged;
 
 		public void SaveTimePlayed(bool notify)
 	    {
@@ -227,7 +241,8 @@ namespace Happy_Reader.Database
 
 	    public override string ToString() => DisplayName;
 
-	    public static Encoding[] Encodings => IthVnrViewModel.Encodings;
+	    public static long[] LastGamesPlayed = { };
+		public static Encoding[] Encodings => IthVnrViewModel.Encodings;
 		public enum EncodingEnum
 	    {
 		    // ReSharper disable once InconsistentNaming

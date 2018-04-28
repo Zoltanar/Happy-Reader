@@ -50,7 +50,7 @@
             <Button Margin="5" Content="Turn Off" Click="FinalizeButton"/>
             <Button Margin="5" Content="Turn On"  Click="InitializeButton"/>
             <ToggleButton Margin="5" Content="Merge By Hook Code"  IsChecked="{Binding MergeByHookCode}"/>
-            <ToggleButton Margin="5" Content="Global Pause"        IsChecked="{Binding HookManager.Paused}" />
+            <ToggleButton Margin="5" Content="Global Pause"        IsChecked="{Binding Paused}" />
             <ToggleButton Margin="5" Content="Show Latest Thread"  IsChecked="{Binding HookManager.ShowLatestThread}" />
             <Button Margin="5" Content="Attach To Process" Click="OpenProcessExplorer"/>
             <Button Margin="5" Content="Clear Others"      Command="{Binding ClearOtherThreadsCommand}"/>

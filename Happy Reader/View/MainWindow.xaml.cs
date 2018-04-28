@@ -15,7 +15,6 @@ using Happy_Reader.View.Tabs;
 using Happy_Reader.View.Tiles;
 using Happy_Reader.ViewModel;
 using JetBrains.Annotations;
-using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 using NotifyIcon = System.Windows.Forms.NotifyIcon;
 using ToolStripMenuItem = System.Windows.Forms.ToolStripMenuItem;
 using ContextMenuStrip = System.Windows.Forms.ContextMenuStrip;
@@ -144,23 +143,6 @@ namespace Happy_Reader.View
 			tabItem.Focus();
 		}
 
-		private void ChangeIthPath(object sender, RoutedEventArgs e)
-		{
-			var dialog = new OpenFileDialog();
-			string directory = Path.GetDirectoryName(StaticHelpers.GSettings.IthPath);
-			while (!Directory.Exists(directory))
-			{
-				directory = directory == null ? Environment.CurrentDirectory : Directory.GetParent(directory).FullName;
-			}
-			dialog.InitialDirectory = directory;
-			var result = dialog.ShowDialog();
-			if (result ?? false)
-			{
-				IthPathBox.Text = dialog.FileName;
-				StaticHelpers.GSettings.IthPath = dialog.FileName;
-			}
-		}
-
 		private void SetClipboardSize(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
 		{
 			StaticHelpers.GSettings.MaxClipboardSize = (int)((Slider)e.Source).Value;
@@ -180,7 +162,6 @@ namespace Happy_Reader.View
 
 		private void GroupByMonth(object sender, RoutedEventArgs e)
 		{
-			SetLastPlayed();
 			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(_viewModel.UserGameItems);
 			PropertyGroupDescription groupDescription = new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.MonthGroupingString)}");
 			view.GroupDescriptions.Clear();
@@ -189,19 +170,7 @@ namespace Happy_Reader.View
 			view.SortDescriptions.Add(new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.MonthGrouping)}", ListSortDirection.Descending));
 		}
 
-		private void SetLastPlayed()
-		{
-			var logs = StaticMethods.Data.Logs.AsNoTracking().ToList();
-			var lastPlayed = logs.Where(x => x.Kind == LogKind.TimePlayed).OrderByDescending(x => x.Timestamp).Select(x => x.AssociatedId).Distinct().GetEnumerator();
-			List<long> ids = new List<long>();
-			while (ids.Count < 5 && lastPlayed.MoveNext())
-			{
-				var userGame = StaticMethods.Data.UserGames.First(x => x.Id == lastPlayed.Current);
-				if (File.Exists(userGame.FilePath)) ids.Add(userGame.Id);
-			}
-			lastPlayed.Dispose();
-			UserGame.LastGamesPlayed = ids.ToArray();
-		}
+		
 
 		private void ClickDeleteButton(object sender, RoutedEventArgs e)
 		{
@@ -239,5 +208,6 @@ namespace Happy_Reader.View
 			_finalized = true;
 			Close();
 		}
+
 	}
 }

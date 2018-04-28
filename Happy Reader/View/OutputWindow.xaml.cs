@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows;
 using System.Windows.Input;
 using Happy_Reader.ViewModel;
+using Point = System.Windows.Point;
 
 namespace Happy_Reader.View
 {
@@ -16,7 +18,6 @@ namespace Happy_Reader.View
 
 	    public bool SettingsOn { get; set; } = true;
 	    public bool FullScreenOn { get; set; }
-	    public bool LockOn { get; set; } = true;
 
 		public OutputWindow(MainWindow mainWindow)
         {
@@ -30,21 +31,23 @@ namespace Happy_Reader.View
 
 
 		public void AddTranslation(Translation translation)
-	    {
-		    _viewModel.AddTranslation(translation);
+		{
+			if (!IsVisible) Show();
+			_viewModel.AddTranslation(translation);
 			_viewModel.UpdateOutput();
             if (FullScreenOn) Activate();
         }
 
-        internal void SetLocation(int left, int bottom, int width)
+        internal void SetLocation(Rectangle rectangle)
         {
-            if (LockOn) return;
-            Left = left + 0.25 * width;
-            Top = bottom - Height;
-            Width = width * 0.5;
-        }
+            Left = rectangle.X;
+            Top = rectangle.Y;
+	        Width = rectangle.Width;
+	        Height = rectangle.Height;
+		}
 
-        private void DragOnMouseButton(object sender, MouseButtonEventArgs e)
+
+		private void DragOnMouseButton(object sender, MouseButtonEventArgs e)
         {
             try { DragMove(); }
             catch (InvalidOperationException) { }
@@ -73,5 +76,41 @@ namespace Happy_Reader.View
             SettingsColumn.Width = new GridLength(0);
             SettingsButton.Visibility = Visibility.Visible;
         }
-    }
+
+	    public Rectangle GetRectangle()
+	    {
+		    Rectangle result = default;
+			Application.Current.Dispatcher.Invoke(()=> result = new Rectangle((int)Left, (int)Top, (int)Width, (int)Height));
+		    return result;
+		}
+
+	    private bool _isResizing;
+	    private Point _startPosition;
+
+	    private void Resizer_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+	    {
+			if (!Mouse.Capture(Resizer)) return;
+			_isResizing = true;
+			_startPosition = Mouse.GetPosition(this);
+		}
+
+		private void Resizer_PreviewMouseMove(object sender, MouseEventArgs e)
+		{
+			if (!_isResizing) return;
+			Point currentPosition = Mouse.GetPosition(this);
+			double diffX = currentPosition.X - _startPosition.X;
+			double diffY = currentPosition.Y - _startPosition.Y;
+			Left += diffX;
+			Top += diffY;
+			Width -= diffX;
+			Height -= diffY;
+		}
+
+		private void Resizer_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+		{
+			if (!_isResizing) return;
+			_isResizing = false;
+			Mouse.Capture(null);
+		}
+	}
 }

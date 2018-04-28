@@ -40,14 +40,14 @@ namespace Happy_Reader.Database
 	    public int SaveChanges([CallerMemberName] string source = null)
 	    {
 			int result = base.SaveChanges();
-			Debug.WriteLine($"{nameof(HappyReaderDatabase)}.SaveChanges called by {source} - returned {result}");
+			Debug.WriteLine($"{System.DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.SaveChanges called by {source} - returned {result}");
 		    return result;
 	    }
 
 	    public async Task<int> SaveChangesAsync([CallerMemberName] string source = null)
 		{
 			int result = await base.SaveChangesAsync();
-			Debug.WriteLine($"{nameof(HappyReaderDatabase)}.SaveChangesAsync called by {source} - returned {result}");
+			Debug.WriteLine($"{System.DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.SaveChangesAsync called by {source} - returned {result}");
 		    return result;
 	    }
 	}

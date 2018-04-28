@@ -9,7 +9,7 @@ using Happy_Apps_Core;
 
 namespace Happy_Reader
 {
-	public class Translation
+	public class Translation : ICloneable
 	{
 		public static Translator Translator { get; set; }
 		internal readonly List<(string Part, bool Translate)> Parts = new List<(string Part, bool Translate)>();
@@ -33,16 +33,17 @@ namespace Happy_Reader
 			IsCharacterOnly = Original.IndexOfAny(new [] {'「','」'}) < 0 && Original.Length < 10;
 		}
 
-		private Translation(string original, string romaji, string results)
+		private Translation(string original, string romaji, string[] results)
 		{
 			Original = original;
 			Romaji = romaji;
 			for (int stage = 0; stage < Results.Length; stage++)
 			{
-				Results[stage] = results;
+				Results[stage] = results[stage];
 			}
 			IsCharacterOnly = Original.StartsWith("【") && Original.EndsWith("】") && Original.Length < 10;
 		}
+
 
 		public Translation(Translation first, Translation second)
 		{
@@ -66,7 +67,7 @@ namespace Happy_Reader
 						_partResults.Add(Enumerable.Repeat(part, 8).ToArray());
 						continue;
 					}
-					_partResults.Add(Translator.Translate(part));
+					_partResults.Add(Translator.TranslatePart(part));
 				}
 				for (int stage = 0; stage < 7; stage++)
 				{
@@ -123,13 +124,25 @@ namespace Happy_Reader
 				block.TextAlignment = TextAlignment.Center;
 				block.FontSize = fontSize;
 			}
-			blocks.Add(new Paragraph { FontSize = 6 });
+			var spacer = new Paragraph(new Run("￣￣￣"));
+			spacer.Inlines.FirstInline.Foreground = Brushes.White;
+			spacer.Margin = new Thickness(0);
+			spacer.TextAlignment = TextAlignment.Center;
+			spacer.FontSize = 3d;
+			spacer.Padding = new Thickness(0);
+			blocks.Add(spacer);
 			return blocks;
 		}
 
 		public static Translation Error(string error)
 		{
-			return new Translation(error, "", error);
+			return new Translation(error, "", Enumerable.Repeat(error,8).ToArray());
+		}
+
+		public object Clone()
+		{
+			//return MemberwiseClone();
+			return new Translation(Original,Romaji,Results);
 		}
 	}
 }

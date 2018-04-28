@@ -59,7 +59,7 @@ namespace Happy_Apps_Core
 		/// <param name="logDebug">Print to debug, true by default</param>
 		public void ToFile(string message, bool logDebug = true)
 		{
-			if (logDebug) Debug.Print(message);
+			if (logDebug) Debug.Print(TimeString + message);
 			int counter = 0;
 			while (IsFileLocked(new FileInfo(_logFile)))
 			{

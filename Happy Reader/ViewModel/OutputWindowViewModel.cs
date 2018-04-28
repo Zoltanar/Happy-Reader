@@ -24,10 +24,10 @@ namespace Happy_Reader.ViewModel
 		public MainWindow MainWindow { get; set; }
 		public MainWindowViewModel MainViewModel { get; set; }
 		public string IdText { get; set; }
-		public bool TranslateOn
+		public bool TranslatePaused
 		{
-			get => MainViewModel?.TranslateOn ?? true;
-			set => MainViewModel.TranslateOn = value;
+			get => MainViewModel?.TranslatePaused ?? false;
+			set => MainViewModel.TranslatePaused = value;
 		}
 		public bool OriginalOn
 		{
@@ -78,7 +78,7 @@ namespace Happy_Reader.ViewModel
 			TextArea = debugTextbox;
 			MainWindow = mainWindow;
 			MainViewModel = (MainWindowViewModel)mainWindow.DataContext;
-			OnPropertyChanged(nameof(TranslateOn));
+			OnPropertyChanged(nameof(TranslatePaused));
 		}
 
 		private void AddEntry()
@@ -90,11 +90,17 @@ namespace Happy_Reader.ViewModel
 			MainWindow.CreateAddEntryTab(new Entry(input, output) { SeriesSpecific = true });
 		}
 
+		private FlowDocument _flowDocument;
+
 		public void UpdateOutput()
 		{
-			var doc = new FlowDocument();
-			doc.Blocks.AddRange(_translations.Items.SelectMany(x => x.GetBlocks(_originalOn, _romajiOn)));
-			TextArea.Document = doc;
+			if (_flowDocument == null)
+			{
+				_flowDocument = new FlowDocument();
+				TextArea.Document = _flowDocument;
+			}
+			_flowDocument.Blocks.Clear();
+			_flowDocument.Blocks.AddRange(_translations.Items.SelectMany(x => x.GetBlocks(_originalOn, _romajiOn)));
 			IdText = $"TL Count: {_translationCounter}";
 			OnPropertyChanged(nameof(IdText));
 		}
@@ -127,7 +133,7 @@ namespace Happy_Reader.ViewModel
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		[NotifyPropertyChangedInvocator]
-		private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+		public void OnPropertyChanged([CallerMemberName] string propertyName = null)
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}

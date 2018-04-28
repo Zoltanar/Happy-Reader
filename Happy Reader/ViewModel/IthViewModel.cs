@@ -20,6 +20,7 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged();
 			}
 		}
+
 		public override Encoding PrefEncoding
 		{
 			get => SelectedTextThread?.PrefEncoding ?? Encoding.Unicode;
@@ -30,8 +31,15 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged();
 			}
 		}
+
 		public ICommand SetHookCodeCommand { get; }
 		public ICommand SetDefaultHookCommand { get; }
+
+		public bool Paused
+		{
+			get => _mainViewModel.TranslatePaused;
+			set => _mainViewModel.TranslatePaused = value;
+		}
 
 		public IthViewModel(MainWindowViewModel mainViewModel)
 		{

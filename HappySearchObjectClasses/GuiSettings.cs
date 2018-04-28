@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
+using Newtonsoft.Json;
 
 namespace Happy_Apps_Core
 {
@@ -9,15 +11,16 @@ namespace Happy_Apps_Core
         private bool _contentTags;
         private bool _sexualTags;
         private bool _technicalTags;
-        private string _ithPath;
+        private string _culture;
         private int _maxClipboardSize;
 	    private bool _captureClipboardOnStart;
-	    private bool _pauseIthVnrAndTranslate;
+	    private CultureInfo _cultureInfo = CultureInfo.DefaultThreadCurrentCulture;
 
 		public GuiSettings()
         {
-            MaxClipboardSize = 700;
-        }
+	        _maxClipboardSize = 700;
+	        _culture = CultureInfo.CurrentCulture.ToString();
+		}
 
         public bool NSFWImages
         {
@@ -74,18 +77,39 @@ namespace Happy_Apps_Core
             }
         }
 
-        public string IthPath
+        public string Culture
         {
-            get => _ithPath;
+            get => _culture;
             set
             {
-                if (_ithPath == value) return;
-                _ithPath = value;
-                if (Loaded) Save();
+                if (_culture == value || value == null) return;
+	            _culture = value;
+	            try
+	            {
+		            CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.GetCultureInfo(_culture);
+	            }
+	            catch (CultureNotFoundException)
+	            {
+					CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.DefaultThreadCurrentCulture;
+	            }
+	            CultureInfo = CultureInfo.DefaultThreadCurrentUICulture;
+				if (Loaded) Save();
             }
         }
 
-        public int MaxClipboardSize
+		[JsonIgnore]
+	    public CultureInfo CultureInfo
+	    {
+		    get => _cultureInfo;
+		    set
+			{
+				if (Equals(_cultureInfo, value)) return;
+				_cultureInfo = value;
+				Culture = _cultureInfo.ToString();
+			}
+	    }
+
+	    public int MaxClipboardSize
         {
             get => _maxClipboardSize;
             set
@@ -106,18 +130,7 @@ namespace Happy_Apps_Core
 			    if (Loaded) Save();
 		    }
 		}
-
-	    public bool PauseIthVnrAndTranslate
-	    {
-		    get => _pauseIthVnrAndTranslate;
-		    set
-		    {
-			    if (_pauseIthVnrAndTranslate == value) return;
-			    _pauseIthVnrAndTranslate = value;
-			    if (Loaded) Save();
-		    }
-	    }
-
+		
 		public HashSet<int> AlertTraitIDs { get; } = new HashSet<int>();
     }
 

@@ -21,7 +21,10 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Panel.ZIndex" Value="100"/>
                                 <Setter TargetName="Border" Property="Background" Value="AliceBlue" />
+                                <Setter TargetName="Border" Property="BorderThickness" Value="1" />
+                                <Setter TargetName="Border" Property="BorderBrush" Value="Black" />
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter Property="Panel.ZIndex" Value="100"/>
@@ -145,7 +148,6 @@
                                 <CheckBox Content="Show Technical Tags" IsChecked="{Binding GSettings.TechnicalTags}"/>
                                 <CheckBox Content="Show NSFW Images" IsChecked="{Binding GSettings.NSFWImages}"/>
                                 <CheckBox Content="Start Capturing Clipboard From Launch" IsChecked="{Binding GSettings.CaptureClipboardOnStart}"/>
-                                <CheckBox Content="Pause IthVnr when pausing Translation" IsChecked="{Binding GSettings.PauseIthVnrAndTranslate}"/>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="160"/>
@@ -159,13 +161,11 @@
                                 </Grid>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="57"/>
+                                        <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition/>
-                                        <ColumnDefinition Width="53"/>
                                     </Grid.ColumnDefinitions>
-                                    <Label Grid.Column="0" Content="ITH Path:"/>
-                                    <TextBox Grid.Column="1" x:Name="IthPathBox" Text="{Binding GSettings.IthPath}" Foreground="White" Style="{StaticResource NoBorderTextBox}"/>
-                                    <Button Grid.Column="2" Content="Change" Click="ChangeIthPath"/>
+                                    <Label Grid.Column="0" Content="Culture:"/>
+                                    <ComboBox Grid.Column="1" ItemsSource="{Binding Cultures}" SelectedItem="{Binding GSettings.CultureInfo}" Margin="5,0" />
                                 </Grid>
                             </StackPanel>
                         </GroupBox>
@@ -201,6 +201,10 @@
                         </ListBox>
                     </Grid>
                 </Grid>
+            </TabItem>
+
+            <TabItem Header="Logs">
+                    <DataGrid ItemsSource="{Binding LogsList}" AutoGenerateColumns="True" CanUserAddRows="False" />
             </TabItem>
         </TabControl>
         <Grid Grid.Row="1" Grid.Column="0" Background="LightSkyBlue" Height="20">

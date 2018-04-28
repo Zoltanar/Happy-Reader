@@ -254,7 +254,7 @@ namespace Happy_Reader
 			StaticHelpers.Logger.Verbose($"Stage 4.1: {sb}");
 		}
 
-		public string[] Translate(string input)
+		public string[] TranslatePart(string input)
 		{
 			var result = new string[8];
 			if (input.Length == 1)
@@ -273,10 +273,6 @@ namespace Happy_Reader
 					result[7] = romaji;
 					return result;
 				}
-			}
-			if (input.Length == 0)
-			{
-
 			}
 			var sb = new StringBuilder(input);
 			//process in stages
