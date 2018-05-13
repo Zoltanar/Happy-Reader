@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -170,7 +171,44 @@ namespace Happy_Reader.View
 			view.SortDescriptions.Add(new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.MonthGrouping)}", ListSortDirection.Descending));
 		}
 
-		
+		private void GroupByName(object sender, RoutedEventArgs e)
+		{
+			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(_viewModel.UserGameItems);
+			PropertyGroupDescription groupDescription = new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayNameGroup)}");
+			view.GroupDescriptions.Clear();
+			view.GroupDescriptions.Add(groupDescription);
+			view.SortDescriptions.Clear();
+			view.SortDescriptions.Add(new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayName)}", ListSortDirection.Ascending));
+		}
+
+		private void GroupByLastPlayed(object sender, RoutedEventArgs e)
+		{
+			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(_viewModel.UserGameItems);
+			PropertyGroupDescription groupDescription = new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.LastPlayedDate)}",new LastPlayedConvertor());
+			view.GroupDescriptions.Clear();
+			view.GroupDescriptions.Add(groupDescription);
+			view.SortDescriptions.Clear();
+			view.SortDescriptions.Add(new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.LastPlayedDate)}", ListSortDirection.Descending));
+		}
+
+		private class LastPlayedConvertor : IValueConverter
+		{
+			public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+			{
+				if (!(value is DateTime dt)) return value;
+				if (dt == DateTime.MinValue) return "Never";
+				var timeSince = DateTime.Now - dt;
+				if (timeSince.TotalDays < 3) return "Last 3 days";
+				if (timeSince.TotalDays < 7) return "Last week";
+				return timeSince.TotalDays < 30 ? "Last month" : "Earlier";
+			}
+
+			public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+			{
+				throw new NotImplementedException();
+			}
+		}
+
 
 		private void ClickDeleteButton(object sender, RoutedEventArgs e)
 		{

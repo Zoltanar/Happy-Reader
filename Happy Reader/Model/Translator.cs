@@ -35,6 +35,7 @@ namespace Happy_Reader
 
 		public Translation Translate(User user, ListedVN game, string input)
 		{
+			input = input.Replace("\r", "");
 			if (string.IsNullOrWhiteSpace(input)) return null;
 			if (input.Length > StaticHelpers.GSettings.MaxClipboardSize) return null; //todo report error
 			if (LatinOnlyRegex.IsMatch(input)) return null;

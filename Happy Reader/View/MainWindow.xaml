@@ -77,10 +77,12 @@
                     <Button Content="Debug"  Click="Debug_Button"  HorizontalAlignment="Left" Margin="10,0,0,10" Width="49" Height="38" VerticalAlignment="Bottom"/>
                     <Button Content="By Producer"  Click="GroupByProducer"  HorizontalAlignment="Left" Margin="192,0,0,11" Width="73" Height="38" VerticalAlignment="Bottom"/>
                     <Button Content="By Month"  Click="GroupByMonth"  HorizontalAlignment="Left" Margin="270,0,0,11" Width="73" Height="38" VerticalAlignment="Bottom"/>
+                    <Button Content="By Name"  Click="GroupByName"  HorizontalAlignment="Left" Margin="348,0,0,10" Width="73" Height="38" VerticalAlignment="Bottom"/>
+                    <Button Content="By Last Played"  Click="GroupByLastPlayed"  HorizontalAlignment="Left" Margin="426,0,0,10" Width="98" Height="38" VerticalAlignment="Bottom"/>
                     <CheckBox Content="Capture Clipboard" HorizontalAlignment="Left" Margin="64,0,0,10" Width="123" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="38" VerticalAlignment="Bottom"  IsChecked="{Binding CaptureClipboard}"/>
                 </Grid>
             </TabItem>
-            <TabItem Header="ITHVNR" >
+            <TabItem Header="ITHVNR">
                 <tabs:IthVnrTab DataContext="{Binding IthViewModel}"/>
             </TabItem>
             <TabItem Header="Entries">

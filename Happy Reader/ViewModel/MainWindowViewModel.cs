@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data.Entity;
@@ -84,11 +83,12 @@ namespace Happy_Reader.ViewModel
 		public GuiSettings GSettings => StaticMethods.GSettings;
 		public BindingList<string> VndbQueries { get; set; }
 		public BindingList<string> VndbResponses { get; set; }
-		public TranslationTester TestViewModel { get; }
-		public Translator Translator { get; }
-		public VNTabViewModel DatabaseViewModel { get; }
-		public FiltersViewModel FiltersViewModel { get; }
-		public IthViewModel IthViewModel { get; }
+
+		[NotNull] public TranslationTester TestViewModel { get; }
+		[NotNull] public Translator Translator { get; }
+		[NotNull] public VNTabViewModel DatabaseViewModel { get; }
+		[NotNull] public FiltersViewModel FiltersViewModel { get; }
+		[NotNull] public IthViewModel IthViewModel { get; }
 
 		public bool TranslatePaused
 		{
@@ -96,7 +96,7 @@ namespace Happy_Reader.ViewModel
 			set
 			{
 				_translatePaused = value;
-				IthViewModel.HookManager.Paused = value;
+				if(IthViewModel.HookManager != null) IthViewModel.HookManager.Paused = value;
 				((OutputWindowViewModel)OutputWindow.DataContext).OnPropertyChanged(nameof(OutputWindowViewModel.TranslatePaused));
 				IthViewModel.OnPropertyChanged(null);
 			}
@@ -277,15 +277,13 @@ namespace Happy_Reader.ViewModel
 
 		private void SetLastPlayed()
 		{
-			var lastPlayed = StaticMethods.Data.Logs.Local.Where(x => x.Kind == LogKind.TimePlayed).OrderByDescending(x => x.Timestamp).Select(x => x.AssociatedId).Distinct().GetEnumerator();
-			var ids = new List<long>();
-			while (ids.Count < 5 && lastPlayed.MoveNext())
+			var lastPlayed = StaticMethods.Data.Logs.Local.Where(x => x.Kind == LogKind.TimePlayed).OrderByDescending(x => x.Timestamp).GroupBy(z=>z.AssociatedId).Select(x => x.First()).ToList();
+			UserGame.LastGamesPlayed.Clear();
+			foreach (var log in lastPlayed)
 			{
-				var userGame = StaticMethods.Data.UserGames.First(x => x.Id == lastPlayed.Current);
-				if (userGame.VNID != null && File.Exists(userGame.FilePath)) ids.Add(userGame.Id);
+				var userGame = StaticMethods.Data.UserGames.FirstOrDefault(x => x.Id == log.AssociatedId);
+				if (userGame?.VNID != null && File.Exists(userGame.FilePath)) UserGame.LastGamesPlayed.Add(log.Timestamp, log.AssociatedId);
 			}
-			lastPlayed.Dispose();
-			UserGame.LastGamesPlayed = ids.ToArray();
 		}
 		public async Task SetUser(int userid, bool newId)
 		{
@@ -444,7 +442,6 @@ namespace Happy_Reader.ViewModel
 				}
 				Action postOutput = delegate
 				{
-					//IthViewModel.OnPropertyChanged(nameof(IthViewModel.SelectedTextThread));
 					OutputWindow.AddTranslation(translation);
 				};
 				DispatchIfRequired(postOutput, new TimeSpan(0, 0, 5));
