@@ -16,7 +16,7 @@ namespace Happy_Reader.ViewModel
 			set
 			{
 				_mainViewModel.UserGame.MergeByHookCode = value;
-				HookManager.MergeByHookCode = value;
+				if(HookManager != null) HookManager.MergeByHookCode = value;
 				OnPropertyChanged();
 			}
 		}

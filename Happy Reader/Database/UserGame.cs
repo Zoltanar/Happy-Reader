@@ -95,7 +95,7 @@ namespace Happy_Reader.Database
 			get => _process;
 			set
 			{
-				if (value == null) _process.Dispose();
+				if (value == null) _process?.Dispose();
 				_process = value;
 				OnPropertyChanged(nameof(IsRunning));
 				OnPropertyChanged(nameof(TimeOpen));
@@ -160,7 +160,7 @@ namespace Happy_Reader.Database
 			{
 				if (!File.Exists(FilePath)) return "File not found"; //DateTime.MinValue;
 				if (VN == null) return "Other"; //DateTime.MinValue.AddDays(1);
-				if (LastGamesPlayed.IndexOfValue(Id) > -1 && LastGamesPlayed.IndexOfValue(Id) < 5) return "Last Played";
+				if (LastGamesPlayed.IndexOfValue(Id)> LastGamesPlayed.Count - 6) return "Last Played";
 				var dt = VN.ReleaseDate;
 				var newDt = new DateTime(dt.Year, dt.Month, DateTime.DaysInMonth(dt.Year, dt.Month));
 				return string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:MMMM} {0:yyyy}", newDt);
@@ -176,7 +176,7 @@ namespace Happy_Reader.Database
 			{
 				if (!File.Exists(FilePath)) return DateTime.MinValue;
 				if (VN == null) return DateTime.MinValue.AddDays(1);
-				if (LastGamesPlayed.IndexOfValue(Id) > -1 && LastGamesPlayed.IndexOfValue(Id) < 5) return DateTime.MaxValue;
+				if (LastGamesPlayed.IndexOfValue(Id) > LastGamesPlayed.Count - 6) return DateTime.MaxValue;
 				var dt = VN.ReleaseDate;
 				var newDt = new DateTime(dt.Year, dt.Month, DateTime.DaysInMonth(dt.Year, dt.Month));
 				return newDt;

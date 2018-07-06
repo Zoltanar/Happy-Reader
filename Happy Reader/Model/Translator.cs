@@ -46,6 +46,7 @@ namespace Happy_Reader
 			{
 				if (user != _lastUser || game != _lastGame || RefreshEntries) SetEntries(user, game);
 				var item = new Translation(input);
+				input = item.Original;
 				int index = 0;
 				string currentPart = "";
 				while (index < input.Length)
