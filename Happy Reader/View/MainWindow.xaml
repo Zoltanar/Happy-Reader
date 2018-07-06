@@ -169,6 +169,18 @@
                                     <Label Grid.Column="0" Content="Culture:"/>
                                     <ComboBox Grid.Column="1" ItemsSource="{Binding Cultures}" SelectedItem="{Binding GSettings.CultureInfo}" Margin="5,0" />
                                 </Grid>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Grid.Column="0" Content="Google Translate Mode:"/>
+                                    <RadioButton Grid.Column="1" Content="Credential" Foreground="White" VerticalAlignment="Center"  IsChecked="{Binding GSettings.GoogleUseCredential, Converter={StaticResource RadioButtonCheckedConverter},
+    ConverterParameter={StaticResource True}}" />
+                                    <RadioButton Grid.Column="2" Content="Free" Foreground="White" VerticalAlignment="Center"  IsChecked="{Binding GSettings.GoogleUseCredential, Converter={StaticResource RadioButtonCheckedConverter},
+    ConverterParameter={StaticResource False}}" />
+                                </Grid>
                             </StackPanel>
                         </GroupBox>
                     </Grid>

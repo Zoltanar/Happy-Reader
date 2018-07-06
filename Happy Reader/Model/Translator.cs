@@ -296,7 +296,8 @@ namespace Happy_Reader
 				throw new Exception("Error in TranslateStageFour, see inner", ex);
 			}
 			result[4] = sb.ToString();
-			GoogleTranslate.Translate(sb);
+			if(StaticHelpers.GSettings.GoogleUseCredential) GoogleTranslate.Translate(sb);
+			else GoogleTranslate.TranslateFree(sb);
 			StaticHelpers.Logger.Verbose($"Stage 5: {sb}");
 			result[5] = sb.ToString();
 			TranslateStageSix(sb, usefulEntriesWithProxies);

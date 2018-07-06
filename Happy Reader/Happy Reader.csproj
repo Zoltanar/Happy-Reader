@@ -125,6 +125,7 @@
     <Compile Include="ViewModel\DisplayEntry.cs" />
     <Compile Include="ViewModel\DisplayLog.cs" />
     <Compile Include="ViewModel\FiltersViewModel.cs" />
+    <Compile Include="View\RadioButtonCheckedConverter.cs" />
     <Compile Include="View\Tabs\FiltersTab.xaml.cs">
       <DependentUpon>FiltersTab.xaml</DependentUpon>
     </Compile>

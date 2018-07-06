@@ -8,6 +8,7 @@ look at global hooks for managing infinite text, etc (https://github.com/gmamala
 better auto-add page on database tab (https://stackoverflow.com/questions/11187382/get-listview-visible-items)
 handle proxymods by order
 assign entry.location to merged proxy to allow for triple+ name
+allow user to choose location of google credential, currently C:\Google\hrtranslate-credential.json.
 
 great outstanding problems:
 can't show outputwindow on top of some fullscreen games, steals focus on games where it works

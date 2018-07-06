@@ -15,8 +15,9 @@ namespace Happy_Apps_Core
         private int _maxClipboardSize;
 	    private bool _captureClipboardOnStart;
 	    private CultureInfo _cultureInfo = CultureInfo.DefaultThreadCurrentCulture;
+	    private bool _googleUseCredential;
 
-		public GuiSettings()
+	    public GuiSettings()
         {
 	        _maxClipboardSize = 700;
 	        _culture = CultureInfo.CurrentCulture.ToString();
@@ -130,7 +131,17 @@ namespace Happy_Apps_Core
 			    if (Loaded) Save();
 		    }
 		}
-		
+
+	    public bool GoogleUseCredential
+	    {
+		    get => _googleUseCredential;
+		    set
+		    {
+			    if (_googleUseCredential == value) return;
+			    _googleUseCredential = value;
+			    if (Loaded) Save();
+		    }
+	    }
 		public HashSet<int> AlertTraitIDs { get; } = new HashSet<int>();
     }
 

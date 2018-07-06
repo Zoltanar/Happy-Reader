@@ -2,10 +2,14 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:happyReader="clr-namespace:Happy_Reader"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
              StartupUri="View/MainWindow.xaml" 
              ShutdownMode="OnMainWindowClose">
     <Application.Resources>
         <happyReader:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
+        <happyReader:RadioButtonCheckedConverter x:Key="RadioButtonCheckedConverter" />
+        <system:Boolean x:Key="True">True</system:Boolean>
+        <system:Boolean x:Key="False">False</system:Boolean>
         <Style x:Key="NoBorderTextBox" TargetType="TextBox">
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="IsReadOnly" Value="True"/>
