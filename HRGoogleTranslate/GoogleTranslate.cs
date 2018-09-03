@@ -143,17 +143,28 @@ namespace HRGoogleTranslate
 		        }
 	        }
 			LogVerbose($"HRTranslate.Google - Getting string from API, input: {input}");
-	        
-			var response = Client.TranslateText(input, "en", "ja", TranslationModel.Base);
-            GotFromAPICount++;
-            if (!string.IsNullOrWhiteSpace(response?.TranslatedText))
-            {
-                text.Append(response.TranslatedText);
-	            var translation = new GoogleTranslation(input, response.TranslatedText);
-	            _linkedCache.Add(translation);
-	            _cache[input] = translation;
-            }
-            else text.Append("Failed to translate");
+	        try
+	        {
+
+		        TranslationResult response = Client.TranslateText(input, "en", "ja", TranslationModel.Base);
+		        GotFromAPICount++;
+		        if (!string.IsNullOrWhiteSpace(response?.TranslatedText))
+		        {
+			        text.Append(response.TranslatedText);
+			        var translation = new GoogleTranslation(input, response.TranslatedText);
+			        _linkedCache.Add(translation);
+			        _cache[input] = translation;
+		        }
+		        else text.Append("Failed to translate");
+	        }
+	        catch (Google.GoogleApiException ex)
+	        {
+		        text.Append($"Failed: {ex.Error.Message}");
+	        }
+	        catch (Exception gex)
+			{
+				text.Append($"Failed: {gex.Message}");
+			}
 #endif
             }
 
