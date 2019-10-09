@@ -1,0 +1,54 @@
+﻿<UserControl x:Class="Happy_Reader.View.Tabs.ProducersTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             xmlns:database="clr-namespace:Happy_Apps_Core.Database;assembly=Happy_Apps_Core"
+             mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModel:ProducersTabViewModel}"
+             Loaded="ProducersTab_OnLoaded" d:DesignWidth="800" d:DesignHeight="600">
+	<UserControl.Resources>
+		<Style TargetType="Button">
+			<Setter Property="BorderThickness" Value="0"/>
+			<Setter Property="Background" Value="DarkSlateBlue"/>
+			<Setter Property="Foreground" Value="White"/>
+			<Setter Property="VerticalAlignment" Value="Stretch"/>
+		</Style>
+	</UserControl.Resources>
+	<Grid Background="#FFC9E1F5">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="30"/>
+			<RowDefinition Height="30"/>
+			<RowDefinition Height="30"/>
+		</Grid.RowDefinitions>
+		<DataGrid Grid.Row="0" x:Name="Producers" ItemsSource="{Binding ListedProducers}" ScrollViewer.ScrollChanged="ScrollViewer_OnScrollChanged" 
+		          AutoGenerateColumns="False"
+		           IsReadOnly="True">
+			<DataGrid.ItemContainerStyle>
+				<Style TargetType="{x:Type DataGridRow}">
+					<Style.Triggers>
+						<DataTrigger Binding="{Binding IsFavorited}" Value="True">
+							<Setter Property="Background" Value="LightGreen"/>
+						</DataTrigger>
+					</Style.Triggers>
+				</Style>
+			</DataGrid.ItemContainerStyle>
+			<DataGrid.Columns>
+				<DataGridTextColumn Header="ID" Binding="{Binding ID}" Width="Auto" />
+				<DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+				<DataGridTextColumn Header="Titles" Binding="{Binding NumberOfTitles}" Width="Auto"/>
+				<DataGridTextColumn Header="My Score" Binding="{Binding UserAverageVote, StringFormat=0.00}" Width="Auto" />
+				<DataGridTextColumn Header="Rating" Binding="{Binding GeneralRating, StringFormat=0.00}" Width="Auto" />
+				<DataGridTextColumn Header="Drop Rate" Binding="{Binding UserDropRate, StringFormat=P0}" Width="Auto"/>
+				<DataGridTextColumn Header="Updated" Binding="{Binding Updated, TargetNullValue={x:Static system:String.Empty}, StringFormat={}{0} days ago}" Width="Auto" />
+			</DataGrid.Columns>
+		</DataGrid>
+		<Label Content="Search:" HorizontalAlignment="Left" VerticalContentAlignment="Center" Grid.Row="1"/>
+		<TextBox x:Name="SearchTexBox" Margin="53,0,360,0" TextWrapping="Wrap" VerticalContentAlignment="Center" PreviewKeyUp="SearchForProducer" Height="30" VerticalAlignment="Stretch" Grid.Row="1"/>
+		<Button Content="Reset" HorizontalAlignment="Right" Margin="0,0,325,0" Width="30" Click="ShowAll" Grid.Row="1"/>
+		<Label Content="{Binding ListedProducers.Count}" ContentStringFormat="Items: {0}" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="119" Padding="0,5" Grid.Row="1" Height="30" VerticalAlignment="Center"/>
+		<Label Foreground="{Binding VndbConnectionColor}" Content="{Binding VndbConnectionReply}" Margin="331,0,0,0" VerticalAlignment="Stretch" VerticalContentAlignment="Center" Grid.Row="3"/>
+	</Grid>
+</UserControl>

@@ -45,6 +45,7 @@ namespace Happy_Apps_Core
 		/// <returns>If connection was ready</returns>
 		internal bool StartQuery(string featureName, bool refreshList, bool additionalMessage, bool ignoreDateLimit)
 		{
+			if (CSettings.UserID < 1) return false;
 			if (ActiveQuery != null && !ActiveQuery.Completed)
 			{
 				TextAction($"Wait until {ActiveQuery.ActionName} is done.", MessageSeverity.Error);
@@ -115,10 +116,11 @@ namespace Happy_Apps_Core
 		{
 			if (!updateAll)
 			{
-				int[] allVNIds = LocalDatabase.LocalVisualNovels.Select(x => x.VNID).ToArray();
-				int preCount = vnIDs.Count;
+				var allVNIds = new HashSet<int>(LocalDatabase.LocalVisualNovels.Select(x => x.VNID));
+				var preSkipped = new HashSet<int>(vnIDs);
+				preSkipped.IntersectWith(allVNIds);
 				vnIDs.ExceptWith(allVNIds);
-				ActiveQuery.AddTitlesSkipped((uint)(vnIDs.Count - preCount));
+				ActiveQuery.AddTitlesSkipped(preSkipped);
 			}
 			vnIDs.Remove(0);
 			if (!vnIDs.Any()) return;
@@ -139,6 +141,7 @@ namespace Happy_Apps_Core
 				try
 				{
 					LocalDatabase.SaveChanges();
+					ActiveQuery.RunActionOnAdd();
 				}
 				catch (Exception ex)
 				{
@@ -178,7 +181,7 @@ namespace Happy_Apps_Core
 						}
 						if (gpResult.Item2 != null) upsertProducers[relProducer.ID] = gpResult.Item2;
 					}
-					ActiveQuery.AddTitlesAdded();
+					ActiveQuery.AddTitleAdded(vnItem.ID);
 					upsertTitles.Add((vnItem, relProducer, languages));
 				}
 			}
@@ -248,20 +251,23 @@ namespace Happy_Apps_Core
 				queryResult = await TryQuery(FormatQuery(queryFormat, currentArray, pageNo), $"{nameof(GetCharacters)} Query Error");
 				if (!queryResult) return false;
 				charRoot = JsonConvert.DeserializeObject<ResultsRoot<CharacterItem>>(LastResponse.JsonPayload);
-				foreach (var character in charRoot.Items)
+				await Task.Run(() =>
 				{
-					if (LocalDatabase.UpsertSingleCharacter(character, false)) ActiveQuery.AddCharactersAdded();
-					else ActiveQuery.AddCharactersUpdated();
-				}
-				try
-				{
-					LocalDatabase.SaveChanges();
-				}
-				catch (Exception ex)
-				{
-					Logger.ToFile(ex);
-					throw;
-				}
+					foreach (var character in charRoot.Items)
+					{
+						if (LocalDatabase.UpsertSingleCharacter(character, false)) ActiveQuery.AddCharactersAdded();
+						else ActiveQuery.AddCharactersUpdated();
+					}
+					try
+					{
+						LocalDatabase.SaveChanges();
+					}
+					catch (Exception ex)
+					{
+						Logger.ToFile(ex);
+						throw;
+					}
+				});
 				moreResults = charRoot.More;
 				// ReSharper restore AccessToModifiedClosure
 				return true;
@@ -280,7 +286,7 @@ namespace Happy_Apps_Core
 			var relInfo = JsonConvert.DeserializeObject<ResultsRoot<ReleaseItem>>(LastResponse.JsonPayload);
 			List<ReleaseItem> releaseItems = relInfo.Items.Where(rel => !rel.Type.Equals("trial")).ToList();
 			if (!releaseItems.Any()) releaseItems = relInfo.Items;
-			releaseItems.Sort((x, y) => DateTime.Compare(StringToDate(x.Released), StringToDate(y.Released)));
+			releaseItems.Sort((x, y) => DateTime.Compare(StringToDate(x.Released, out _), StringToDate(y.Released, out _)));
 			return releaseItems;
 		}
 
@@ -421,6 +427,37 @@ namespace Happy_Apps_Core
 			}
 		}
 
+		/// <summary>
+		/// Get titles developed/published by producer.
+		/// </summary>
+		/// <param name="producer">Producer whose titles should be found</param>
+		/// <param name="updateAll">Should already known fetched titles be updated as well?</param>
+		private async Task GetProducerTitles(ListedProducer producer, bool updateAll)
+		{
+			Logger.ToFile(($"Starting {nameof(GetProducerTitles)} for Producer {producer.Name}"));
+			string prodReleaseQuery = $"get release vn (producer={producer.ID}) {{{MaxResultsString}}}";
+			var result = await TryQuery(prodReleaseQuery, Resources.upt_query_error);
+			if (!result) return;
+			var releaseRoot = JsonConvert.DeserializeObject<ResultsRoot<ReleaseItem>>(LastResponse.JsonPayload);
+			List<ReleaseItem> releaseItems = releaseRoot.Items;
+			List<int> producerVNList = releaseItems.SelectMany(item => item.VN.Select(x => x.ID)).ToList();
+			var moreResults = releaseRoot.More;
+			var pageNo = 1;
+			while (moreResults)
+			{
+				pageNo++;
+				string prodReleaseMoreQuery =
+						$"get release vn (producer={producer.ID}) {{{MaxResultsString}, \"page\":{pageNo}}}";
+				var moreResult = await TryQuery(prodReleaseMoreQuery, Resources.upt_query_error);
+				if (!moreResult) return;
+				releaseRoot = JsonConvert.DeserializeObject<ResultsRoot<ReleaseItem>>(LastResponse.JsonPayload);
+				releaseItems = releaseRoot.Items;
+				producerVNList.AddRange(releaseItems.SelectMany(item => item.VN.Select(x => x.ID)));
+				moreResults = releaseRoot.More;
+			}
+			await GetMultipleVN(new HashSet<int>(producerVNList), updateAll);
+		}
+
 		#endregion
 
 		#region Public Functions
@@ -429,43 +466,58 @@ namespace Happy_Apps_Core
 		/// Update tags, traits and stats of titles.
 		/// </summary>
 		/// <param name="vnIDs">List of IDs of titles to be updated.</param>
-		[ConnectionFunctionAspect, ConnectionInterceptAspect(true, true, true)]
 		public async Task UpdateTagsTraitsStats(HashSet<int> vnIDs)
 		{
-			if (!vnIDs.Any()) return;
-			var currentArray = new HashSet<int>(vnIDs.Take(APIMaxResults));
-			const string queryFormat = "get vn tags,stats (id = {0})";
-			var queryResult = await TryQuery(FormatQuery(queryFormat, currentArray), Resources.gmvn_query_error);
-			if (!queryResult) return;
-			var vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
-			RemoveDeletedVNs(vnRoot, currentArray);
-			if (!currentArray.Any()) return;
-			foreach (var vnItem in vnRoot.Items)
+			if (!StartQuery(nameof(UpdateTagsTraitsStats), true, true, true)) return;
+			try
 			{
-				LocalDatabase.UpdateVNTagsStats(vnItem, false);
-				ActiveQuery.AddTitlesAdded();
-			}
-			LocalDatabase.SaveChanges();
-			await GetCharacters(currentArray, false);
-			int done = APIMaxResults;
-			while (done < vnIDs.Count)
-			{
-				currentArray = new HashSet<int>(vnIDs.Skip(done).Take(APIMaxResults));
-				queryResult = await TryQuery(FormatQuery(queryFormat, currentArray), Resources.gmvn_query_error);
+				if (!vnIDs.Any()) return;
+				var currentArray = new HashSet<int>(vnIDs.Take(APIMaxResults));
+				const string queryFormat = "get vn tags,stats (id = {0})";
+				var queryResult = await TryQuery(FormatQuery(queryFormat, currentArray), Resources.gmvn_query_error);
 				if (!queryResult) return;
-				vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
+				var vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
 				RemoveDeletedVNs(vnRoot, currentArray);
 				if (!currentArray.Any()) return;
 				foreach (var vnItem in vnRoot.Items)
 				{
 					LocalDatabase.UpdateVNTagsStats(vnItem, false);
-					ActiveQuery.AddTitlesAdded();
+					ActiveQuery.AddTitleAdded(vnItem.ID);
 				}
+
 				LocalDatabase.SaveChanges();
 				await GetCharacters(currentArray, false);
-				done += APIMaxResults;
+				int done = APIMaxResults;
+				while (done < vnIDs.Count)
+				{
+					currentArray = new HashSet<int>(vnIDs.Skip(done).Take(APIMaxResults));
+					queryResult = await TryQuery(FormatQuery(queryFormat, currentArray), Resources.gmvn_query_error);
+					if (!queryResult) return;
+					vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
+					RemoveDeletedVNs(vnRoot, currentArray);
+					if (!currentArray.Any()) return;
+					foreach (var vnItem in vnRoot.Items)
+					{
+						LocalDatabase.UpdateVNTagsStats(vnItem, false);
+						ActiveQuery.AddTitleAdded(vnItem.ID);
+					}
+
+					LocalDatabase.SaveChanges();
+					await GetCharacters(currentArray, false);
+					done += APIMaxResults;
+				}
+
+				ActiveQuery.CompletedMessage =
+						$"Updated tags, traits and stats for {ActiveQuery.TitlesAdded.Count} titles.";
 			}
-			ActiveQuery.CompletedMessage = $"Updated tags, traits and stats for {ActiveQuery.TitlesAdded} titles.";
+			catch (Exception ex)
+			{
+				ActiveQuery.SetException(ex);
+			}
+			finally
+			{
+				EndQuery();
+			}
 		}
 
 		/// <summary>
@@ -476,54 +528,73 @@ namespace Happy_Apps_Core
 		/// <param name="statusInt">The new value</param>
 		/// <param name="newVoteValue">New vote value</param>
 		/// <returns>Returns whether it as successful.</returns>
-		[ConnectionFunctionAspect, ConnectionInterceptAspect(false, false, true)]
 		public async Task<bool> ChangeVNStatus(ListedVN vn, VisualNovelDatabase.ChangeType type, int statusInt, double newVoteValue = -1)
 		{
-			bool remove = statusInt == -1;
-			int? statusDate = null;
-			if (statusInt != -1) statusDate = (int)DateTimeToUnixTimestamp(DateTime.UtcNow);
-			string queryString;
-			_changeStatusAction?.Invoke(APIStatus.Busy);
-			switch (type)
+			if (!StartQuery(nameof(ChangeVNStatus), false, false, true)) return false;
+			try
 			{
-				case VisualNovelDatabase.ChangeType.UL:
-					queryString = statusInt == -1 ? $"set vnlist {vn.VNID}" : $"set vnlist {vn.VNID} {{\"status\":{statusInt}}}";
-					var result = await TryQuery(queryString, Resources.cvns_query_error);
-					if (!result) return false;
-					vn.UserVN.ULStatus = remove ? null : (UserlistStatus?)statusInt;
-					vn.UserVN.ULAdded = statusDate;
-					break;
-				case VisualNovelDatabase.ChangeType.WL:
-					queryString = statusInt == -1
-						? $"set wishlist {vn.VNID}"
-						: $"set wishlist {vn.VNID} {{\"priority\":{statusInt}}}";
-					result = await TryQuery(queryString, Resources.cvns_query_error);
-					if (!result) return false;
-					vn.UserVN.WLStatus = remove ? null : (WishlistStatus?)statusInt;
-					vn.UserVN.WLAdded = statusDate;
-					break;
-				case VisualNovelDatabase.ChangeType.Vote:
-					int vote = (int)Math.Floor(newVoteValue * 10);
-					queryString = statusInt == -1
-						? $"set votelist {vn.VNID}"
-						: $"set votelist {vn.VNID} {{\"vote\":{vote}}}";
-					result = await TryQuery(queryString, Resources.cvns_query_error);
-					if (!result) return false;
-					vn.UserVN.Vote = vote;
-					vn.UserVN.VoteAdded = statusDate;
-					break;
+				bool remove = statusInt == -1;
+				int? statusDate = null;
+				if (statusInt != -1) statusDate = (int)DateTimeToUnixTimestamp(DateTime.UtcNow);
+				string queryString;
+				_changeStatusAction?.Invoke(APIStatus.Busy);
+				switch (type)
+				{
+					case VisualNovelDatabase.ChangeType.UL:
+						queryString = statusInt == -1
+								? $"set vnlist {vn.VNID}"
+								: $"set vnlist {vn.VNID} {{\"status\":{statusInt}}}";
+						var result = await TryQuery(queryString, Resources.cvns_query_error);
+						if (!result) return false;
+						if (!remove) vn.UserVN = new UserVN();
+						vn.UserVN.ULStatus = remove ? null : (UserlistStatus?)statusInt;
+						vn.UserVN.ULAdded = statusDate;
+						break;
+					case VisualNovelDatabase.ChangeType.WL:
+						queryString = statusInt == -1
+								? $"set wishlist {vn.VNID}"
+								: $"set wishlist {vn.VNID} {{\"priority\":{statusInt}}}";
+						result = await TryQuery(queryString, Resources.cvns_query_error);
+						if (!result) return false;
+						if (!remove) vn.UserVN = new UserVN();
+						vn.UserVN.WLStatus = remove ? null : (WishlistStatus?)statusInt;
+						vn.UserVN.WLAdded = statusDate;
+						break;
+					case VisualNovelDatabase.ChangeType.Vote:
+						int vote = (int)Math.Floor(newVoteValue * 10);
+						queryString = statusInt == -1
+								? $"set votelist {vn.VNID}"
+								: $"set votelist {vn.VNID} {{\"vote\":{vote}}}";
+						result = await TryQuery(queryString, Resources.cvns_query_error);
+						if (!result) return false;
+						if (!remove) vn.UserVN = new UserVN();
+						vn.UserVN.Vote = vote;
+						vn.UserVN.VoteAdded = statusDate;
+						break;
+				}
+
+				var hasULStatus = vn.UserVN?.ULStatus > UserlistStatus.None;
+				var hasWLStatus = vn.UserVN?.WLStatus > WishlistStatus.None;
+				var hasVote = vn.UserVN?.Vote > 0;
+				if (!hasULStatus && !hasWLStatus && !hasVote)
+				{
+					vn.UserVNId = null;
+					LocalDatabase.LocalUserVisualNovels.Remove(vn.UserVN);
+				}
+
+				LocalDatabase.SaveChanges();
+				_changeStatusAction?.Invoke(Status);
+				return true;
 			}
-			var hasULStatus = vn.UserVN.ULStatus > UserlistStatus.None;
-			var hasWLStatus = vn.UserVN.WLStatus > WishlistStatus.None;
-			var hasVote = vn.UserVN.Vote > 0;
-			if (!hasULStatus && !hasWLStatus && !hasVote)
+			catch (Exception ex)
 			{
-				vn.UserVNId = null;
-				LocalDatabase.LocalUserVisualNovels.Remove(vn.UserVN);
+				ActiveQuery.SetException(ex);
+				return false;
 			}
-			LocalDatabase.SaveChanges();
-			_changeStatusAction?.Invoke(Status);
-			return true;
+			finally
+			{
+				EndQuery();
+			}
 		}
 
 		/// <summary>
@@ -531,15 +602,28 @@ namespace Happy_Apps_Core
 		/// </summary>
 		public async Task<string> GetUsernameFromID(int userID)
 		{
-
-			var result = await TryQueryNoReply($"get user basic (id={userID})");
-			if (!result)
+			if (!StartQuery(nameof(GetUsernameFromID), false, false, true)) return "";
+			try
 			{
-				_changeStatusAction?.Invoke(Status);
+				var result = await TryQueryNoReply($"get user basic (id={userID})");
+				if (!result)
+				{
+					_changeStatusAction?.Invoke(Status);
+					return "";
+				}
+
+				var response = JsonConvert.DeserializeObject<ResultsRoot<UserItem>>(LastResponse.JsonPayload);
+				return response.Items.Any() ? response.Items[0].Username : "";
+			}
+			catch (Exception ex)
+			{
+				ActiveQuery.SetException(ex);
 				return "";
 			}
-			var response = JsonConvert.DeserializeObject<ResultsRoot<UserItem>>(LastResponse.JsonPayload);
-			return response.Items.Any() ? response.Items[0].Username : "";
+			finally
+			{
+				EndQuery();
+			}
 		}
 
 		/// <summary>
@@ -547,14 +631,27 @@ namespace Happy_Apps_Core
 		/// </summary>
 		public async Task<int> GetIDFromUsername(string username)
 		{
-			var result = await TryQueryNoReply($"get user basic (username=\"{username}\")");
-			if (!result)
+			if (!StartQuery(nameof(GetIDFromUsername), false, false, true)) return -1;
+			try
 			{
-				_changeStatusAction?.Invoke(Status);
+				var result = await TryQueryNoReply($"get user basic (username=\"{username}\")");
+				if (!result)
+				{
+					_changeStatusAction?.Invoke(Status);
+					return -1;
+				}
+				var response = JsonConvert.DeserializeObject<ResultsRoot<UserItem>>(LastResponse.JsonPayload);
+				return response.Items.Any() ? response.Items[0].ID : -1;
+			}
+			catch (Exception ex)
+			{
+				ActiveQuery.SetException(ex);
 				return -1;
 			}
-			var response = JsonConvert.DeserializeObject<ResultsRoot<UserItem>>(LastResponse.JsonPayload);
-			return response.Items.Any() ? response.Items[0].ID : -1;
+			finally
+			{
+				EndQuery();
+			}
 		}
 
 		/// <summary>
@@ -563,84 +660,129 @@ namespace Happy_Apps_Core
 		/// </summary>
 		public async Task<List<ProducerItem>> AddProducersBySearchedName(string producerName)
 		{
-			string prodSearchQuery = $"get producer basic (search~\"{producerName}\") {{{MaxResultsString}}}";
-			var result = await TryQuery(prodSearchQuery, Resources.ps_query_error);
-			if (!result) return null;
-			var prodRoot = JsonConvert.DeserializeObject<ResultsRoot<ProducerItem>>(LastResponse.JsonPayload);
-			List<ProducerItem> prodItems = prodRoot.Items;
-			var moreResults = prodRoot.More;
-			var pageNo = 1;
-			while (moreResults)
+			if (!StartQuery(nameof(AddProducersBySearchedName), false, false, true)) return null;
+			try
 			{
-				pageNo++;
-				string prodSearchMoreQuery =
-					$"get producer basic (search~\"{producerName}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
-				var moreResult =
-					await TryQuery(prodSearchMoreQuery, Resources.ps_query_error);
-				if (!moreResult) return null;
-				var prodMoreRoot = JsonConvert.DeserializeObject<ResultsRoot<ProducerItem>>(LastResponse.JsonPayload);
-				prodItems.AddRange(prodMoreRoot.Items);
-				moreResults = prodMoreRoot.More;
+				string prodSearchQuery = $"get producer basic (search~\"{producerName}\") {{{MaxResultsString}}}";
+				var result = await TryQuery(prodSearchQuery, Resources.ps_query_error);
+				if (!result) return null;
+				var prodRoot = JsonConvert.DeserializeObject<ResultsRoot<ProducerItem>>(LastResponse.JsonPayload);
+				List<ProducerItem> prodItems = prodRoot.Items;
+				var moreResults = prodRoot.More;
+				var pageNo = 1;
+				while (moreResults)
+				{
+					pageNo++;
+					string prodSearchMoreQuery = $"get producer basic (search~\"{producerName}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
+					var moreResult = await TryQuery(prodSearchMoreQuery, Resources.ps_query_error);
+					if (!moreResult) return null;
+					var prodMoreRoot = JsonConvert.DeserializeObject<ResultsRoot<ProducerItem>>(LastResponse.JsonPayload);
+					prodItems.AddRange(prodMoreRoot.Items);
+					moreResults = prodMoreRoot.More;
+				}
+				for (int index = prodItems.Count - 1; index >= 0; index--)
+				{
+					if (LocalDatabase.LocalProducers.Any(x => x.Name.Equals(prodItems[index].Name))) prodItems.RemoveAt(index);
+				}
+				foreach (var producer in prodItems) LocalDatabase.UpsertProducer(producer, true, false);
+				LocalDatabase.SaveChanges();
+				return prodItems;
 			}
-			for (int index = prodItems.Count - 1; index >= 0; index--)
+			catch (Exception ex)
 			{
-				if (LocalDatabase.LocalProducers.Any(x => x.Name.Equals(prodItems[index].Name))) prodItems.RemoveAt(index);
+				ActiveQuery.SetException(ex);
+				return null;
 			}
-			foreach (var producer in prodItems) LocalDatabase.UpsertProducer(producer, true, false);
-			LocalDatabase.SaveChanges();
-			return prodItems;
+			finally
+			{
+				EndQuery();
+			}
 
 		}
 
-		[ConnectionFunctionAspect, ConnectionInterceptAspect(true, true, true)]
 		public async Task<ICollection<int>> SearchByNameOrAlias(string searchString)
 		{
-			string queryFormat = "get vn basic (search ~ \"{0}\")";
-			var queryResult = await TryQuery(FormatQuery(queryFormat, searchString), Resources.vn_query_error);
-			if (!queryResult) return null;
-			var vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
-			List<VNItem> vnItems = vnRoot.Items;
-			var pageNo = 1;
-			var moreResults = vnRoot.More;
-			while (moreResults)
+			if (!StartQuery(nameof(SearchByNameOrAlias), true, true, true)) return null;
+			try
 			{
-				pageNo++;
-				queryResult = await TryQuery(FormatQuery(queryFormat, searchString, pageNo), Resources.vn_query_error);
+				string queryFormat = "get vn basic (search ~ \"{0}\")";
+				var queryResult = await TryQuery(FormatQuery(queryFormat, searchString), Resources.vn_query_error);
 				if (!queryResult) return null;
-				vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
-				vnItems.AddRange(vnRoot.Items);
-				moreResults = vnRoot.More;
+				var vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
+				List<VNItem> vnItems = vnRoot.Items;
+				var pageNo = 1;
+				var moreResults = vnRoot.More;
+				while (moreResults)
+				{
+					pageNo++;
+					queryResult = await TryQuery(FormatQuery(queryFormat, searchString, pageNo), Resources.vn_query_error);
+					if (!queryResult) return null;
+					vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
+					vnItems.AddRange(vnRoot.Items);
+					moreResults = vnRoot.More;
+				}
+				var ids = new HashSet<int>(vnItems.Select(x => x.ID));
+				await GetMultipleVN(ids, false);
+				ActiveQuery.CompletedMessage = $"Got {ids.Count} items from search string '{searchString}'";
+				return ids;
 			}
-			var ids = new HashSet<int>(vnItems.Select(x => x.ID));
-			await GetMultipleVN(ids, false);
-			ActiveQuery.CompletedMessage = $"Got {ids.Count} items from search string '{searchString}'";
-			return ids;
+			catch (Exception ex)
+			{
+				ActiveQuery.SetException(ex);
+				return null;
+			}
+			finally
+			{
+				EndQuery();
+			}
 		}
 
-		[ConnectionFunctionAspect, ConnectionInterceptAspect(true, true, true)]
 		public async Task UpdateForYear(int year)
 		{
-			var ids = new HashSet<int>(LocalDatabase.LocalVisualNovels.Where(x => x.ReleaseDate.Year == year && x.DateUpdated < DateTime.UtcNow.AddDays(-2))
+			if (!StartQuery(nameof(UpdateForYear), true, true, true)) return;
+			try
+			{
+				var ids = new HashSet<int>(LocalDatabase.LocalVisualNovels.Where(x => x.ReleaseDate.Year == year && x.DateUpdated < DateTime.UtcNow.AddDays(-2))
 				.OrderByDescending(x => x.VNID).Select(x => x.VNID));
-			await GetMultipleVN(ids, true);
-			ActiveQuery.CompletedMessage = $"Updated titles released in {year}, ({ActiveQuery.TitlesAdded} items).";
+				await GetMultipleVN(ids, true);
+				ActiveQuery.CompletedMessage = $"Updated titles released in {year}, ({ActiveQuery.TitlesAdded.Count} items).";
+			}
+			catch (Exception ex)
+			{
+				ActiveQuery.SetException(ex);
+			}
+			finally
+			{
+				EndQuery();
+			}
 		}
 
-		[ConnectionFunctionAspect, ConnectionInterceptAspect(true, true, true)]
 		public async Task UpdateCharactersForYear(int year)
 		{
-			var startTime = DateTime.UtcNow.ToLocalTime();
-			var startTimeString = startTime.ToString("HH:mm");
-			TextAction($"Updating characters for titles from {year}.  Started at {startTimeString}", MessageSeverity.Normal);
-			var vnids = LocalDatabase.LocalVisualNovels.Where(x => x.ReleaseDate.Year == year && x.DateUpdated < DateTime.UtcNow.AddDays(-2)).OrderByDescending(x => x.VNID).Select(x => x.VNID);
-			var set = new HashSet<int>(vnids);
-			await Task.Run(() => GetCharacters(set, false));
-			ActiveQuery.CompletedMessage = $"Updated characters for titles from {year}, ({ActiveQuery.CharactersAdded}/{ActiveQuery.CharactersUpdated} added/updated).";
+			if (!StartQuery(nameof(UpdateCharactersForYear), true, true, true)) return;
+			try
+			{
+				var startTime = DateTime.UtcNow.ToLocalTime();
+				var startTimeString = startTime.ToString("HH:mm");
+				TextAction($"Updating characters for titles from {year}.  Started at {startTimeString}", MessageSeverity.Normal);
+				var vnids = LocalDatabase.LocalVisualNovels.Where(x => x.ReleaseDate.Year == year && x.DateUpdated < DateTime.UtcNow.AddDays(-2)).OrderByDescending(x => x.VNID).Select(x => x.VNID);
+				var set = new HashSet<int>(vnids);
+				await Task.Run(() => GetCharacters(set, false));
+				ActiveQuery.CompletedMessage = $"Updated characters for titles from {year}, ({ActiveQuery.CharactersAdded}/{ActiveQuery.CharactersUpdated} added/updated).";
+			}
+			catch (Exception ex)
+			{
+				ActiveQuery.SetException(ex);
+			}
+			finally
+			{
+				EndQuery();
+			}
 		}
 
-		[ConnectionFunctionAspect, ConnectionInterceptAspect(true, true, true)]
 		public async Task FetchForYear(int fromYear = 0, int toYear = VndbAPIMaxYear)
 		{
+			if (!StartQuery(nameof(FetchForYear), true, true, true)) return;
 			var startTime = DateTime.UtcNow.ToLocalTime();
 			var startTimeString = startTime.ToString("HH:mm");
 			var yearString = $"{fromYear}-{toYear}";
@@ -661,7 +803,7 @@ namespace Happy_Apps_Core
 			{
 				pageNo++;
 				string vnInfoMoreQuery =
-					$"get vn basic (released > \"{fromYear - 1}\" and released <= \"{toYear}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
+						$"get vn basic (released > \"{fromYear - 1}\" and released <= \"{toYear}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
 				var moreResult = await TryQuery(vnInfoMoreQuery, Resources.gyt_query_error);
 				if (!moreResult) return;
 				var vnMoreRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
@@ -670,64 +812,152 @@ namespace Happy_Apps_Core
 				moreResults = vnMoreRoot.More;
 			}
 			var span = DateTime.UtcNow.ToLocalTime() - startTime;
-			ActiveQuery.CompletedMessage = $"Got titles from {yearString} in {span:hh\\:mm}. {ActiveQuery.TitlesAdded}/{ActiveQuery.TotalTitles} added.";
+			ActiveQuery.CompletedMessage = $"Got titles from {yearString} in {span:hh\\:mm}. {ActiveQuery.TitlesAdded.Count}/{ActiveQuery.TotalTitles} added.";
+			EndQuery();
 		}
 
 #if DEBUG
 		private const int VNIDToDebug = 20367;
 #endif
-		[ConnectionFunctionAspect, ConnectionInterceptAspect(true, true, true)]
-		public async Task<uint> UpdateURT()
+
+		public async Task<int> UpdateURT()
 		{
-			Logger.ToFile($"Starting GetUserRelatedTitles for {CSettings.UserID}, previously had {LocalDatabase.URTVisualNovels.Count()} titles.");
-			//clone list to make sure it doesnt keep command status.
-			var pre = LocalDatabase.LocalUserVisualNovels.Where(x => x.UserId == CSettings.UserID).OrderBy(x => x.VNID).ToArray();
-			List<VisualNovelDatabase.UrtListItem> localURTList = pre.Select(x => new VisualNovelDatabase.UrtListItem(x)).ToList();
-			await GetUserList(localURTList);
-			await GetWishList(localURTList);
-			await GetVoteList(localURTList);
-			LocalDatabase.UpdateURTTitles(CSettings.UserID, localURTList);
-			await GetRemainingTitles();
-			//SetFavoriteProducersData();
-			//UpdateUserStats();
-			ActiveQuery.CompletedMessage = $"Updated URT ({ActiveQuery.TitlesAdded} added).";
-			CSettings.URTDate = DateTime.UtcNow;
-			return ActiveQuery.TitlesAdded;
+			if (!StartQuery(nameof(UpdateURT), true, true, true)) return -1;
+			try
+			{
+				Logger.ToFile($"Starting {nameof(UpdateURT)} for {CSettings.UserID}, previously had {LocalDatabase.URTVisualNovels.Count()} titles.");
+				//clone list to make sure it doesnt keep command status.
+				var pre = LocalDatabase.LocalUserVisualNovels.Where(x => x.UserId == CSettings.UserID).OrderBy(x => x.VNID).ToArray();
+				List<VisualNovelDatabase.UrtListItem> localURTList = pre.Select(x => new VisualNovelDatabase.UrtListItem(x)).ToList();
+				await GetUserList(localURTList);
+				await GetWishList(localURTList);
+				await GetVoteList(localURTList);
+				LocalDatabase.UpdateURTTitles(CSettings.UserID, localURTList);
+				await GetRemainingTitles();
+				//SetFavoriteProducersData();
+				//UpdateUserStats();
+				ActiveQuery.CompletedMessage = $"Updated URT ({ActiveQuery.TitlesAdded.Count} added).";
+				CSettings.URTDate = DateTime.UtcNow;
+				return ActiveQuery.TitlesAdded.Count;
+			}
+			catch (Exception ex)
+			{
+				ActiveQuery.SetException(ex);
+				return -1;
+			}
+			finally
+			{
+				EndQuery();
+			}
 		}
 
-		[ConnectionFunctionAspect, ConnectionInterceptAspect(false, false, true)]
 		public async Task<bool> GetAndSetRelationsForVN(ListedVN vn)
 		{
-			await TryQuery($"get vn relations (id = {vn.VNID})", "Relations Query Error");
-			var root = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
-			if (root.Num == 0) return false;
-			VNItem.RelationsItem[] relations = root.Items[0].Relations;
-			await Task.Run(() => LocalDatabase.AddRelationsToVN(vn, relations));
-			return true;
+			if (!StartQuery(nameof(GetAndSetRelationsForVN), false, false, true)) return false;
+			try
+			{
+				await TryQuery($"get vn relations (id = {vn.VNID})", "Relations Query Error");
+				var root = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
+				if (root.Num == 0) return false;
+				VNItem.RelationsItem[] relations = root.Items[0].Relations;
+				await Task.Run(() => LocalDatabase.AddRelationsToVN(vn, relations));
+				return true;
+			}
+			catch (Exception ex)
+			{
+				ActiveQuery.SetException(ex);
+				return false;
+			}
+			finally
+			{
+				EndQuery();
+			}
 		}
 
-		[ConnectionFunctionAspect, ConnectionInterceptAspect(false, false, true)]
 		public async Task<bool> GetAndSetAnimeForVN(ListedVN vn)
 		{
-			await TryQuery($"get vn anime (id = {vn.VNID})", "Anime Query Error");
-			var root = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
-			if (root.Num == 0) return false;
-			VNItem.AnimeItem[] anime = root.Items[0].Anime;
-			await Task.Run(() => LocalDatabase.AddAnimeToVN(vn, anime));
-			return true;
+			if (!StartQuery(nameof(GetAndSetAnimeForVN), false, false, true)) return false;
+			try
+			{
+				await TryQuery($"get vn anime (id = {vn.VNID})", "Anime Query Error");
+				var root = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
+				if (root.Num == 0) return false;
+				VNItem.AnimeItem[] anime = root.Items[0].Anime;
+				await Task.Run(() => LocalDatabase.AddAnimeToVN(vn, anime));
+				return true;
+			}
+			catch (Exception ex)
+			{
+				ActiveQuery.SetException(ex);
+				return false;
+			}
+			finally
+			{
+				EndQuery();
+			}
 		}
 
-		[ConnectionFunctionAspect, ConnectionInterceptAspect(false, false, true)]
 		public async Task<bool> GetAndSetScreensForVN(ListedVN vn)
 		{
-			await TryQuery($"get vn screens (id = {vn.VNID})", "Screens Query Error");
-			var root = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
-			if (root.Num == 0) return false;
-			VNItem.ScreenItem[] screens = root.Items[0].Screens;
-			await Task.Run(() => LocalDatabase.AddScreensToVN(vn, screens));
-			return true;
+			if (!StartQuery(nameof(GetAndSetScreensForVN), false, false, true)) return false;
+			try
+			{
+				await TryQuery($"get vn screens (id = {vn.VNID})", "Screens Query Error");
+				var root = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
+				if (root.Num == 0) return false;
+				VNItem.ScreenItem[] screens = root.Items[0].Screens;
+				await Task.Run(() => LocalDatabase.AddScreensToVN(vn, screens));
+				return true;
+			}
+			catch (Exception ex)
+			{
+				ActiveQuery.SetException(ex);
+				return false;
+			}
+			finally
+			{
+				EndQuery();
+			}
+		}
+
+		public async Task UpdateForProducers(IEnumerable<ListedProducer> producers, Action actionOnAdd)
+		{
+			if (!StartQuery(nameof(UpdateForProducers), true, true, true)) return;
+			try
+			{
+				ActiveQuery.ActionOnAdd = actionOnAdd;
+				foreach (var producer in producers) await GetProducerTitles(producer, false);
+				ActiveQuery.CompletedMessage = $"Finished {nameof(UpdateForProducers)}, got {ActiveQuery.TitlesAdded.Count} new titles.";
+			}
+			catch (Exception ex)
+			{
+				ActiveQuery.SetException(ex);
+			}
+			finally
+			{
+				EndQuery();
+			}
 		}
 
 		#endregion
+
+		public async Task<bool> UpdateVN(ListedVN vn)
+		{
+			if (!StartQuery(nameof(UpdateVN), false, true, false)) return false;
+			try
+			{
+				await Conn.GetMultipleVN(new HashSet<int> {vn.VNID}, true);
+				return true;
+			}
+			catch (Exception ex)
+			{
+				ActiveQuery.SetException(ex);
+				return false;
+			}
+			finally
+			{
+				EndQuery();
+			}
+		}
 	}
 }

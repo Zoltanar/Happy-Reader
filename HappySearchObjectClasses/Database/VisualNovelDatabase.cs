@@ -205,7 +205,10 @@ throw;
 			vn.KanjiTitle = item.Original;
 			vn.ProducerID = producer?.ID;
 			vn.SetReleaseDate(item.Released);
-			foreach (var tag in item.Tags) vn.DbTags.Add(DbTag.From(tag));
+			foreach (var tag in item.Tags)
+			{
+				vn.AddOrUpdateTag(tag);
+			}
 			vn.Description = item.Description;
 			vn.ImageURL = item.Image;
 			vn.ImageNSFW = item.Image_Nsfw;

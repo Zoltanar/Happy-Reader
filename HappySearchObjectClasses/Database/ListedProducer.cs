@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using JetBrains.Annotations;
@@ -60,28 +61,32 @@ namespace Happy_Apps_Core.Database
         public int NumberOfTitles => Titles.Count;
 
         /// <summary>
-        /// Date of last update to Producer
+        /// Days since last update (if any)
         /// </summary>
         [NotMapped]
-        public int Updated { get; set; }
+        public int? Updated { get; set; }
 
         /// <summary>
         /// User's average vote on Producer titles. (Only titles with votes)
         /// </summary>
         [NotMapped]
-        public double UserAverageVote { get; set; }
+        public double? UserAverageVote { get; set; }
 
         /// <summary>
         /// User's average drop rate on Producer titles. (Dropped / (Finished+Dropped)
         /// </summary>
         [NotMapped]
-        public int UserDropRate { get; set; }
-
-        /// <summary>
-        /// Bayesian average score of votes by all users.
-        /// </summary>
+        public double? UserDropRate { get; set; }
+		
         [NotMapped]
-        public double GeneralRating { get; set; }
+        public bool IsFavorited { get; set; }
+
+
+		/// <summary>
+		/// Bayesian average score of votes by all users.
+		/// </summary>
+		[NotMapped]
+        public double? GeneralRating { get; set; }
         
         public ListedProducer()
         {
@@ -117,6 +122,9 @@ namespace Happy_Apps_Core.Database
 
         public string Loaded { get; set; }
 
+				/// <summary>
+				/// Time of last update (if any) in UTC
+				/// </summary>
         [Column("Updated")]
         public DateTime? UpdatedDt { get; set; }
 
@@ -155,6 +163,26 @@ namespace Happy_Apps_Core.Database
 	    public void OnPropertyChanged([CallerMemberName] string propertyName = null)
 		{
 		    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	    }
+
+	    private bool _userDataSet;
+	    public void SetFavoriteProducerData(VisualNovelDatabase database, DateTime now)
+	    {
+		    if (_userDataSet) return;
+		    _userDataSet = true;
+		    IsFavorited = database.CurrentUser.FavoriteProducers.Contains(this);
+			if (!IsFavorited) { }
+		    var titleIds = Titles.Select(x => x.VNID).ToList();
+		    var userTitles = database.UserVisualNovels.Where(x=> titleIds.Contains(x.VNID) && x.UserId == database.CurrentUser.Id).ToList();
+		    var userTitleVotes = userTitles.Where(x=> x.Vote != null).Select(x=> x.Vote).ToList();
+			  UserAverageVote = userTitleVotes.Any() ? userTitleVotes.Average() / 10 : null;
+		    var titlesDropped = userTitles.Count(x => x.ULStatus != null && x.ULStatus == UserlistStatus.Dropped);
+		    var titlesFinished = userTitles.Count(x => x.ULStatus != null && x.ULStatus == UserlistStatus.Finished);
+		    var titlesDroppedOrFinished = titlesDropped + titlesFinished;
+				UserDropRate = titlesDroppedOrFinished > 0 ? (double?)(titlesDropped / (double)(titlesFinished + titlesDropped)) : null;
+				GeneralRating = Titles.Any() ? (double?)Titles.Average(x => x.Rating) : null;
+				Updated = UpdatedDt != null ? (int?)(now - UpdatedDt.Value).TotalDays : null;
+
 	    }
     }
 }

@@ -22,8 +22,12 @@ namespace Happy_Reader.View.Tiles
             var linkList = new List<Inline>();
             if (character.ID != 0 && character.DbTraits.Count > 0)
             {
-                var groups = character.DbTraits.Select(trait => DumpFiles.PlainTraits.Find(x => x.ID == trait.TraitId))
-                    .GroupBy(x => x.TopmostParentName);
+                var groups = character.DbTraits.Select(trait => 
+								{
+									var found = DumpFiles.PlainTraits.Find(x => x.ID == trait.TraitId);
+									if(found == null) { }
+									return found;
+								}).GroupBy(x => x?.TopmostParentName ?? "Not found");
                 foreach (var group in groups)
                 {
                     linkList.Add(new Run($"{group.Key}: "));

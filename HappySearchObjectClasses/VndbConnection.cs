@@ -189,6 +189,7 @@ namespace Happy_Apps_Core
 					Status = APIStatus.Ready;
 				}
 			}
+			_changeStatusAction?.Invoke(Status);
 		}
 
 		private void Query(string command)
@@ -368,8 +369,8 @@ namespace Happy_Apps_Core
 					minWait = Math.Min(5 * 60, LastResponse.Error.Fullwait); //wait 5 minutes
 					string normalWarning = $"Throttled for {Math.Floor(minWait / 60)} mins.";
 					string additionalWarning = "";
-					if (ActiveQuery.TitlesAdded > 0) additionalWarning += $" Added {ActiveQuery.TitlesAdded}.";
-					if (ActiveQuery.TitlesSkipped > 0) additionalWarning += $" Skipped {ActiveQuery.TitlesSkipped}.";
+					if (ActiveQuery.TitlesAdded.Count > 0) additionalWarning += $" Added {ActiveQuery.TitlesAdded.Count}.";
+					if (ActiveQuery.TitlesSkipped.Count > 0) additionalWarning += $" Skipped {ActiveQuery.TitlesSkipped.Count}.";
 					fullThrottleMessage = ActiveQuery.AdditionalMessage ? normalWarning + additionalWarning : normalWarning;
 				});
 				TextAction(fullThrottleMessage, MessageSeverity.Warning);

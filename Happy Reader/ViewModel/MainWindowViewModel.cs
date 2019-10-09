@@ -87,6 +87,7 @@ namespace Happy_Reader.ViewModel
 		[NotNull] public TranslationTester TestViewModel { get; }
 		[NotNull] public Translator Translator { get; }
 		[NotNull] public VNTabViewModel DatabaseViewModel { get; }
+		[NotNull] public ProducersTabViewModel ProducersViewModel { get; }
 		[NotNull] public FiltersViewModel FiltersViewModel { get; }
 		[NotNull] public IthViewModel IthViewModel { get; }
 
@@ -96,7 +97,7 @@ namespace Happy_Reader.ViewModel
 			set
 			{
 				_translatePaused = value;
-				if(IthViewModel.HookManager != null) IthViewModel.HookManager.Paused = value;
+				if (IthViewModel.HookManager != null) IthViewModel.HookManager.Paused = value;
 				((OutputWindowViewModel)OutputWindow.DataContext).OnPropertyChanged(nameof(OutputWindowViewModel.TranslatePaused));
 				IthViewModel.OnPropertyChanged(null);
 			}
@@ -138,6 +139,7 @@ namespace Happy_Reader.ViewModel
 			TestViewModel = new TranslationTester(this);
 			FiltersViewModel = new FiltersViewModel();
 			DatabaseViewModel = new VNTabViewModel(this, FiltersViewModel.Filters, FiltersViewModel.PermanentFilter);
+			ProducersViewModel = new ProducersTabViewModel(this);
 			IthViewModel = new IthViewModel(this);
 			OnPropertyChanged(nameof(VndbQueries));
 			OutputWindow = new OutputWindow(mainWindow);
@@ -156,10 +158,10 @@ namespace Happy_Reader.ViewModel
 		public void SetEntries()
 		{
 			var items = (OnlyGameEntries && UserGame?.VN != null
-				? (string.IsNullOrWhiteSpace(UserGame?.VN.Series)
-					? StaticMethods.Data.GetGameOnlyEntries(UserGame?.VN)
-					: StaticMethods.Data.GetSeriesOnlyEntries(UserGame?.VN))
-				: StaticMethods.Data.Entries).ToArray();
+					? (string.IsNullOrWhiteSpace(UserGame?.VN.Series)
+				? StaticMethods.Data.GetGameOnlyEntries(UserGame?.VN)
+				: StaticMethods.Data.GetSeriesOnlyEntries(UserGame?.VN))
+					: StaticMethods.Data.Entries).ToArray();
 			var entries = items.Select(x => new DisplayEntry(x)).ToArray();
 			Application.Current.Dispatcher.Invoke(() =>
 			{
@@ -220,22 +222,25 @@ namespace Happy_Reader.ViewModel
 			return new UserGameTile(userGame);
 		}
 
-		public async Task Initialize(Stopwatch watch, RoutedEventHandler defaultUserGameGrouping)
+		public async Task Initialize(Stopwatch watch, RoutedEventHandler defaultUserGameGrouping, bool initialiseIthVnr, bool initialiseEntries)
 		{
 			CaptureClipboard = GSettings.CaptureClipboardOnStart;
-			await DatabaseViewModel.Initialize();
 			await Task.Run(() =>
 			{
-#if !NOCACHELOAD
+				StatusText = "Loading Dumpfiles...";
+				DumpFiles.Load();
+			});
+			await DatabaseViewModel.Initialize();
+			await ProducersViewModel.Initialize();
+			await Task.Run(() =>
+			{
+				if (!initialiseEntries) return;
 				StatusText = "Loading Cached Translations...";
 				var cacheLoadWatch = Stopwatch.StartNew();
 				Translator.SetCache();
 				Debug.WriteLine($"Loaded cached translations in {cacheLoadWatch.ElapsedMilliseconds} ms");
-#endif
 				StatusText = "Populating Proxies...";
 				PopulateProxies();
-				StatusText = "Loading Dumpfiles...";
-				DumpFiles.Load();
 				StatusText = "Loading Entries...";
 				SetEntries();
 			});
@@ -248,8 +253,11 @@ namespace Happy_Reader.ViewModel
 			OnPropertyChanged(nameof(TestViewModel));
 			_monitor = new Thread(MonitorStart) { IsBackground = true };
 			_monitor.Start();
-			StatusText = "Initializing ITHVNR...";
-			IthViewModel.Initialize(RunTranslation, GetPreferredHookCode);
+			if (initialiseIthVnr)
+			{
+				StatusText = "Initializing ITHVNR...";
+				IthViewModel.Initialize(RunTranslation, GetPreferredHookCode);
+			}
 			_loadingComplete = true;
 			StatusText = "Loading complete.";
 			NotificationEvent(this, $"Took {watch.Elapsed.ToSeconds()}.", "Loading Complete");
@@ -262,8 +270,8 @@ namespace Happy_Reader.ViewModel
 			foreach (var game in StaticMethods.Data.UserGames.Local)
 			{
 				game.VN = game.VNID != null
-					? LocalDatabase.LocalVisualNovels.FirstOrDefault(x => x.VNID == game.VNID)
-					: null;
+						? LocalDatabase.LocalVisualNovels.FirstOrDefault(x => x.VNID == game.VNID)
+						: null;
 			}
 			foreach (var game in StaticMethods.Data.UserGames.Local.OrderBy(x => x.VNID ?? 0)) { UserGameItems.Add(new UserGameTile(game)); }
 			OnPropertyChanged(nameof(UserGameItems));
@@ -271,18 +279,18 @@ namespace Happy_Reader.ViewModel
 		public void LoadLogs()
 		{
 			StaticMethods.Data.Logs.Load();
-			LogsList.AddRange(StaticMethods.Data.Logs.Local.Select(x=>new DisplayLog(x)));
+			LogsList.AddRange(StaticMethods.Data.Logs.Local.Select(x => new DisplayLog(x)));
 			OnPropertyChanged(nameof(LogsList));
 		}
 
 		private void SetLastPlayed()
 		{
-			var lastPlayed = StaticMethods.Data.Logs.Local.Where(x => x.Kind == LogKind.TimePlayed).OrderByDescending(x => x.Timestamp).GroupBy(z=>z.AssociatedId).Select(x => x.First()).ToList();
+			var lastPlayed = StaticMethods.Data.Logs.Local.Where(x => x.Kind == LogKind.TimePlayed).OrderByDescending(x => x.Timestamp).GroupBy(z => z.AssociatedId).Select(x => x.First()).ToList();
 			UserGame.LastGamesPlayed.Clear();
 			foreach (var log in lastPlayed)
 			{
 				var userGame = StaticMethods.Data.UserGames.FirstOrDefault(x => x.Id == log.AssociatedId);
-				if (userGame?.VNID != null && File.Exists(userGame.FilePath)) UserGame.LastGamesPlayed.Add(log.Timestamp, log.AssociatedId);
+				if (userGame != null && File.Exists(userGame.FilePath)) UserGame.LastGamesPlayed.Add(log.Timestamp, log.AssociatedId);
 			}
 		}
 		public async Task SetUser(int userid, bool newId)
@@ -358,28 +366,32 @@ namespace Happy_Reader.ViewModel
 			{
 				var userGameProcesses = StaticMethods.Data.UserGames.Local.Select(x => x.ProcessName).ToArray();
 				var gameProcess = processes.FirstOrDefault(p => userGameProcesses.Contains(p.ProcessName));
-				if (gameProcess == null) return false;
-				var possibleUserGames = StaticMethods.Data.UserGames.Local.Where(x => x.ProcessName == gameProcess.ProcessName);
-				foreach (var userGame in possibleUserGames)
+				try
 				{
-					if (_closing) return true;
-					if (UserGame?.Process != null)
+					if (gameProcess == null || gameProcess.HasExited || gameProcess.MainModule == null || gameProcess.Is64BitProcess()) return false;
+					var possibleUserGames = StaticMethods.Data.UserGames.Local.Where(x => x.ProcessName == gameProcess.ProcessName);
+					foreach (var userGame in possibleUserGames)
 					{
-						Debug.WriteLine($"MonitorLoop ending with ID: {Thread.CurrentThread.ManagedThreadId}");
-						return true;
-					}
-					try
-					{
+						if (_closing) return true;
+						if (UserGame?.Process != null)
+						{
+							Debug.WriteLine($"MonitorLoop ending with ID: {Thread.CurrentThread.ManagedThreadId}");
+							return true;
+						}
 						if (gameProcess.Is64BitProcess()) continue;
 						if (gameProcess.HasExited) continue;
-						if (!userGame.FilePath.Equals(gameProcess.MainModule.FileName)) continue;
+						Debug.Assert(gameProcess.MainModule != null, "gameProcess.MainModule != null");
+						if (!userGame.FilePath.Equals(gameProcess.MainModule.FileName, StringComparison.InvariantCultureIgnoreCase)) continue;
 						HookUserGame(userGame, gameProcess);
 						Debug.WriteLine($"MonitorLoop ending with ID: {Thread.CurrentThread.ManagedThreadId}");
 						return true; //end monitor
 					}
-					catch (InvalidOperationException)
-					{ } //can happen if process is closed after getting reference
+
 				}
+
+				catch (Win32Exception) { }
+				catch (InvalidOperationException)
+				{ } //can happen if process is closed after getting reference
 			}
 			finally
 			{
@@ -398,6 +410,11 @@ namespace Happy_Reader.ViewModel
 			StaticMethods.Data.UserGames.Remove(item.UserGame);
 			StaticMethods.Data.SaveChanges();
 			OnPropertyChanged(nameof(TestViewModel));
+		}
+		public void RemoveUserGame(UserGame item)
+		{
+			var tile = UserGameItems.Single(x => x.UserGame == item);
+			RemoveUserGame(tile);
 		}
 
 		public void ClipboardChanged(object sender, EventArgs e)
@@ -485,23 +502,44 @@ namespace Happy_Reader.ViewModel
 				{
 					process = UserGame.LaunchPath != null ? StaticMethods.StartProcessThroughProxy(UserGame) : StaticMethods.StartProcess(UserGame.FilePath);
 				}
-				if (UserGame.ProcessName == null)
+
+				//process can be closed at any point
+				try
 				{
-					var game = StaticMethods.Data.UserGames.Single(x => x.Id == UserGame.Id);
-					game.ProcessName = process.ProcessName;
-					StaticMethods.Data.SaveChanges();
+					if (process.HasExited)
+					{
+						NotificationEvent(this,
+							$"Process for {UserGame} has exited prematurely, check that executable is the running process.",
+							"Process has exited.");
+						UserGame = null;
+						return;
+					}
+					if (UserGame.ProcessName == null)
+					{
+						var game = StaticMethods.Data.UserGames.Single(x => x.Id == UserGame.Id);
+						game.ProcessName = process.ProcessName;
+						StaticMethods.Data.SaveChanges();
+					}
+					UserGame.Process = process;
+					UserGame.Process.EnableRaisingEvents = true;
+					UserGame.Process.Exited += HookedProcessOnExited;
+					TestViewModel.Game = UserGame.VN;
+					if (!UserGame.HookProcess) return;
+					while (!_loadingComplete) Thread.Sleep(25);
+					OutputWindow.SetLocation(UserGame.OutputRectangle);
+					IthViewModel.MergeByHookCode = UserGame.MergeByHookCode;
+					IthViewModel.PrefEncoding = UserGame.PrefEncoding;
+					IthViewModel.Commands?.ProcessCommand($"/P{UserGame.Process.Id}", 0);
+					if (!string.IsNullOrWhiteSpace(UserGame.HookCode)) IthViewModel.Commands?.ProcessCommand(UserGame.HookCode, UserGame.Process.Id);
 				}
-				UserGame.Process = process;
-				UserGame.Process.EnableRaisingEvents = true;
-				UserGame.Process.Exited += HookedProcessOnExited;
-				TestViewModel.Game = UserGame.VN;
-				if (!UserGame.HookProcess) return;
-				while (!_loadingComplete) Thread.Sleep(25);
-				OutputWindow.SetLocation(UserGame.OutputRectangle);
-				IthViewModel.MergeByHookCode = UserGame.MergeByHookCode;
-				IthViewModel.PrefEncoding = UserGame.PrefEncoding;
-				IthViewModel.Commands?.ProcessCommand($"/P{UserGame.Process.Id}", 0);
-				if (!string.IsNullOrWhiteSpace(UserGame.HookCode)) IthViewModel.Commands?.ProcessCommand(UserGame.HookCode, UserGame.Process.Id);
+				//todo catch more specific exception
+				catch (Exception ex)
+				{
+					if (UserGame != null) UserGame.Process = null;
+					UserGame = null;
+					Logger.ToFile(ex);
+					throw;
+				}
 			}
 		}
 
@@ -549,9 +587,9 @@ namespace Happy_Reader.ViewModel
 			{
 				if (_debugStop) return;
 				var trans = (counter % 2 == 0 ? translation : translation2).Clone() as Translation;
-				DispatchIfRequired(()=>OutputWindow.AddTranslation(trans), new TimeSpan(0, 0, 5));
+				DispatchIfRequired(() => OutputWindow.AddTranslation(trans), new TimeSpan(0, 0, 5));
 				counter++;
-				if(counter % 50 == 0) Debug.WriteLine($"Debug Counter {counter}");
+				if (counter % 50 == 0) Debug.WriteLine($"Debug Counter {counter}");
 				Thread.Sleep(100);
 			}
 		}

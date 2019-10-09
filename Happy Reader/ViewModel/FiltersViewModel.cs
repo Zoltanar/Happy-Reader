@@ -51,7 +51,7 @@ namespace Happy_Reader.ViewModel
 		public ComboBoxItem[] UserlistTypes { get; } = GetEnumValues(typeof(UserlistStatus));
 		public ComboBoxItem[] FilterTypes { get; } = GetEnumValues(typeof(VnFilterType));
 		public string SaveFilterError { get; set; }
-		
+
 		public FiltersViewModel()
 		{
 			SelectedFilterIndex = 0;
@@ -140,7 +140,6 @@ namespace Happy_Reader.ViewModel
 
 		private void LoadVnFilters()
 		{
-			
 			try
 			{
 				if (File.Exists(StaticMethods.CustomFiltersJson))
@@ -181,6 +180,25 @@ namespace Happy_Reader.ViewModel
 				var cf = new CustomVnFilter();
 				cf.AndFilters.Add(new VnFilter(VnFilterType.ReleaseStatus, field));
 				cf.Name = $"Release Status: {field}";
+				Filters.Add(cf);
+			}
+			{
+				var cf = new CustomVnFilter();
+				cf.AndFilters.Add(new VnFilter(VnFilterType.ByFavoriteProducer, true));
+				cf.Name = "By Favorite Producer";
+				Filters.Add(cf);
+			}
+			{
+				var cf = new CustomVnFilter();
+				cf.OrFilters.Add(new VnFilter(VnFilterType.ReleaseStatus, ReleaseStatusEnum.WithReleaseDate));
+				cf.OrFilters.Add(new VnFilter(VnFilterType.ReleaseStatus, ReleaseStatusEnum.Released));
+				cf.Name = "With Release Date (All)";
+				Filters.Add(cf);
+			}
+			{
+				var cf = new CustomVnFilter();
+				cf.AndFilters.Add(new VnFilter(VnFilterType.HasFullDate, true));
+				cf.Name = "Has Complete Release Date";
 				Filters.Add(cf);
 			}
 			SaveVnFilters();

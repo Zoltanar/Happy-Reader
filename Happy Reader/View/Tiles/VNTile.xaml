@@ -4,12 +4,51 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d" Height="375" Width="230" 
-             d:DataContext="{d:DesignData Source=View/SampleData/ListedVNSampleData.xaml}">
-    <Border BorderBrush="Black" BorderThickness="1" CornerRadius="10" Background="{Binding BackBrush}" >
+             d:DataContext="{d:DesignData Source=/View/SampleData/ListedVNSampleData.xaml}" 
+             >
+	<UserControl.ContextMenu>
+		<ContextMenu Opened="ContextMenuOpened">
+			<MenuItem Header="Update Data" Click="UpdateVN"/>
+			<Separator/>
+			<MenuItem x:Name="UserListMenu" Header="User List">
+				<MenuItem Header="Unknown" Click="ChangeUserListStatus" />
+				<MenuItem Header="Playing" Click="ChangeUserListStatus" />
+				<MenuItem Header="Finished" Click="ChangeUserListStatus" />
+				<MenuItem Header="Stalled" Click="ChangeUserListStatus" />
+				<MenuItem Header="Dropped" Click="ChangeUserListStatus" />
+			</MenuItem>
+			<MenuItem x:Name="WishListMenu" Header="Wish List">
+				<MenuItem Header="High" Click="ChangeWishListStatus" />
+				<MenuItem Header="Medium" Click="ChangeWishListStatus" />
+				<MenuItem Header="Low" Click="ChangeWishListStatus" />
+				<MenuItem Header="Blacklist" Click="ChangeWishListStatus" />
+			</MenuItem>
+			<MenuItem x:Name="VoteMenu" Header="Vote">
+				<MenuItem Header="None"/>
+				<MenuItem Header="1"/>
+				<MenuItem Header="2"/>
+				<MenuItem Header="3"/>
+				<MenuItem Header="4"/>
+				<MenuItem Header="5"/>
+				<MenuItem Header="6"/>
+				<MenuItem Header="7"/>
+				<MenuItem Header="8"/>
+				<MenuItem Header="9"/>
+				<MenuItem Header="10"/>
+				<MenuItem Header="Precise Number"/>
+			</MenuItem>
+			<Separator/>
+			<MenuItem Header="Show Titles By Producer" Click="ShowTitlesByProducer" />
+			<MenuItem x:Name="AddProducerToFavoritesItem" Header="Add Producer to Favorites"/>
+			<MenuItem Header="Browse to VNDB Page" Click="BrowseToVndbPage"/>
+			<MenuItem Header="Browse to Extra Page" Click="BrowseToExtraPage"/>
+		</ContextMenu>
+	</UserControl.ContextMenu>
+	<Border BorderBrush="Black" BorderThickness="1" CornerRadius="10" Background="{Binding BackBrush}">
         <Grid>
-            <Label Content="{Binding Title}" Margin="10,10,10,0" VerticalAlignment="Top" FontWeight="Bold"/>
+            <Label Content="{Binding Title}" Margin="10,10,10,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="{Binding ForeBrush}"/>
             <Label Content="{Binding Producer.Name}" Foreground="{Binding ProducerBrush}" Margin="10,0,10,52" VerticalAlignment="Bottom" Padding="0"/>
-            <Label Margin="10,0,97,31" VerticalAlignment="Bottom" Padding="0">
+            <Label Margin="10,0,97,31" VerticalAlignment="Bottom" Padding="0" Foreground="{Binding ForeBrush}">
                 <TextBlock>
                     <TextBlock.Text>
                         <MultiBinding StringFormat="{}{0:0.00} ({1} votes)">
@@ -21,9 +60,10 @@
             </Label>
             <Label Content="{Binding ReleaseDateString}" Margin="0,0,10,31" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="82" HorizontalContentAlignment="Right" Foreground="{Binding DateBrush}" Padding="0"/>
             <Label Content="{Binding UserRelatedStatus}" Margin="10,0,10,10" VerticalAlignment="Bottom" Foreground="{Binding UserRelatedBrush}" Padding="0"/>
-            <Image Margin="10,41,10,73" Source="{Binding CoverSource}"/>
-            <Image Source="{Binding FlagSource}" Margin="194,41,10,320"/>
-            <Label Content="{Binding VNID}" HorizontalAlignment="Left" Margin="194,-1,0,0" VerticalAlignment="Top" Foreground="#FF9C9C9C" FontSize="9" Width="34" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"/>
+			<Image Margin="10,41,10,73" Source="{Binding CoverSource}"/>
+			<Image Source="{Binding FlagSource}" Margin="194,41,10,320"/>
+      <Image Source="{Binding SpecialFlag}" Margin="194,61,10,300"/>
+			<Label Content="{Binding VNID}" HorizontalAlignment="Left" Margin="194,-1,0,0" VerticalAlignment="Top" Foreground="#FF9C9C9C" FontSize="9" Width="34" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"/>
         </Grid>
     </Border>
 </UserControl>

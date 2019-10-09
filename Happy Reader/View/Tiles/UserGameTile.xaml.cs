@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Happy_Reader.Database;
@@ -27,19 +29,26 @@ namespace Happy_Reader.View.Tiles
 			UserGame = usergame;
 		}
 
-		private void GameDetails(object sender, EventArgs e)
+		public void GameDetails(object sender, EventArgs e)
 		{
 			var tabItem = new TabItem { Header = UserGame.DisplayName, Content = new Tabs.UserGameTab(UserGame) };
-			// ReSharper disable once PossibleNullReferenceException
-			((MainWindow)Window.GetWindow(this)).AddTabItem(tabItem);
+			var mainWindow = (MainWindow)(sender is MainWindow ? sender : Window.GetWindow(this));
+			Trace.Assert(mainWindow != null, nameof(mainWindow) + " != null");
+			mainWindow.AddTabItem(tabItem);
 		}
 
-		private void BrowseToLocation(object sender, RoutedEventArgs e)
+		public void BrowseToLocation(object sender, RoutedEventArgs e)
 		{
-			Process.Start("explorer", Directory.GetParent(UserGame.FilePath).FullName);
+			var directory = Directory.GetParent(UserGame.FilePath);
+			while (!directory.Exists)
+			{
+				if (directory.Parent == null) break;
+				directory = directory.Parent;
+			}
+			Process.Start("explorer", $"\"{directory.FullName}\"");
 		}
 
-		private void RemoveUserGame(object sender, RoutedEventArgs e)
+		public void RemoveUserGame(object sender, RoutedEventArgs e)
 		{
 			var result = MessageBox.Show($"Are you sure you want to remove {UserGame.DisplayName}?", "Confirm", MessageBoxButton.YesNo);
 			if (result == MessageBoxResult.Yes)
@@ -47,6 +56,23 @@ namespace Happy_Reader.View.Tiles
 				// ReSharper disable once PossibleNullReferenceException
 				var mainViewModel = (MainWindowViewModel)((MainWindow)Window.GetWindow(this)).DataContext;
 				mainViewModel.RemoveUserGame(this);
+			}
+		}
+
+		private void MergeGamesToThis(object sender, RoutedEventArgs e)
+		{
+			var mergeWindow = new MergeWindow(UserGame);
+			var result = mergeWindow.ShowDialog();
+			Debug.Assert(result != null, nameof(result) + " != null");
+			if (!result.Value) return;
+			var additionalTimePlayedTicks = mergeWindow.MergeResults.Sum(t => t.UserGame.TimeOpen.Ticks);
+			var additionalTimePlayed = new TimeSpan(additionalTimePlayedTicks);
+			UserGame.MergeTimePlayed(additionalTimePlayed);
+			foreach (var mergeTarget in mergeWindow.MergeResults)
+			{
+				// ReSharper disable once PossibleNullReferenceException
+				var mainViewModel = (MainWindowViewModel)((MainWindow)Window.GetWindow(this)).DataContext;
+				mainViewModel.RemoveUserGame(mergeTarget.UserGame);
 			}
 		}
 	}

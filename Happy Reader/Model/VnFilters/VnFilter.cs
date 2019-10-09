@@ -145,6 +145,8 @@ namespace Happy_Reader
 				case VnFilterType.Traits:
 					//todo vn => vn.DbTraits.Any(t => t.TraitId == Value) != Exclude; //return vn => vn.MatchesSingleTrait(Convert.ToInt32(Value)) != Exclude;
 					throw new NotImplementedException();
+				case VnFilterType.HasFullDate:
+					return vn => vn.HasFullDate != Exclude;
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
@@ -182,6 +184,8 @@ namespace Happy_Reader
 				case VnFilterType.Traits:
 					// todo vn => vn.DbTraits.Any(t => t.TraitId == IntValue) != Exclude; //return vn => vn.MatchesSingleTrait(Convert.ToInt32(Value)) != Exclude;
 					throw new NotImplementedException();
+				case VnFilterType.HasFullDate:
+					return vn => vn.HasFullDate != Exclude;
 				default:
 					throw new ArgumentOutOfRangeException();
 			}

@@ -31,7 +31,7 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged();
 			}
 		}
-
+		
 		public ICommand SetHookCodeCommand { get; }
 		public ICommand SetDefaultHookCommand { get; }
 

@@ -1,4 +1,7 @@
-﻿namespace Happy_Apps_Core
+﻿using System;
+using System.Collections.Generic;
+
+namespace Happy_Apps_Core
 {
     /// <summary>
     /// Contains settings for API Query
@@ -47,13 +50,14 @@
         }
 
         /// <summary>
-        /// Count of titles added in last query.
+        /// List of title ids added in last query.
         /// </summary>
-        public uint TitlesAdded { get; private set; }
+        public List<int> TitlesAdded { get; } = new List<int>();
+
         /// <summary>
-        /// Count of titles skipped in last query.
+        /// List of title ids skipped in last query.
         /// </summary>
-        public uint TitlesSkipped { get; private set; }
+        public List<int> TitlesSkipped { get; } = new List<int>();
         /// <summary>
         /// Count of characters added in last query.
         /// </summary>
@@ -67,16 +71,43 @@
 
         public VndbConnection.MessageSeverity CompletedMessageSeverity { get; set; } = VndbConnection.MessageSeverity.Normal;
 
-        public uint TotalTitles => TitlesAdded + TitlesSkipped;
+        public int TotalTitles => TitlesAdded.Count + TitlesSkipped.Count;
+        public Action ActionOnAdd { get; set; }
 
+        public void SetException(Exception exception)
+        {
+                if(exception == null) throw new Exception("Setting Exception to null is not expected.");
+                CompletedMessage = $"Exception in {ActionName} - {exception.Message}";
+                CompletedMessageSeverity = VndbConnection.MessageSeverity.Error;
+        }
 
-        public void AddTitlesSkipped(uint count = 1) => TitlesSkipped += count;
+        public void AddTitleSkipped(int id) => TitlesSkipped.Add(id);
 
-        public void AddTitlesAdded(uint count = 1) => TitlesAdded += count;
+        public void AddTitlesSkipped(IEnumerable<int> ids)
+        {
+            foreach (var id in ids)
+            {
+                TitlesSkipped.Add(id);
+            }
+        }
+
+        public void AddTitleAdded(int id)
+        {
+            TitlesAdded.Add(id);
+        }
 
         public void AddCharactersAdded(uint count = 1) => CharactersAdded += count;
 
         public void AddCharactersUpdated(uint count = 1) => CharactersUpdated += count;
+
+        private int _itemCountDuringLastActionOnAdd;
+
+        public void RunActionOnAdd()
+        {
+            if (ActionOnAdd == null || TitlesAdded.Count == _itemCountDuringLastActionOnAdd) return;
+            ActionOnAdd.Invoke();
+            _itemCountDuringLastActionOnAdd = TitlesAdded.Count;
+        }
     }
 
 }

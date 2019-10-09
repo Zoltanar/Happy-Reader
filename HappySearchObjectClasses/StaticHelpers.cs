@@ -1,13 +1,17 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
 using Happy_Apps_Core.Database;
 using System.Windows.Media;
+using Microsoft.Win32;
 
 namespace Happy_Apps_Core
 {
@@ -51,6 +55,7 @@ namespace Happy_Apps_Core
 		public static readonly Brush WLHighBrush = Brushes.DeepPink;
 		public static readonly Brush WLMediumBrush = Brushes.HotPink;
 		public static readonly Brush WLLowBrush = Brushes.LightPink;
+		public static readonly Brush WLBlacklistBrush = Brushes.Black;
 		public static readonly Brush ULFinishedBrush = Brushes.LightGreen;
 		public static readonly Brush ULStalledBrush = Brushes.DarkKhaki;
 		public static readonly Brush ULDroppedBrush = Brushes.DarkOrange;
@@ -95,7 +100,25 @@ namespace Happy_Apps_Core
 
 		public static VisualNovelDatabase LocalDatabase;
 
-		public static bool VNIsByFavoriteProducer(ListedVN vn) => LocalDatabase.CurrentUser.FavoriteProducers.Any(x => x.ID == vn.ProducerID);
+		public static bool VNIsByFavoriteProducer(ListedVN vn)
+		{
+			int tries = 0;
+			Exception exception;
+			do
+			{
+				tries++;
+				try
+				{
+					return LocalDatabase.CurrentUser.FavoriteProducers.Any(x => x.ID == vn.ProducerID);
+				}
+				catch (InvalidOperationException ex)
+				{
+					exception = ex;
+					if (ex.TargetSite.Name != nameof(IEnumerator.MoveNext)) throw;
+				}
+			} while (tries < 5);
+			throw exception;
+		}
 
 		/// <summary>
 		/// Pause RaiseListChangedEvents and add items then call the event when done adding.
@@ -149,13 +172,17 @@ namespace Happy_Apps_Core
 			return (Math.Sign(byteCount) * num) + suf[place];
 		}
 
+		//public static DateTime StringToDate()
+
 		/// <summary>
-		///     Convert a string containing a date (in the format YYYY-MM-DD) to a DateTime.
+		/// Convert a string containing a date (in the format YYYY-MM-DD) to a DateTime.
 		/// </summary>
 		/// <param name="date">String to be converted</param>
+		/// <param name="hasFullDate">Boolean indicating that release date string had all components of a date, and not just year, or year-month.</param>
 		/// <returns>DateTime representing date in string</returns>
-		public static DateTime StringToDate(string date)
+		public static DateTime StringToDate(string date, out bool hasFullDate)
 		{
+			hasFullDate = false;
 			//unreleased if date is null or doesnt have any digits (tba, n/a etc)
 			if (date == null || !date.Any(Char.IsDigit)) return DateTime.MaxValue;
 			int[] dateArray = date.Split('-').Select(Int32.Parse).ToArray();
@@ -163,6 +190,7 @@ namespace Happy_Apps_Core
 			var dateRegex = new Regex(@"^\d{4}-\d{2}-\d{2}$");
 			if (dateRegex.IsMatch(date))
 			{
+				hasFullDate = true;
 				//handle possible invalid dates such as february 30
 				var tryDone = false;
 				var tryCount = 0;
@@ -255,5 +283,49 @@ namespace Happy_Apps_Core
 		}
 
 		public static string ToSeconds(this TimeSpan time) => $"{time.TotalSeconds:N0}.{time.Milliseconds} seconds";
+
+		/// <summary>
+		///     Save user's VNDB login password to Windows Registry (encrypted).
+		/// </summary>
+		/// <param name="password">User's password</param>
+		public static void SaveCredentials(char[] password)
+		{
+			//prepare data
+			byte[] stringBytes = Encoding.UTF8.GetBytes(password);
+
+			var entropy = new byte[20];
+			using (var rng = new RNGCryptoServiceProvider())
+			{
+				rng.GetBytes(entropy);
+			}
+			byte[] cipherText = ProtectedData.Protect(stringBytes, entropy,
+				DataProtectionScope.CurrentUser);
+
+			//store data
+			var key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{ClientName}", true) ??
+			          Registry.CurrentUser.CreateSubKey($"SOFTWARE\\{ClientName}", true);
+			if (key == null) return;
+			key.SetValue("Data1", cipherText);
+			key.SetValue("Data2", entropy);
+			key.Close();
+			Logger.ToFile("Saved Login Password");
+		}
+
+		/// <summary>
+		///     Load user's VNDB login credentials from Windows Registry
+		/// </summary>
+		public static char[] LoadPassword()
+		{
+			//get key data
+			var key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{ClientName}");
+			if (key == null) return null;
+			var password = key.GetValue("Data1") as byte[];
+			var entropy = key.GetValue("Data2") as byte[];
+			key.Close();
+			if (password == null || entropy == null) return null;
+			byte[] vv = ProtectedData.Unprotect(password, entropy, DataProtectionScope.CurrentUser);
+			Logger.ToFile("Loaded Login Password");
+			return Encoding.UTF8.GetChars(vv);
+		}
 	}
 }

@@ -6,6 +6,8 @@ using System.Linq;
 using System.Windows.Media;
 using Happy_Apps_Core.Database;
 using JetBrains.Annotations;
+// ReSharper disable ClassWithVirtualMembersNeverInherited.Global
+// ReSharper disable ClassNeverInstantiated.Global
 
 // ReSharper disable VirtualMemberCallInConstructor
 

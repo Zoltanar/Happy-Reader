@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Threading;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Reader.View.Tiles;
@@ -31,7 +32,10 @@ namespace Happy_Reader.ViewModel
         private const int PageSize = 1000;
 #endif
 		private string _vndbConnectionReply;
-		private Brush _vndbConnectionColor;
+		private Brush _vndbReplyColor;
+		private Brush _vndbConnectionBackground;
+		private Brush _vndbConnectionForeground;
+		private string _vndbConnectionStatus;
 		private readonly MainWindowViewModel _mainViewModel;
 		private Func<VisualNovelDatabase, IEnumerable<ListedVN>> _dbFunction = x => x.LocalVisualNovels;
 		private CustomVnFilter _selectedFilter;
@@ -57,10 +61,28 @@ namespace Happy_Reader.ViewModel
 			get => _vndbConnectionReply;
 			set { _vndbConnectionReply = value; OnPropertyChanged(); }
 		}
-		public Brush VndbConnectionColor
+
+		public Brush VndbReplyColor
 		{
-			get => _vndbConnectionColor;
-			set { _vndbConnectionColor = value; OnPropertyChanged(); }
+			get => _vndbReplyColor;
+			set { _vndbReplyColor = value; OnPropertyChanged(); }
+		}
+
+		public Brush VndbConnectionForeground
+		{
+			get => _vndbConnectionForeground;
+			set { _vndbConnectionForeground = value; OnPropertyChanged(); }
+		}
+		public Brush VndbConnectionBackground
+		{
+			get => _vndbConnectionBackground;
+			set { _vndbConnectionBackground = value; OnPropertyChanged(); }
+		}
+
+		public string VndbConnectionStatus
+		{
+			get => _vndbConnectionStatus;
+			set { _vndbConnectionStatus = value; OnPropertyChanged(); }
 		}
 
 		public VNTabViewModel(MainWindowViewModel mainWindowViewModel, ObservableCollection<CustomVnFilter> vnFilters, CustomVnFilter permanentFilter)
@@ -74,15 +96,62 @@ namespace Happy_Reader.ViewModel
 		{
 			_mainViewModel.StatusText = "Loading VN Database...";
 			await Task.Run(() => LocalDatabase = new VisualNovelDatabase(true));
-			await _mainViewModel.SetUser(47063, false);
+			await _mainViewModel.SetUser(CSettings.UserID, false);
 			_mainViewModel.StatusText = "Opening VNDB Connection...";
 			await Task.Run(() =>
 			{
-				Conn = new VndbConnection(VndbConnectionText, _mainViewModel.VndbAdvancedAction, RefreshListedVnsTask());
-				Conn.Login(ClientName, ClientVersion);
+				Conn = new VndbConnection(VndbConnectionText, _mainViewModel.VndbAdvancedAction, RefreshListedVnsTask(), ChangeConnectionStatus);
+				var password = LoadPassword();
+				if (password != null)
+				{
+					Conn.Login(ClientName, ClientVersion, CSettings.Username, password);
+				}
+				else Conn.Login(ClientName, ClientVersion);
 			});
 			_mainViewModel.StatusText = "Loading VN List...";
 			await RefreshListedVns();
+		}
+
+		private void ChangeConnectionStatus(VndbConnection.APIStatus status)
+		{/*
+			VndbConnectionStatus = status.ToString();
+			return;*/
+			Dispatcher.CurrentDispatcher.Invoke(() =>
+			{
+				switch (status)
+				{
+					case VndbConnection.APIStatus.Ready:
+						if (Environment.GetCommandLineArgs().Contains("-debug")) Logger.ToFile($"{Conn.ActiveQuery.ActionName} Ended");
+						if (Conn.ActiveQuery != null) Conn.ActiveQuery.Completed = true;
+						VndbConnectionStatus = status.ToString();
+						VndbConnectionForeground = Brushes.Black;// SolidColorBrush new SolidColorBrush(Colors.Black);
+						VndbConnectionBackground = Brushes.LightGreen; //new SolidColorBrush(Colors.LightGreen);
+						break;
+					case VndbConnection.APIStatus.Busy:
+						if (Environment.GetCommandLineArgs().Contains("-debug")) Logger.ToFile($"{Conn.ActiveQuery.ActionName} Started");
+						VndbConnectionStatus = $@"{status} ({Conn.ActiveQuery.ActionName})";
+						VndbConnectionForeground = new SolidColorBrush(Colors.Red);
+						VndbConnectionBackground = new SolidColorBrush(Colors.Khaki);
+						break;
+					case VndbConnection.APIStatus.Throttled:
+						if (Environment.GetCommandLineArgs().Contains("-debug")) Logger.ToFile($"{Conn.ActiveQuery.ActionName} Throttled");
+						VndbConnectionStatus = $@"{status} ({Conn.ActiveQuery.ActionName})";
+						VndbConnectionForeground = new SolidColorBrush(Colors.DarkRed);
+						VndbConnectionBackground = new SolidColorBrush(Colors.Khaki);
+						break;
+					case VndbConnection.APIStatus.Error:
+						VndbConnectionStatus = $@"{status} ({Conn.ActiveQuery.ActionName})";
+						VndbConnectionForeground = new SolidColorBrush(Colors.Black);
+						VndbConnectionBackground = new SolidColorBrush(Colors.Red);
+						Conn.Close();
+						break;
+					case VndbConnection.APIStatus.Closed:
+						VndbConnectionStatus = $@"{status} ({Conn.ActiveQuery.ActionName})";
+						VndbConnectionForeground = new SolidColorBrush(Colors.White);
+						VndbConnectionBackground = new SolidColorBrush(Colors.Black);
+						break;
+				}
+			});
 		}
 
 		public void VndbConnectionText(string text, VndbConnection.MessageSeverity severity)
@@ -93,13 +162,13 @@ namespace Happy_Reader.ViewModel
 				switch (severity)
 				{
 					case VndbConnection.MessageSeverity.Normal:
-						VndbConnectionColor = new SolidColorBrush(Colors.Black);
+						VndbReplyColor = new SolidColorBrush(Colors.Black);
 						return;
 					case VndbConnection.MessageSeverity.Warning:
-						VndbConnectionColor = new SolidColorBrush(Colors.Yellow);
+						VndbReplyColor = new SolidColorBrush(Colors.DarkKhaki);
 						return;
 					case VndbConnection.MessageSeverity.Error:
-						VndbConnectionColor = new SolidColorBrush(Colors.Red);
+						VndbReplyColor = new SolidColorBrush(Colors.Red);
 						return;
 				}
 			});
@@ -114,16 +183,17 @@ namespace Happy_Reader.ViewModel
 		{
 			return () =>
 			{
+				Func<IEnumerable<ListedVN>, IEnumerable<ListedVN>> ordering = lvn => lvn.OrderByDescending(x => x.ReleaseDate);
+				//Func<IEnumerable<ListedVN>, IEnumerable<ListedVN>> ordering = lvn => lvn.OrderBy(x => x.Title);
 				var watch = Stopwatch.StartNew();
 				_finalPage = false;
 				if (showAll) _dbFunction = x => x.LocalVisualNovels;
 				_listedVnPage = 1;
-				var preFilteredResults = _dbFunction.Invoke(LocalDatabase).OrderByDescending(x => x.ReleaseDate).Select(x => x.VNID).ToArray();
+				var preFilteredResults = ordering(_dbFunction.Invoke(LocalDatabase)).ToArray();
 				var filterResults = LocalDatabase.LocalVisualNovels.Where(PermanentFilter.GetFunction()).Select(x => x.VNID).ToArray();
-				AllVNResults = preFilteredResults.Where(x => filterResults.Contains(x)).ToArray();
+				AllVNResults = ordering(preFilteredResults.Where(x => filterResults.Contains(x.VNID))).Select(x => x.VNID).ToArray();
 				var firstPage = AllVNResults.Take(PageSize).ToArray();
-				var results = LocalDatabase.LocalVisualNovels.Where(x => firstPage.Contains(x.VNID))
-					.OrderByDescending(x => x.ReleaseDate).ToList();
+				var results = ordering(LocalDatabase.LocalVisualNovels.Where(x => firstPage.Contains(x.VNID))).ToList();
 				Application.Current.Dispatcher.Invoke(() =>
 				{
 					ListedVNs.SetRange(results.Select(VNTile.FromListedVN));
@@ -145,7 +215,7 @@ namespace Happy_Reader.ViewModel
 				if (newPage.Count == 0) return;
 			}
 
-			var newTiles = LocalDatabase.LocalVisualNovels.Where(x => newPage.Contains(x.VNID)).Select(VNTile.FromListedVN);
+			var newTiles = LocalDatabase.LocalVisualNovels.Where(x => newPage.Contains(x.VNID)).OrderByDescending(vn => vn.ReleaseDate).Select(VNTile.FromListedVN);
 			ListedVNs.AddRange(newTiles);
 			OnPropertyChanged(nameof(ListedVNs));
 		}
@@ -220,6 +290,39 @@ namespace Happy_Reader.ViewModel
 				if (vnFilter == null) filter.AndFilters.Add(new VnFilter(VnFilterType.OriginalLanguage, "ja"));
 				else filter.AndFilters.Remove(vnFilter);
 			}
+		}
+
+		public async Task GetNewFPTitles()
+		{
+			Action functionOnAdd = () =>
+			{
+				_dbFunction = db => db.LocalVisualNovels.Where(vn => Conn.ActiveQuery.TitlesAdded.Contains(vn.VNID));
+				Dispatcher.CurrentDispatcher.InvokeAsync(() => RefreshListedVns());
+			};
+			await Conn.UpdateForProducers(LocalDatabase.CurrentUser.FavoriteProducers, functionOnAdd);
+			_dbFunction = db => db.LocalVisualNovels.Where(vn => Conn.ActiveQuery.TitlesAdded.Contains(vn.VNID));
+			await RefreshListedVns();
+		}
+
+		public async Task<bool> ChangeVNStatus(ListedVN vn, WishlistStatus chosenStatus)
+		{
+			return await Conn.ChangeVNStatus(vn, VisualNovelDatabase.ChangeType.WL, vn.UserVN?.WLStatus == chosenStatus ? -1 : (int)chosenStatus);
+		}
+
+		public async Task<bool> ChangeVNStatus(ListedVN vn, UserlistStatus chosenStatus)
+		{
+			return await Conn.ChangeVNStatus(vn, VisualNovelDatabase.ChangeType.UL, vn.UserVN?.ULStatus == chosenStatus ? -1 : (int)chosenStatus);
+		}
+
+		public async Task<bool> UpdateVN(ListedVN vn)
+		{
+			return await Conn.UpdateVN(vn);
+		}
+
+		public async Task ShowForProducer(ListedProducer vnProducer)
+		{
+			_dbFunction = db => db.LocalVisualNovels.Where(vn => vn.Producer == vnProducer);
+			await RefreshListedVns();
 		}
 	}
 }

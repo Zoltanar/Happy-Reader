@@ -47,7 +47,7 @@ namespace Happy_Reader.View.Tabs
 		{
 			if(_viewModel?.SelectedTextThread != null) _viewModel.OnPropertyChanged(nameof(_viewModel.SelectedTextThread));
 		}
-
+		
 		private void FinalizeButton(object sender, RoutedEventArgs e)
 		{
 			_viewModel.Finalize(sender, null);

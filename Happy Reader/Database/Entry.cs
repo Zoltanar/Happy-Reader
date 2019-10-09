@@ -11,59 +11,59 @@ using JetBrains.Annotations;
 namespace Happy_Reader.Database
 {
 
-    public class Entry : INotifyPropertyChanged
-    {
+	public class Entry : INotifyPropertyChanged
+	{
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long Id { get; set; }
-        public int UserId { get; set; }
-        
-        [Required]
-        public string Input { get; set; }
-	    public string Output { get; set; } = string.Empty;
-        public int? GameId { get; set; }
-        public bool SeriesSpecific { get; set; }
-        public bool Private { get; set; }
-        public double Priority { get; set; }
+		public long Id { get; set; }
+		public int UserId { get; set; }
+
+		[Required]
+		public string Input { get; set; }
+		public string Output { get; set; } = string.Empty;
+		public int? GameId { get; set; }
+		public bool SeriesSpecific { get; set; }
+		public bool Private { get; set; }
+		public double Priority { get; set; }
 		public bool Regex { get; set; }
-	    public string Comment { get; set; }
+		public string Comment { get; set; }
 		public EntryType Type { get; set; }
-        public string RoleString { get; set; }
-        public bool Disabled { get; set; }
-        public DateTime Time { get; set; }
-        public DateTime? UpdateTime { get; set; }
-        public long UpdateUserId { get; set; }
-	    public string UpdateComment { get; set; }
+		public string RoleString { get; set; }
+		public bool Disabled { get; set; }
+		public DateTime Time { get; set; }
+		public DateTime? UpdateTime { get; set; }
+		public long UpdateUserId { get; set; }
+		public string UpdateComment { get; set; }
 
 
-	    [NotMapped]
-	    public ListedVN Game => GameId == null ? null : StaticHelpers.LocalDatabase.LocalVisualNovels.FirstOrDefault(x => x.VNID == GameId);
 		[NotMapped]
-	    public User User => StaticHelpers.LocalDatabase.LocalUsers.FirstOrDefault(x => x.Id == UserId);
+		public ListedVN Game => GameId == null ? null : StaticHelpers.LocalDatabase.LocalVisualNovels.FirstOrDefault(x => x.VNID == GameId);
 		[NotMapped]
-        public RoleProxy AssignedProxy { get; set; }
+		public User User => StaticHelpers.LocalDatabase.LocalUsers.FirstOrDefault(x => x.Id == UserId);
+		[NotMapped]
+		public RoleProxy AssignedProxy { get; set; }
 		/// <summary>
 		/// Location in string
 		/// </summary>
 		[NotMapped]
-	    public int Location { get; set; }
+		public int Location { get; set; }
 
-	    public event PropertyChangedEventHandler PropertyChanged;
+		public event PropertyChangedEventHandler PropertyChanged;
 
-	    [NotifyPropertyChangedInvocator]
-	    public void OnPropertyChanged([CallerMemberName] string propertyName = null)
-	    {
-		    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-	    }
+		[NotifyPropertyChangedInvocator]
+		public void OnPropertyChanged([CallerMemberName] string propertyName = null)
+		{
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
 
 		public Entry() { }
 
-	    public Entry(string input, string output)
-	    {
-		    Input = input;
-		    Output = output;
-		    Type = EntryType.Name;
-	    }
+		public Entry(string input, string output)
+		{
+			Input = input;
+			Output = output;
+			Type = EntryType.Name;
+		}
 
-	    public override string ToString() => $"[{Id}] {Input} > {Output}";
-    }
+		public override string ToString() => $"[{Id}] {Input} > {Output}";
+	}
 }

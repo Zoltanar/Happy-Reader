@@ -73,6 +73,6 @@
             <Button Margin="5" Content="Set Hook Code"  Command="{Binding SetHookCodeCommand}"/>
         </UniformGrid>
         <!--row 4 -->
-        <TextBox x:Name="MainTextBox" Text="{Binding SelectedTextThread.Text, Mode=OneWay}" Margin="5" Grid.Row="4" IsReadOnly="True" TextWrapping="Wrap" SelectionChanged="MainTextBox_OnSelectionChanged" VerticalScrollBarVisibility="Auto" TextChanged="MainTextBox_OnTextChanged"/>
+		<TextBox x:Name="MainTextBox" Text="{Binding SelectedTextThread.Text, Mode=OneWay}" Margin="5" Grid.Row="4" IsReadOnly="True" TextWrapping="Wrap" SelectionChanged="MainTextBox_OnSelectionChanged" VerticalScrollBarVisibility="Auto" TextChanged="MainTextBox_OnTextChanged" Background="{Binding MainTextBoxBackground}" />
     </Grid>
 </UserControl>

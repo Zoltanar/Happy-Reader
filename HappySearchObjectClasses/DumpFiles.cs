@@ -264,10 +264,10 @@ namespace Happy_Apps_Core
 			}
 		}
 
-		public static void Load()
+		public static void Load(bool redownload = true)
 		{
 			var daysSince = CSettings.DumpfileDate.DaysSince();
-			if (daysSince > 2 || daysSince == -1)
+			if (redownload && (daysSince > 2 || daysSince == -1))
 			{
 				if (!GetNewDumpFiles()) return;
 				CSettings.DumpfileDate = DateTime.UtcNow;

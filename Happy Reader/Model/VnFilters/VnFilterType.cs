@@ -24,7 +24,8 @@ namespace Happy_Reader
 		[Description("Original Language")]
 		OriginalLanguage = 9,
 		Tags = 10,
-		Traits = 11
+		Traits = 11,
+		HasFullDate = 12
 #pragma warning restore 1591
 	}
 }

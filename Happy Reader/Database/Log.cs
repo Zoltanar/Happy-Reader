@@ -31,6 +31,7 @@ namespace Happy_Reader.Database
 				if (_parsedData != null) return _parsedData;
 				switch (Kind)
 				{
+					case LogKind.MergeTimePlayed:
 					case LogKind.TimePlayed:
 						_parsedData = TimeSpan.Parse(Data);
 						break;
@@ -75,6 +76,16 @@ namespace Happy_Reader.Database
 			return log;
 		}
 
+
+		public static Log NewMergedTimePlayedLog(long usergameId, TimeSpan mergedTimePlayed, bool notify)
+		{
+			var log = new Log(LogKind.MergeTimePlayed, usergameId, mergedTimePlayed.ToString(), mergedTimePlayed);
+			if (notify) log.Notify();
+			else Debug.WriteLine(log);
+			AddToList?.Invoke(log);
+			return log;
+		}
+
 		public static Log NewStartedPlayingLog(long usergameId, DateTime time)
 		{
 			var log = new Log(LogKind.StartedPlaying, usergameId, time.ToString(CultureInfo.InvariantCulture), time);
@@ -98,6 +109,12 @@ namespace Happy_Reader.Database
 					paragraph.Inlines.Add("Started playing ");
 					paragraph.Inlines.Add(new Run(userGame2?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame") { Foreground = Brushes.Green });
 					paragraph.Inlines.Add($" at {((DateTime)ParsedData):hh\\:mm}");
+					break;
+				case LogKind.MergeTimePlayed:
+					var userGame3 = StaticMethods.Data.UserGames.FirstOrDefault(g => g.Id == AssociatedId);
+					paragraph.Inlines.Add("Merged time played to ");
+					paragraph.Inlines.Add(new Run(userGame3?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame") { Foreground = Brushes.Green });
+					paragraph.Inlines.Add($" for {((TimeSpan)ParsedData).ToHumanReadable()}.");
 					break;
 				case LogKind.Simple:
 					paragraph.Inlines.Add(new Run(Data));
@@ -136,6 +153,12 @@ namespace Happy_Reader.Database
 					sb.Append(userGame2?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame");
 					sb.Append($" at {((DateTime)ParsedData).GetLocalizedTime()}.");
 					break;
+				case LogKind.MergeTimePlayed:
+					var userGame3 = StaticMethods.Data.UserGames.FirstOrDefault(g => g.Id == AssociatedId);
+					sb.Append("Merged time played to");
+					sb.Append(userGame3?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame");
+					sb.Append($" for {((TimeSpan)ParsedData).ToHumanReadable()}.");
+					break;
 				case LogKind.Simple:
 					sb.Append(new Run(Data));
 					break;
@@ -149,5 +172,5 @@ namespace Happy_Reader.Database
 		}
 	}
 
-	public enum LogKind { TimePlayed = 0, StartedPlaying = 1, Simple = 2 }
+	public enum LogKind { TimePlayed = 0, StartedPlaying = 1, Simple = 2, MergeTimePlayed = 3 }
 }

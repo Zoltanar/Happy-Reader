@@ -9,6 +9,11 @@ better auto-add page on database tab (https://stackoverflow.com/questions/111873
 handle proxymods by order
 assign entry.location to merged proxy to allow for triple+ name
 allow user to choose location of google credential, currently C:\Google\hrtranslate-credential.json.
+order by time played
+allow keeping time played for multiple games
+allow monitor to keep runing always
+make runitor only have one instance.
+if notification window is already present, simply replace text and restart timer
 
 great outstanding problems:
 can't show outputwindow on top of some fullscreen games, steals focus on games where it works

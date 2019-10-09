@@ -14,7 +14,7 @@ namespace Happy_Apps_Core
         private string _culture;
         private int _maxClipboardSize;
 	    private bool _captureClipboardOnStart;
-	    private CultureInfo _cultureInfo = CultureInfo.DefaultThreadCurrentCulture;
+	    private CultureInfo _cultureInfo = CultureInfo.DefaultThreadCurrentCulture ?? CultureInfo.CurrentCulture;
 	    private bool _googleUseCredential;
 
 	    public GuiSettings()

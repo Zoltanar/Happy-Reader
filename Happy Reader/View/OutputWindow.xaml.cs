@@ -40,11 +40,14 @@ namespace Happy_Reader.View
 
         internal void SetLocation(Rectangle rectangle)
         {
-            Left = rectangle.X;
-            Top = rectangle.Y;
-	        Width = rectangle.Width;
-	        Height = rectangle.Height;
-		}
+	        Application.Current.Dispatcher.Invoke(() =>
+	        {
+		        Left = rectangle.X;
+		        Top = rectangle.Y;
+		        Width = rectangle.Width;
+		        Height = rectangle.Height;
+	        });
+        }
 
 
 		private void DragOnMouseButton(object sender, MouseButtonEventArgs e)

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using static Happy_Apps_Core.StaticHelpers;
 // ReSharper disable InconsistentNaming
+// ReSharper disable ClassNeverInstantiated.Global
 
 namespace Happy_Apps_Core
 {
@@ -80,51 +81,36 @@ namespace Happy_Apps_Core
 		{
 			if (!Directory.Exists(VNImagesFolder)) Directory.CreateDirectory(VNImagesFolder);
 			if (Image == null || Image.Equals("")) return;
-			string imageLocation = $"{VNImagesFolder}{ID}{Path.GetExtension(Image)}";
+			var imageParts = Image.Split('/');
+			string imageLocation = $"{VNImagesFolder}{string.Join("\\", imageParts.Skip(imageParts.Length - 2))}";
 			if (File.Exists(imageLocation) && update == false) return;
 			Logger.ToFile($"Start downloading cover image for {this}");
+			WebResponse responsePic = null;
+			Stream stream = null;
+			Stream destinationStream = null;
 			try
 			{
+				Directory.CreateDirectory(Path.GetDirectoryName(imageLocation));
 				var requestPic = WebRequest.Create(Image);
-				using (var responsePic = requestPic.GetResponse())
-				{
-					using (var stream = responsePic.GetResponseStream())
-					{
-						if (stream == null) return;
-						var webImage = System.Drawing.Image.FromStream(stream);
-						webImage.Save(imageLocation);
-					}
-				}
+				responsePic = requestPic.GetResponse();
+				stream = responsePic.GetResponseStream();
+				if (stream == null) return;
+				destinationStream = File.OpenWrite(imageLocation);
+				stream.CopyTo(destinationStream);
+				/*var webImage = System.Drawing.Image.FromStream(stream);
+				webImage.Save(imageLocation);*/
 			}
-			catch (Exception ex) when (ex is NotSupportedException || ex is ArgumentNullException || ex is SecurityException || ex is UriFormatException || ex is ExternalException)
-			{ Logger.ToFile(ex); }
-		}
-
-		/// <summary>
-		/// Saves a title's cover image (unless it already exists)
-		/// </summary>
-		public async Task SaveCoverAsync(bool update = false)
-		{
-			if (!Directory.Exists(VNImagesFolder)) Directory.CreateDirectory(VNImagesFolder);
-			if (Image == null || Image.Equals("")) return;
-			string imageLocation = $"{VNImagesFolder}{ID}{Path.GetExtension(Image)}";
-			if (File.Exists(imageLocation) && update == false) return;
-			Logger.ToFile($"Start downloading cover image for {this}");
-			try
+			catch (Exception ex) when (ex is NotSupportedException || ex is ArgumentNullException ||
+																 ex is SecurityException || ex is UriFormatException || ex is ExternalException)
 			{
-				var requestPic = WebRequest.Create(Image);
-				using (var responsePic = await requestPic.GetResponseAsync())
-				{
-					using (var stream = responsePic.GetResponseStream())
-					{
-						if (stream == null) return;
-						var webImage = System.Drawing.Image.FromStream(stream);
-						webImage.Save(imageLocation);
-					}
-				}
+				Logger.ToFile(ex);
 			}
-			catch (Exception ex) when (ex is NotSupportedException || ex is ArgumentNullException || ex is SecurityException || ex is UriFormatException || ex is ExternalException)
-			{ Logger.ToFile(ex); }
+			finally
+			{
+				responsePic?.Dispose();
+				stream?.Dispose();
+				destinationStream?.Dispose();
+			}
 		}
 
 		#region Subclasses

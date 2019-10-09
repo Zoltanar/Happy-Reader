@@ -31,7 +31,7 @@ namespace Happy_Apps_Core
 		/// Print exception to Debug and write it to log file.
 		/// </summary>
 		/// <param name="exception">Exception to be written to file</param>
-		/// <param name="source">Source of error, CallerMemberName by default</param>
+		/// <param name="source">Source of error, <see cref="CallerMemberNameAttribute"/> by default</param>
 		public void ToFile(Exception exception,[CallerMemberName] string source = null)
 		{
 			Debug.WriteLine($"Source: {source}");

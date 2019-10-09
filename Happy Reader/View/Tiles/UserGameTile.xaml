@@ -4,12 +4,14 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:database="clr-namespace:Happy_Reader.Database"
+             xmlns:view="clr-namespace:Happy_Reader.View"
              mc:Ignorable="d" d:DesignHeight="220" d:DesignWidth="160">
     <UserControl.DataContext>
         <database:UserGame/>
     </UserControl.DataContext>
     <UserControl.Resources>
-        <Style x:Key="ToggleButtonStyle" TargetType="{x:Type ToggleButton}">
+		<view:TimeSpanConverter x:Key="TimeSpanConverterKey"/>
+	    <Style x:Key="ToggleButtonStyle" TargetType="{x:Type ToggleButton}">
             <Setter Property="IsEnabled" Value="False"></Setter>
             <Setter Property="Template">
                 <Setter.Value>
@@ -48,13 +50,8 @@
                 <TextBlock Text="{Binding DisplayName}"  VerticalAlignment="Center" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
             </Viewbox>
             <Viewbox Grid.Row="2" Margin="0,0,48,0">
-                <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <TextBlock.Text>
-                        <MultiBinding StringFormat="{}{0:N0}:{1:00}">
-                            <Binding Path="TimeOpen.TotalHours"/>
-                            <Binding Path="TimeOpen.Minutes"/>
-                        </MultiBinding>
-                    </TextBlock.Text>
+                <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding TimeOpen, Converter={StaticResource TimeSpanConverterKey}}">
+                    <!--<TextBlock.Text><MultiBinding StringFormat="{}{0:0}:{1:00}"><Binding Path="TimeOpen.TotalHours"/><Binding Path="TimeOpen.Minutes"/></MultiBinding></TextBlock.Text>-->
                 </TextBlock>
             </Viewbox>
             <ToggleButton Margin="112,5,0,0" Grid.Row="2" Style="{StaticResource ToggleButtonStyle}" IsChecked="{Binding IsRunning, Mode=OneWay}"/>
@@ -62,9 +59,10 @@
     </Border>
     <UserControl.ContextMenu>
         <ContextMenu>
-            <MenuItem Header="See Details" Click="GameDetails"></MenuItem>
-            <MenuItem Header="Browse To Location" Click="BrowseToLocation"></MenuItem>
+            <MenuItem Header="See Details" Click="GameDetails"/>
+            <MenuItem Header="Browse To Location" Click="BrowseToLocation"/>
             <MenuItem Header="Remove" Click="RemoveUserGame"></MenuItem>
+            <MenuItem Header="Merge games to this" Click="MergeGamesToThis"/>
         </ContextMenu>
     </UserControl.ContextMenu>
 </UserControl>

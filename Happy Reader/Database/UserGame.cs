@@ -159,8 +159,8 @@ namespace Happy_Reader.Database
 			get
 			{
 				if (!File.Exists(FilePath)) return "File not found"; //DateTime.MinValue;
+				if (LastGamesPlayed.IndexOfValue(Id) > LastGamesPlayed.Count - 6) return "Last Played";
 				if (VN == null) return "Other"; //DateTime.MinValue.AddDays(1);
-				if (LastGamesPlayed.IndexOfValue(Id)> LastGamesPlayed.Count - 6) return "Last Played";
 				var dt = VN.ReleaseDate;
 				var newDt = new DateTime(dt.Year, dt.Month, DateTime.DaysInMonth(dt.Year, dt.Month));
 				return string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:MMMM} {0:yyyy}", newDt);
@@ -205,6 +205,15 @@ namespace Happy_Reader.Database
 			var log = Log.NewTimePlayedLog(Id, _runningTime.Elapsed, notify);
 			StaticMethods.Data.Logs.Add(log);
 			StaticMethods.Data.SaveChanges();
+		}
+
+		public void MergeTimePlayed(TimeSpan mergedTimePlayed)
+		{
+			TimeOpen += mergedTimePlayed;
+			var log = Log.NewMergedTimePlayedLog(Id, mergedTimePlayed, false);
+			StaticMethods.Data.Logs.Add(log);
+			StaticMethods.Data.SaveChanges();
+			OnPropertyChanged(nameof(TimeOpen));
 		}
 
 		private void ProcessExited(object sender, EventArgs e) => SaveTimePlayed(true);

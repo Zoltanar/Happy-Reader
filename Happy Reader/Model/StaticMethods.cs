@@ -10,6 +10,7 @@ using Happy_Apps_Core;
 using Happy_Reader.Database;
 using System.Linq.Expressions;
 using System.Threading;
+using System.Windows.Media;
 using StaticHelpers = Happy_Apps_Core.StaticHelpers;
 
 // ReSharper disable UnusedMember.Global
@@ -62,7 +63,7 @@ namespace Happy_Reader
 			};
 			var process = Process.Start(pi);
 			Debug.Assert(process != null, nameof(process) + " != null");
-			process.WaitForInputIdle(3000);
+			if(!process.HasExited) process.WaitForInputIdle(3000);
 			return process;
 		}
 
@@ -89,6 +90,22 @@ namespace Happy_Reader
 			processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(userGame.FilePath));
 			existing = processes.FirstOrDefault();
 			return existing;
+		}
+
+		public static T FindParent<T>(this DependencyObject child) where T : DependencyObject
+		{
+			while (true)
+			{
+				//get parent item
+				DependencyObject parentObject = VisualTreeHelper.GetParent(child);
+
+				//we've reached the end of the tree
+				if (parentObject == null) return null;
+
+				//check if the parent matches the type we're looking for
+				if (parentObject is T parent) return parent;
+				child = parentObject;
+			}
 		}
 
 		public static TValue GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue value)
@@ -219,5 +236,6 @@ namespace Happy_Reader
 			if (timeSpan.TotalHours > 1 && timeSpan.TotalHours < 2) return $"1 hour, {timeSpan.Minutes} minutes";
 			return $"{(int)timeSpan.TotalHours} hours, {timeSpan.Minutes} minutes";
 		}
+
 	}
 }

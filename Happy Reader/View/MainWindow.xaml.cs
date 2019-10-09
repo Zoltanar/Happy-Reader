@@ -47,20 +47,21 @@ namespace Happy_Reader.View
 			contextMenu.Items.Add(new ToolStripMenuItem("Exit", null, Exit));
 			// ReSharper disable once PossibleNullReferenceException
 			Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/logo-hr.ico")).Stream;
-			var trayIcon = new NotifyIcon
+			_trayIcon = new NotifyIcon
 			{
 				Icon = new System.Drawing.Icon(iconStream),
 				ContextMenuStrip = contextMenu,
 				Visible = true
 			};
-			trayIcon.DoubleClick += open;
+			_trayIcon.DoubleClick += open;
 		}
 
 		private async void Window_Loaded(object sender, RoutedEventArgs e)
 		{
+			if (DesignerProperties.GetIsInDesignMode(this)) return;
 			Stopwatch watch = Stopwatch.StartNew();
 			_viewModel.ClipboardManager = new ClipboardManager(this);
-			await _viewModel.Initialize(watch, GroupByMonth);
+			await _viewModel.Initialize(watch, GroupByAdded,!Environment.GetCommandLineArgs().Contains("-nh"), !Environment.GetCommandLineArgs().Contains("-ne"));
 		}
 
 		private void AddEntry_Click(object sender, RoutedEventArgs e) => CreateAddEntryTab(new Entry());
@@ -78,6 +79,7 @@ namespace Happy_Reader.View
 			var titledImage = _viewModel.AddGameFile(file);
 			if (titledImage == null) return;
 			((IList<UserGameTile>)GameFiles.ItemsSource).Add(titledImage);
+			titledImage.GameDetails(this, null);
 		}
 
 		private void GameFiles_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -191,6 +193,24 @@ namespace Happy_Reader.View
 			view.SortDescriptions.Add(new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.LastPlayedDate)}", ListSortDirection.Descending));
 		}
 
+		private void GroupByTimePlayed(object sender, RoutedEventArgs e)
+		{
+			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(_viewModel.UserGameItems);
+			PropertyGroupDescription groupDescription = new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.TimeOpen)}", new TimeOpenConvertor());
+			view.GroupDescriptions.Clear();
+			view.GroupDescriptions.Add(groupDescription);
+			view.SortDescriptions.Clear();
+			view.SortDescriptions.Add(new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.TimeOpen)}", ListSortDirection.Descending));
+		}
+		
+		private void GroupByAdded(object sender, RoutedEventArgs e)
+		{
+			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(_viewModel.UserGameItems);
+			view.GroupDescriptions.Clear();
+			view.SortDescriptions.Clear();
+			view.SortDescriptions.Add(new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.Id)}", ListSortDirection.Descending));
+		}
+
 		private class LastPlayedConvertor : IValueConverter
 		{
 			public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -203,12 +223,26 @@ namespace Happy_Reader.View
 				return timeSince.TotalDays < 30 ? "Last month" : "Earlier";
 			}
 
-			public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-			{
-				throw new NotImplementedException();
-			}
+			public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => new NotImplementedException();
 		}
 
+		private class TimeOpenConvertor : IValueConverter
+		{
+			public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+			{
+				if (!(value is TimeSpan time)) return value;
+				if (time == TimeSpan.MinValue) return "Never";
+				if (time.TotalHours < 0.5) return "<30 Minutes";
+				if (time.TotalHours < 1) return "<1 Hour";
+				if (time.TotalHours < 3) return "<3 Hours";
+				if (time.TotalHours < 8) return "<8 Hours";
+				if (time.TotalHours < 20) return "<20 Hours";
+				if (time.TotalHours < 50) return "<50 Hours";
+				return time.TotalHours < 100 ? "<100 Hours" : ">100 Hours";
+			}
+
+			public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => new NotImplementedException();
+		}
 
 		private void ClickDeleteButton(object sender, RoutedEventArgs e)
 		{
@@ -229,6 +263,7 @@ namespace Happy_Reader.View
 
 		private bool _finalizing;
 		private bool _finalized;
+		private NotifyIcon _trayIcon;
 
 		private void MainWindow_OnClosing(object sender, CancelEventArgs e)
 		{
@@ -242,6 +277,7 @@ namespace Happy_Reader.View
 			if (_finalizing) return;
 			_finalizing = true;
 			Hide();
+			_trayIcon.Visible = false;
 			_viewModel.ExitProcedures(this, null);
 			_finalized = true;
 			Close();
