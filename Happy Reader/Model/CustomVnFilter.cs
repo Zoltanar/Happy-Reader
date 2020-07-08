@@ -2,8 +2,8 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using JetBrains.Annotations;
 
@@ -24,7 +24,7 @@ namespace Happy_Reader
 		/// List of filters in which at least one must be true
 		/// </summary>
 		public ObservableCollection<VnFilter> OrFilters { get; set; } = new ObservableCollection<VnFilter>();
-
+		
 		/// <inheritdoc />
 		public override string ToString() => Name;
 
@@ -34,6 +34,7 @@ namespace Happy_Reader
 		/// <param name="existingVnFilter"></param>
 		public CustomVnFilter(CustomVnFilter existingVnFilter)
 		{
+			OriginalFilter = existingVnFilter;
 			Name = existingVnFilter.Name;
 			AndFilters = new ObservableCollection<VnFilter>();
 			foreach (var filter in existingVnFilter.AndFilters) AndFilters.Add(filter.GetCopy());
@@ -41,6 +42,8 @@ namespace Happy_Reader
 			foreach (var filter in existingVnFilter.OrFilters) OrFilters.Add(filter.GetCopy());
 			OnPropertyChanged();
 		}
+
+		public CustomVnFilter OriginalFilter { get; }
 
 		/// <summary>
 		/// The filter is overwritten by the passed filter.
@@ -73,42 +76,33 @@ namespace Happy_Reader
 			return vn => andFunctions.All(x => x(vn)) && orFunctions.Any(x => x(vn));
 		}
 
-		public Expression GetExpression()
+		private Func<ListedVN, bool> CombineIncludeTagFilters()
 		{
-			//Func<ListedVN, bool>[] andFunctions = AndFilters.Select(filter => filter.GetExpression().Compile()).ToArray();
-			//Func<ListedVN, bool>[] orFunctions = OrFilters.Select(filter => filter.GetExpression().Compile()).ToArray();
-			Expression<Func<ListedVN, bool>>[] andFunctions = AndFilters.Select(filter => filter.GetExpression()).ToArray();
-			Expression<Func<ListedVN, bool>>[] orFunctions = OrFilters.Select(filter => filter.GetExpression()).ToArray();
-			if (andFunctions.Length + orFunctions.Length == 0) return Expression.Constant(true);
-			Expression andExpression = null;
-			Expression orExpression = null;
-			if (andFunctions.Length > 0)
+			var tags = AndFilters.Where(f => f.Type == VnFilterType.Tags && f.AdditionalInt == null && !f.Exclude)
+				.Select(f => (TagId: f.IntValue, Score: f.AdditionalInt, f.Exclude)).ToList();
+			var includeTags = tags.Where(t => !t.Exclude).ToList();
+			var excludeTags = tags.Where(t => t.Exclude).ToList();
+			//factor in exclude
+
+			return vn =>
 			{
-				andExpression = andFunctions[0].Body;
-				var index = 1;
-				while (index < andFunctions.Length)
+				var includeTagsCopy = includeTags.ToList();
+				foreach (var vnTag in vn.Tags)
 				{
-					andExpression = Expression.AndAlso(andExpression, andFunctions[index].Body);
-					index++;
+					foreach (var t in includeTags)
+					{
+						//if matched and score is not required or is higher or equal to required, remove from list.
+						if (DumpFiles.GetTag(t.TagId).AllIDs.Contains(vnTag.TagId) && t.Score == default || vnTag.Score >= t.Score) includeTagsCopy.Remove(t);
+					}
+					foreach (var t in excludeTags)
+					{
+						//if a tag to exclude is found, return false immediately.
+						if (DumpFiles.GetTag(t.TagId).AllIDs.Contains(vnTag.TagId)) return false;
+					}
 				}
-				if (orFunctions.Length == 0) return andExpression;
-			}
-			//if all and functions are true and 1+ or function is true
-			if (orFunctions.Length > 0)
-			{
-				orExpression = andFunctions[0].Body;
-				var index = 1;
-				while (index < andFunctions.Length)
-				{
-					orExpression = Expression.Or(orExpression, andFunctions[index].Body);
-					index++;
-				}
-				if (andFunctions.Length == 0) return orExpression;
-			}
-			// ReSharper disable AssignNullToNotNullAttribute
-			Expression result = Expression.AndAlso(andExpression, orExpression);
-			// ReSharper restore AssignNullToNotNullAttribute
-			return result;
+				//all matched so all were removed
+				return includeTagsCopy.Count == 0;
+			};
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;

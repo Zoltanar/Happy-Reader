@@ -51,31 +51,33 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="150"/>
-            <ColumnDefinition Width="Auto" MaxWidth="400"/>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto" MinWidth="150"/>
         </Grid.ColumnDefinitions>
-        <UniformGrid Grid.Column="0" Rows="12" Columns="1">
+        <UniformGrid Grid.Column="0" Rows="13" Columns="1">
             <Label Style="{StaticResource Row0Label}" Content="Title" />
             <Label Style="{StaticResource Row0Label}" Content="Original" />
             <Label Style="{StaticResource Row0Label}" Content="Producer" />
             <Label Style="{StaticResource Row0Label}" Content="File"/>
-            <Button Style="{StaticResource UniformButton}" Content="Browse to file" Click="BrowseToFolderClick"/>
-            <Label Style="{StaticResource Row0Label}" Content="User Defined Name" />
-            <Label Style="{StaticResource Row0Label}" Content="VNID" />
+			<Button Style="{StaticResource UniformButton}" Content="Browse to file" Click="BrowseToFolderClick"/>
+			<Label Style="{StaticResource Row0Label}" Content="User Defined Name" />
+            <Label Style="{StaticResource Row0Label}" Content="Tag" />
+			<Label Style="{StaticResource Row0Label}" Content="VNID" />
             <Label Style="{StaticResource Row0Label}" Content="Hook Code" />
             <Label Style="{StaticResource Row0Label}" Content="Default Hook Full" />
             <Label Style="{StaticResource Row0Label}" Content="Encoding" />
             <Label Style="{StaticResource Row0Label}" Content="Launch Path" />
             <CheckBox Style="{StaticResource UniformCheckbox}" Content="Hook to Process" IsChecked="{Binding HookProcess}" />
         </UniformGrid>
-        <UniformGrid Grid.Column="1" Rows="12">
+        <UniformGrid Grid.Column="1" Rows="13">
             <TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding VN.Title, Mode=OneWay}" />
             <TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding VN.KanjiTitle, Mode=OneWay}" />
             <TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding VN.Producer.Name, Mode=OneWay}" />
             <TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding FilePath, Mode=OneWay}" />
-            <Button  Style="{StaticResource UniformButton}" Content="Change File Path" Click="ChangeFileLocationClick"/>
-            <TextBox Style="{StaticResource Row1TextBox}" x:Name="DisplayNameBox" Text="{Binding UserDefinedName}" KeyUp="SaveUsedDefinedName" />
-            <TextBox Style="{StaticResource Row1TextBox}" x:Name="VnidNameBox" Text="{Binding VNID}" KeyUp="SaveVNID" PreviewTextInput="DigitsOnly" />
+			<Button  Style="{StaticResource UniformButton}" Content="Change File Path" Click="ChangeFileLocationClick"/>
+			<TextBox Style="{StaticResource Row1TextBox}" x:Name="DisplayNameBox" Text="{Binding UserDefinedName}" KeyUp="SaveUserDefinedName" />
+            <TextBox Style="{StaticResource Row1TextBox}" x:Name="TagBox" Text="{Binding Tag}" KeyUp="SaveTag" />
+			<TextBox Style="{StaticResource Row1TextBox}" x:Name="VnidNameBox" Text="{Binding VNID}" KeyUp="SaveVNID" PreviewTextInput="DigitsOnly" />
             <TextBox Style="{StaticResource Row1TextBox}" x:Name="HookCodeBox" Text="{Binding HookCode}" KeyUp="SaveHookCode" />
             <TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding DefaultHookFull}" />
             <ComboBox ItemsSource="{Binding Encodings}" DisplayMemberPath="EncodingName" SelectedItem="{Binding PrefEncoding}" />

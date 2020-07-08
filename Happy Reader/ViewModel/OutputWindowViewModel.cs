@@ -14,7 +14,7 @@ namespace Happy_Reader.ViewModel
 {
 	public class OutputWindowViewModel : INotifyPropertyChanged
 	{
-		private bool _originalOn = true;
+		private bool _originalOn = false;
 		private bool _romajiOn = true;
 		private int _translationCounter;
 		private DateTime _lastTranslated;
@@ -73,9 +73,9 @@ namespace Happy_Reader.ViewModel
 			NotificationWindow.Launch("Ask Jisho", text);
 		}
 
-		public void Initialize(MainWindow mainWindow, RichTextBox debugTextbox)
+		public void Initialize(MainWindow mainWindow, RichTextBox outputTextBox)
 		{
-			TextArea = debugTextbox;
+			TextArea = outputTextBox;
 			MainWindow = mainWindow;
 			MainViewModel = (MainWindowViewModel)mainWindow.DataContext;
 			OnPropertyChanged(nameof(TranslatePaused));

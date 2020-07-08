@@ -1,32 +1,36 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using Happy_Reader.ViewModel;
-using Point = System.Windows.Point;
 
 namespace Happy_Reader.View
 {
-    /// <summary>
-    /// Interaction logic for OutputWindow.xaml
-    /// </summary>
-    public partial class OutputWindow
-    {
-        private readonly GridLength _settingsColumnLength;
-        private readonly MainWindow _mainWindow;
-	    private OutputWindowViewModel _viewModel;
+	public partial class OutputWindow
+	{
+		private readonly GridLength _settingsColumnLength;
+		private readonly MainWindow _mainWindow;
+		private OutputWindowViewModel _viewModel;
 
-	    public bool SettingsOn { get; set; } = true;
-	    public bool FullScreenOn { get; set; }
+		public bool SettingsOn { get; set; }
+		public bool FullScreenOn { get; set; }
 
 		public OutputWindow(MainWindow mainWindow)
-        {
-            InitializeComponent();
-            _mainWindow = mainWindow;
-            _settingsColumnLength = SettingsColumn.Width;
-	        DebugTextbox.Effect = new System.Windows.Media.Effects.DropShadowEffect();
-	        _viewModel = (OutputWindowViewModel) DataContext;
-        }
+		{
+			InitializeComponent();
+			_mainWindow = mainWindow;
+			_settingsColumnLength = SettingsColumn.Width;
+			var tColor = ((SolidColorBrush) StaticMethods.GSettings.TranslationColor).Color;
+			var darkerColor = System.Windows.Media.Color.FromRgb((byte) (tColor.R * 0.75), (byte) (tColor.G * 0.75), (byte) (tColor.B * 0.75));
+			var dropShadowEffect = new System.Windows.Media.Effects.DropShadowEffect
+			{
+				Color = darkerColor
+			};
+			OutputTextBox.Effect = dropShadowEffect;
+			_viewModel = (OutputWindowViewModel)DataContext;
+		}
 
 
 
@@ -35,63 +39,65 @@ namespace Happy_Reader.View
 			if (!IsVisible) Show();
 			_viewModel.AddTranslation(translation);
 			_viewModel.UpdateOutput();
-            if (FullScreenOn) Activate();
-        }
+			if (FullScreenOn) Activate();
+		}
 
-        internal void SetLocation(Rectangle rectangle)
-        {
-	        Application.Current.Dispatcher.Invoke(() =>
-	        {
-		        Left = rectangle.X;
-		        Top = rectangle.Y;
-		        Width = rectangle.Width;
-		        Height = rectangle.Height;
-	        });
-        }
+		internal void SetLocation(Rectangle rectangle)
+		{
+			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
+			Application.Current.Dispatcher.Invoke(() =>
+			{
+				Left = rectangle.X;
+				Top = rectangle.Y;
+				Width = rectangle.Width;
+				Height = rectangle.Height;
+			});
+		}
 
 
 		private void DragOnMouseButton(object sender, MouseButtonEventArgs e)
-        {
-            try { DragMove(); }
-            catch (InvalidOperationException) { }
-        }
-		
-        private void CloseButton_Click(object sender, RoutedEventArgs e) => Hide();
-		
-        private void OutputWindow_OnLoaded(object sender, RoutedEventArgs e)
-        {
-            _viewModel = (OutputWindowViewModel)DataContext;
-            _viewModel.Initialize(_mainWindow, DebugTextbox);
-        }
-
-        private void ShowSettingsOnMouseHover(object sender, MouseEventArgs e)
-        {
-            if (SettingsOn) return;
-            // ReSharper disable once PossibleInvalidOperationException
-            SettingsColumn.Width = _settingsColumnLength;
-            SettingsButton.Visibility = Visibility.Hidden;
-        }
-
-        private void HideSettingsOnMouseLeave(object sender, MouseEventArgs e)
-        {
-            if (SettingsOn) return;
-            // ReSharper disable once PossibleInvalidOperationException
-            SettingsColumn.Width = new GridLength(0);
-            SettingsButton.Visibility = Visibility.Visible;
-        }
-
-	    public Rectangle GetRectangle()
-	    {
-		    Rectangle result = default;
-			Application.Current.Dispatcher.Invoke(()=> result = new Rectangle((int)Left, (int)Top, (int)Width, (int)Height));
-		    return result;
+		{
+			try { DragMove(); }
+			catch (InvalidOperationException) { }
 		}
 
-	    private bool _isResizing;
-	    private Point _startPosition;
+		private void CloseButton_Click(object sender, RoutedEventArgs e) => Hide();
 
-	    private void Resizer_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-	    {
+		private void OutputWindow_OnLoaded(object sender, RoutedEventArgs e)
+		{
+			_viewModel = (OutputWindowViewModel)DataContext;
+			_viewModel.Initialize(_mainWindow, OutputTextBox);
+		}
+
+		private void ShowSettingsOnMouseHover(object sender, MouseEventArgs e)
+		{
+			if (SettingsOn) return;
+			// ReSharper disable once PossibleInvalidOperationException
+			SettingsColumn.Width = _settingsColumnLength;
+			SettingsButton.Visibility = Visibility.Hidden;
+		}
+
+		private void HideSettingsOnMouseLeave(object sender, MouseEventArgs e)
+		{
+			if (SettingsOn) return;
+			// ReSharper disable once PossibleInvalidOperationException
+			SettingsColumn.Width = new GridLength(0);
+			SettingsButton.Visibility = Visibility.Visible;
+		}
+
+		public Rectangle GetRectangle()
+		{
+			Rectangle result = default;
+			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
+			Application.Current.Dispatcher.Invoke(() => result = new Rectangle((int)Left, (int)Top, (int)Width, (int)Height));
+			return result;
+		}
+
+		private bool _isResizing;
+		private System.Windows.Point _startPosition;
+
+		private void Resizer_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+		{
 			if (!Mouse.Capture(Resizer)) return;
 			_isResizing = true;
 			_startPosition = Mouse.GetPosition(this);
@@ -100,7 +106,7 @@ namespace Happy_Reader.View
 		private void Resizer_PreviewMouseMove(object sender, MouseEventArgs e)
 		{
 			if (!_isResizing) return;
-			Point currentPosition = Mouse.GetPosition(this);
+			var currentPosition = Mouse.GetPosition(this);
 			double diffX = currentPosition.X - _startPosition.X;
 			double diffY = currentPosition.Y - _startPosition.Y;
 			Left += diffX;

@@ -4,8 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
-             xmlns:system="clr-namespace:System;assembly=mscorlib"
-             xmlns:database="clr-namespace:Happy_Apps_Core.Database;assembly=Happy_Apps_Core"
              mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModel:ProducersTabViewModel}"
              Loaded="ProducersTab_OnLoaded" d:DesignWidth="800" d:DesignHeight="600">
 	<UserControl.Resources>
@@ -42,7 +40,6 @@
 				<DataGridTextColumn Header="My Score" Binding="{Binding UserAverageVote, StringFormat=0.00}" Width="Auto" />
 				<DataGridTextColumn Header="Rating" Binding="{Binding GeneralRating, StringFormat=0.00}" Width="Auto" />
 				<DataGridTextColumn Header="Drop Rate" Binding="{Binding UserDropRate, StringFormat=P0}" Width="Auto"/>
-				<DataGridTextColumn Header="Updated" Binding="{Binding Updated, TargetNullValue={x:Static system:String.Empty}, StringFormat={}{0} days ago}" Width="Auto" />
 			</DataGrid.Columns>
 		</DataGrid>
 		<Label Content="Search:" HorizontalAlignment="Left" VerticalContentAlignment="Center" Grid.Row="1"/>

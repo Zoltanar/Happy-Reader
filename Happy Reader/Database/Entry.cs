@@ -2,7 +2,6 @@ using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
@@ -36,9 +35,9 @@ namespace Happy_Reader.Database
 
 
 		[NotMapped]
-		public ListedVN Game => GameId == null ? null : StaticHelpers.LocalDatabase.LocalVisualNovels.FirstOrDefault(x => x.VNID == GameId);
+		public ListedVN Game => GameId == null ? null : StaticHelpers.LocalDatabase.VisualNovels[GameId.Value];
 		[NotMapped]
-		public User User => StaticHelpers.LocalDatabase.LocalUsers.FirstOrDefault(x => x.Id == UserId);
+		public User User => StaticHelpers.LocalDatabase.Users[UserId];
 		[NotMapped]
 		public RoleProxy AssignedProxy { get; set; }
 		/// <summary>

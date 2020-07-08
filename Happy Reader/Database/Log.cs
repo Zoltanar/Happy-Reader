@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
 using System.Globalization;
@@ -9,19 +10,22 @@ using System.Windows.Media;
 
 namespace Happy_Reader.Database
 {
-	public class Log
+	public class Log : ICloneable
 	{
 		private object _parsedData;
+		private Paragraph _paragraph;
 
 		public Log()
 		{
-			Timestamp = DateTime.UtcNow;
 		}
-
+		
 		public long Id { get; set; }
 		public LogKind Kind { get; set; }
 		public long AssociatedId { get; set; }
 		public string Data { get; set; }
+
+		[NotMapped]
+		public Paragraph Description => _paragraph ?? (_paragraph = GetParagraph());
 
 		[NotMapped]
 		public object ParsedData
@@ -31,6 +35,8 @@ namespace Happy_Reader.Database
 				if (_parsedData != null) return _parsedData;
 				switch (Kind)
 				{
+					case LogKind.ResetTimePlayed:
+						return null;
 					case LogKind.MergeTimePlayed:
 					case LogKind.TimePlayed:
 						_parsedData = TimeSpan.Parse(Data);
@@ -54,8 +60,9 @@ namespace Happy_Reader.Database
 		public static event LogNotificationEventHandler NotificationEvent;
 		public static event Action<Log> AddToList;
 
-		public Log(LogKind kind, long associatedId, string serializedData, object data) : this()
+		private Log(LogKind kind, long associatedId, string serializedData, object data)
 		{
+			Timestamp = DateTime.UtcNow;
 			Kind = kind;
 			AssociatedId = associatedId;
 			Data = serializedData;
@@ -67,28 +74,36 @@ namespace Happy_Reader.Database
 			NotificationEvent?.Invoke(this);
 		}
 
-		public static Log NewTimePlayedLog(long usergameId, TimeSpan timePlayed, bool notify)
+		public static Log NewTimePlayedLog(long userGameId, TimeSpan timePlayed, bool notify)
 		{
-			var log = new Log(LogKind.TimePlayed, usergameId, timePlayed.ToString(), timePlayed);
+			var log = new Log(LogKind.TimePlayed, userGameId, timePlayed.ToString(), timePlayed);
+			if (notify) log.Notify();
+			else Debug.WriteLine(log);
+			AddToList?.Invoke(log);
+			return log;
+		}
+		
+		public static Log NewMergedTimePlayedLog(long userGameId, TimeSpan mergedTimePlayed, bool notify)
+		{
+			var log = new Log(LogKind.MergeTimePlayed, userGameId, mergedTimePlayed.ToString(), mergedTimePlayed);
 			if (notify) log.Notify();
 			else Debug.WriteLine(log);
 			AddToList?.Invoke(log);
 			return log;
 		}
 
-
-		public static Log NewMergedTimePlayedLog(long usergameId, TimeSpan mergedTimePlayed, bool notify)
+		public static Log NewResetTimePlayedLog(long userGameId, bool notify)
 		{
-			var log = new Log(LogKind.MergeTimePlayed, usergameId, mergedTimePlayed.ToString(), mergedTimePlayed);
+			var log = new Log(LogKind.ResetTimePlayed, userGameId, null, null);
 			if (notify) log.Notify();
 			else Debug.WriteLine(log);
 			AddToList?.Invoke(log);
 			return log;
 		}
 
-		public static Log NewStartedPlayingLog(long usergameId, DateTime time)
+		public static Log NewStartedPlayingLog(long userGameId, DateTime time)
 		{
-			var log = new Log(LogKind.StartedPlaying, usergameId, time.ToString(CultureInfo.InvariantCulture), time);
+			var log = new Log(LogKind.StartedPlaying, userGameId, time.ToString(CultureInfo.InvariantCulture), time);
 			log.Notify();
 			return log;
 		}
@@ -116,6 +131,11 @@ namespace Happy_Reader.Database
 					paragraph.Inlines.Add(new Run(userGame3?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame") { Foreground = Brushes.Green });
 					paragraph.Inlines.Add($" for {((TimeSpan)ParsedData).ToHumanReadable()}.");
 					break;
+				case LogKind.ResetTimePlayed:
+					var userGame4 = StaticMethods.Data.UserGames.FirstOrDefault(g => g.Id == AssociatedId);
+					paragraph.Inlines.Add("Reset time played for ");
+					paragraph.Inlines.Add(new Run(userGame4?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame") { Foreground = Brushes.Green });
+					break;
 				case LogKind.Simple:
 					paragraph.Inlines.Add(new Run(Data));
 					break;
@@ -128,7 +148,23 @@ namespace Happy_Reader.Database
 			return paragraph;
 		}
 
-
+		public bool AssociatedIdExists
+		{
+			get
+			{
+				switch (Kind)
+				{
+					case LogKind.TimePlayed:
+					case LogKind.StartedPlaying:
+					case LogKind.MergeTimePlayed:
+					case LogKind.ResetTimePlayed:
+						return StaticMethods.Data.UserGames.Any(g => g.Id == AssociatedId);
+					default:
+						return true;
+				}
+			}
+		}
+		
 		public static Log NewSimpleLog(string message)
 		{
 			var log = new Log(LogKind.Simple, 0, message, message);
@@ -142,25 +178,22 @@ namespace Happy_Reader.Database
 			switch (Kind)
 			{
 				case LogKind.TimePlayed:
-					var userGame1 = StaticMethods.Data.UserGames.FirstOrDefault(g => g.Id == AssociatedId);
-					sb.Append("Played ");
-					sb.Append(userGame1?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame");
+					sb.Append($"Played {GetGameDisplayName()}");
 					sb.Append($" for {((TimeSpan)ParsedData).ToHumanReadable()}.");
 					break;
 				case LogKind.StartedPlaying:
-					var userGame2 = StaticMethods.Data.UserGames.FirstOrDefault(g => g.Id == AssociatedId);
-					sb.Append("Started playing ");
-					sb.Append(userGame2?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame");
+					sb.Append($"Started playing {GetGameDisplayName()}");
 					sb.Append($" at {((DateTime)ParsedData).GetLocalizedTime()}.");
 					break;
 				case LogKind.MergeTimePlayed:
-					var userGame3 = StaticMethods.Data.UserGames.FirstOrDefault(g => g.Id == AssociatedId);
-					sb.Append("Merged time played to");
-					sb.Append(userGame3?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame");
+					sb.Append($"Merged time played to {GetGameDisplayName()}");
 					sb.Append($" for {((TimeSpan)ParsedData).ToHumanReadable()}.");
 					break;
+				case LogKind.ResetTimePlayed:
+					sb.Append($"Reset Time Played for {GetGameDisplayName()}.");
+					break;
 				case LogKind.Simple:
-					sb.Append(new Run(Data));
+					sb.Append(Data);
 					break;
 				default:
 					sb.Append($"[{Kind}] Unknown Kind - ");
@@ -170,7 +203,37 @@ namespace Happy_Reader.Database
 			}
 			return sb.ToString();
 		}
+
+		private string GetGameDisplayName()
+		{
+			var userGame1 = StaticMethods.Data.UserGames.FirstOrDefault(g => g.Id == AssociatedId);
+			return userGame1?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame";
+		}
+
+		public object Clone()
+		{
+			var newLog = new Log
+			{
+				ParsedData = this.ParsedData,
+				AssociatedId = this.AssociatedId,
+				Data = this.Data,
+				Kind = this.Kind,
+				Timestamp = this.Timestamp
+			};
+			return newLog;
+		}
 	}
 
-	public enum LogKind { TimePlayed = 0, StartedPlaying = 1, Simple = 2, MergeTimePlayed = 3 }
+	public enum LogKind
+	{
+		[Description("Time Played")]
+		TimePlayed = 0,
+		[Description("Started Played")]
+		StartedPlaying = 1,
+		Simple = 2,
+		[Description("Merged Time Played")]
+		MergeTimePlayed = 3,
+		[Description("Reset Time Played")]
+		ResetTimePlayed = 4,
+	}
 }

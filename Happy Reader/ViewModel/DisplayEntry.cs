@@ -1,4 +1,5 @@
-﻿using System.Timers;
+﻿using System.Diagnostics;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -59,6 +60,7 @@ namespace Happy_Reader.ViewModel
 
 		private void RevertPrimeDeletion(object sender, ElapsedEventArgs e)
 		{
+			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			Application.Current.Dispatcher.Invoke(() =>
 			{
 				_deleteButton.Content = "Delete";

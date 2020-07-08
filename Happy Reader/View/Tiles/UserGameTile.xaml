@@ -6,64 +6,66 @@
              xmlns:database="clr-namespace:Happy_Reader.Database"
              xmlns:view="clr-namespace:Happy_Reader.View"
              mc:Ignorable="d" d:DesignHeight="220" d:DesignWidth="160">
-    <UserControl.DataContext>
-        <database:UserGame/>
-    </UserControl.DataContext>
-    <UserControl.Resources>
+	<UserControl.DataContext>
+		<database:UserGame/>
+	</UserControl.DataContext>
+	<UserControl.Resources>
 		<view:TimeSpanConverter x:Key="TimeSpanConverterKey"/>
-	    <Style x:Key="ToggleButtonStyle" TargetType="{x:Type ToggleButton}">
-            <Setter Property="IsEnabled" Value="False"></Setter>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ToggleButton">
-                        <Border Name="Border" BorderBrush="Black" BorderThickness="2" Background="Red" CornerRadius="0,0,5,0">
-                            <Viewbox>
-                                <TextBlock Name="TextBlock" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Text="OFF"></TextBlock>
-                            </Viewbox>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter Property="Background" TargetName="Border" Value="LimeGreen"/>
-                                <Setter Property="Text" TargetName="TextBlock" Value="ON"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </UserControl.Resources>
-    <Border Background="Salmon" CornerRadius="10">
-        <Grid Width="160" Height="220">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="160"/>
-                <RowDefinition Height="30"/>
-                <RowDefinition Height="30"/>
-            </Grid.RowDefinitions>
-            <Border Name="Mask" Background="Salmon" CornerRadius="10"/>
-            <Grid Grid.Row="0">
-                <Grid.OpacityMask>
-                    <VisualBrush Visual="{Binding ElementName=Mask}"/>
-                </Grid.OpacityMask>
-                <Image Source="{Binding Image}" />
-            </Grid>
-            <Viewbox Grid.Row="1">
-                <TextBlock Text="{Binding DisplayName}"  VerticalAlignment="Center" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-            </Viewbox>
-            <Viewbox Grid.Row="2" Margin="0,0,48,0">
-                <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding TimeOpen, Converter={StaticResource TimeSpanConverterKey}}">
-                    <!--<TextBlock.Text><MultiBinding StringFormat="{}{0:0}:{1:00}"><Binding Path="TimeOpen.TotalHours"/><Binding Path="TimeOpen.Minutes"/></MultiBinding></TextBlock.Text>-->
-                </TextBlock>
-            </Viewbox>
-            <ToggleButton Margin="112,5,0,0" Grid.Row="2" Style="{StaticResource ToggleButtonStyle}" IsChecked="{Binding IsRunning, Mode=OneWay}"/>
-        </Grid>
-    </Border>
-    <UserControl.ContextMenu>
-        <ContextMenu>
-            <MenuItem Header="See Details" Click="GameDetails"/>
-            <MenuItem Header="Browse To Location" Click="BrowseToLocation"/>
-            <MenuItem Header="Remove" Click="RemoveUserGame"></MenuItem>
-            <MenuItem Header="Merge games to this" Click="MergeGamesToThis"/>
-        </ContextMenu>
-    </UserControl.ContextMenu>
+		<Style x:Key="ToggleButtonStyle" TargetType="{x:Type ToggleButton}">
+			<Setter Property="IsEnabled" Value="False"></Setter>
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="ToggleButton">
+						<Border Name="Border" BorderBrush="Black" BorderThickness="2" Background="Red" CornerRadius="0,0,5,0">
+							<Viewbox>
+								<TextBlock Name="TextBlock" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Text="OFF"></TextBlock>
+							</Viewbox>
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsChecked" Value="True">
+								<Setter Property="Background" TargetName="Border" Value="LimeGreen"/>
+								<Setter Property="Text" TargetName="TextBlock" Value="ON"/>
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+	</UserControl.Resources>
+	<Border Background="Salmon" CornerRadius="10">
+		<Grid Width="160" Height="220">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="160"/>
+				<RowDefinition Height="30"/>
+				<RowDefinition Height="30"/>
+			</Grid.RowDefinitions>
+			<Border Name="Mask" Background="Salmon" CornerRadius="10"/>
+			<Grid Grid.Row="0">
+				<Grid.OpacityMask>
+					<VisualBrush Visual="{Binding ElementName=Mask}"/>
+				</Grid.OpacityMask>
+				<Image Source="{Binding Image}" />
+			</Grid>
+			<Viewbox Grid.Row="1">
+				<TextBlock Text="{Binding DisplayName}"  VerticalAlignment="Center" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+			</Viewbox>
+			<Viewbox Grid.Row="2" Margin="0,0,48,0">
+				<TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding TimeOpen, Converter={StaticResource TimeSpanConverterKey}}"/>
+			</Viewbox>
+			<ToggleButton Margin="112,5,0,0" Grid.Row="2" Style="{StaticResource ToggleButtonStyle}" IsChecked="{Binding IsRunning, Mode=OneWay}"/>
+		</Grid>
+	</Border>
+	<UserControl.ContextMenu>
+		<ContextMenu>
+			<MenuItem Header="See Details" Click="GameDetails"/>
+			<MenuItem Header="Browse To Location" Click="BrowseToLocation"/>
+			<MenuItem Header="Remove" Click="RemoveUserGame"/>
+			<MenuItem Header="Merge games to this" Click="MergeGamesToThis"/>
+			<MenuItem Header="Reset Time Played" Click="ResetTimePlayed"/>
+			<MenuItem Header="Launch with LE (Japan)" Click="LaunchWithLeJapan" />
+			<MenuItem Header="Open VN Details" Click="OpenVNDetails" IsEnabled="{Binding HasVN}"/>
+			<view:VnMenuItem IsEnabled="{Binding HasVN}" VnItem="{Binding VN}"  Header="VNDB"/>
+		</ContextMenu>
+	</UserControl.ContextMenu>
 </UserControl>
 

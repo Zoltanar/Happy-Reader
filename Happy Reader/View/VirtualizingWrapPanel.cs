@@ -95,7 +95,7 @@ namespace Happy_Reader.View
             int section = (Orientation == Orientation.Horizontal)
                 ? (int)m_offset.Y
                 : (int)m_offset.X;
-            return Math.Min(m_abstractPanel.Max(x => x.Section), section);
+            return Math.Min(m_abstractPanel?.Any() ?? false ? m_abstractPanel.Max(x => x.Section) : 0, section);
         }
 
         /// <summary>

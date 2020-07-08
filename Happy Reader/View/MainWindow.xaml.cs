@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Threading;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
@@ -27,22 +27,22 @@ namespace Happy_Reader.View
 	/// </summary>
 	public partial class MainWindow
 	{
-		private readonly MainWindowViewModel _viewModel;
+		public MainWindowViewModel ViewModel { get; }
 
 		public MainWindow()
 		{
 			InitializeComponent();
-			_viewModel = new MainWindowViewModel(this);
-			DataContext = _viewModel;
+			ViewModel = new MainWindowViewModel(this);
+			DataContext = ViewModel;
 			CreateNotifyIcon();
-			_viewModel.NotificationEvent += ShowNotification;
+			ViewModel.NotificationEvent += ShowNotification;
 			Log.NotificationEvent += ShowLogNotification;
 		}
 
 		private void CreateNotifyIcon()
 		{
 			var contextMenu = new ContextMenuStrip();
-			EventHandler open = delegate { Show(); };
+			EventHandler open = (o, e) => Show();
 			contextMenu.Items.Add(new ToolStripMenuItem("Open", null, open));
 			contextMenu.Items.Add(new ToolStripMenuItem("Exit", null, Exit));
 			// ReSharper disable once PossibleNullReferenceException
@@ -60,8 +60,16 @@ namespace Happy_Reader.View
 		{
 			if (DesignerProperties.GetIsInDesignMode(this)) return;
 			Stopwatch watch = Stopwatch.StartNew();
-			_viewModel.ClipboardManager = new ClipboardManager(this);
-			await _viewModel.Initialize(watch, GroupByAdded,!Environment.GetCommandLineArgs().Contains("-nh"), !Environment.GetCommandLineArgs().Contains("-ne"));
+			ViewModel.ClipboardManager = new ClipboardManager(this);
+			var noHook = Environment.GetCommandLineArgs().Contains("-nh");
+			var noEntries = Environment.GetCommandLineArgs().Contains("-ne");
+			if (noHook) IthTabItem.Visibility = Visibility.Collapsed;
+			if (noEntries)
+			{
+				EntriesTabItem.Visibility = Visibility.Collapsed;
+				TestTabItem.Visibility = Visibility.Collapsed;
+			}
+			await ViewModel.Initialize(watch, GroupByAdded, !noHook, !Environment.GetCommandLineArgs().Contains("-ne"));
 		}
 
 		private void AddEntry_Click(object sender, RoutedEventArgs e) => CreateAddEntryTab(new Entry());
@@ -69,14 +77,18 @@ namespace Happy_Reader.View
 		private void DropFileOnGamesTab(object sender, DragEventArgs e)
 		{
 			string file = (e.Data.GetData(DataFormats.FileDrop) as string[])?.First();
-			if (string.IsNullOrWhiteSpace(file)) return;
+			if (string.IsNullOrWhiteSpace(file))
+			{
+				ViewModel.StatusText = "Dragged item was not a file.";
+				return;
+			}
 			var ext = Path.GetExtension(file);
 			if (!ext.Equals(".exe", StringComparison.OrdinalIgnoreCase))
 			{
-				_viewModel.StatusText = "Dragged file isn't an executable.";
+				ViewModel.StatusText = "Dragged file isn't an executable.";
 				return;
 			}
-			var titledImage = _viewModel.AddGameFile(file);
+			var titledImage = ViewModel.AddGameFile(file);
 			if (titledImage == null) return;
 			((IList<UserGameTile>)GameFiles.ItemsSource).Add(titledImage);
 			titledImage.GameDetails(this, null);
@@ -87,12 +99,7 @@ namespace Happy_Reader.View
 			var item = GameFiles.SelectedItem as UserGameTile;
 			var userGame = (UserGame)item?.DataContext;
 			if (userGame == null) return;
-			_viewModel.HookUserGame(userGame, null);
-		}
-
-		private void Debug_Button(object sender, RoutedEventArgs e)
-		{
-			_viewModel.DebugButton();
+			ViewModel.HookUserGame(userGame, null, false);
 		}
 
 		public void ShowLogNotification([NotNull]Log message)
@@ -110,7 +117,8 @@ namespace Happy_Reader.View
 		public void TabMiddleClick(object sender, MouseButtonEventArgs e)
 		{
 			if (e.ChangedButton != MouseButton.Middle) return;
-			MainTabControl.Items.Remove((TabItem)((Grid)sender).Parent);
+			var tabItem = (TabItem)sender;
+			MainTabControl.Items.Remove(tabItem);
 		}
 
 		public void CreateAddEntryTab(Entry initialEntry)
@@ -118,43 +126,66 @@ namespace Happy_Reader.View
 			var tabItem = new TabItem
 			{
 				Header = "Add Entry",
-				Name = "AddEntryControl",
-				Content = new AddEntryControl(_viewModel, initialEntry)
+				Name = nameof(AddEntryControl),
+				Content = new AddEntryControl(ViewModel, initialEntry)
 			};
 			AddTabItem(tabItem);
 		}
 
 		public void OpenVNPanel(ListedVN vn)
 		{
+			var vnTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.Tag == vn);
+			if (vnTab != null)
+			{
+				MainTabControl.SelectedItem = vnTab;
+				vnTab.Focus();
+				return;
+			}
+
 			var tabItem = new TabItem
 			{
 				Header = StaticHelpers.TruncateString(vn.Title, 30),
-				Name = "VNPanel",
-				Content = new VNTab(vn)
+				Name = nameof(VNTab),
+				Content = new VNTab(vn),
+				Tag = vn
 			};
 			AddTabItem(tabItem);
 		}
 
-		public void AddTabItem(TabItem tabItem)
+		public void OpenUserGamePanel(UserGame userGame)
+		{
+			var userGameTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.Tag == userGame);
+			if (userGameTab != null)
+			{
+				MainTabControl.SelectedItem = userGameTab;
+				userGameTab.Focus();
+				return;
+			}
+			var tabItem = new TabItem
+			{
+				Header = userGame.DisplayName,
+				Name = nameof(UserGameTab),
+				Content = new UserGameTab(userGame),
+				Tag = userGame
+			};
+			AddTabItem(tabItem);
+		}
+
+		private void AddTabItem(TabItem tabItem)
 		{
 			var header = new Grid();
 			header.Children.Add(new TextBlock { Text = (string)tabItem.Header });
-			header.MouseDown += TabMiddleClick;
+			tabItem.MouseDown += TabMiddleClick;
 			tabItem.Header = header;
 			MainTabControl.Items.Add(tabItem);
 			MainTabControl.SelectedItem = tabItem;
 			tabItem.Focus();
 		}
-
-		private void SetClipboardSize(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
-		{
-			StaticHelpers.GSettings.MaxClipboardSize = (int)((Slider)e.Source).Value;
-		}
-
+		
 		private void GroupByProducer(object sender, RoutedEventArgs e)
 		{
-			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(_viewModel.UserGameItems);
-			PropertyGroupDescription groupDescription = new PropertyGroupDescription("UserGame.VN.Producer");
+			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
+			PropertyGroupDescription groupDescription = new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.VN)}.{nameof(ListedVN.Producer)}.{nameof(ListedProducer.Name)}");
 			UserGamesGroupStyle.HeaderStringFormat = null;
 			var sortDescription = new SortDescription(groupDescription.PropertyName, ListSortDirection.Descending);
 			view.GroupDescriptions.Clear();
@@ -165,7 +196,7 @@ namespace Happy_Reader.View
 
 		private void GroupByMonth(object sender, RoutedEventArgs e)
 		{
-			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(_viewModel.UserGameItems);
+			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
 			PropertyGroupDescription groupDescription = new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.MonthGroupingString)}");
 			view.GroupDescriptions.Clear();
 			view.GroupDescriptions.Add(groupDescription);
@@ -175,7 +206,7 @@ namespace Happy_Reader.View
 
 		private void GroupByName(object sender, RoutedEventArgs e)
 		{
-			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(_viewModel.UserGameItems);
+			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
 			PropertyGroupDescription groupDescription = new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayNameGroup)}");
 			view.GroupDescriptions.Clear();
 			view.GroupDescriptions.Add(groupDescription);
@@ -185,63 +216,48 @@ namespace Happy_Reader.View
 
 		private void GroupByLastPlayed(object sender, RoutedEventArgs e)
 		{
-			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(_viewModel.UserGameItems);
-			PropertyGroupDescription groupDescription = new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.LastPlayedDate)}",new LastPlayedConvertor());
+			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
+			var groupName = $@"{nameof(UserGame)}.{nameof(UserGame.LastPlayedDate)}";
+			PropertyGroupDescription groupDescription = new PropertyGroupDescription(groupName, new LastPlayedConverter());
 			view.GroupDescriptions.Clear();
 			view.GroupDescriptions.Add(groupDescription);
 			view.SortDescriptions.Clear();
 			view.SortDescriptions.Add(new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.LastPlayedDate)}", ListSortDirection.Descending));
+			ToggleLastGroups(view, groupName, 2, false);
 		}
 
 		private void GroupByTimePlayed(object sender, RoutedEventArgs e)
 		{
-			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(_viewModel.UserGameItems);
-			PropertyGroupDescription groupDescription = new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.TimeOpen)}", new TimeOpenConvertor());
+			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
+			var groupName = $@"{nameof(UserGame)}.{nameof(UserGame.TimeOpen)}";
+			PropertyGroupDescription groupDescription = new PropertyGroupDescription(groupName, new TimeOpenConverter());
 			view.GroupDescriptions.Clear();
 			view.GroupDescriptions.Add(groupDescription);
 			view.SortDescriptions.Clear();
-			view.SortDescriptions.Add(new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.TimeOpen)}", ListSortDirection.Descending));
+			view.SortDescriptions.Add(new SortDescription(groupName, ListSortDirection.Descending));
+			view.SortDescriptions.Add(new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayName)}", ListSortDirection.Ascending));
+			ToggleLastGroups(view, groupName, 2, true);
 		}
-		
+
+		private void ToggleLastGroups(CollectionView view, string groupName, int count, bool expanded)
+		{
+			Dispatcher.Invoke(() =>
+			{
+				if (!view.GroupDescriptions.Any(gd => gd is PropertyGroupDescription pgd && pgd.PropertyName == groupName)) return;
+				var expanders = StaticMethods.GetVisualChildren<Expander>(GameFiles);
+				for (int index = 0; index < expanders.Count; index++)
+				{
+					expanders[index].IsExpanded = index >= expanders.Count - count  == expanded;
+				}
+			}, DispatcherPriority.ContextIdle);
+		}
+
 		private void GroupByAdded(object sender, RoutedEventArgs e)
 		{
-			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(_viewModel.UserGameItems);
+			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
 			view.GroupDescriptions.Clear();
 			view.SortDescriptions.Clear();
 			view.SortDescriptions.Add(new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.Id)}", ListSortDirection.Descending));
-		}
-
-		private class LastPlayedConvertor : IValueConverter
-		{
-			public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-			{
-				if (!(value is DateTime dt)) return value;
-				if (dt == DateTime.MinValue) return "Never";
-				var timeSince = DateTime.Now - dt;
-				if (timeSince.TotalDays < 3) return "Last 3 days";
-				if (timeSince.TotalDays < 7) return "Last week";
-				return timeSince.TotalDays < 30 ? "Last month" : "Earlier";
-			}
-
-			public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => new NotImplementedException();
-		}
-
-		private class TimeOpenConvertor : IValueConverter
-		{
-			public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-			{
-				if (!(value is TimeSpan time)) return value;
-				if (time == TimeSpan.MinValue) return "Never";
-				if (time.TotalHours < 0.5) return "<30 Minutes";
-				if (time.TotalHours < 1) return "<1 Hour";
-				if (time.TotalHours < 3) return "<3 Hours";
-				if (time.TotalHours < 8) return "<8 Hours";
-				if (time.TotalHours < 20) return "<20 Hours";
-				if (time.TotalHours < 50) return "<50 Hours";
-				return time.TotalHours < 100 ? "<100 Hours" : ">100 Hours";
-			}
-
-			public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => new NotImplementedException();
 		}
 
 		private void ClickDeleteButton(object sender, RoutedEventArgs e)
@@ -252,7 +268,7 @@ namespace Happy_Reader.View
 			Debug.Assert(item != null, nameof(item) + " != null");
 			if (item.DeletePrimed)
 			{
-				_viewModel.DeleteEntry(item);
+				ViewModel.DeleteEntry(item);
 			}
 			else
 			{
@@ -278,10 +294,27 @@ namespace Happy_Reader.View
 			_finalizing = true;
 			Hide();
 			_trayIcon.Visible = false;
-			_viewModel.ExitProcedures(this, null);
+			ViewModel.ExitProcedures(this, null);
 			_finalized = true;
 			Close();
 		}
 
+		private void GroupByTag(object sender, RoutedEventArgs e)
+		{
+			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
+			PropertyGroupDescription groupDescription = new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.Tag)}", new TagConverter());
+			view.GroupDescriptions.Clear();
+			view.GroupDescriptions.Add(groupDescription);
+			view.SortDescriptions.Clear();
+			view.SortDescriptions.Add(new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.TagSort)}", ListSortDirection.Descending));
+			view.SortDescriptions.Add(new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayName)}", ListSortDirection.Ascending));
+		}
+
+		public void SelectTab(Type type)
+		{
+			var tab = MainTabControl.Items.OfType<TabItem>().FirstOrDefault(t => t.Content.GetType() == type);
+			if (tab == null) throw new ArgumentNullException(nameof(tab), $"Did not find tab of type {type}");
+			MainTabControl.SelectedItem = tab;
+		}
 	}
 }

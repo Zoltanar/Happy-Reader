@@ -7,96 +7,174 @@
              mc:Ignorable="d" 
              d:DesignWidth="800" d:DesignHeight="600" d:DataContext="{d:DesignInstance viewModel:FiltersViewModel}"
              Loaded="FiltersTab_OnLoaded">
-    <Grid Background="#FFC9E1F5">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <GroupBox Grid.Column="0" Header="Permanent Filter" Margin="5">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <Label Grid.Row="0" Content="AND Group (All of these are required)"/>
-                <ListBox Grid.Row="1" KeyUp="FilterKeyUp" ItemsSource="{Binding PermanentFilter.AndFilters}"/>
-                <Label   Grid.Row="2" Content="OR Group (One of these is required)"/>
-                <ListBox Grid.Row="3" KeyUp="FilterKeyUp" ItemsSource="{Binding PermanentFilter.OrFilters}" />
-            </Grid>
-        </GroupBox>
-        <GroupBox Grid.Column="1" Header="Custom Filter" Margin="5,10,5,5">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <ComboBox ItemsSource="{Binding Filters}" SelectedItem="{Binding CustomFilter}" VerticalAlignment="Top" Grid.Row="0" />
-                <Label Grid.Row="1" Content="Name" HorizontalAlignment="Left" Padding="0" Margin="0,5" VerticalContentAlignment="Center" Height="21"/>
-                <TextBox Grid.Row="1" Margin="37,5,34,5" Text="{Binding CustomFilter.Name}" VerticalContentAlignment="Center" Height="21" />
-                <Button Grid.Row="1" Content="Save" HorizontalAlignment="Right" Margin="0,5" Command="{Binding SaveCustomFilterCommand}" VerticalContentAlignment="Center" Height="21"/>
-                <Label Grid.Row="2" Content="AND Group (All of these are required)"/>
-                <ListBox ItemsSource="{Binding CustomFilter.AndFilters}" Grid.Row="3" KeyUp="FilterKeyUp"/>
-                <Label Grid.Row="4" Content="OR Group (One of these is required)"/>
-                <ListBox ItemsSource="{Binding CustomFilter.OrFilters}" Grid.Row="5" KeyUp="FilterKeyUp"/>
-            </Grid>
-        </GroupBox>
-        <GroupBox Grid.Column="2" Header="Add Filter" Margin="5">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <ComboBox ItemsSource="{Binding FilterTypes}" SelectedIndex="{Binding SelectedFilterIndex}" SelectedValue="{Binding NewFilter.Type}" SelectedValuePath="Tag" VerticalAlignment="Top" Grid.ColumnSpan="2" />
-                <CheckBox Grid.Column="0" Content="OR Group" VerticalAlignment="Top" Margin="5,27" IsChecked="{Binding NewFilterOrGroup}" />
-                <CheckBox Grid.Column="1" Content="Exclude"  VerticalAlignment="Top" Margin="5,27" IsChecked="{Binding NewFilter.Exclude}" />
-                <TabControl Grid.ColumnSpan="2" Grid.Column="0" Margin="0,47,0,25" SelectedIndex="{Binding SelectedFilterIndex, Mode=OneWay}">
-                    <TabItem Visibility="Collapsed" Header="Length" >
-                        <ComboBox ItemsSource="{Binding LengthTypes, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag"/>
-                    </TabItem>
-                    <TabItem Visibility="Collapsed" Header="Release Date">
-                        <ComboBox ItemsSource="{Binding ReleaseTypes, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag"/>
-                    </TabItem>
-                    <TabItem Visibility="Collapsed" Header="Blacklisted">
-                        <CheckBox Content="Blacklisted" IsChecked="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
-                    </TabItem>
-                    <TabItem Visibility="Collapsed" Header="Voted">
-                        <CheckBox Content="Voted" IsChecked="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
-                    </TabItem>
-                    <TabItem Visibility="Collapsed" Header="By Favorite Producer">
-                        <CheckBox Content="By Favorite Producer" IsChecked="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
-                    </TabItem>
-                    <TabItem Visibility="Collapsed" Header="Wishlist Status">
-                        <ComboBox ItemsSource="{Binding WishlistTypes, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag"/>
-                    </TabItem>
-                    <TabItem Visibility="Collapsed" Header="Userlist Status">
-                        <ComboBox ItemsSource="{Binding UserlistTypes, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag"/>
-                    </TabItem>
-                    <TabItem Visibility="Collapsed" Header="Language">
-                        <TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"></TextBox>
-                    </TabItem>
-                    <TabItem Visibility="Collapsed" Header="Original Language">
-                        <TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"></TextBox>
-                    </TabItem>
-                    <TabItem Visibility="Collapsed" Header="Tags">
-                        <UniformGrid Rows="2" Columns="2">
-                            <Label Content="Tag ID"/>
-                            <TextBox Text="{Binding NewFilter.StringValue, Mode=OneWayToSource}"/>
-                            <Label Content="Score Required"/>
-                            <TextBox Text="{Binding NewFilter.AdditionalInt, Mode=OneWayToSource}"/>
-                        </UniformGrid>
-                    </TabItem>
-                    <TabItem Visibility="Collapsed" Content="Traits" Header="Traits"/>
-                </TabControl>
-                <Button Grid.Column="0" Content="Add To Permanent Filter" VerticalAlignment="Bottom" Margin="5,0" Command="{Binding AddToPermanentFilterCommand}"/>
-                <Button Grid.Column="1" Content="Add To Custom Filter"    VerticalAlignment="Bottom" Margin="5,0" Command="{Binding AddToCustomFilterCommand}"/>
-            </Grid>
-        </GroupBox>
-    </Grid>
+	<Grid Background="#FFC9E1F5">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="Auto"/>
+			<ColumnDefinition Width="Auto"/>
+			<ColumnDefinition Width="*"/>
+		</Grid.ColumnDefinitions>
+		<GroupBox Grid.Column="0" Header="Permanent Filter" Margin="5" x:Name="PermanentFilterGroupBox">
+			<Grid>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="*"/>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="*"/>
+				</Grid.RowDefinitions>
+				<Label Grid.Row="0" Content="AND Group (All of these are required)"/>
+				<ListBox Grid.Row="1" KeyUp="FilterKeyUp" ItemsSource="{Binding PermanentFilter.AndFilters}">
+					<ListBox.ItemContainerStyle>
+						<Style TargetType="ListBoxItem">
+							<Setter Property="HorizontalContentAlignment" Value="Left" />
+							<Setter Property="VerticalContentAlignment" Value="Top" />
+						</Style>
+					</ListBox.ItemContainerStyle>
+				</ListBox>
+				<Label   Grid.Row="2" Content="OR Group (One of these is required)"/>
+				<ListBox Grid.Row="3" KeyUp="FilterKeyUp" ItemsSource="{Binding PermanentFilter.OrFilters}" >
+					<ListBox.ItemContainerStyle>
+						<Style TargetType="ListBoxItem">
+							<Setter Property="HorizontalContentAlignment" Value="Left" />
+							<Setter Property="VerticalContentAlignment" Value="Top" />
+						</Style>
+					</ListBox.ItemContainerStyle>
+				</ListBox>
+			</Grid>
+		</GroupBox>
+		<GroupBox Grid.Column="1" Header="Custom Filter" Margin="5,10,5,5">
+			<Grid>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto"/>
+					<ColumnDefinition Width="Auto"/>
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="*"/>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="*"/>
+				</Grid.RowDefinitions>
+				<ListBox ItemsSource="{Binding Filters}" SelectedItem="{Binding CustomFilter}" VerticalAlignment="Stretch" Grid.Row="0" Grid.RowSpan="6" Grid.Column="0" Margin="5" KeyDown="DeleteFilterOnKey" >
+					<ListBox.ItemContainerStyle>
+						<Style TargetType="ListBoxItem">
+							<Setter Property="HorizontalContentAlignment" Value="Left" />
+							<Setter Property="VerticalContentAlignment" Value="Top" />
+						</Style>
+					</ListBox.ItemContainerStyle>
+				</ListBox>
+						<Label Grid.Row="1" Grid.Column="1" Content="Name" HorizontalAlignment="Left" Padding="0" Margin="0,5" VerticalContentAlignment="Center" Height="21"/>
+				<TextBox Grid.Row="1" Grid.Column="1" Margin="37,5,34,5" Text="{Binding CustomFilter.Name}" VerticalContentAlignment="Center" Height="21" />
+				<Button Grid.Row="1" Grid.Column="1" Content="Save" HorizontalAlignment="Right" Margin="0,5" Command="{Binding SaveCustomFilterCommand}" VerticalContentAlignment="Center" Height="21"/>
+				<TextBlock Grid.Row="2" Grid.Column="1">
+					<Run>AND Group</Run>
+					<LineBreak/>
+					<Run>(All of these are required)</Run>
+				</TextBlock>
+				<ListBox ItemsSource="{Binding CustomFilter.AndFilters}" Grid.Row="3" Grid.Column="1" KeyUp="FilterKeyUp"/>
+				<TextBlock Grid.Row="4" Grid.Column="1">
+					<Run>OR Group</Run>
+					<LineBreak/>
+					<Run>(One of these is required)</Run>
+				</TextBlock>
+				<ListBox ItemsSource="{Binding CustomFilter.OrFilters}" Grid.Row="5" Grid.Column="1" KeyUp="FilterKeyUp"/>
+			</Grid>
+		</GroupBox>
+		<GroupBox Grid.Column="2" Header="Add Filter" Margin="5">
+			<Grid>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="23*"/>
+					<ColumnDefinition Width="118*"/>
+					<ColumnDefinition Width="125*"/>
+				</Grid.ColumnDefinitions>
+				<ComboBox ItemsSource="{Binding FilterTypes}" SelectedIndex="{Binding SelectedFilterIndex, Mode=TwoWay}" SelectedValue="{Binding NewFilter.Type}" SelectedValuePath="Tag" VerticalAlignment="Top" Grid.ColumnSpan="3" >
+					<ComboBox.ItemContainerStyle>
+						<Style TargetType="{x:Type ComboBoxItem}">
+							<Setter Property="HorizontalContentAlignment" Value="Left"/>
+							<Setter Property="VerticalContentAlignment" Value="Center"/>
+						</Style>
+					</ComboBox.ItemContainerStyle>
+				</ComboBox>
+				<CheckBox Grid.Column="0" Content="OR Group" VerticalAlignment="Top" Margin="5,27,5,0" IsChecked="{Binding NewFilterOrGroup}" Grid.ColumnSpan="2" />
+				<CheckBox Grid.Column="2" Content="Exclude"  VerticalAlignment="Top" Margin="5,27,5,0" IsChecked="{Binding NewFilter.Exclude}" />
+				<TabControl Grid.ColumnSpan="3" Grid.Column="0" Margin="0,47,0,25" SelectedIndex="{Binding SelectedFilterIndex, Mode=OneWay}" MaxHeight="200">
+					<TabItem Visibility="Collapsed" Header="Length" >
+						<ComboBox ItemsSource="{Binding LengthTypes, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag">
+							<ComboBox.ItemContainerStyle>
+								<Style TargetType="{x:Type ComboBoxItem}">
+									<Setter Property="HorizontalContentAlignment" Value="Left"/>
+									<Setter Property="VerticalContentAlignment" Value="Center"/>
+								</Style>
+							</ComboBox.ItemContainerStyle>
+						</ComboBox>
+					</TabItem>
+					<TabItem Visibility="Collapsed" Header="Release Date">
+						<ComboBox ItemsSource="{Binding ReleaseTypes, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag">
+							<ComboBox.ItemContainerStyle>
+								<Style TargetType="{x:Type ComboBoxItem}">
+									<Setter Property="HorizontalContentAlignment" Value="Left"/>
+									<Setter Property="VerticalContentAlignment" Value="Center"/>
+								</Style>
+							</ComboBox.ItemContainerStyle>
+						</ComboBox>
+					</TabItem>
+					<TabItem Visibility="Collapsed" Header="Blacklisted">
+						<CheckBox Content="Blacklisted" IsChecked="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
+					</TabItem>
+					<TabItem Visibility="Collapsed" Header="Voted">
+						<CheckBox Content="Voted" IsChecked="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
+					</TabItem>
+					<TabItem Visibility="Collapsed" Header="By Favorite Producer">
+						<CheckBox Content="By Favorite Producer" IsChecked="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
+					</TabItem>
+					<TabItem Visibility="Collapsed" Header="Label">
+						<ComboBox ItemsSource="{Binding Labels, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag">
+							<ComboBox.ItemContainerStyle>
+								<Style TargetType="{x:Type ComboBoxItem}">
+									<Setter Property="HorizontalContentAlignment" Value="Left"/>
+									<Setter Property="VerticalContentAlignment" Value="Center"/>
+								</Style>
+							</ComboBox.ItemContainerStyle>
+						</ComboBox>
+					</TabItem>
+					<TabItem Visibility="Collapsed" Header="Language">
+						<TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
+					</TabItem>
+					<TabItem Visibility="Collapsed" Header="Original Language">
+						<TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
+					</TabItem>
+					<TabItem Visibility="Collapsed" Header="Tags">
+						<UniformGrid Rows="2" Columns="2">
+							<Label Content="Tag ID"/>
+							<TextBox Text="{Binding NewFilter.StringValue, Mode=OneWayToSource}"/>
+							<Label Content="Score Required"/>
+							<TextBox Text="{Binding NewFilter.AdditionalInt, Mode=OneWayToSource}"/>
+						</UniformGrid>
+					</TabItem>
+					<TabItem Visibility="Collapsed" Content="Traits" Header="Traits"/>
+					<TabItem Visibility="Collapsed" Content="Has Full Date" Header="Has Full Date"/>
+					<TabItem Visibility="Collapsed" Header="Is Game Owned">
+						<ComboBox ItemsSource="{Binding GameOwnedStatus, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag">
+							<ComboBox.ItemContainerStyle>
+								<Style TargetType="{x:Type ComboBoxItem}">
+									<Setter Property="HorizontalContentAlignment" Value="Left"/>
+									<Setter Property="VerticalContentAlignment" Value="Center"/>
+								</Style>
+							</ComboBox.ItemContainerStyle>
+						</ComboBox>
+					</TabItem>
+					<TabItem Visibility="Collapsed" Content="User-related Title" Header="User-related Title"/>
+					<TabItem Visibility="Collapsed" Header="Released After">
+						<TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
+					</TabItem>
+					<TabItem Visibility="Collapsed" Header="Released Before">
+						<TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
+					</TabItem>
+					<TabItem Visibility="Collapsed" Content="Has Anime" Header="Traits"/>
+				</TabControl>
+				<Button Grid.Column="0" Content="Add To Permanent Filter" VerticalAlignment="Bottom" Margin="5,0" Command="{Binding AddToPermanentFilterCommand}" Grid.ColumnSpan="2"/>
+				<Button Grid.Column="2" Content="Add To Custom Filter"    VerticalAlignment="Bottom" Margin="5,0" Command="{Binding AddToCustomFilterCommand}"/>
+			</Grid>
+		</GroupBox>
+	</Grid>
 </UserControl>

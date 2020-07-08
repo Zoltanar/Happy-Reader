@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SQLite;
 using System.Diagnostics;
 using System.Linq;
-using System.Linq.Expressions;
 using Newtonsoft.Json;
 
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
@@ -20,7 +20,6 @@ namespace Happy_Apps_Core.Database
 		{
 			var uvn = UserVisualNovels.Single(x => x.UserId == userID && x.VNID == vnid);
 			uvn.ULNote = note;
-			SaveChanges();
 		}
 
 		public void AddRelationsToVN(ListedVN vn, VNItem.RelationsItem[] relations)
@@ -28,7 +27,6 @@ namespace Happy_Apps_Core.Database
 			var relationsObject = relations.Any() ? relations : new VNItem.RelationsItem[] { };
 			var relationsString = ListToJsonArray(relationsObject);
 			vn.SetRelations(relationsString, relationsObject);
-			SaveChanges();
 		}
 
 		public void AddAnimeToVN(ListedVN vn, VNItem.AnimeItem[] anime)
@@ -36,7 +34,6 @@ namespace Happy_Apps_Core.Database
 			var animeObject = anime.Any() ? anime : new VNItem.AnimeItem[] { };
 			var animeString = ListToJsonArray(animeObject);
 			vn.SetAnime(animeString, animeObject);
-			SaveChanges();
 		}
 
 		public void AddScreensToVN(ListedVN vn, VNItem.ScreenItem[] screens)
@@ -44,46 +41,52 @@ namespace Happy_Apps_Core.Database
 			var screensObject = screens.Any() ? screens : new VNItem.ScreenItem[] { };
 			var screensString = ListToJsonArray(screensObject);
 			vn.SetScreens(screensString, screensObject);
-			SaveChanges();
 		}
-
-
+		
 		public void UpdateVNTagsStats(VNItem vnItem, bool saveChanges)
 		{
-			var vn = LocalVisualNovels.First(x => x.VNID == vnItem.ID);
-			foreach (var tag in vnItem.Tags) vn.DbTags.Add(DbTag.From(tag));
+			var vn = VisualNovels[vnItem.ID];
+			if (saveChanges) Connection.Open();
+			RefreshTags(vn, vnItem, false);
 			vn.Popularity = vnItem.Popularity;
 			vn.Rating = vnItem.Rating;
 			vn.VoteCount = vnItem.VoteCount;
-			if (saveChanges) SaveChanges();
+			VisualNovels.Upsert(vn, false);
+			if (saveChanges) Connection.Close();
 		}
 
 		public void InsertFavoriteProducers(List<ListedProducer> addProducerList, int userid)
 		{
-			var user = Users.Single(x => x.Id == userid);
-			addProducerList.ForEach(user.FavoriteProducers.Add);
-			SaveChanges();
+			Connection.Open();
+			try
+			{
+				foreach (var listedProducer in addProducerList)
+				{
+					UserProducers.Add(new UserListedProducer { ListedProducer_Id = listedProducer.ID, User_Id = userid }, true);
+				}
+			}
+			finally
+			{
+				Connection.Close();
+			}
 		}
 
 		/// <summary>
-		/// Insert or Replace Producer into producerlist, if adding for the first time, set date to null.
+		/// Insert or Replace Producer into producerlist.
 		/// </summary>
 		/// <param name="producer">The producer to be inserted</param>
-		/// <param name="setDateNull">Sets date to null rather than the default (which is CURRENT TIMESTAMP)</param>
 		/// <param name="saveChanges">Commit changes to database if true, if false, then make sure to save yourself after</param>
-		public void UpsertProducer(ProducerItem producer, bool setDateNull, bool saveChanges)
+		public void UpsertProducer(ProducerItem producer, bool saveChanges)
 		{
-			var dbProducer = Producers.SingleOrDefault(x => x.ID == producer.ID);
-			if (dbProducer == null)
+			var dbProducer = Producers[producer.ID];
+			var newProducer = dbProducer == null;
+			if (newProducer)
 			{
 				dbProducer = new ListedProducer { ID = producer.ID };
-				Producers.Add(dbProducer);
 			}
 			dbProducer.Name = producer.Name;
 			dbProducer.Language = producer.Language;
-			dbProducer.UpdatedDt = null;
-			if (!setDateNull) dbProducer.UpdatedDt = DateTime.UtcNow;
-			if (saveChanges) SaveChanges();
+			Producers.Upsert(dbProducer, saveChanges);
 		}
 
 		/// <summary>
@@ -93,42 +96,44 @@ namespace Happy_Apps_Core.Database
 		/// <param name="urtList">List of URT titles</param>
 		public void UpdateURTTitles(int userid, IEnumerable<UrtListItem> urtList)
 		{
-			foreach (var item in urtList)
+			Connection.Open();
+			try
 			{
-				try
+				foreach (var item in urtList)
 				{
-					UserVN uvn = UserVisualNovels.SingleOrDefault(x => x.UserId == userid && x.VNID == item.ID);
+					var uvn = UserVisualNovels[(userid, item.ID)];
 					switch (item.Action)
 					{
 						case Command.New:
 							uvn = new UserVN { VNID = item.ID, UserId = userid };
-							UserVisualNovels.Add(uvn);
 							goto case Command.Update;
 						case Command.Update:
 							Debug.Assert(uvn != null, nameof(uvn) + " != null");
-							uvn.ULStatus = item.ULStatus;
-							uvn.ULAdded = item.ULAdded;
+							uvn.Labels = item.Labels.ToHashSet();
 							uvn.ULNote = item.ULNote;
-							uvn.WLStatus = item.WLStatus;
-							uvn.WLAdded = item.WLAdded;
 							uvn.Vote = item.Vote;
-							uvn.VoteAdded = item.VoteAdded;
+							uvn.VoteAdded = item.VoteAdded.UnixTimestampToDateTime();
+							uvn.Added = item.GetLastModified();
+							UserVisualNovels.Upsert(uvn, false);
 							break;
 						case Command.Delete:
 							Debug.Assert(uvn != null, nameof(uvn) + " != null");
-							UserVisualNovels.Remove(uvn);
+							UserVisualNovels.Remove(uvn, false);
 							break;
 					}
 				}
-				catch (Exception ex)
-				{
-					StaticHelpers.Logger.ToFile(ex);
+			}
+			catch (Exception ex)
+			{
+				StaticHelpers.Logger.ToFile(ex);
 #if !DEBUG
 throw;
 #endif
-				}
 			}
-			SaveChanges();
+			finally
+			{
+				Connection.Close();
+			}/**/
 		}
 
 		/// <summary>
@@ -140,11 +145,10 @@ throw;
 			try
 			{
 				bool result;
-				var dbCharacter = Characters.SingleOrDefault(x => x.ID == character.ID);
+				var dbCharacter = Characters[character.ID];
 				if (dbCharacter == null)
 				{
 					dbCharacter = new CharacterItem { ID = character.ID };
-					Characters.Add(dbCharacter);
 					result = true;
 				}
 				else result = false;
@@ -167,22 +171,34 @@ throw;
 				// ReSharper restore PossibleInvalidOperationException
 				dbCharacter.Aliases = character.Aliases;
 				dbCharacter.Description = character.Description;
-				dbCharacter.Image = character.Image;
-				Traits.RemoveRange(dbCharacter.DbTraits);
-				foreach (var trait in character.Traits) dbCharacter.DbTraits.Add(DbTrait.From(trait));
-				CharacterVNs.RemoveRange(dbCharacter.CharacterVns);
-				foreach (var vn in character.VNs)
-				{
-					if (dbCharacter.CharacterVns.Any(x => x.ListedVNId == vn.ID)) continue;
-					dbCharacter.CharacterVns.Add(CharacterVN.From(vn));
-				}
-				CharacterStaffs.RemoveRange(dbCharacter.DbStaff);
-				if (character.Voiced != null)
-				{
-					foreach (var staff in character.Voiced) dbCharacter.DbStaff.Add(CharacterStaff.From(staff));
-				}
+				dbCharacter.ImageId = character.ImageId;
 				dbCharacter.DateUpdated = DateTime.UtcNow;
-				if (saveChanges) SaveChanges();
+				if (saveChanges) Connection.Open();
+				try
+				{
+					var traitCh = character.Traits.Select(trait => DbTrait.From(trait, character.ID)).ToList();
+					var traitsToRemove = dbCharacter.DbTraits.Except(traitCh, DbTrait.ValueComparer).ToArray();
+					foreach (var trait in traitsToRemove) Traits.Remove(trait, false);
+					foreach (var trait in traitCh) Traits.Upsert(trait, false);
+					Characters.Upsert(dbCharacter, false);
+					foreach (var characterVn in dbCharacter.VisualNovels)
+					{
+						CharacterVNs.Remove(characterVn, false);
+					}
+					foreach (var characterVn in character.VNs)
+					{
+						CharacterVNs.Add(CharacterVN.From(characterVn, character.ID), false);
+					}
+					var staffCh = (character.Voiced?.Select(v => CharacterStaff.From(v, character.ID)) ??
+												Array.Empty<CharacterStaff>()).ToArray();
+					var staffToRemove = dbCharacter.DbStaff.Except(staffCh, CharacterStaff.KeyComparer).ToArray();
+					foreach (var staff in staffToRemove) CharacterStaffs.Remove(staff, false);
+					foreach (var staff in staffCh) CharacterStaffs.Upsert(staff, false);
+				}
+				finally
+				{
+					if (saveChanges) Connection.Close();
+				}
 				return result;
 			}
 			catch (Exception ex)
@@ -195,22 +211,14 @@ throw;
 		public void UpsertSingleVN((VNItem item, ProducerItem producer, VNLanguages languages) data, bool setFullyUpdated, bool saveChanges)
 		{
 			var (item, producer, languages) = data;
-			var vn = LocalVisualNovels.FirstOrDefault(x => x.VNID == item.ID);
-			if (vn == null)
-			{
-				vn = new ListedVN { VNID = item.ID };
-				LocalVisualNovels.Add(vn);
-			}
+			var vn = VisualNovels[item.ID] ?? new ListedVN { VNID = item.ID };
 			vn.Title = item.Title;
 			vn.KanjiTitle = item.Original;
 			vn.ProducerID = producer?.ID;
 			vn.SetReleaseDate(item.Released);
-			foreach (var tag in item.Tags)
-			{
-				vn.AddOrUpdateTag(tag);
-			}
+			RefreshTags(vn, item, saveChanges);
 			vn.Description = item.Description;
-			vn.ImageURL = item.Image;
+			vn.ImageId = item.ImageId;
 			vn.ImageNSFW = item.Image_Nsfw;
 			vn.LengthTime = (LengthFilterEnum?)item.Length;
 			vn.Popularity = item.Popularity;
@@ -220,44 +228,44 @@ throw;
 			vn.Languages = languages?.ToString();
 			vn.DateUpdated = DateTime.UtcNow;
 			if (setFullyUpdated) vn.DateFullyUpdated = DateTime.UtcNow;
-			if (saveChanges) SaveChanges();
+			VisualNovels.Upsert(vn, saveChanges);
+		}
+
+		private void RefreshTags(ListedVN vn, VNItem item, bool saveChanges)
+		{
+			if (saveChanges) Connection.Open();
+			var tagsToUpdate = item.Tags.Select(t => DbTag.From(t, vn.VNID)).ToList();
+			var tagsToRemove = vn.Tags.Except(tagsToUpdate, DbTag.KeyComparer);
+			foreach (var tag in tagsToRemove) Tags.Remove(tag, false);
+			foreach (var tag in tagsToUpdate) Tags.Upsert(tag, false);
+			vn.ResetTags();
+			if (saveChanges) Connection.Close();
 		}
 
 		public void RemoveFavoriteProducer(int producerID, int userid)
 		{
-			LocalUsers.First(x => x.Id == userid).FavoriteProducers
-				.Remove(Producers.Single(x => x.ID == producerID));
-			SaveChanges();
+			UserProducers.Remove(UserProducers[(producerID, userid)], true);
 		}
 
 		public void RemoveVisualNovel(int vnid, bool saveChanges)
 		{
-			var vn = LocalVisualNovels.FirstOrDefault(x => x.VNID == vnid);
+			var vn = VisualNovels[vnid];
 			if (vn == null) return;
-			LocalVisualNovels.Remove(vn);
-			if (saveChanges) SaveChanges();
+			VisualNovels.Remove(vn, saveChanges);
 		}
 
 		public void RemoveCharacter(int cid, bool saveChanges)
 		{
-			var character = Characters.FirstOrDefault(x => x.ID == cid);
+			var character = Characters[cid];
 			if (character == null) return;
-			Characters.Remove(character);
-			if (saveChanges) SaveChanges();
+			Characters.Remove(character, saveChanges);
 		}
 
 		#endregion
 
 		#region Other
 
-		public static Expression<Func<ListedVN, bool>> ListVNByNameOrAliasExpression(string searchString)
-		{
-			var lowerSearchString = searchString.ToLower();
-			return vn => vn.Title.ToLower().Contains(lowerSearchString) ||
-				vn.KanjiTitle.ToLower().Contains(lowerSearchString) ||
-				vn.Aliases.ToLower().Contains(lowerSearchString);
-		}
-		public static Func<ListedVN, bool> ListVNByNameOrAliasFunc(string searchString)
+		public static Func<ListedVN, bool> SearchForVN(string searchString)
 		{
 			var lowerSearchString = searchString.ToLower();
 			return vn => vn.Title.ToLower().Contains(lowerSearchString) ||
@@ -265,13 +273,20 @@ throw;
 						 vn.Aliases != null && vn.Aliases.ToLower().Contains(lowerSearchString);
 		}
 
+		public static Func<CharacterItem, bool> SearchForCharacter(string searchString)
+		{
+			var lowerSearchString = searchString.ToLower();
+			return ch => ch.Name.ToLower().Contains(lowerSearchString) ||
+			             ch.Original != null && ch.Original.ToLower().Contains(lowerSearchString) ||
+			             ch.Aliases != null && ch.Aliases.ToLower().Contains(lowerSearchString);
+		}
+
 		/// <summary>
 		///     Type of VN status to be changed.
 		/// </summary>
 		public enum ChangeType
 		{
-			UL,
-			WL,
+			Labels,
 			Vote
 		}
 
@@ -282,10 +297,9 @@ throw;
 		{
 #pragma warning disable 1591
 			public int ID { get; }
-			public UserlistStatus? ULStatus { get; private set; }
+			public List<UserVN.LabelKind> Labels { get; set; }
 			public int? ULAdded { get; private set; }
 			public string ULNote { get; private set; }
-			public WishlistStatus? WLStatus { get; private set; }
 			public int? WLAdded { get; private set; }
 			public int? Vote { get; private set; }
 			public int? VoteAdded { get; private set; }
@@ -335,9 +349,10 @@ throw;
 			/// </summary>
 			public UrtListItem(UserListItem item) : this(item.VN)
 			{
-				ULStatus = (UserlistStatus)item.Status;
+				throw new NotImplementedException("Change to use ulist");
+				/*ULStatus = (UserlistStatus)item.Status;
 				ULAdded = item.Added;
-				ULNote = item.Notes;
+				ULNote = item.Notes;*/
 			}
 
 			/// <summary>
@@ -345,8 +360,9 @@ throw;
 			/// </summary>
 			public UrtListItem(WishListItem item) : this(item.VN)
 			{
+				throw new NotImplementedException("Change to use ulist");/*
 				WLStatus = (WishlistStatus)item.Priority;
-				WLAdded = item.Added;
+				WLAdded = item.Added;*/
 			}
 
 			/// <summary>
@@ -363,11 +379,13 @@ throw;
 			/// </summary>
 			public void Update(UserListItem item)
 			{
+				throw new NotImplementedException("Change to use ulist");
+				/*
 				ULStatus = (UserlistStatus)item.Status;
 				ULAdded = item.Added;
 				ULNote = item.Notes;
 				if (Action != Command.New) Action = Command.Update;
-				else { }
+				else { }*/
 			}
 
 
@@ -376,9 +394,10 @@ throw;
 			/// </summary>
 			public void Update(WishListItem item)
 			{
+				throw new NotImplementedException("Change to use ulist");/*
 				WLStatus = (WishlistStatus)item.Priority;
 				WLAdded = item.Added;
-				if (Action != Command.New) Action = Command.Update;
+				if (Action != Command.New) Action = Command.Update;*/
 			}
 
 			/// <summary>
@@ -395,6 +414,11 @@ throw;
 			/// <returns>A string that represents the current object.</returns>
 			/// <filterpriority>2</filterpriority>
 			public override string ToString() => $"{Action} - {ID}";
+
+			public DateTime? GetLastModified()
+			{
+				return new[] {WLAdded, ULAdded}.Where(v => v.HasValue).OrderByDescending(v=>v).FirstOrDefault().UnixTimestampToDateTime();
+			}
 		}
 
 		/// <summary>
@@ -427,6 +451,37 @@ throw;
 		}
 
 		#endregion
+
+		public void DeleteForDump()
+		{
+			Connection.Open();
+			try
+			{
+				var trans = Connection.BeginTransaction();
+				DeleteTable("CharacterItems", trans);
+				DeleteTable("CharacterVNs", trans);
+				DeleteTable("DbTags", trans);
+				DeleteTable("DbTraits", trans);
+				DeleteTable("ListedProducers", trans);
+				DeleteTable("ListedVNs", trans);
+				DeleteTable("UserVNs", trans);
+				trans.Commit();
+			}
+			finally
+			{
+				Connection.Close();
+			}
+		}
+
+		private void DeleteTable(string tableName, SQLiteTransaction trans)
+		{
+			var command = Connection.CreateCommand();
+			command.CommandText = $@"DELETE FROM {tableName}";
+			command.Transaction = trans;
+			command.ExecuteNonQuery();
+			command.Dispose();
+		}
+
 	}
 
 }

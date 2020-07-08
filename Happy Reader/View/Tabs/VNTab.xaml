@@ -4,9 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:view="clr-namespace:Happy_Reader.View"
+             xmlns:database="clr-namespace:Happy_Apps_Core.Database;assembly=Happy_Apps_Core"
              mc:Ignorable="d mc" 
              d:DesignHeight="600" d:DesignWidth="800" 
-             d:DataContext="{d:DesignData Source=View/SampleData/ListedVNSampleData.xaml}"
+             d:DataContext="{d:DesignInstance database:ListedVN}"
              Loaded="VNPanel_OnLoaded">
     <UserControl.Resources>
         <Style TargetType="TextBox"  BasedOn="{StaticResource NoBorderTextBox}">
@@ -19,129 +20,112 @@
             <Setter Property="Margin" Value="0,0,5,0" />
             <Setter Property="Padding" Value="0" />
         </Style>
-        <Style TargetType="ListBox">
-            <Setter Property="Margin" Value="5"/>
-            <Setter Property="Background" Value="LightBlue"/>
-            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
-        </Style>
     </UserControl.Resources>
     <Grid ScrollViewer.VerticalScrollBarVisibility="Auto">
-        <Grid.ColumnDefinitions>
+	    <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition MinWidth="60" Width="Auto"/>
+            <ColumnDefinition Width="320"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="260"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Grid Grid.Column="0" Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="65"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Grid Grid.Row="0" Grid.Column="0" Margin="0" Background="LightGray">
-                <Grid.RowDefinitions >
-                    <RowDefinition Height="20"/>
-                    <RowDefinition Height="20"/>
-                    <RowDefinition Height="20"/>
-                    <RowDefinition Height="20"/>
-                    <RowDefinition Height="20"/>
-                    <RowDefinition Height="20"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <Label Grid.Row="0"  Style="{StaticResource RightLabel}" Content="Title"/>
-                <Label Grid.Row="1" Style="{StaticResource RightLabel}" Content="Aliases"/>
-                <Label Grid.Row="2" Style="{StaticResource RightLabel}" Content="Producer"/>
-                <Label Grid.Row="3" Style="{StaticResource RightLabel}" Content="Rating"/>
-                <Label Grid.Row="4" Style="{StaticResource RightLabel}" Content="Relations"/>
-                <Label Grid.Row="5" Style="{StaticResource RightLabel}" Content="Anime"/>
-                <Label Grid.Row="6" Style="{StaticResource RightLabel}" Content="Tags"/>
-            </Grid>
-            <Grid Grid.Row="0" Grid.Column="1" Margin="0" Background="LightGray">
-                <Grid.RowDefinitions >
-                    <RowDefinition Height="20"/>
-                    <RowDefinition Height="20"/>
-                    <RowDefinition Height="20"/>
-                    <RowDefinition Height="20"/>
-                    <RowDefinition Height="20"/>
-                    <RowDefinition Height="20"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <TextBox Grid.Row="0" >
-                    <TextBox.Text>
-                        <MultiBinding StringFormat="{}{0} ({1})">
-                            <Binding Path="Title"/>
-                            <Binding Path="KanjiTitle"/>
-                        </MultiBinding>
-                    </TextBox.Text>
-                </TextBox>
-                <TextBox Grid.Row="1" Text="{Binding DisplayAliases, Mode=OneWay}" />
-                <Grid Grid.Row="2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="30"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="100"/>
-                    </Grid.ColumnDefinitions>
-                    <Image  Source="{Binding Producer.FlagSource}" Grid.Column="0"/>
-                    <TextBox Text="{Binding Producer.Name}" Grid.Column="1"/>
-                    <TextBox Text="{Binding LengthTime, Converter={StaticResource EnumDescriptionConverter}}" HorizontalContentAlignment="Right" Grid.Column="2"/>
-                </Grid>
-                <Grid Grid.Row="3">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0">
-                        <TextBox.Text>
-                            <MultiBinding StringFormat="{}{0:0.00} ({1} votes)">
-                                <Binding Path="Rating"/>
-                                <Binding Path="VoteCount"/>
-                            </MultiBinding>
-                        </TextBox.Text>
-                    </TextBox>
-                    <TextBox Grid.Column="1" Text="{Binding Popularity, StringFormat=Popularity {0:0.00}}" HorizontalContentAlignment="Right"/>
-                </Grid>
-                <ComboBox Grid.Row="4" x:Name="RelationsCombobox" ItemsSource="{Binding DisplayRelations}" SelectedIndex="0" IsReadOnly="True"/>
-                <ComboBox Grid.Row="5" x:Name="AnimeCombobox" ItemsSource="{Binding DisplayAnime}" SelectedIndex="0" IsReadOnly="True"/>
-                <Grid Grid.Row="6">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-                    <ListBox x:Name="TechnicalTagsControl" Grid.Column="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                        <ListBox.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel />
-                            </ItemsPanelTemplate>
-                        </ListBox.ItemsPanel>
-                    </ListBox>
-                    <ListBox x:Name="SexualTagsControl" Grid.Column="1" Margin="5" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                        <ListBox.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel />
-                            </ItemsPanelTemplate>
-                        </ListBox.ItemsPanel>
-                    </ListBox>
-                    <ListBox x:Name="ContentTagsControl" Grid.Column="2" Margin="5" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                        <ListBox.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel />
-                            </ItemsPanelTemplate>
-                        </ListBox.ItemsPanel>
-                    </ListBox>
-                </Grid>
-            </Grid>
-        </Grid>
-        <TextBox Grid.Column="0" Grid.Row="1" Text="{Binding Description}" TextWrapping="Wrap" Margin="0" Padding="5" Background="LightGray"/>
-        <Image x:Name="ImageBox" Grid.Row="0" Grid.RowSpan="2" Source="{Binding CoverSource}" Margin="5" Grid.Column="1"/>
-        <Label Grid.Row="0" Grid.RowSpan="2" VerticalContentAlignment="Top" HorizontalContentAlignment="Right" Grid.Column="1" Height="40" VerticalAlignment="Top" Padding="2" >
-            <Hyperlink Click="ID_OnClick">
-                <Run Text="{Binding VNID}"/>
-            </Hyperlink>
-        </Label>
-        <Grid Grid.Row="2" Grid.ColumnSpan="2" Grid.Column="0">
+	    <Grid Grid.Row="0" Grid.Column="0" Name="InfoTopLeft">
+			<Grid.RowDefinitions>
+				<RowDefinition/>
+				<RowDefinition Height="Auto"/>
+			</Grid.RowDefinitions>
+		    <Grid Grid.Row="0" Name="InfoGrid">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="65"/>
+					<ColumnDefinition Width="*"/>
+				</Grid.ColumnDefinitions>
+				<Grid Grid.Column="0" Margin="0" Background="LightGray" Name="InfoLabels">
+					<Grid.RowDefinitions >
+						<RowDefinition Height="20"/>
+						<RowDefinition Height="20"/>
+						<RowDefinition Height="20"/>
+						<RowDefinition Height="20"/>
+						<RowDefinition Height="*" MaxHeight="25"/>
+						<RowDefinition Height="*" MaxHeight="25"/>
+						<RowDefinition Height="*"/>
+					</Grid.RowDefinitions>
+					<Label Grid.Row="0"  Style="{StaticResource RightLabel}" Content="Title"/>
+					<Label Grid.Row="1" Style="{StaticResource RightLabel}" Content="Aliases"/>
+					<Label Grid.Row="2" Style="{StaticResource RightLabel}" Content="Producer"/>
+					<Label Grid.Row="3" Style="{StaticResource RightLabel}" Content="Rating"/>
+					<Label Grid.Row="4" Style="{StaticResource RightLabel}" Content="Relations" x:Name="RelationsLabel"/>
+					<Label Grid.Row="5" Style="{StaticResource RightLabel}" Content="Anime" x:Name="AnimeLabel"/>
+					<Label Grid.Row="6" Style="{StaticResource RightLabel}" Content="Tags"/>
+				</Grid>
+				<Grid Grid.Column="1" Margin="0" Background="LightGray" Name="InfoData">
+					<Grid.RowDefinitions >
+						<RowDefinition Height="20"/>
+						<RowDefinition Height="20"/>
+						<RowDefinition Height="20"/>
+						<RowDefinition Height="20"/>
+						<RowDefinition Height="*" MaxHeight="25"/>
+						<RowDefinition Height="*" MaxHeight="25"/>
+						<RowDefinition Height="*" />
+					</Grid.RowDefinitions>
+					<TextBox Grid.Row="0" >
+						<TextBox.Text>
+							<MultiBinding StringFormat="{}{0} ({1})">
+								<Binding Path="Title"/>
+								<Binding Path="KanjiTitle"/>
+							</MultiBinding>
+						</TextBox.Text>
+					</TextBox>
+					<TextBox Grid.Row="1" Text="{Binding DisplayAliases, Mode=OneWay}" />
+					<Grid Grid.Row="2">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="30"/>
+							<ColumnDefinition Width="*"/>
+							<ColumnDefinition Width="100"/>
+						</Grid.ColumnDefinitions>
+						<Image  Source="{Binding Producer.FlagSource}" Grid.Column="0"/>
+						<TextBox Text="{Binding Producer.Name}" Grid.Column="1"/>
+						<TextBox Text="{Binding LengthTime, Converter={StaticResource EnumDescriptionConverter}}" HorizontalContentAlignment="Right" Grid.Column="2"/>
+					</Grid>
+					<Grid Grid.Row="3">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition/>
+							<ColumnDefinition/>
+						</Grid.ColumnDefinitions>
+						<TextBox Grid.Column="0">
+							<TextBox.Text>
+								<MultiBinding StringFormat="{}{0:0.00} ({1} votes)">
+									<Binding Path="Rating"/>
+									<Binding Path="VoteCount"/>
+								</MultiBinding>
+							</TextBox.Text>
+						</TextBox>
+						<TextBox Grid.Column="1" Text="{Binding Popularity, StringFormat=Popularity {0:0.00}}" HorizontalContentAlignment="Right"/>
+					</Grid>
+					<ComboBox Grid.Row="4" x:Name="RelationsCombobox" ItemsSource="{Binding DisplayRelations}" SelectedIndex="0" IsReadOnly="True"/>
+					<ComboBox Grid.Row="5" x:Name="AnimeCombobox" ItemsSource="{Binding DisplayAnime}" SelectedIndex="0" IsReadOnly="True"/>
+					<Grid Grid.Row="6" MaxHeight="375" Margin="0" Background="Wheat">
+						<ListBox x:Name="AllTagsControl" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="LightBlue">
+							<ListBox.ItemsPanel>
+								<ItemsPanelTemplate>
+									<WrapPanel />
+								</ItemsPanelTemplate>
+							</ListBox.ItemsPanel>
+						</ListBox>
+					</Grid>
+				</Grid>
+			</Grid>
+		    <TextBox Grid.Row="1" Text="{Binding Description}" TextWrapping="Wrap" Margin="0" Padding="5" Background="LightGray" Name="DescBox"/>
+	    </Grid>
+	    <Image x:Name="ImageBox" Grid.Row="0" Source="{Binding CoverSource}" Margin="5" Grid.Column="1"/>
+		<Border Grid.Row="0" Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Right" Padding="5" Background="Black" CornerRadius="5" Margin="5">
+			<Label VerticalContentAlignment="Top" HorizontalContentAlignment="Right"  VerticalAlignment="Top" HorizontalAlignment="Right" Padding="0" Background="Black">
+				<Hyperlink Click="ID_OnClick">
+					<Run Text="{Binding VNID}"/>
+				</Hyperlink>
+			</Label>
+		</Border>
+        <Grid Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="0" Name="ScreensAndCharactersGrid">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition />
@@ -163,7 +147,7 @@
                     </ItemsControl.Template>
                 </ItemsControl>
             </view:AspectRatioLayoutDecorator>
-            <ItemsControl x:Name="CharacterTiles"  Grid.Column="1" Margin="5">
+            <ItemsControl x:Name="CharacterTiles"  Grid.Column="1" Margin="5" Background="MediumPurple">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel Orientation="Horizontal"/>

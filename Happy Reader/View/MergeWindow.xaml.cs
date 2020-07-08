@@ -4,8 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -86,6 +84,7 @@ namespace Happy_Reader.View
 		private async void DataGridLoaded(object sender, RoutedEventArgs e)
 		{
 			MergeGame[] mergeGames = null;
+			Debug.Assert(Dispatcher != null, nameof(Dispatcher) + " != null");
 			await Dispatcher.InvokeAsync(() =>
 			{
 				mergeGames = StaticMethods.Data.UserGames.Local.Where(g => g.Id != UserGame.Id).ToArray()

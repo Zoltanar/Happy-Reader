@@ -29,6 +29,7 @@ namespace Happy_Apps_Core
 		public Response LastResponse;
 		public LogInStatus LogIn = LogInStatus.No;
 		public APIStatus Status = APIStatus.Closed;
+		private LoginCredentials _loginCredentials;
 
 		/// <summary>
 		/// Open stream with VNDB API.
@@ -66,11 +67,8 @@ namespace Happy_Apps_Core
 						var subject = sslStream.RemoteCertificate.Subject;
 						if (printCertificates)
 						{
-							Logger.ToFile("Remote Certificate data - subject/issuer/format/effectivedate/expirationdate", false);
-							Logger.ToFile(subject + "\t - \t" + sslStream.RemoteCertificate.Issuer + "\t - \t" +
-									  sslStream.RemoteCertificate.GetFormat() + "\t - \t" +
-									  sslStream.RemoteCertificate.GetEffectiveDateString() + "\t - \t" +
-									  sslStream.RemoteCertificate.GetExpirationDateString(), false);
+							Logger.ToFile("Remote Certificate data - subject/issuer/format/effectivedate/expirationdate",
+								$"{subject}\t-{sslStream.RemoteCertificate.Issuer}\t-{sslStream.RemoteCertificate.GetFormat()}\t-{sslStream.RemoteCertificate.GetEffectiveDateString()}\t-{sslStream.RemoteCertificate.GetExpirationDateString()}");
 						}
 						if (!subject.Substring(3).Equals(VndbHost))
 						{
@@ -115,9 +113,7 @@ namespace Happy_Apps_Core
 
 		private void AskForNonSsl()
 		{
-			var messageResult = System.Windows.Forms.MessageBox.Show(@"Connection to VNDB failed, do you wish to try without SSL?",
-				@"Connection Failed", System.Windows.Forms.MessageBoxButtons.YesNo);
-			if (messageResult != System.Windows.Forms.DialogResult.Yes) return;
+			if (!AskForNonSslAction()) return;
 			Logger.ToFile($"Attempting to open connection to {VndbHost}:{VndbPort} without SSL");
 			Status = APIStatus.Closed;
 			var complete = false;
@@ -157,21 +153,18 @@ namespace Happy_Apps_Core
 		/// <summary>
 		/// Log into VNDB API, optionally using username/password.
 		/// </summary>
-		/// <param name="clientName">Name of Client accessing VNDB API</param>
-		/// <param name="clientVersion">Version of Client accessing VNDB API</param>
-		/// <param name="username">Username of user to log in as</param>
-		/// <param name="password">Password of user to log in as</param>
+		/// <param name="loginCredentials">Credentials to use for login command</param>
 		/// <param name="printCertificates">Default is true, logs certificates and prints to debug</param>
-		public void Login(string clientName, string clientVersion, string username = null, char[] password = null, bool printCertificates = true)
+		public void Login(LoginCredentials loginCredentials, bool printCertificates = true)
 		{
 			if (Status != APIStatus.Closed) Close();
 			Open(printCertificates);
 			string loginBuffer;
 
-			if (username != null && password != null)
+			if (loginCredentials.Username != null && loginCredentials.Password != null)
 			{
 				loginBuffer =
-					$"login {{\"protocol\":1,\"client\":\"{clientName}\",\"clientver\":\"{clientVersion}\",\"username\":\"{username}\",\"password\":\"{new string(password)}\"}}";
+					$"login {{\"protocol\":1,\"client\":\"{loginCredentials.ClientName}\",\"clientver\":\"{loginCredentials.ClientVersion}\",\"username\":\"{loginCredentials.Username}\",\"password\":\"{new string(loginCredentials.Password)}\"}}";
 				Query(loginBuffer);
 				if (LastResponse.Type == ResponseType.Ok)
 				{
@@ -181,7 +174,7 @@ namespace Happy_Apps_Core
 			}
 			else
 			{
-				loginBuffer = $"login {{\"protocol\":1,\"client\":\"{clientName}\",\"clientver\":\"{clientVersion}\"}}";
+				loginBuffer = $"login {{\"protocol\":1,\"client\":\"{loginCredentials.ClientName}\",\"clientver\":\"{loginCredentials.ClientVersion}\"}}";
 				Query(loginBuffer);
 				if (LastResponse.Type == ResponseType.Ok)
 				{
@@ -189,13 +182,31 @@ namespace Happy_Apps_Core
 					Status = APIStatus.Ready;
 				}
 			}
+
+			_loginCredentials = loginCredentials;
 			_changeStatusAction?.Invoke(Status);
+		}
+
+		public readonly struct LoginCredentials
+		{
+			public string ClientName { get; }
+			public string ClientVersion { get; }
+			public string Username { get; }
+			public char[] Password { get; }
+
+			public LoginCredentials(string clientName, string clientVersion, string username = null, char[] password = null)
+			{
+				ClientName = clientName;
+				ClientVersion = clientVersion;
+				Username = username;
+				Password = password;
+			}
 		}
 
 		private void Query(string command)
 		{
 			if (Status == APIStatus.Error) return;
-			if (GSettings.AdvancedMode) _advancedAction?.Invoke(command, true);
+			_advancedAction?.Invoke(command, true);
 			Status = APIStatus.Busy;
 			byte[] encoded = Encoding.UTF8.GetBytes(command);
 			var requestBuffer = new byte[encoded.Length + 1];
@@ -216,7 +227,7 @@ namespace Happy_Apps_Core
 				responseBuffer = biggerBadderBuffer;
 			}
 			LastResponse = Parse(responseBuffer, totalRead);
-			if (GSettings.AdvancedMode) _advancedAction?.Invoke(LastResponse.JsonPayload, false);
+			_advancedAction?.Invoke(LastResponse.JsonPayload, false);
 			SetStatusFromLastResponseType();
 		}
 
@@ -269,7 +280,7 @@ namespace Happy_Apps_Core
 		{
 			try
 			{
-				_tcpClient.GetStream().Close();
+				if(_tcpClient.Connected) _tcpClient.GetStream().Close();
 				_tcpClient.Close();
 			}
 			catch (ObjectDisposedException e)
@@ -348,7 +359,23 @@ namespace Happy_Apps_Core
 					query = Regex.Replace(query, "\\)", $" and released > \"{DateTime.UtcNow.Year - 10}\")");
 				}
 				Logger.ToFile(query);
-				Query(query);
+				RunWithRetries(() => Query(query),()=> Login(_loginCredentials), 5, ex =>
+				{
+					SocketException socketException;
+					switch (ex)
+					{
+						case IOException ioException:
+							if (ioException.InnerException is SocketException innerException) socketException = innerException;
+							else return false;
+							break;
+						case SocketException sockException:
+							socketException = sockException;
+							break;
+						default: return false;
+					}
+
+					return socketException.ErrorCode == 10054;
+				});
 			});
 			if (LastResponse.Type == ResponseType.Unknown)
 			{
@@ -358,6 +385,7 @@ namespace Happy_Apps_Core
 			{
 				if (!LastResponse.Error.ID.Equals("throttled"))
 				{
+					Logger.ToFile($"{nameof(TryQueryInner)} error: {LastResponse.JsonPayload}");
 					ActiveQuery.CompletedMessage = errorMessage;
 					ActiveQuery.CompletedMessageSeverity = MessageSeverity.Error;
 					return QueryResult.Fail;
@@ -394,9 +422,9 @@ namespace Happy_Apps_Core
 			var result = await TryQueryInner(query, errorMessage);
 			while (result == QueryResult.Throttled)
 			{
-				if (ActiveQuery.RefreshList && _refreshListAction != null)
+				if (ActiveQuery.RefreshList)
 				{
-					await Task.Run(_refreshListAction);
+					await Task.Run(ActiveQuery.RunActionOnAdd);
 				}
 				_changeStatusAction?.Invoke(Status);
 				await Task.Delay(_throttleWaitTime);

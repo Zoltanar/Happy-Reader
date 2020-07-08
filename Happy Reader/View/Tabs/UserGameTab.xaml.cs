@@ -42,13 +42,18 @@ namespace Happy_Reader.View.Tabs
             if (result ?? false) _viewModel.ChangeFilePath(dialog.FileName);
         }
 
-        private void SaveUsedDefinedName(object sender, KeyEventArgs e)
+        private void SaveUserDefinedName(object sender, KeyEventArgs e)
         {
             if (e.Key != Key.Enter) return;
             _viewModel.SaveUserDefinedName(DisplayNameBox.Text);
         }
+        private void SaveTag(object sender, KeyEventArgs e)
+        {
+	        if (e.Key != Key.Enter) return;
+	        _viewModel.SaveTag(TagBox.Text);
+        }
 
-        private void SaveVNID(object sender, KeyEventArgs e)
+		private void SaveVNID(object sender, KeyEventArgs e)
         {
             if (e.Key != Key.Enter) return;
             _viewModel.SaveVNID(VnidNameBox.Text.Length == 0 ? null : (int?)int.Parse(VnidNameBox.Text));

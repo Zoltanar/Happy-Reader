@@ -1,8 +1,11 @@
-﻿namespace Happy_Apps_Core
+﻿using JetBrains.Annotations;
+
+namespace Happy_Apps_Core
 {
     /// <summary>
     /// From any command when command fails
     /// </summary>
+    [UsedImplicitly]
     public class ErrorResponse
     {
         public double Fullwait { get; set; }

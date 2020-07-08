@@ -27,7 +27,7 @@ namespace Happy_Reader
 		private User _lastUser;
 		private ListedVN _lastGame;
 		private Entry[] _entries;
-		public bool RefreshEntries;
+		public bool RefreshEntries = true;
 
 		public Translator(HappyReaderDatabase data) => _data = data;
 
@@ -37,7 +37,7 @@ namespace Happy_Reader
 		{
 			input = input.Replace("\r", "");
 			if (string.IsNullOrWhiteSpace(input)) return null;
-			if (input.Length > StaticHelpers.GSettings.MaxClipboardSize) return null; //todo report error
+			if (input.Length > StaticMethods.GSettings.MaxClipboardSize) return null; //todo report error
 			if (LatinOnlyRegex.IsMatch(input)) return null;
 			input = input.Replace("\r\n", "");
 			input = CheckRepeatedString(input);
@@ -86,9 +86,9 @@ namespace Happy_Reader
 			int[] gamesInSeries = null;
 			if (game != null)
 			{
-				gamesInSeries = game.Series == null
+				gamesInSeries = string.IsNullOrWhiteSpace(game.Series)
 					? new[] { game.VNID }
-					: StaticHelpers.LocalDatabase.LocalVisualNovels.Where(g => g.Series == game.Series).Select(gg => gg.VNID).ToArray();
+					: StaticHelpers.LocalDatabase.VisualNovels.Where(g => g.Series == game.Series).Select(gg => gg.VNID).ToArray();
 			}
 			Entry[] generalEntries = _data.Entries.Where(e => (e.Private && e.UserId == user.Id || !e.Private) && !e.SeriesSpecific).ToArray();
 			Entry[] specificEntries = { };
@@ -296,7 +296,7 @@ namespace Happy_Reader
 				throw new Exception("Error in TranslateStageFour, see inner", ex);
 			}
 			result[4] = sb.ToString();
-			if(StaticHelpers.GSettings.GoogleUseCredential) GoogleTranslate.Translate(sb);
+			if(StaticMethods.GSettings.GoogleUseCredential) GoogleTranslate.Translate(sb);
 			else GoogleTranslate.TranslateFree(sb);
 			StaticHelpers.Logger.Verbose($"Stage 5: {sb}");
 			result[5] = sb.ToString();

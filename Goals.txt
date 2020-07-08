@@ -1,19 +1,22 @@
-apply translate stage 4 to pre-romaji
+vntile right click show related
+
+
 add blacklistedproducers to user
-/HS8@5270:GDI32.dll for Bitch Gakuen - not working with my ITHVNR, check
-allow user to merge userGames (add gametime from old to new and delete old)
-add ListedVN.DbTraits and/or ListedVN.Characters
 change order of load to load dumpfiles>filters>vndb>games>proxies>entries>connection
 look at global hooks for managing infinite text, etc (https://github.com/gmamaladze/globalmousekeyhook)
-better auto-add page on database tab (https://stackoverflow.com/questions/11187382/get-listview-visible-items)
+allow keeping time played for multiple games
+allow monitor to keep running always
+make monitor only have one instance.
+if notification window is already present, simply replace text and restart timer
+
+mainwindowviewmodel.clipboardchanged, catch comexception OpenClipboard Failed (Exception from HRESULT: 0x800401D0 (CLIPBRD_E_CANT_OPEN))'
+great outstanding problems:
+can't show outputwindow on top of some fullscreen games, steals focus on games where it works
+
+translation:
 handle proxymods by order
 assign entry.location to merged proxy to allow for triple+ name
 allow user to choose location of google credential, currently C:\Google\hrtranslate-credential.json.
-order by time played
-allow keeping time played for multiple games
-allow monitor to keep runing always
-make runitor only have one instance.
-if notification window is already present, simply replace text and restart timer
+apply translate stage 4 to pre-romaji
 
-great outstanding problems:
-can't show outputwindow on top of some fullscreen games, steals focus on games where it works
+if response is error with id 'needlogin' show user that credentials are wrong

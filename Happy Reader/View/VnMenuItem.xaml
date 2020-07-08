@@ -1,0 +1,47 @@
+﻿<MenuItem x:Class="Happy_Reader.View.VnMenuItem"
+          xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+          xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+          xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+          xmlns:local="clr-namespace:Happy_Reader.View"
+          mc:Ignorable="d" 
+          d:DesignHeight="450" d:DesignWidth="800"
+          SubmenuOpened="ContextMenuOpened">
+		<MenuItem Header="Update Data" Click="UpdateVN"/>
+		<Separator/>
+		<MenuItem x:Name="Labels" Header="Labels">
+			<MenuItem Header="Owned" Tag="Owned" Click="ChangeLabel" />
+			<MenuItem Header="Playing" Tag="Playing" Click="ChangeLabel" />
+			<MenuItem Header="Finished" Tag="Finished" Click="ChangeLabel" />
+			<MenuItem Header="Stalled" Tag="Stalled" Click="ChangeLabel" />
+			<MenuItem Header="Dropped" Tag="Dropped" Click="ChangeLabel" />
+			<MenuItem Header="Wishlist - High" Tag="Wishlist,WishlistHigh" Click="ChangeLabel" />
+			<MenuItem Header="Wishlist - Medium" Tag="Wishlist,WishlistMedium" Click="ChangeLabel" />
+			<MenuItem Header="Wishlist - Low" Tag="Wishlist,WishlistLow" Click="ChangeLabel" />
+			<MenuItem Header="Blacklist" Tag="Blacklist" Click="ChangeLabel" />
+		</MenuItem>
+		<MenuItem x:Name="VoteMenu" Header="Vote">
+			<MenuItem Click="ChangeVote" Header="None"/>
+			<MenuItem Click="ChangeVote" Header="10"/>
+			<MenuItem Click="ChangeVote" Header="20"/>
+			<MenuItem Click="ChangeVote" Header="30"/>
+			<MenuItem Click="ChangeVote" Header="40"/>
+			<MenuItem Click="ChangeVote" Header="50"/>
+			<MenuItem Click="ChangeVote" Header="60"/>
+			<MenuItem Click="ChangeVote" Header="70"/>
+			<MenuItem Click="ChangeVote" Header="80"/>
+			<MenuItem Click="ChangeVote" Header="90"/>
+			<MenuItem Click="ChangeVote" Header="100"/>
+			<MenuItem IsEnabled="False" Click="ChangeVote" Header="Precise Number"/>
+		</MenuItem>
+		<Separator/>
+		<MenuItem Header="Show Titles By Producer" Click="ShowTitlesByProducer" />
+		<MenuItem x:Name="AddProducerToFavoritesItem" Header="Add Producer to Favorites"/>
+		<Separator/>
+		<MenuItem Header="Browse to VNDB Page" Click="BrowseToVndbPage"/>
+		<MenuItem x:Name="ReleaseLinkItem" Header="Browse to Release Page" Click="BrowseToReleasePage"/>
+		<MenuItem Header="Browse to Extra Page" Click="BrowseToExtraPage"/>
+		<Separator/>
+		<MenuItem Header="Copy Title" Click="CopyTitle"/>
+		<MenuItem Header="Copy Original Title" Click="CopyOriginalTitle"/>
+</MenuItem>

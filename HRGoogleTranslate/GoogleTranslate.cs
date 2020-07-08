@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using Google.Cloud.Translation.V2;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -16,7 +17,7 @@ namespace HRGoogleTranslate
 	{
 		private static Dictionary<string, GoogleTranslation> _cache = new Dictionary<string, GoogleTranslation>();
 		private static readonly HashSet<string> UntouchedStrings = new HashSet<string>();
-		private const string GoogleCredential = @"C:\Google\hrtranslate-credential.json";
+		private const string GoogleCredential = @"C:\Google\hrtranslate-credential.json"; //todo make this an external setting
 
 		private static readonly TranslationClient Client;
 		private static readonly HttpClient FreeClient = new HttpClient();
@@ -34,7 +35,9 @@ namespace HRGoogleTranslate
 
 		static GoogleTranslate()
 		{
-			FreeClient.DefaultRequestHeaders.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
+			// ReSharper disable once StringLiteralTypo
+			//todo make this an externally loaded string
+			FreeClient.DefaultRequestHeaders.Add(@"user-agent", @"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
 			using (var stream = File.OpenRead(GoogleCredential))
 			{
 				Client = TranslationClient.Create(Google.Apis.Auth.OAuth2.GoogleCredential.FromStream(stream));
@@ -44,6 +47,7 @@ namespace HRGoogleTranslate
 
 		private static void BuildUntouchedStrings()
 		{
+			//todo make this an externally loaded list
 			UntouchedStrings.Clear();
 			UntouchedStrings.Add("");
 			UntouchedStrings.Add("\r\n");
@@ -84,10 +88,11 @@ namespace HRGoogleTranslate
 			string translated;
 			try
 			{
+				//make this an external string?
 				var url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=en&dt=t&q=" + Uri.EscapeDataString(input);
-				var task = FreeClient.PostAsync(url, null);
+				Task<HttpResponseMessage> task = FreeClient.PostAsync(url, null);
 				task.Wait(2500);
-				var task2 = task.Result.Content.ReadAsStringAsync();
+				Task<string> task2 = task.Result.Content.ReadAsStringAsync();
 				task2.Wait(2500);
 				string jsonString = task2.Result;
 				if (jsonString.Contains(
@@ -132,7 +137,7 @@ namespace HRGoogleTranslate
 			bool inCache1 = _cache.TryGetValue(input, out var cachedTranslation);
 			if (inCache1)
 			{
-				LogVerbose($"HRTranslate.Google - Getting string from cache, input: {input}");
+				LogVerbose($"{nameof(HRGoogleTranslate)} - Getting string from cache, input: {input}");
 				GotFromCacheCount++;
 				text.Append(cachedTranslation.Output);
 				return;
@@ -151,11 +156,11 @@ namespace HRGoogleTranslate
 					return;
 				}
 			}
-			LogVerbose($"HRTranslate.Google - Getting string from API, input: {input}");
+			LogVerbose($"{nameof(HRGoogleTranslate)} - Getting string from API, input: {input}");
 			try
 			{
 
-				TranslationResult response = Client.TranslateText(input, "en", "ja", TranslationModel.Base);
+				var response = Client.TranslateText(input, "en", "ja", TranslationModel.Base);
 				GotFromAPICount++;
 				if (!string.IsNullOrWhiteSpace(response?.TranslatedText))
 				{

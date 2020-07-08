@@ -3,19 +3,56 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:happyReader="clr-namespace:Happy_Reader"
              xmlns:system="clr-namespace:System;assembly=mscorlib"
+             xmlns:view="clr-namespace:Happy_Reader.View"
              StartupUri="View/MainWindow.xaml" 
              ShutdownMode="OnMainWindowClose">
-    <Application.Resources>
-        <happyReader:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
-        <happyReader:RadioButtonCheckedConverter x:Key="RadioButtonCheckedConverter" />
-        <system:Boolean x:Key="True">True</system:Boolean>
-        <system:Boolean x:Key="False">False</system:Boolean>
-        <Style x:Key="NoBorderTextBox" TargetType="TextBox">
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="IsReadOnly" Value="True"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-        </Style>
-    </Application.Resources>
+	<Application.Resources>
+		<happyReader:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
+		<happyReader:RadioButtonCheckedConverter x:Key="RadioButtonCheckedConverter" />
+		<view:NullableToOpacityConverter x:Key="NullableToOpacityConverter" />
+		<view:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+		<view:VnToSpecialFlagVisibilityConverter x:Key="VnToSpecialFlagVisibilityConverter" />
+		<view:OwnedStatusToVisibilityConverter x:Key="OwnedStatusToVisibilityConverter" />
+		<view:OwnedStatusToColorConverter x:Key="OwnedStatusToColorConverter" />
+		<view:OwnedStatusToTextConverter x:Key="OwnedStatusToTextConverter" />
+		<view:DateToWeightConverter x:Key="DateToWeightConverter" />
+		<view:DateToBrushConverter x:Key="DateToBrushConverter" />
+		<view:UserVnToBackgroundConverter x:Key="UserVnToBackgroundConverter" />
+		<view:UserVnToForegroundConverter x:Key="UserVnToForegroundConverter" />
+		<view:VnToProducerForegroundConverter x:Key="VnToProducerForegroundConverter" />
+		<system:Boolean x:Key="True">True</system:Boolean>
+		<system:Boolean x:Key="False">False</system:Boolean>
+		<Style x:Key="NoBorderTextBox" TargetType="TextBox">
+			<Setter Property="BorderThickness" Value="0"/>
+			<Setter Property="IsReadOnly" Value="True"/>
+			<Setter Property="Background" Value="Transparent"/>
+			<Setter Property="VerticalContentAlignment" Value="Center"/>
+		</Style>
+		<Style x:Key="DatabaseTabItem" TargetType="TabItem">
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="TabItem">
+						<Border Name="Border" Padding="0,2,0,0" Background="MediumPurple" Margin="-2,-2,0,0" Width="100" Height="50">
+							<ContentPresenter x:Name="ContentSite" VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Header" />
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsSelected" Value="True">
+								<Setter Property="Panel.ZIndex" Value="100"/>
+								<Setter TargetName="Border" Property="Background" Value="Lavender" />
+								<Setter TargetName="Border" Property="BorderThickness" Value="1" />
+								<Setter TargetName="Border" Property="BorderBrush" Value="Black" />
+								<Setter TargetName="ContentSite" Property="TextBlock.FontWeight" Value="Bold" />
+							</Trigger>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter Property="Panel.ZIndex" Value="100"/>
+								<Setter TargetName="Border" Property="BorderThickness" Value="1" />
+								<Setter TargetName="Border" Property="BorderBrush" Value="Black" />
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+	</Application.Resources>
 
 </Application>

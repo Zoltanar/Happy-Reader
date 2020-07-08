@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -10,7 +11,10 @@ using Happy_Apps_Core;
 using Happy_Reader.Database;
 using System.Linq.Expressions;
 using System.Threading;
+using System.Windows.Controls;
 using System.Windows.Media;
+using Happy_Apps_Core.Database;
+using HRGoogleTranslate;
 using StaticHelpers = Happy_Apps_Core.StaticHelpers;
 
 // ReSharper disable UnusedMember.Global
@@ -21,30 +25,21 @@ namespace Happy_Reader
 	{
 		public delegate void NotificationEventHandler(object sender, string message, string title = null);
 
-		private const string ConfigFolder = "Config\\";
-		public const string ProxiesJson = ConfigFolder + "proxies.json";
-		public const string CustomFiltersJson = StaticHelpers.StoredDataFolder + "customfilters.json";
-		public const string PermanentFilterJson = StaticHelpers.StoredDataFolder + "filters.json";
+		public static readonly string ProxiesJson = Path.Combine(StaticHelpers.StoredDataFolder, "proxies.json");
+		public static readonly string CustomFiltersJson = Path.Combine(StaticHelpers.StoredDataFolder, "customfilters.json");
+		public static readonly string PermanentFilterJson = Path.Combine(StaticHelpers.StoredDataFolder, "filters.json");
+		public static readonly string GuiSettingsJson = Path.Combine(StaticHelpers.StoredDataFolder, "guisettings.json");
 		public static HappyReaderDatabase Data { get; } = new HappyReaderDatabase();
-		public static GuiSettings GSettings => StaticHelpers.GSettings;
+		public static readonly GuiSettings GSettings;
 
 		static StaticMethods()
 		{
-			try
-			{
-				Directory.CreateDirectory(ConfigFolder);
-			}
-			catch (Exception ex)
-			{
-				StaticHelpers.Logger.ToFile(ex);
-
-			}
+			GSettings = SettingsJsonFile.Load<GuiSettings>(GuiSettingsJson);
 		}
-
 		public static string GetLocalizedTime(this DateTime dateTime)
 		{
 			bool isAmPm = GSettings.CultureInfo.DateTimeFormat.AMDesignator != string.Empty;
-			return dateTime.ToString(isAmPm ? "hh:mm tt" : "HH:mm",GSettings.CultureInfo);
+			return dateTime.ToString(isAmPm ? "hh:mm tt" : "HH:mm", GSettings.CultureInfo);
 		}
 
 		public static Process StartProcess(string executablePath)
@@ -63,21 +58,57 @@ namespace Happy_Reader
 			};
 			var process = Process.Start(pi);
 			Debug.Assert(process != null, nameof(process) + " != null");
-			if(!process.HasExited) process.WaitForInputIdle(3000);
+			if (!process.HasExited) process.WaitForInputIdle(3000);
 			return process;
 		}
 
 		public static Process StartProcessThroughProxy(UserGame userGame)
 		{
-			var lastQuote = userGame.LaunchPath.LastIndexOf('"');
-			var proxyPath = userGame.LaunchPath.Substring(1, lastQuote - 1);
-			var args = userGame.LaunchPath.Substring(lastQuote + 1).Trim();
+			var firstQuote = userGame.LaunchPath.IndexOf('"');
+			string proxyPath;
+			string args;
+			if (firstQuote > -1)
+			{
+				var secondQuote = userGame.LaunchPath.IndexOf('"', firstQuote+1);
+				proxyPath = userGame.LaunchPath.Substring(firstQuote+1, secondQuote - 1);
+				args = userGame.LaunchPath.Substring(secondQuote+1).Trim();
+			}
+			else
+			{
+				var firstSpace = userGame.LaunchPath.IndexOf(' ');
+				proxyPath = userGame.LaunchPath.Substring(0,firstSpace);
+				args = userGame.LaunchPath.Substring(firstSpace+1).Trim();
+			}
 			var processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(userGame.FilePath));
 			Process existing = processes.FirstOrDefault();
 			if (existing != null) return existing;
 			string exeParentFolder = Path.GetDirectoryName(proxyPath);
 			// ReSharper disable once NotResolvedInText
-			if (exeParentFolder == null) throw new ArgumentNullException("exeParentFolder", "Parent folder of exe was not found.");
+			if (exeParentFolder == null) throw new ArgumentNullException(nameof(exeParentFolder), "Parent folder of exe was not found.");
+			ProcessStartInfo pi = new ProcessStartInfo
+			{
+				FileName = proxyPath,
+				UseShellExecute = false,
+				WorkingDirectory = exeParentFolder,
+				Arguments = args
+			};
+			Process.Start(pi);
+			Thread.Sleep(1500);
+			processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(userGame.FilePath));
+			existing = processes.FirstOrDefault();
+			return existing;
+		}
+
+		public static Process StartProcessThroughLocaleEmulator(UserGame userGame)
+		{
+			var proxyPath = StaticMethods.GSettings.LocaleEmulatorPath;
+			var args = $"\"{userGame.FilePath}\"";
+			var processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(userGame.FilePath));
+			Process existing = processes.FirstOrDefault();
+			if (existing != null) return existing;
+			string exeParentFolder = Path.GetDirectoryName(proxyPath);
+			// ReSharper disable once NotResolvedInText
+			if (exeParentFolder == null) throw new ArgumentNullException(nameof(exeParentFolder), "Parent folder of exe was not found.");
 			ProcessStartInfo pi = new ProcessStartInfo
 			{
 				FileName = proxyPath,
@@ -105,6 +136,27 @@ namespace Happy_Reader
 				//check if the parent matches the type we're looking for
 				if (parentObject is T parent) return parent;
 				child = parentObject;
+			}
+		}
+
+		public static Collection<T> GetVisualChildren<T>(DependencyObject current) where T : DependencyObject
+		{
+			if (current == null)
+				return null;
+
+			var children = new Collection<T>();
+			GetVisualChildren(current, children);
+			return children;
+		}
+
+		private static void GetVisualChildren<T>(DependencyObject current, Collection<T> children) where T : DependencyObject
+		{
+			if (current == null) return;
+			if (current.GetType() == typeof(T)) children.Add((T)current);
+
+			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(current); i++)
+			{
+				GetVisualChildren(VisualTreeHelper.GetChild(current, i), children);
 			}
 		}
 
@@ -169,8 +221,8 @@ namespace Happy_Reader
 
 		public static void ExitTranslation()
 		{
-			Debug.WriteLine($"GoogleTranslate: Got from cache {HRGoogleTranslate.GoogleTranslate.GotFromCacheCount}");
-			Debug.WriteLine($"GoogleTranslate: Got from API {HRGoogleTranslate.GoogleTranslate.GotFromAPICount}");
+			Debug.WriteLine($"GoogleTranslate: Got from cache {GoogleTranslate.GotFromCacheCount}");
+			Debug.WriteLine($"GoogleTranslate: Got from API {GoogleTranslate.GotFromAPICount}");
 			Data.SaveChanges();
 		}
 
@@ -236,6 +288,135 @@ namespace Happy_Reader
 			if (timeSpan.TotalHours > 1 && timeSpan.TotalHours < 2) return $"1 hour, {timeSpan.Minutes} minutes";
 			return $"{(int)timeSpan.TotalHours} hours, {timeSpan.Minutes} minutes";
 		}
+
+		public static ComboBoxItem[] GetEnumValues(Type enumType)
+		{
+			var result = Enum.GetValues(enumType);
+			if (result.Length == 0) return new ComboBoxItem[0];
+			return result.Cast<Enum>().Select(x => new ComboBoxItem { Content = x.GetDescription(), Tag = x, HorizontalContentAlignment = HorizontalAlignment.Left, VerticalContentAlignment = VerticalAlignment.Center}).ToArray();
+		}
+
+		//todo make this an externally loaded list
+		public static HashSet<string> ExcludedNamesForVNResolve = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+		{
+			"data",
+			"windows-i686",
+			"lib",
+			"update.exe",
+			"install.exe",
+			"ihs.exe",
+			"lcsebody",
+			"セーブデータフォルダを開く.exe",
+			"savedata",
+			"cg",
+			"patch",
+			"plugin"
+		};
+
+		public static readonly string[] ResolveNamesToSkip =
+		{
+		};
+
+		public static ListedVN ResolveVNForFile(string file)
+		{
+			var filename = Path.GetFileNameWithoutExtension(file);
+			ListedVN[] fileResults = StaticHelpers.LocalDatabase.VisualNovels.Where(VisualNovelDatabase.SearchForVN(filename)).ToArray();
+			ListedVN vn = null;
+			if (fileResults.Length == 1 && !ExcludedNamesForVNResolve.Contains(Path.GetFileName(file))) vn = fileResults.First();
+			else
+			{
+				var parent = Directory.GetParent(file);
+				//if parent is not null, and if parent's parent  is not null (if parent's parent is null, then it is the root location.
+				while (parent?.Parent != null)
+				{
+					if (ExcludedNamesForVNResolve.Contains(parent.Name))
+					{
+						parent = parent.Parent;
+						continue;
+					}
+
+					//todo may not be needed anymore
+					var folder = parent.Name.Equals("data", StringComparison.OrdinalIgnoreCase)
+						? Directory.GetParent(parent.FullName).Name
+						: parent.Name;
+					ListedVN[] folderResults =
+						StaticHelpers.LocalDatabase.VisualNovels.Where(VisualNovelDatabase.SearchForVN(folder)).ToArray();
+					if (folderResults.Length == 1)
+					{
+						vn = folderResults.First();
+						break;
+					}
+					parent = parent.Parent;
+				}
+			}
+			//ListedVN[] allResults = fileResults.Concat(folderResults).ToArray(); //todo list results and ask user
+			return vn;
+		}
+
+		/// <summary>
+		/// Returns dictionary with Key: VN, Value: List of paths.
+		/// </summary>
+		public static Dictionary<ListedVN, List<string>> GetMissingVNsFromFolder(string folderPath)
+		{
+			var allExes = new DirectoryInfo(folderPath).GetFiles("*.exe", SearchOption.AllDirectories);
+			var foundGames = new Dictionary<ListedVN, List<string>>();
+			foreach (var file in allExes)
+			{
+				if (Data.UserGames.Any(ug => ug.FilePath == file.FullName)
+				|| ExcludedNamesForVNResolve.Contains(file.Name) || file.Name.ToLower().Contains("uninst")) continue;
+				var vn = ResolveVNForFile(file.FullName);
+				if (vn == null || vn.IsOwned == OwnedStatus.CurrentlyOwned) continue;
+				if (!foundGames.ContainsKey(vn)) foundGames[vn] = new List<string>();
+				foundGames[vn].Add(file.FullName);
+			}
+			foreach (var pair in foundGames)
+			{
+				StaticHelpers.Logger.ToFile($"Found {pair.Value.Count} titles for VN {pair.Key}");
+				foreach (var path in pair.Value)
+				{
+					StaticHelpers.Logger.ToFile($"\t{path}");
+				}
+			}
+			return foundGames;
+		}
+
+		public static void GetFoldersWithoutVNs(string folderPath, int depth)
+		{
+			if (depth > 2 || depth < 1) throw new ArgumentOutOfRangeException(nameof(depth));
+			var allFolders = new DirectoryInfo(folderPath).GetDirectories();
+			StaticHelpers.Logger.ToFile($"Folders in '{folderPath}' without VNs, depth {depth}:");
+			if (depth == 2)
+			{
+				allFolders = allFolders.Where(folder =>
+				{
+					var allExes = folder.GetFiles("*.exe", SearchOption.TopDirectoryOnly).Select(f => f.FullName).ToArray();
+					if (Data.UserGames.Any(ug => allExes.Contains(ug.FilePath))) return false;
+					return true;
+				}).SelectMany(f => f.GetDirectories()).ToArray();
+			}
+
+			allFolders = allFolders.Where(f => !ExcludedNamesForVNResolve.Contains(f.Name)).ToArray();
+			foreach (var folder in allFolders)
+			{
+				var allExes = folder.GetFiles("*.exe", SearchOption.AllDirectories).Select(f => f.FullName).ToArray();
+				if (Data.UserGames.Any(ug => allExes.Contains(ug.FilePath))) continue;
+				StaticHelpers.Logger.ToFile($"\t{folder.FullName}");
+			}
+		}
+
+		public static Dictionary<string,FontFamily> FontsInstalled = 
+			//select all font families
+			Fonts.SystemFontFamilies
+				//for each font family
+				.SelectMany(ff =>
+						//select unique font names
+						ff.FamilyNames.GroupBy(fn => fn.Value).Select(fng => fng.First())
+						//create map of font name to font family (for this font family)
+						.Select(f => new KeyValuePair<string, FontFamily>(f.Value, ff))) 
+			//create dictionary of unique font name to font family
+			.ToDictionary(f => f.Key, f => f.Value);
+
+
 
 	}
 }

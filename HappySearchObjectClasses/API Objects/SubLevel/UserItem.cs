@@ -1,8 +1,11 @@
-﻿namespace Happy_Apps_Core
+﻿using JetBrains.Annotations;
+
+namespace Happy_Apps_Core
 {
     /// <summary>
     /// From get user commands
     /// </summary>
+    [UsedImplicitly]
     public class UserItem
     {
         public int ID { get; set; }

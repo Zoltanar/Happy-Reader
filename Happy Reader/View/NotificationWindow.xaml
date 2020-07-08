@@ -4,8 +4,10 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="Notification Popup" Width="300" SizeToContent="Height"
     WindowStyle="None" AllowsTransparency="True" Background="Transparent"
-    ShowInTaskbar="False">
-    <Grid RenderTransformOrigin="0,1" >
+    ShowInTaskbar="False" Loaded="NotificationWindow_OnLoaded">
+	<Window.Resources>
+	</Window.Resources>
+	<Grid RenderTransformOrigin="0,1" >
         <!-- Notification area -->
         <Border BorderThickness="1" Background="Beige" BorderBrush="Black" CornerRadius="10">
             <Grid Margin="5">
@@ -19,28 +21,26 @@
                 <RichTextBox Grid.Row="1" IsReadOnly="True" x:Name="TextBox" Margin="0,5" Background="{x:Null}" BorderThickness="0"/>
             </Grid>
         </Border>
-        <!-- Animation -->
-        <Grid.Triggers>
-            <EventTrigger RoutedEvent="FrameworkElement.Loaded">
-                <BeginStoryboard>
-                    <Storyboard>
-                        <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)">
-                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0"/>
-                            <SplineDoubleKeyFrame KeyTime="0:0:0.5" Value="1"/>
-                        </DoubleAnimationUsingKeyFrames>
-                        <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Completed="Timeline_OnCompleted">
-                            <SplineDoubleKeyFrame KeyTime="0:0:4" Value="1"/>
-                            <SplineDoubleKeyFrame KeyTime="0:0:8" Value="0"/>
-                        </DoubleAnimationUsingKeyFrames>
-                    </Storyboard>
-                </BeginStoryboard>
-            </EventTrigger>
-        </Grid.Triggers>
-
         <Grid.RenderTransform>
             <ScaleTransform ScaleY="1" />
         </Grid.RenderTransform>
-
-    </Grid>
+        <Grid.Triggers>
+			<EventTrigger RoutedEvent="FrameworkElement.Loaded">
+				<BeginStoryboard>
+					<Storyboard Completed="Timeline_OnCompleted" >
+						<DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)">
+							<SplineDoubleKeyFrame KeyTime="0:0:0" Value="0"/>
+							<SplineDoubleKeyFrame KeyTime="0:0:0.5" Value="1"/>
+						</DoubleAnimationUsingKeyFrames>
+						<DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)">
+							<SplineDoubleKeyFrame KeyTime="0:0:4" Value="1"/>
+							<SplineDoubleKeyFrame KeyTime="0:0:6" Value="0.5"/>
+							<SplineDoubleKeyFrame KeyTime="0:0:8" Value="0"/>
+						</DoubleAnimationUsingKeyFrames>
+					</Storyboard>
+				</BeginStoryboard>
+			</EventTrigger>
+        </Grid.Triggers>
+	</Grid>
 
 </Window>

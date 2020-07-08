@@ -1,5 +1,5 @@
 ﻿DECLARE @user bigint;--= 14887;
-SELECT @user = Id FROM dbo.Users WHERE [Users].Username = 'zolty';
+SELECT @user = Id FROM dbo.Users WHERE [Users].Username = 'username';
 SELECT TOP 1000 
 
 Entries.Id AS ID, 

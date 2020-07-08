@@ -33,6 +33,17 @@ namespace Happy_Reader.View.Tabs
 			ListBox listBox = (ListBox)sender;
 			var list = (IList<VnFilter>)listBox.ItemsSource;
 			foreach (VnFilter item in listBox.SelectedItems.Cast<VnFilter>().ToArray()) list.Remove(item);
+			var parent = listBox.FindParent<GroupBox>();
+			if (parent == PermanentFilterGroupBox)
+			{
+				_viewModel.SavePermanentFilter();
+			}
+		}
+
+		private void DeleteFilterOnKey(object sender, KeyEventArgs e)
+		{
+			if (e.Key != Key.Delete) return;
+			_viewModel.DeleteCustomFilter();
 		}
 	}
 }

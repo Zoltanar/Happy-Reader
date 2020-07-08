@@ -5,7 +5,7 @@
             KanjiTitle="ネコぱら Vol.1 ソレイユ開店しました！"
             ReleaseDateString="2014-12-29"
             ProducerID="4488"
-            ImageURL="https://s.vndb.org/cv/39/22939.jpg"
+            ImageId="https://s.vndb.org/cv/39/22939.jpg"
             ImageNSFW="False"
             Description="What's NEKOPARA? Why, it's a cat paradise! 
 
@@ -24,4 +24,4 @@ See the Sayori NEKO WORKs' mascots Chocola and Vanilla like never before, moving
             VoteCount="2533"
             Aliases="Cats Paradise
 巧克力和香草"
-            UserVNId="205"/>
+    />

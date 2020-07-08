@@ -50,7 +50,7 @@
             <ColumnDefinition Width="22"/>
         </Grid.ColumnDefinitions>
         <Label Grid.Column="0" Content="{Binding IdText}" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5" Padding="0" Foreground="White"/>
-        <RichTextBox Grid.Column="0"  Foreground="GreenYellow" x:Name="DebugTextbox" HorizontalContentAlignment="Center" IsReadOnly="True"
+        <RichTextBox Grid.Column="0"  Foreground="GreenYellow" x:Name="OutputTextBox" HorizontalContentAlignment="Center" IsReadOnly="True"
                      VerticalContentAlignment="Center" Background="{x:Null}" FontSize="22"  BorderBrush="Transparent" AutoWordSelection="False">
             <RichTextBox.Effect>
                 <DropShadowEffect/>
@@ -88,7 +88,7 @@
                       MouseEnter="ShowSettingsOnMouseHover" MouseLeave="HideSettingsOnMouseLeave" Visibility="Collapsed"/>
         <Label Grid.Column="2" Content="Drag Me" Foreground="White" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MouseLeftButtonDown="DragOnMouseButton" Padding="0">
             <Label.Background >
-                <SolidColorBrush Color="DarkRed" Opacity="{Binding Value, ElementName=OpacitySlider}"/>
+                <SolidColorBrush Color="#66000000" Opacity="{Binding Value, ElementName=OpacitySlider}"/>
             </Label.Background>
             <Label.LayoutTransform>
                 <RotateTransform Angle="90"/>

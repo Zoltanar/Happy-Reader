@@ -1,11 +1,9 @@
 ﻿using System;
+using System.Windows;
 using System.Windows.Threading;
 
 namespace Happy_Reader
 {
-	/// <summary>
-	/// Interaction logic for App.xaml
-	/// </summary>
 	public partial class App
 	{
 		private bool _showingError;
@@ -23,10 +21,10 @@ namespace Happy_Reader
 			_showingError = true;
 			try
 			{
-				var message = e.Exception.Message + Environment.NewLine + e.Exception.StackTrace;
-				System.Windows.MessageBox.Show(message.Substring(0,Math.Min(message.Length,1000)),
-					"Unhandled Exception", System.Windows.MessageBoxButton.OK);
-				Shutdown(-1);
+				var message = $"Press Yes to continue or No to Exit.{Environment.NewLine}{e.Exception}";
+				var response = MessageBox.Show(message.Substring(0,Math.Min(message.Length,1000)),
+					"Unhandled Exception", MessageBoxButton.YesNo);
+				if(response == MessageBoxResult.No) Shutdown(-1);
 			}
 			finally
 			{
@@ -34,6 +32,5 @@ namespace Happy_Reader
 				e.Handled = true;
 			}
 		}
-
 	}
 }

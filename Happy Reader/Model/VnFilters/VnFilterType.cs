@@ -16,16 +16,25 @@ namespace Happy_Reader
 		Voted = 4,
 		[Description("By Favorite Producer")]
 		ByFavoriteProducer = 5,
-		[Description("Wishlist Status")]
-		WishlistStatus = 6,
-		[Description("Userlist Status")]
-		UserlistStatus = 7,
+		[Description("Label")]
+		Label = 7,
 		Language = 8,
 		[Description("Original Language")]
 		OriginalLanguage = 9,
 		Tags = 10,
 		Traits = 11,
-		HasFullDate = 12
+		[Description("Has Full Date")]
+		HasFullDate = 12,
+		[Description("Game Owned")]
+		GameOwned = 13,
+		[Description("User-related Title")]
+		UserVN = 14,
+		[Description("Released After")]
+		ReleasedAfter = 15,
+		[Description("Released Before")]
+		ReleasedBefore = 16,
+		[Description("Has Anime")]
+		HasAnime = 17,
 #pragma warning restore 1591
 	}
 }

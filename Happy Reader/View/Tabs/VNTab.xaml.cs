@@ -11,81 +11,79 @@ using Happy_Reader.ViewModel;
 
 namespace Happy_Reader.View.Tabs
 {
-    /// <summary>
-    /// Interaction logic for VNPanel.xaml
-    /// </summary>
-    public partial class VNTab : UserControl
-    {
-        private MainWindow _mainWindow;
-        private readonly ListedVN _viewModel;
-        public VNTab(ListedVN vn)
-        {
-            InitializeComponent();
-            _viewModel = vn;
-            DataContext = vn;
-            var cvnItems = StaticHelpers.LocalDatabase.CharacterVNs.Where(cvn => cvn.ListedVNId == vn.VNID).ToArray();
-            CharacterTiles.ItemsSource = cvnItems.Select(CharacterTile.FromCharacterVN);
-            if (vn.VNID != 0 && vn.DbTags.Count > 0)
-            {
-                var groups = vn.DbTags.GroupBy(x => x.Category);
-                foreach (var group in groups)
-                {
-                    if (group.Key == null) continue;
-	                var inlines = new List<Inline> {new Run($"{group.Key}: ")};
-	                foreach (var tag in group.OrderByDescending(x => x.Score))
-                    {
-                        var link = new Hyperlink(new Run(tag.Print())) { Tag = tag };
-                        link.PreviewMouseLeftButtonDown += OnTagClick;
-                        inlines.Add(link);
-                    }
-                    switch (group.Key)
-                    {
-                        case StaticHelpers.TagCategory.Null:
-                            continue;
-                        case StaticHelpers.TagCategory.Technical:
-                            TechnicalTagsControl.ItemsSource = inlines;
-                            continue;
-                        case StaticHelpers.TagCategory.Sexual:
-                            SexualTagsControl.ItemsSource = inlines;
-                            continue;
-                        case StaticHelpers.TagCategory.Content:
-                            ContentTagsControl.ItemsSource = inlines;
-                            continue;
-                    }
-                }
-            }
+	public partial class VNTab : UserControl
+	{
+		private MainWindow _mainWindow;
+		private readonly ListedVN _viewModel;
+		public VNTab(ListedVN vn)
+		{
+			InitializeComponent();
+			_viewModel = vn;
+			DataContext = vn;
+			var cvnItems = StaticHelpers.LocalDatabase.CharacterVNs.Where(cvn => cvn.VNId == vn.VNID);
+			CharacterTiles.ItemsSource = cvnItems.Select(CharacterTile.FromCharacterVN).ToArray();
+		}
 
-        }
+		private void LoadTags(ListedVN vn)
+		{
+			var groups = vn.Tags.GroupBy(x => x.Category).OrderBy(g => g.Key.ToString());
+			var allInlines = new List<Inline>();
+			foreach (var group in groups)
+			{
+				if (@group.Key == null) continue;
+				allInlines.Add(new Run($"{@group.Key}: "));
+				foreach (var tag in @group.OrderBy(x => x.Print()))
+				{
+					var link = new Hyperlink(new Run(tag.Print())) {Tag = tag};
+					if (_mainWindow.ViewModel.DatabaseViewModel.SuggestionScorer?.IdTags?.Contains(tag.TagId ) ?? false) link.FontWeight = FontWeights.Bold;
+					link.PreviewMouseLeftButtonDown += OnTagClick;
+					allInlines.Add(link);
+				}
+			}
+			AllTagsControl.ItemsSource = allInlines;
+		}
 
-        private async void OnTagClick(object sender, MouseButtonEventArgs e)
-        {
-            _mainWindow.MainTabControl.SelectedIndex = 3;
-            var tag = (DbTag)((Hyperlink)sender).Tag;
-            await ((MainWindowViewModel)_mainWindow.DataContext).DatabaseViewModel.ShowTagged(DumpFiles.PlainTags.Find(item => item.ID == tag.TagId));
-        }
+		private async void OnTagClick(object sender, MouseButtonEventArgs e)
+		{
+			_mainWindow.MainTabControl.SelectedIndex = 3;
+			var tag = (DbTag)((Hyperlink)sender).Tag;
+			await ((MainWindowViewModel)_mainWindow.DataContext).DatabaseViewModel.ShowTagged(DumpFiles.GetTag(tag.TagId));
+		}
 
-        private async void VNPanel_OnLoaded(object sender, RoutedEventArgs e)
-        {
-            _mainWindow = (MainWindow)Window.GetWindow(this);
-            await _viewModel.GetRelationsAnimeScreens();
-            ScreensBox.AspectRatio = _viewModel.ScreensObject.Any() ? _viewModel.ScreensObject.Max(x => (double)x.Width / x.Height) : 1;
-            ImageBox.MaxHeight = ImageBox.Source.Height;
-            RelationsCombobox.SelectedIndex = 0;
-            AnimeCombobox.SelectedIndex = 0;
-        }
+		private async void VNPanel_OnLoaded(object sender, RoutedEventArgs e)
+		{
+			_mainWindow = (MainWindow)Window.GetWindow(this);
+			if (_viewModel.Tags?.Count > 0) LoadTags(_viewModel);
+			await _viewModel.GetRelationsAnimeScreens();
+			ScreensBox.AspectRatio = _viewModel.ScreensObject.Any() ? _viewModel.ScreensObject.Max(x => (double)x.Width / x.Height) : 1;
+			ImageBox.MaxHeight = ImageBox.Source.Height;
+			if (!_viewModel.RelationsObject.Any())
+			{
+				RelationsLabel.Visibility = Visibility.Collapsed;
+				RelationsCombobox.Visibility = Visibility.Collapsed;
+			}
+			else RelationsCombobox.SelectedIndex = 0;
+			if (!_viewModel.AnimeObject.Any())
+			{
+				AnimeLabel.Visibility = Visibility.Collapsed;
+				AnimeCombobox.Visibility = Visibility.Collapsed;
+			}
+			else AnimeCombobox.SelectedIndex = 0;
+			_viewModel.OnPropertyChanged(null);
+		}
 
-        private void ScrollViewer_OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            ScrollViewer scrollviewer = (ScrollViewer)sender;
-            scrollviewer.CanContentScroll = true;
-            if (e.Delta > 0) scrollviewer.LineLeft();
-            else scrollviewer.LineRight();
-            e.Handled = true;
-        }
+		private void ScrollViewer_OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
+		{
+			ScrollViewer scrollviewer = (ScrollViewer)sender;
+			scrollviewer.CanContentScroll = true;
+			if (e.Delta > 0) scrollviewer.LineLeft();
+			else scrollviewer.LineRight();
+			e.Handled = true;
+		}
 
-        private void ID_OnClick(object sender, RoutedEventArgs e)
-        {
-            System.Diagnostics.Process.Start($"https://vndb.org/v{_viewModel.VNID}");
-        }
-    }
+		private void ID_OnClick(object sender, RoutedEventArgs e)
+		{
+			System.Diagnostics.Process.Start($"https://vndb.org/v{_viewModel.VNID}");
+		}
+	}
 }

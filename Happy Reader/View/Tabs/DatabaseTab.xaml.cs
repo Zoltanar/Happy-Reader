@@ -1,10 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Threading.Tasks;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Reader.ViewModel;
 
@@ -19,30 +18,35 @@ namespace Happy_Reader.View.Tabs
 		private MainWindow _mainWindow;
 		public DatabaseTab() => InitializeComponent();
 
-		private async void UpdateURT(object sender, RoutedEventArgs e) => await ViewModel.UpdateURT();
-
-		private void ScrollViewer_OnScrollChanged(object sender, ScrollChangedEventArgs e)
+		private async void ScrollViewer_OnScrollChanged(object sender, ScrollChangedEventArgs e)
 		{
 			if (!(e.VerticalChange > 0)) return;
 			var loc = e.VerticalOffset + e.ViewportHeight * 2;
 			if (loc < e.ExtentHeight) return;
-			ViewModel.AddListedVNPage();
-			((ScrollViewer)e.OriginalSource).ScrollToVerticalOffset(loc);
+			await ViewModel.AddListedVNPage();
+			//((ScrollViewer)e.OriginalSource).ScrollToVerticalOffset(loc);*/
 		}
 
-		private async void ShowAll(object sender, RoutedEventArgs e) => await ViewModel.RefreshListedVns(true);
+		private async void ShowAll(object sender, RoutedEventArgs e)
+		{
+			await ViewModel.ShowAll();
+		}
 
 		private async void SearchForVN(object sender, KeyEventArgs e)
 		{
 			if (e.Key != Key.Enter) return;
 			await ViewModel.SearchForVN(((TextBox)sender).Text);
 		}
+		private bool _loaded = false;
 
 		private void VNTab_OnLoaded(object sender, RoutedEventArgs e)
 		{
+			if (_loaded) return;
 			if (DesignerProperties.GetIsInDesignMode(this)) return;
 			ViewModel = (VNTabViewModel)DataContext;
 			_mainWindow = (MainWindow)Window.GetWindow(this);
+			ViewModel.OnPropertyChanged(nameof(ViewModel.ProducerList));
+			_loaded = true;
 		}
 
 		private void VNTileDoubleClicked(object sender, MouseButtonEventArgs e)
@@ -53,65 +57,65 @@ namespace Happy_Reader.View.Tabs
 			_mainWindow.OpenVNPanel(vn);
 		}
 
-		private async void ShowURT(object sender, RoutedEventArgs e) => await ViewModel.ShowURT();
-
-		private async void UpdateForYear(object sender, RoutedEventArgs e)
+		private async void ShowSuggested(object sender, RoutedEventArgs e)
 		{
-			if (!DetermineYears(out int fromYear, out int _)) return;
-			await ViewModel.UpdateForYear(fromYear);
+			await ViewModel.ShowSuggested();
 		}
 
-		private async void UpdateCharactersForYear(object sender, RoutedEventArgs e)
+		private async void SortByRecommended(object sender, RoutedEventArgs e)
 		{
-			if (!DetermineYears(out int fromYear, out int _)) return;
-			await ViewModel.UpdateCharactersForYear(fromYear);
+			if (ViewModel != null) await ViewModel.SortByRecommended();
 		}
 
-		private async void FetchForYear(object sender, RoutedEventArgs e)
+		private async void SortByMyScore(object sender, RoutedEventArgs e)
 		{
-			if (!DetermineYears(out int fromYear, out int toYear)) return;
-			await ViewModel.FetchForYear(fromYear, toYear);
+			if (ViewModel != null) await ViewModel.SortByMyScore();
 		}
 
-		private bool DetermineYears(out int fromYear, out int toYear)
+		private async void SortByRelease(object sender, RoutedEventArgs e)
 		{
-			fromYear = 0;
-			toYear = VndbConnection.VndbAPIMaxYear;
-			string text = SearchTexBox.Text;
-			if (string.IsNullOrWhiteSpace(text)) return false;
-			if (text.StartsWith(">") && text.Length > 1)
+			if (ViewModel != null) await ViewModel.SortByReleaseDate();
+		}
+
+		private async void SortByRating(object sender, RoutedEventArgs e)
+		{
+			if (ViewModel != null) await ViewModel.SortByRating();
+		}
+
+		private async void SortByTitle(object sender, RoutedEventArgs e)
+		{
+			if (ViewModel != null) await ViewModel.SortByTitle();
+		}
+
+		private bool ProducerBoxFilter(string search, object value)
+		{
+			var lowerSearch = search.ToLower();
+			var producer = (ListedProducer)value;
+			return producer.Name.ToLower().Contains(lowerSearch);
+		}
+
+		private async void SelectProducer(object sender, SelectionChangedEventArgs e)
+		{
+			if (e.AddedItems.Count == 0) return;
+			var producer = e.AddedItems[0] as ListedProducer;
+			if (producer == null) return;
+			await ViewModel.ShowForProducer(producer);
+		}
+				
+		private bool _userInteractionHistory;
+		private async void BrowseHistory(object sender, SelectionChangedEventArgs e)
+		{
+			if (!_userInteractionHistory || e.AddedItems.Count == 0) return;
+			var item = e.AddedItems.Cast<NamedFunction>().First();
+			if (item.Selected)
 			{
-				text = text.Substring(1);
-				if (!int.TryParse(text, out fromYear)) return false; //show error
+				return;
 			}
-			else if (text.StartsWith("<") && text.Length > 1)
-			{
-				text = text.Substring(1);
-				if (!int.TryParse(text, out toYear)) return false; //show error
-			}
-			else if (text.Contains("-") && text.Length > 2)
-			{
-				int index = text.IndexOf("-", StringComparison.Ordinal);
-				if (!int.TryParse(text.Substring(0, index), out fromYear)) return false; //show error
-				if (!int.TryParse(text.Substring(index + 1), out toYear)) return false; //show error
-			}
-			else
-			{
-				if (!int.TryParse(text, out fromYear)) return false; //show error
-				toYear = fromYear;
-			}
-			return true;
+			await ViewModel.BrowseHistory(item);
 		}
 
-		private async void ToggleFiltersJapanese(object sender, RoutedEventArgs e)
-		{
-			ViewModel.ToggleFiltersJapanese();
-			if (FiltersCb.SelectedItem != null) await ViewModel.ChangeFilter(FiltersCb.SelectedItem as CustomVnFilter);
-		}
+		private void AllowUserInteraction(object sender, EventArgs e) => _userInteractionHistory = true;
 
-		private async void GetNewFPTitles(object sender, RoutedEventArgs e)
-		{
-			await ViewModel.GetNewFPTitles();
-		}
+		private void StopUserInteraction(object sender, EventArgs e) => _userInteractionHistory = false;
 	}
 }

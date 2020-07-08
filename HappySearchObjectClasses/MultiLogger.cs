@@ -8,11 +8,15 @@ namespace Happy_Apps_Core
 {
 	public class MultiLogger
 	{
-		private readonly string _logFile;
+		private readonly string _logFolder;
+		private readonly int _creatingProcessId;
 
-		public MultiLogger(string logFile)
+		public MultiLogger(string logFolder)
 		{
-			_logFile = logFile;
+			Directory.CreateDirectory(logFolder);
+			_logFolder = logFolder;
+			using var process = Process.GetCurrentProcess();
+			_creatingProcessId = process.Id;
 		}
 
 		[Conditional("LOGVERBOSE")]
@@ -28,70 +32,60 @@ namespace Happy_Apps_Core
 		}
 
 		/// <summary>
-		/// Print exception to Debug and write it to log file.
+		/// Print exception to Console and write it to log file.
 		/// </summary>
 		/// <param name="exception">Exception to be written to file</param>
 		/// <param name="source">Source of error, <see cref="CallerMemberNameAttribute"/> by default</param>
-		public void ToFile(Exception exception,[CallerMemberName] string source = null)
+		public void ToFile(Exception exception, [CallerMemberName] string source = null)
 		{
-			Debug.WriteLine($"Source: {source}");
-			Debug.WriteLine(exception.Message);
-			Debug.WriteLine(exception.StackTrace);
+			ToFile($"Source: {source}", exception.ToString());
+		}
+
+		/// <summary>
+		/// Print message to Console and write it to log file.
+		/// </summary>
+		/// <param name="messages">Messages to be written</param>
+		public void ToFile(params string[] messages)
+		{
+			var file = Path.Combine(_logFolder, $"Happy-Apps-{DateTime.UtcNow:yyyy-MM-dd}-{_creatingProcessId:X6}.log");
 			int counter = 0;
-			while (IsFileLocked(new FileInfo(_logFile)))
+			Stream stream;
+			while (IsFileLocked(new FileInfo(file), out stream))
 			{
 				counter++;
 				if (counter > 5) throw new IOException("Logfile is locked!");
 				Thread.Sleep(25);
 			}
-			using (var writer = new StreamWriter(_logFile, true))
+			if(stream == null) throw new ArgumentNullException(nameof(stream), "Log file stream was null.");
+			using var writer = new StreamWriter(stream);
+			foreach (var message in messages)
 			{
-				writer.WriteLine($"Source: {source}");
-				writer.WriteLine(exception.Message);
-				writer.WriteLine(exception.StackTrace);
+				var time = TimeString;
+				Console.WriteLine(time + message);
+				writer.WriteLine(time + message);
 			}
 		}
+		
+
+		private static string TimeString => $"[{DateTime.Now.ToString("hh:mm:ss:fff").PadRight(12)}] ";
 
 		/// <summary>
-		/// Print message to Debug and write it to log file.
+		/// Check if file is locked
 		/// </summary>
-		/// <param name="message">Message to be written</param>
-		/// <param name="logDebug">Print to debug, true by default</param>
-		public void ToFile(string message, bool logDebug = true)
-		{
-			if (logDebug) Debug.Print(TimeString + message);
-			int counter = 0;
-			while (IsFileLocked(new FileInfo(_logFile)))
-			{
-				counter++;
-				if (counter > 5) throw new IOException("Logfile is locked!");
-				Thread.Sleep(25);
-			}
-			using (var writer = new StreamWriter(_logFile, true)) writer.WriteLine(message);
-		}
-
-		private static string TimeString => $"[ {DateTime.Now.ToString("hh:mm:ss:fff").PadRight(13)}] ";
-
-		/// <summary>
-		/// Check if file is locked,
-		/// </summary>
-		/// <param name="file">File to be checked</param>
 		/// <returns>Whether file is locked</returns>
-		private static bool IsFileLocked(FileInfo file)
+		private static bool IsFileLocked(FileInfo file, out Stream stream)
 		{
-			FileStream stream = null;
-
+			stream = null;
 			try
 			{
-				stream = file.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+				stream = file.Open(FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+				stream.Seek(0, SeekOrigin.End);
 			}
 			catch (IOException)
 			{
-				return true;
-			}
-			finally
-			{
 				stream?.Close();
+				stream = null;
+				return true;
 			}
 			return false;
 		}

@@ -1,8 +1,11 @@
-﻿namespace Happy_Apps_Core
+﻿using JetBrains.Annotations;
+
+namespace Happy_Apps_Core
 {
     /// <summary>
     /// From get vnlist commands
     /// </summary>
+    [UsedImplicitly]
     public class UserListItem
     {
         public UserListItem(int vn, int status, int added, string notes)

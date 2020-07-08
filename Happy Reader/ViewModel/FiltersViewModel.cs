@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
+using Happy_Reader.Model.VnFilters;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 
@@ -27,7 +28,7 @@ namespace Happy_Reader.ViewModel
 			get => _customFilter;
 			set
 			{
-				_customFilter = new CustomVnFilter(value);
+				_customFilter = value == null ? new CustomVnFilter() : new CustomVnFilter(value);
 				OnPropertyChanged();
 			}
 		}
@@ -45,11 +46,11 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 		public VnFilter NewFilter { get; } = new VnFilter();
-		public ComboBoxItem[] LengthTypes { get; } = GetEnumValues(typeof(LengthFilterEnum));
-		public ComboBoxItem[] ReleaseTypes { get; } = GetEnumValues(typeof(ReleaseStatusEnum));
-		public ComboBoxItem[] WishlistTypes { get; } = GetEnumValues(typeof(WishlistStatus));
-		public ComboBoxItem[] UserlistTypes { get; } = GetEnumValues(typeof(UserlistStatus));
-		public ComboBoxItem[] FilterTypes { get; } = GetEnumValues(typeof(VnFilterType));
+		public ComboBoxItem[] LengthTypes { get; } = StaticMethods.GetEnumValues(typeof(LengthFilterEnum));
+		public ComboBoxItem[] ReleaseTypes { get; } = StaticMethods.GetEnumValues(typeof(ReleaseStatusEnum));
+		public ComboBoxItem[] Labels { get; } = StaticMethods.GetEnumValues(typeof(UserVN.LabelKind));
+		public ComboBoxItem[] FilterTypes { get; } = StaticMethods.GetEnumValues(typeof(VnFilterType));
+		public ComboBoxItem[] GameOwnedStatus { get; } = StaticMethods.GetEnumValues(typeof(OwnedStatus));
 		public string SaveFilterError { get; set; }
 
 		public FiltersViewModel()
@@ -70,14 +71,13 @@ namespace Happy_Reader.ViewModel
 				if (string.IsNullOrWhiteSpace(CustomFilter.Name))
 				{
 					SaveFilterError = "Please enter a name.";
-					return; //todo error please enter a name
+					return;
 				}
 				SaveFilterError = "";
 				var existingFilter = Filters.FirstOrDefault(x => x.Name == CustomFilter.Name);
 				if (existingFilter != null)
 				{
-					//todo ask user overwrite?
-					var result = MessageBox.Show("Overwrite existing filter?", "Happy Reader", MessageBoxButton.OKCancel);
+					var result = MessageBox.Show($"Overwrite existing filter: {existingFilter.Name}?", "Happy Reader", MessageBoxButton.OKCancel);
 					if (result == MessageBoxResult.Cancel) return;
 					existingFilter.Overwrite(CustomFilter);
 				}
@@ -91,12 +91,29 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 
-
-		public static ComboBoxItem[] GetEnumValues(Type enumType)
+		public void DeleteCustomFilter()
 		{
-			var result = Enum.GetValues(enumType);
-			if (result.Length == 0) return new ComboBoxItem[0];
-			return result.Cast<Enum>().Select(x => new ComboBoxItem { Content = x.GetDescription(), Tag = x }).ToArray();
+			try
+			{
+				var result = MessageBox.Show($"Delete existing filter: {CustomFilter.Name}?", "Happy Reader", MessageBoxButton.OKCancel);
+				if (result == MessageBoxResult.Cancel) return;
+				var indexOfFilter = Filters.IndexOf(CustomFilter.OriginalFilter);
+				if (indexOfFilter == -1)
+				{
+					SaveFilterError = "Failed to find filter in collection.";
+					return;
+				}
+				Filters.RemoveAt(indexOfFilter);
+				CustomFilter = Filters.Count == 1
+					? new CustomVnFilter()
+					: indexOfFilter > 0 ? Filters[indexOfFilter - 1] : Filters[indexOfFilter + 1];
+				SaveVnFilters();
+				SaveFilterError = "Filter removed.";
+			}
+			finally
+			{
+				OnPropertyChanged(null);
+			}
 		}
 
 		private void AddToPermanentFilter()
@@ -104,7 +121,6 @@ namespace Happy_Reader.ViewModel
 			if (NewFilterOrGroup) PermanentFilter.OrFilters.Add(NewFilter.GetCopy());
 			else PermanentFilter.AndFilters.Add(NewFilter.GetCopy());
 			SavePermanentFilter();
-			OnPropertyChanged(nameof(PermanentFilter));
 		}
 
 		private void AddToCustomFilter()
@@ -132,10 +148,11 @@ namespace Happy_Reader.ViewModel
 			PermanentFilter = new CustomVnFilter();
 		}
 
-		private void SavePermanentFilter()
+		public void SavePermanentFilter()
 		{
 			var text = JsonConvert.SerializeObject(PermanentFilter, Formatting.Indented);
 			File.WriteAllText(StaticMethods.PermanentFilterJson, text);
+			OnPropertyChanged(nameof(PermanentFilter));
 		}
 
 		private void LoadVnFilters()
@@ -153,54 +170,7 @@ namespace Happy_Reader.ViewModel
 				StaticHelpers.Logger.ToFile(ex);
 			}
 			if (Filters != null) return;
-			Filters = new ObservableCollection<CustomVnFilter>();
-			foreach (UserlistStatus field in Enum.GetValues(typeof(UserlistStatus)))
-			{
-				var cf = new CustomVnFilter();
-				cf.AndFilters.Add(new VnFilter(VnFilterType.UserlistStatus, field));
-				cf.Name = $"Userlist: {field}";
-				Filters.Add(cf);
-			}
-			foreach (WishlistStatus field in Enum.GetValues(typeof(WishlistStatus)))
-			{
-				var cf = new CustomVnFilter();
-				cf.AndFilters.Add(new VnFilter(VnFilterType.WishlistStatus, field));
-				cf.Name = $"Wishlist: {field}";
-				Filters.Add(cf);
-			}
-			foreach (LengthFilterEnum field in Enum.GetValues(typeof(LengthFilterEnum)))
-			{
-				var cf = new CustomVnFilter();
-				cf.AndFilters.Add(new VnFilter(VnFilterType.Length, field));
-				cf.Name = $"Length: {field}";
-				Filters.Add(cf);
-			}
-			foreach (ReleaseStatusEnum field in Enum.GetValues(typeof(ReleaseStatusEnum)))
-			{
-				var cf = new CustomVnFilter();
-				cf.AndFilters.Add(new VnFilter(VnFilterType.ReleaseStatus, field));
-				cf.Name = $"Release Status: {field}";
-				Filters.Add(cf);
-			}
-			{
-				var cf = new CustomVnFilter();
-				cf.AndFilters.Add(new VnFilter(VnFilterType.ByFavoriteProducer, true));
-				cf.Name = "By Favorite Producer";
-				Filters.Add(cf);
-			}
-			{
-				var cf = new CustomVnFilter();
-				cf.OrFilters.Add(new VnFilter(VnFilterType.ReleaseStatus, ReleaseStatusEnum.WithReleaseDate));
-				cf.OrFilters.Add(new VnFilter(VnFilterType.ReleaseStatus, ReleaseStatusEnum.Released));
-				cf.Name = "With Release Date (All)";
-				Filters.Add(cf);
-			}
-			{
-				var cf = new CustomVnFilter();
-				cf.AndFilters.Add(new VnFilter(VnFilterType.HasFullDate, true));
-				cf.Name = "Has Complete Release Date";
-				Filters.Add(cf);
-			}
+			Filters = DefaultFilterCollectionBuilder.BuildDefaultFilters();
 			SaveVnFilters();
 		}
 

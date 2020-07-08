@@ -1,10 +1,12 @@
 ﻿using Happy_Apps_Core.Database;
+using JetBrains.Annotations;
 
 namespace Happy_Apps_Core
 {
     /// <summary>
     /// From get producer commands
     /// </summary>
+    [UsedImplicitly]
     public class ProducerItem
     {
         public int ID { get; set; }
@@ -22,7 +24,7 @@ namespace Happy_Apps_Core
         /// <param name="producer">Producer to be converted</param>
         public static explicit operator ListedProducer(ProducerItem producer)
         {
-            return new ListedProducer(producer.Name, null, producer.ID, producer.Language);
+            return new ListedProducer(producer.Name, producer.ID, producer.Language);
         }
 
         /// <summary>Returns a string that represents the current object.</summary>

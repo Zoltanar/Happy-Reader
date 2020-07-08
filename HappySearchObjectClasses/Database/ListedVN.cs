@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data;
+using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -10,8 +13,8 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Happy_Apps_Core.DataAccess;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 
@@ -20,16 +23,11 @@ using Newtonsoft.Json;
 
 namespace Happy_Apps_Core.Database
 {
-	/// <summary>
-	/// Object for displaying Visual Novel in Object List View.
-	/// </summary>
-	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
-	public class ListedVN : INotifyPropertyChanged
+	public class ListedVN : INotifyPropertyChanged, IDataItem<int>, IDumpItem
 	{
-		public ListedVN()
-		{
-			DbTags = new HashSet<DbTag>();
-		}
+
+		public static Func<bool> ShowNSFWImages { get; set; } = () => true;
+
 		/// <summary>
 		/// Returns true if a title was last updated over x days ago.
 		/// </summary>
@@ -66,24 +64,38 @@ namespace Happy_Apps_Core.Database
 		/// </summary>
 		public string ReleaseDateString { get; set; }
 
-		public int? ProducerID { get; set; }
+		public int? ProducerID
+		{
+			get => _producerID;
+			set
+			{
+				if (_producerID == value) return;
+				_producerID = value;
+				_producerSet = false;
+			}
+		}
 
-		public virtual ListedProducer Producer { get; set; }
+		private bool _producerSet;
+
+		public ListedProducer Producer
+		{
+			get
+			{
+				if (!_producerSet)
+				{
+					if (ProducerID.HasValue && ProducerID.Value >= 0)
+					{
+						_producer = StaticHelpers.LocalDatabase.Producers[ProducerID.Value];
+					}
+					_producerSet = true;
+				}
+				return _producer;
+			}
+		}
 
 		public DateTime DateUpdated { get; set; }
 
-		/// <summary>
-		/// URL of VN's cover image
-		/// </summary>
-		public string ImageURL
-		{
-			get => _imageURL;
-			set
-			{
-				_storedCover = null;
-				_imageURL = value;
-			}
-		}
+		public string ImageId { get; set; }
 
 		/// <summary>
 		/// Is VN's cover NSFW?
@@ -115,17 +127,17 @@ namespace Happy_Apps_Core.Database
 		/// <summary>
 		/// JSON Array string containing List of Relation Items
 		/// </summary>
-		public string Relations { get; set; }
+		private string Relations { get; set; }
 
 		/// <summary>
 		/// JSON Array string containing List of Screenshot Items
 		/// </summary>
-		public string Screens { get; set; }
+		private string Screens { get; set; }
 
 		/// <summary>
 		/// JSON Array string containing List of Anime Items
 		/// </summary>
-		public string Anime { get; set; }
+		private string Anime { get; set; }
 
 		/// <summary>
 		/// Newline separated string of aliases
@@ -136,13 +148,25 @@ namespace Happy_Apps_Core.Database
 
 		public DateTime DateFullyUpdated { get; set; }
 
-		public int? UserVNId { get; set; }
-
-		public virtual UserVN UserVN { get; set; }
+		public UserVN UserVN => StaticHelpers.LocalDatabase.UserVisualNovels[(StaticHelpers.CSettings.UserID, VNID)];
 
 		public DateTime ReleaseDate { get; set; }
 
-		public virtual ICollection<DbTag> DbTags { get; set; }
+		public ReadOnlyCollection<DbTag> Tags
+		{
+			get
+			{
+				if (!_dbTagsSet)
+				{
+					_dbTags = StaticHelpers.LocalDatabase.GetTagsForVn(VNID);
+					_dbTagsSet = true;
+				}
+				return _dbTags.AsReadOnly();
+			}
+		}
+
+		public string ReleaseLink { get; set; }
+
 		#endregion
 
 		public void SetReleaseDate(string releaseDateString)
@@ -166,7 +190,6 @@ namespace Happy_Apps_Core.Database
 		}
 
 		private bool? _hasFullDate;
-		private string _storedCover;
 
 		[NotMapped]
 		public bool HasFullDate
@@ -183,35 +206,6 @@ namespace Happy_Apps_Core.Database
 		}
 
 		[NotMapped, NotNull]
-		public IEnumerable<string> DisplayTags
-		{
-			get
-			{
-				var visibleTags = new List<DbTag>();
-				foreach (var tag in DbTags)
-				{
-					switch (tag.Category)
-					{
-						case StaticHelpers.TagCategory.Content:
-							if (!StaticHelpers.GSettings.ContentTags) continue;
-							break;
-						case StaticHelpers.TagCategory.Sexual:
-							if (!StaticHelpers.GSettings.SexualTags) continue;
-							break;
-						case StaticHelpers.TagCategory.Technical:
-							if (!StaticHelpers.GSettings.TechnicalTags) continue;
-							break;
-					}
-					visibleTags.Add(tag);
-				}
-				if (visibleTags.Count == 0) return new[] { "No Tags Found" };
-				List<string> stringList = visibleTags.Select(x => x.Print()).ToList();
-				stringList.Sort();
-				return stringList;
-			}
-		}
-
-		[NotMapped, NotNull]
 		public IEnumerable<string> DisplayRelations
 		{
 			get
@@ -219,27 +213,31 @@ namespace Happy_Apps_Core.Database
 				if (!RelationsObject.Any()) return new List<string> { "No relations found." };
 				var titleString = RelationsObject.Length == 1 ? "1 Relation" : $"{RelationsObject.Length} Relations";
 				var stringList = new List<string> { titleString, "--------------" };
-				IGrouping<string, VNItem.RelationsItem>[] groups = RelationsObject.GroupBy(x => x.Relation).ToArray();
-				for (var index = 0; index < groups.Length; index++)
-				{
-					IGrouping<string, VNItem.RelationsItem> group = groups[index];
-					stringList.AddRange(group.Select(relation => relation.Print()));
-					if (index < groups.Length - 1) stringList.Add("---------------");
-				}
+				stringList.AddRange(RelationsObject.Select(r=>r.Print()));
 				return stringList;
 			}
 		}
+
+		private static readonly string[] NoAnimeFound = {"No Anime found."};
 
 		[NotMapped, NotNull]
 		public IEnumerable<string> DisplayAnime
 		{
 			get
 			{
-				if (!AnimeObject.Any()) return new List<string> { "No anime found." };
-				var titleString = $"{AnimeObject.Length} Anime";
-				var stringList = new List<string> { titleString, "--------------" };
-				stringList.AddRange(AnimeObject.Select(x => x.Print()));
-				return stringList;
+				switch (AnimeObject.Length)
+				{
+					case 0:
+						//static to save memory and performance
+						return NoAnimeFound;
+					case 1:
+						return new[] {AnimeObject.First().Print()};
+					default:
+						var titleString = $"{AnimeObject.Length} Anime";
+						var stringList = new List<string> { titleString, "--------------" };
+						stringList.AddRange(AnimeObject.Select(x => x.Print()));
+						return stringList;
+				}
 			}
 		}
 
@@ -255,8 +253,13 @@ namespace Happy_Apps_Core.Database
 			get
 			{
 				if (_relationsObject != null) return _relationsObject;
-				if (string.IsNullOrWhiteSpace(Relations)) _relationsObject = new VNItem.RelationsItem[] { };
-				else _relationsObject = JsonConvert.DeserializeObject<VNItem.RelationsItem[]>(Relations) ?? new VNItem.RelationsItem[] { };
+				if (string.IsNullOrWhiteSpace(Relations)) _relationsObject = Array.Empty<VNItem.RelationsItem>();
+				else _relationsObject = JsonConvert.DeserializeObject<VNItem.RelationsItem[]>(Relations) ?? Array.Empty<VNItem.RelationsItem>(); 
+				foreach (var r in _relationsObject)
+				{
+					if (string.IsNullOrWhiteSpace(r.Title))
+						r.Title = StaticHelpers.LocalDatabase.VisualNovels[r.ID]?.Title;
+				}
 				return _relationsObject;
 			}
 		}
@@ -267,8 +270,8 @@ namespace Happy_Apps_Core.Database
 			get
 			{
 				if (_animeObject != null) return _animeObject;
-				if (string.IsNullOrWhiteSpace(Anime)) _animeObject = new VNItem.AnimeItem[] { };
-				else _animeObject = JsonConvert.DeserializeObject<VNItem.AnimeItem[]>(Anime) ?? new VNItem.AnimeItem[] { };
+				if (string.IsNullOrWhiteSpace(Anime)) _animeObject = Array.Empty<VNItem.AnimeItem>();
+				else _animeObject = JsonConvert.DeserializeObject<VNItem.AnimeItem[]>(Anime) ?? Array.Empty<VNItem.AnimeItem>();
 				return _animeObject;
 			}
 		}
@@ -279,8 +282,8 @@ namespace Happy_Apps_Core.Database
 			get
 			{
 				if (_screensObject != null) return _screensObject;
-				if (string.IsNullOrWhiteSpace(Screens)) _screensObject = new VNItem.ScreenItem[] { };
-				else _screensObject = JsonConvert.DeserializeObject<VNItem.ScreenItem[]>(Screens) ?? new VNItem.ScreenItem[] { };
+				if (string.IsNullOrWhiteSpace(Screens)) _screensObject = Array.Empty<VNItem.ScreenItem>();
+				else _screensObject = JsonConvert.DeserializeObject<VNItem.ScreenItem[]>(Screens) ?? Array.Empty<VNItem.ScreenItem>();
 				return _screensObject;
 			}
 		}
@@ -289,19 +292,25 @@ namespace Happy_Apps_Core.Database
 		private VNItem.AnimeItem[] _animeObject;
 		private VNItem.ScreenItem[] _screensObject;
 		private VNLanguages _languagesObject;
-		private string _imageURL;
+		private ListedProducer _producer;
+		private int? _producerID;
+		private bool _dbTagsSet;
+		private List<DbTag> _dbTags;
 
 		/// <summary>
 		/// Days since last tags/stats/traits update
 		/// </summary>
 		[NotMapped]
 		public int UpdatedDate { get; set; }
+		
+		[NotMapped]
+		public SuggestionScoreObject Suggestion { get; set; }
 
 		/// <summary>
 		/// Language of producer
 		/// </summary>
 		[NotMapped, NotNull]
-		public VNLanguages LanguagesObject => _languagesObject ?? (_languagesObject = Languages == null ? new VNLanguages() : JsonConvert.DeserializeObject<VNLanguages>(Languages) ?? new VNLanguages());
+		public VNLanguages LanguagesObject => _languagesObject ??= Languages == null ? new VNLanguages() : JsonConvert.DeserializeObject<VNLanguages>(Languages) ?? new VNLanguages();
 
 		/// <summary>
 		/// Return unreleased status of vn.
@@ -316,14 +325,25 @@ namespace Happy_Apps_Core.Database
 		}
 
 		/// <summary>
-		/// Gets blacklisted status of vn.
-		/// </summary>
-		public bool Blacklisted => UserVN != null && UserVN.WLStatus == WishlistStatus.Blacklist;
-
-		/// <summary>
 		/// Gets voted status of vn.
 		/// </summary>
 		public bool Voted => UserVN != null && UserVN.Vote >= 1;
+
+		public bool HasAnime => AnimeObject.Any();
+
+		private OwnedStatus? _ownedStatus;
+
+		public virtual OwnedStatus IsOwned
+		{
+			get
+			{
+				if (_ownedStatus == null)
+				{
+					_ownedStatus = VnIsOwned?.Invoke(VNID) ?? OwnedStatus.NeverOwned;
+				}
+				return _ownedStatus.Value;
+			}
+		}
 
 		/// <summary>Returns a string that represents the current object.</summary>
 		/// <returns>A string that represents the current object.</returns>
@@ -339,15 +359,11 @@ namespace Happy_Apps_Core.Database
 			get
 			{
 				string[] parts = { "", "", "" };
-				if (UserVN?.ULStatus > UserlistStatus.None)
+				var label = UserVN?.Labels.FirstOrDefault(l => l != UserVN.LabelKind.Voted && l != UserVN.LabelKind.Wishlist);
+				if (label != null)
 				{
-					parts[0] = "Userlist: ";
-					parts[1] = UserVN.ULStatus.ToString();
-				}
-				else if (UserVN?.WLStatus > WishlistStatus.None)
-				{
-					parts[0] = "Wishlist: ";
-					parts[1] = UserVN.WLStatus.ToString();
+					parts[0] = "Label: ";
+					parts[1] = label.GetDescription();
 				}
 				if (UserVN?.Vote > 0) parts[2] = $" (Vote: {UserVN.Vote:0.#})";
 				return string.Join(" ", parts);
@@ -367,48 +383,6 @@ namespace Happy_Apps_Core.Database
 		}
 
 		/// <summary>
-		/// Checks if VN is in specified user-defined group.
-		/// </summary>
-		/// <param name="groupName">User-defined name of group</param>
-		/// <returns>Whether VN is in the specified group</returns>
-		public bool IsInGroup(string groupName)
-		{
-			var itemNotes = GetCustomItemNotes();
-			return itemNotes.Groups.Contains(groupName);
-		}
-
-		/// <summary>
-		/// Get CustomItemNotes containing note and list of groups that vn is in.
-		/// </summary>
-		public VNItem.CustomItemNotes GetCustomItemNotes()
-		{
-			//
-			if (UserVN.ULNote.Equals("")) return new VNItem.CustomItemNotes("", new List<string>());
-			if (!UserVN.ULNote.StartsWith("Notes: "))
-			{
-				//escape ulnote
-				string fixedNote = UserVN.ULNote.Replace("|", "(sep)");
-				fixedNote = fixedNote.Replace("Groups: ", "groups: ");
-				return new VNItem.CustomItemNotes(fixedNote, new List<string>());
-			}
-			int endOfNotes = UserVN.ULNote.IndexOf("|", StringComparison.InvariantCulture);
-			string notes;
-			string groupsString;
-			try
-			{
-				notes = UserVN.ULNote.Substring(7, endOfNotes - 7);
-				groupsString = UserVN.ULNote.Substring(endOfNotes + 1 + 8);
-			}
-			catch (ArgumentOutOfRangeException)
-			{
-				notes = "";
-				groupsString = "";
-			}
-			List<string> groups = groupsString.Equals("") ? new List<string>() : groupsString.Split(',').ToList();
-			return new VNItem.CustomItemNotes(notes, groups);
-		}
-
-		/// <summary>
 		/// Check if title was released in specified year.
 		/// </summary>
 		/// <param name="year">Year of release</param>
@@ -417,141 +391,99 @@ namespace Happy_Apps_Core.Database
 			return ReleaseDate.Year == year;
 		}
 
+		private string _imageSource;
+
 		/// <summary>
 		/// Get location of cover image in system (not online)
 		/// </summary>
-		public string StoredCover
+		public string ImageSource
 		{
 			get
 			{
-				if (_storedCover != null || ImageURL == null) return _storedCover;
-				var imageParts = ImageURL.Split('/');
-				var newModeCover = $"{StaticHelpers.VNImagesFolder}{string.Join("\\", imageParts.Skip(imageParts.Length - 2))}";
-				_storedCover = File.Exists(newModeCover) ? newModeCover : $"{StaticHelpers.VNImagesFolder}{VNID}{Path.GetExtension(ImageURL)}";
-				return _storedCover;
+				if (_imageSource != null) return _imageSource;
+				if (ImageId == null) _imageSource = Path.GetFullPath(StaticHelpers.NoImageFile);
+				else
+				{
+					var filePath = StaticHelpers.GetImageLocation(ImageId);
+					_imageSource = File.Exists(filePath) ? filePath : Path.GetFullPath(StaticHelpers.NoImageFile);
+				}
+				return _imageSource;
+			}
+		}
+
+		public string Series { get; set; }
+
+		public virtual object FlagSource => LanguagesObject.Originals.Select(language => $"{StaticHelpers.FlagsFolder}{language}.png")
+																.Where(File.Exists).Select(Path.GetFullPath).FirstOrDefault() ?? DependencyProperty.UnsetValue;
+
+		private bool? _specialFlag;
+
+		public bool GetAlertFlag(List<int> tagIds, List<int> traitIds)
+		{
+			if (!DumpFiles.Loaded) return false;
+			if (_specialFlag == null)
+			{
+				if (Suggestion != null) _specialFlag = Suggestion.Score > 0;
+				else
+				{
+					foreach(var tagId in tagIds)
+					{
+						var tag = DumpFiles.GetTag(tagId);
+						if (tag == null) continue;
+						var found = tag.InCollection(Tags.Select(t => t.TagId));
+						if (found)
+						{
+							_specialFlag = true;
+							return _specialFlag.Value;
+						}
+					}
+					foreach (var traitId in traitIds)
+					{
+						var trait = DumpFiles.GetTrait(traitId);
+						if (trait == null) continue;
+						var found = StaticHelpers.LocalDatabase.GetCharactersTraitsForVn(VNID, true).Any(t => trait.AllIDs.Contains(t.TraitId));
+						if (found)
+						{
+							_specialFlag = true;
+							return _specialFlag.Value;
+						}
+					}
+					_specialFlag = false;
+				}
+			}
+			return _specialFlag.Value;
+		}
+
+		[NotNull]
+		public virtual Uri CoverSource
+		{
+			get
+			{
+				if (VNID == 0) return new Uri(_imageSource);
+				string image;
+				if (ImageNSFW && !ShowNSFWImages()) image = StaticHelpers.NsfwImageFile;
+				else image = ImageSource;
+				return new Uri(image);
 			}
 		}
 		
-		public string Series { get; set; }
-
-		public object FlagSource => LanguagesObject.Originals.Select(language => $"{StaticHelpers.FlagsFolder}{language}.png")
-																.Where(File.Exists).Select(Path.GetFullPath).FirstOrDefault() ?? DependencyProperty.UnsetValue;
-
-		public object SpecialFlag => DependencyProperty.UnsetValue;
-
-		[NotNull]
-		public Uri CoverSource
-		{
-			get
-			{
-				if (VNID == 0) return new Uri(Path.GetFullPath(StaticHelpers.NoImageFile));
-				string image;
-				if (ImageNSFW && !StaticHelpers.GSettings.NSFWImages) image = StaticHelpers.NsfwImageFile;
-				else if (File.Exists(StoredCover)) image = StoredCover;
-				else image = StaticHelpers.NoImageFile;
-				return new Uri(Path.GetFullPath(image));
-			}
-		}
-
-		public Brush BackBrush => GetBrushFromStatuses();
-
-		private bool IsBlacklisted => UserVN?.WLStatus == WishlistStatus.Blacklist;
-
-		public Brush ForeBrush => IsBlacklisted ? Brushes.White : Brushes.Black;
-
-		public Brush ProducerBrush => StaticHelpers.VNIsByFavoriteProducer(this) ? StaticHelpers.FavoriteProducerBrush : IsBlacklisted ? Brushes.White : Brushes.Black;
-
-		public Brush DateBrush => ReleaseDate > DateTime.UtcNow ? StaticHelpers.UnreleasedBrush : IsBlacklisted ? Brushes.White : Brushes.Black;
-
-		public Brush UserRelatedBrush => UserVN?.ULStatus == UserlistStatus.Playing ? StaticHelpers.ULPlayingBrush : IsBlacklisted ? Brushes.White : Brushes.Black;
-
 		[NotNull]
 		public IEnumerable<Image> DisplayScreenshots
 		{
 			get
 			{
-				if (!ScreensObject.Any()) return Enumerable.Empty<Image>();
+				if (!ScreensObject.Any()) return Array.Empty<Image>();
 				var images = new List<Image>();
 				foreach (var screen in ScreensObject)
 				{
-					if (screen.Nsfw && !StaticHelpers.GSettings.NSFWImages)
+					images.Add(new Image
 					{
-						images.Add(new Image { Source = new BitmapImage(new Uri(Path.GetFullPath(StaticHelpers.NsfwImageFile))) });
-					}
-					else
-					{
-						var loc = screen.StoredLocation;
-						if (!File.Exists(loc))
-						{
-							screen.Download();
-							if (!File.Exists(loc)) continue;
-						}
-						images.Add(new Image { Source = new BitmapImage(new Uri(Path.GetFullPath(loc))) });
-					}
+						Source = new BitmapImage(new Uri(Path.GetFullPath(screen.Nsfw && !ShowNSFWImages() ? StaticHelpers.NsfwImageFile
+							: File.Exists(screen.StoredLocation) ? screen.StoredLocation : StaticHelpers.NoImageFile)))
+					});
 				}
 				return images;
 			}
-		}
-
-		/// <summary>
-		/// Get brush from vn UL or WL status or null if no statuses are found.
-		/// </summary>
-		[NotNull]
-		private Brush GetBrushFromStatuses()
-		{
-			var brush = StaticHelpers.DefaultTileBrush;
-			var success = GetColorFromULStatus(ref brush);
-			if (!success) GetColorFromWLStatus(ref brush);
-			return brush;
-		}
-
-		/// <summary>
-		/// Return color based on wishlist status, or null if no status
-		/// </summary>
-		// ReSharper disable once UnusedMethodReturnValue.Local
-		private bool GetColorFromWLStatus(ref Brush color)
-		{
-			if (UserVN?.WLStatus == null) return false;
-			switch (UserVN.WLStatus)
-			{
-				case WishlistStatus.High:
-					color = StaticHelpers.WLHighBrush;
-					return true;
-				case WishlistStatus.Medium:
-					color = StaticHelpers.WLMediumBrush;
-					return true;
-				case WishlistStatus.Low:
-					color = StaticHelpers.WLLowBrush;
-					return true;
-				case WishlistStatus.Blacklist:
-					color = StaticHelpers.WLBlacklistBrush;
-					return true;
-			}
-			return false;
-		}
-		
-		/// <summary>
-		/// Return color based on userlist status, or null if no status
-		/// </summary>
-		private bool GetColorFromULStatus(ref Brush color)
-		{
-			if (UserVN?.ULStatus == null) return false;
-			switch (UserVN?.ULStatus)
-			{
-				case UserlistStatus.Finished:
-					color = StaticHelpers.ULFinishedBrush;
-					return true;
-				case UserlistStatus.Stalled:
-					color = StaticHelpers.ULStalledBrush;
-					return true;
-				case UserlistStatus.Dropped:
-					color = StaticHelpers.ULDroppedBrush;
-					return true;
-				case UserlistStatus.Unknown:
-					color = StaticHelpers.ULUnknownBrush;
-					return true;
-			}
-			return false;
 		}
 
 		public bool HasLanguage(string value)
@@ -566,8 +498,10 @@ namespace Happy_Apps_Core.Database
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
+		public static Func<int, OwnedStatus> VnIsOwned = null;
+
 		[NotifyPropertyChangedInvocator]
-		public virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+		public void OnPropertyChanged([CallerMemberName] string propertyName = null)
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
@@ -577,18 +511,18 @@ namespace Happy_Apps_Core.Database
 			if (string.IsNullOrWhiteSpace(Relations))
 			{
 				await StaticHelpers.Conn.GetAndSetRelationsForVN(this);
-				OnPropertyChanged(nameof(DisplayRelations));
 			}
+			OnPropertyChanged(nameof(DisplayRelations));
 			if (string.IsNullOrWhiteSpace(Anime))
 			{
 				await StaticHelpers.Conn.GetAndSetAnimeForVN(this);
-				OnPropertyChanged(nameof(DisplayAnime));
 			}
+			OnPropertyChanged(nameof(DisplayAnime));
 			if (string.IsNullOrWhiteSpace(Screens))
 			{
 				await StaticHelpers.Conn.GetAndSetScreensForVN(this);
-				OnPropertyChanged(nameof(DisplayScreenshots));
 			}
+			OnPropertyChanged(nameof(DisplayScreenshots));
 		}
 
 		public void SetRelations(string relationsString, VNItem.RelationsItem[] relationsObject)
@@ -609,121 +543,133 @@ namespace Happy_Apps_Core.Database
 			_screensObject = screensObject;
 		}
 
-		public void AddOrUpdateTag(VNItem.TagItem tag)
+		#region IDumpItem Implementation
+
+		public static Dictionary<string, int> Headers = new Dictionary<string, int>();
+
+		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
+
+		public void SetDumpHeaders(string[] parts)
 		{
-			var existingTag = DbTags.FirstOrDefault(t => t.TagId == tag.ID);
-			if (existingTag == null) DbTags.Add(DbTag.From(tag));
-			else if (Math.Abs(existingTag.Score - tag.Score) > 0.05 || existingTag.Spoiler != tag.Spoiler)
+			int colIndex = 0;
+			Headers = parts.ToDictionary(c => c, c => colIndex++);
+		}
+
+		public void LoadFromStringParts(string[] parts)
+		{
+			try
 			{
-				existingTag.Score = tag.Score;
-				existingTag.Spoiler = tag.Spoiler;
+				VNID = Convert.ToInt32(GetPart(parts,"id"));
+				Title = GetPart(parts, "title");
+				KanjiTitle = GetPart(parts, "original");
+				Aliases = GetPart(parts, "alias");
+				DateUpdated = DateTime.UtcNow;
+				if (!string.IsNullOrWhiteSpace(GetPart(parts, "length"))) LengthTime = (LengthFilterEnum)Convert.ToInt32(GetPart(parts, "length"));
+				ImageNSFW = GetPart(parts, "img_nsfw") == "t";
+				var imageId = GetPart(parts, "image");
+				ImageId = imageId == "\\N" ? null : imageId;
+				Description = Convert.ToString(GetPart(parts, "desc"));
+				//Popularity = Convert.ToDouble(reader["Popularity"]);
+				//Languages = Convert.ToString(reader["Languages"]);
+				//DateFullyUpdated = DateTime.UtcNow; ;
+				//Series = Convert.ToString(reader["Series"]);
 			}
-
+			catch (Exception ex)
+			{
+				StaticHelpers.Logger.ToFile(ex);
+				throw;
+			}
 		}
-	}
+		#endregion
 
-	/// <summary>
-	/// Contains original and other languages available for vn.
-	/// </summary>
-	[Serializable]
-	public class VNLanguages
-	{
-		/// <summary>
-		/// Languages for original release
-		/// </summary>
-		public string[] Originals { get; set; }
-		/// <summary>
-		/// Languages for other releases
-		/// </summary>
-		public string[] Others { get; set; }
+		#region IDataItem Implementation
 
-		/// <summary>
-		/// Languages for all releases
-		/// </summary>
-		public IEnumerable<string> All => Originals.Concat(Others);
+		string IDataItem<int>.KeyField => nameof(VNID);
 
-		/// <summary>
-		/// Empty Constructor for serialization
-		/// </summary>
-		public VNLanguages()
+		int IDataItem<int>.Key => VNID;
+
+		DbCommand IDataItem<int>.UpsertCommand(DbConnection connection, bool insertOnly)
 		{
-			Originals = new string[0];
-			Others = new string[0];
+			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO ListedVNs" +
+				"(VNID,Title,KanjiTitle,ReleaseDateString,ProducerID,DateUpdated,Image,ImageNSFW,Description,LengthTime,Popularity," +
+				"Rating,VoteCount,Relations,Screens,Anime,Aliases,Languages,DateFullyUpdated,Series,ReleaseDate,ReleaseLink) VALUES " +
+				"(@VNID,@Title,@KanjiTitle,@ReleaseDateString,@ProducerId,@DateUpdated,@Image,@ImageNSFW,@Description,@LengthTime,@Popularity," +
+				"@Rating,@VoteCount,@Relations,@Screens,@Anime,@Aliases,@Languages,@DateFullyUpdated,@Series,@ReleaseDate,@ReleaseLink)";
+			var command = connection.CreateCommand();
+			command.CommandText = sql;
+			command.AddParameter("@VNID", VNID);
+			command.AddParameter("@Title", Title);
+			command.AddParameter("@KanjiTitle", KanjiTitle);
+			command.AddParameter("@ReleaseDateString", ReleaseDateString);
+			command.AddParameter("@ProducerID", ProducerID);
+			command.AddParameter("@DateUpdated", DateUpdated);
+			command.AddParameter("@Image", ImageId);
+			command.AddParameter("@ImageNSFW", ImageNSFW);
+			command.AddParameter("@Description", Description);
+			command.AddParameter("@LengthTime", LengthTime);
+			command.AddParameter("@Popularity", Popularity);
+			command.AddParameter("@Rating", Rating);
+			command.AddParameter("@VoteCount", VoteCount);
+			command.AddParameter("@Relations", Relations);
+			command.AddParameter("@Screens", Screens);
+			command.AddParameter("@Anime", Anime);
+			command.AddParameter("@Aliases", Aliases);
+			command.AddParameter("@Languages", Languages);
+			command.AddParameter("@DateFullyUpdated", DateFullyUpdated);
+			command.AddParameter("@Series", Series);
+			command.AddParameter("@ReleaseDate", ReleaseDate);
+			command.AddParameter("@ReleaseLink", ReleaseLink);
+			return command;
 		}
 
-		/// <summary>
-		/// Constructor for vn languages.
-		/// </summary>
-		/// <param name="originals">Languages for original release</param>
-		/// <param name="all">Languages for all releases</param>
-		public VNLanguages(string[] originals, string[] all)
+		void IDataItem<int>.LoadFromReader(IDataRecord reader)
 		{
-			Originals = originals;
-			Others = all.Except(originals).ToArray();
+			try
+			{
+				VNID = Convert.ToInt32(reader["VNID"]);
+				Title = Convert.ToString(reader["Title"]);
+				KanjiTitle = Convert.ToString(reader["KanjiTitle"]);
+				ReleaseDateString = Convert.ToString(reader["ReleaseDateString"]);
+				var producerIdObject = reader["ProducerID"];
+				if (!producerIdObject.Equals(DBNull.Value)) ProducerID = Convert.ToInt32(producerIdObject);
+				DateUpdated = Convert.ToDateTime(reader["DateUpdated"]);
+				var imageIdObject = reader["Image"];
+				if (!imageIdObject.Equals(DBNull.Value)) ImageId = Convert.ToString(imageIdObject);
+				ImageNSFW = Convert.ToInt32(reader["ImageNSFW"]) == 1;
+				Description = Convert.ToString(reader["Description"]);
+				var lengthTimeObject = reader["LengthTime"];
+				if (!lengthTimeObject.Equals(DBNull.Value)) LengthTime = (LengthFilterEnum)Convert.ToInt32(lengthTimeObject);
+				Popularity = Convert.ToDouble(reader["Popularity"]);
+				Rating = Convert.ToDouble(reader["Rating"]);
+				VoteCount = Convert.ToInt32(reader["VoteCount"]);
+				Relations = Convert.ToString(reader["Relations"]);
+				Screens = Convert.ToString(reader["Screens"]);
+				Anime = Convert.ToString(reader["Anime"]);
+				Aliases = Convert.ToString(reader["Aliases"]);
+				Languages = Convert.ToString(reader["Languages"]);
+				DateFullyUpdated = Convert.ToDateTime(reader["DateFullyUpdated"]);
+				Series = Convert.ToString(reader["Series"]);
+				ReleaseDate = Convert.ToDateTime(reader["ReleaseDate"]);
+				ReleaseLink = Convert.ToString(reader["ReleaseLink"]);
+			}
+			catch (Exception ex)
+			{
+				StaticHelpers.Logger.ToFile(ex);
+				throw;
+			}
 		}
+		#endregion
 
-		/// <summary>
-		/// Displays a json-serialized string.
-		/// </summary>
-		/// <returns></returns>
-		public override string ToString()
+		public void ResetTags()
 		{
-			return JsonConvert.SerializeObject(this);
+			_dbTagsSet = false;
 		}
 	}
 
-	public enum ReleaseStatusEnum
+	public enum OwnedStatus
 	{
-		[Description("Unreleased without date")]
-		WithoutReleaseDate = 1,
-		[Description("Unreleased with date")]
-		WithReleaseDate = 2,
-		[Description("Released")]
-		Released = 3
+		NeverOwned = 0,
+		PastOwned = 1,
+		CurrentlyOwned = 2
 	}
-
-	public enum LengthFilterEnum
-	{
-		[Description("Not Available")]
-		NA = 0,
-		[Description("<2 Hours")]
-		UnderTwoHours = 1,
-		[Description("2-10 Hours")]
-		TwoToTenHours = 2,
-		[Description("10-30 Hours")]
-		TenToThirtyHours = 3,
-		[Description("30-50 Hours")]
-		ThirtyToFiftyHours = 4,
-		[Description(">50 Hours")]
-		OverFiftyHours = 5,
-	}
-
-#pragma warning disable 1591
-	/// <summary>
-	/// Map Wishlist status numbers to words.
-	/// </summary>
-	public enum WishlistStatus
-	{
-		None = -1,
-		High = 0,
-		Medium = 1,
-		Low = 2,
-		Blacklist = 3
-	}
-
-	/// <summary>
-	/// Map Userlist status numbers to words.
-	/// </summary>
-	public enum UserlistStatus
-	{
-		None = -1,
-		Unknown = 0,
-		Playing = 1,
-		Finished = 2,
-		Stalled = 3,
-		Dropped = 4
-	}
-#pragma warning restore 1591
-
-
 }

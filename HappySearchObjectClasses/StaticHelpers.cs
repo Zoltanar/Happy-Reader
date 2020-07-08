@@ -2,15 +2,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Common;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using Happy_Apps_Core.Database;
-using System.Windows.Media;
 using Microsoft.Win32;
 
 namespace Happy_Apps_Core
@@ -21,26 +24,30 @@ namespace Happy_Apps_Core
 	public static class StaticHelpers
 	{
 		#region File Locations
-
 #pragma warning disable 1591
 		public const string TagsURL = "http://vndb.org/api/tags.json.gz";
 		public const string TraitsURL = "http://vndb.org/api/traits.json.gz";
-		public const string ProjectURL = "https://github.com/Zoltanar/Happy-Search";
-		public const string DefaultTraitsJson = "Program Data\\Default Files\\traits.json";
-		public const string DefaultTagsJson = "Program Data\\Default Files\\tags.json";
-		public const string NsfwImageFile = "Program Data\\Default Files\\nsfw-image.png";
-		public const string NoImageFile = "Program Data\\Default Files\\no-image.png";
-		public const string FlagsFolder = "Program Data\\Flags\\";
-		public const string StoredDataFolder = @"..\Stored Data\"; //this is to use same folder for debug/release builds
-		public const string VNImagesFolder = StoredDataFolder + "Saved Cover Images\\";
-		public const string VNScreensFolder = StoredDataFolder + "Saved Screenshots\\";
-		public const string DBStatsJson = StoredDataFolder + "dbs.json";
-		public const string SettingsJson = StoredDataFolder + "settings.json";
-		public const string LogFile = StoredDataFolder + "message.log";
-		public const string CoreSettingsJson = StoredDataFolder + "coresettings.json";
-		public const string GuiSettingsJson = StoredDataFolder + "guisettings.json";
-#pragma warning restore 1591
+		public const string ProjectURL = "https://github.com/Zoltanar/Happy-Reader";
+		public static readonly string AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Happy Reader");
+		public static readonly string StoredDataFolder = Path.Combine(AppDataFolder, "Stored Data");
+		public static readonly string LogsFolder = Path.Combine(AppDataFolder, "Logs");
+		public static readonly string ProgramDataFolder = "Program Data";
 
+		public static readonly string DefaultTraitsJson = Path.Combine(ProgramDataFolder,"Default Files\\traits.json");
+		public static readonly string DefaultTagsJson = Path.Combine(ProgramDataFolder, "Default Files\\tags.json");
+		public static readonly string NsfwImageFile = Path.Combine(ProgramDataFolder, "Default Files\\nsfw-image.png");
+		public static readonly string NoImageFile =  Path.Combine(ProgramDataFolder, "Default Files\\no-image.png");
+		public static readonly string FlagsFolder = Path.Combine(ProgramDataFolder, "Flags\\");
+
+		public static readonly string ImagesFolder = Path.Combine(StoredDataFolder, "vndb-img\\");/*
+		public static readonly string CoverImagesFolder = Path.Combine(StoredDataFolder, "vndb-img\\cv\\");
+		public static readonly string VNScreensFolder = Path.Combine(StoredDataFolder, "vndb-img\\sf\\");
+		public static readonly string CharacterImagesFolder = Path.Combine(StoredDataFolder, "vndb-img\\ch\\");*/
+		public static readonly string DBStatsJson = Path.Combine(StoredDataFolder, "dbs.json");
+		public static readonly string SettingsJson = Path.Combine(StoredDataFolder, "settings.json");
+		public static readonly string CoreSettingsJson = Path.Combine(StoredDataFolder, "coresettings.json");
+		public static readonly string DatabaseFile = Path.Combine(StoredDataFolder, "Happy-Apps.sqlite");
+#pragma warning restore 1591
 		#endregion
 
 #pragma warning disable 1591
@@ -49,29 +56,7 @@ namespace Happy_Apps_Core
 		public const string APIVersion = "2.25";
 		public const int APIMaxResults = 25;
 		public static readonly string MaxResultsString = "\"results\":" + APIMaxResults;
-
-		//tile background colors
-		public static readonly Brush DefaultTileBrush = Brushes.LightBlue;
-		public static readonly Brush WLHighBrush = Brushes.DeepPink;
-		public static readonly Brush WLMediumBrush = Brushes.HotPink;
-		public static readonly Brush WLLowBrush = Brushes.LightPink;
-		public static readonly Brush WLBlacklistBrush = Brushes.Black;
-		public static readonly Brush ULFinishedBrush = Brushes.LightGreen;
-		public static readonly Brush ULStalledBrush = Brushes.DarkKhaki;
-		public static readonly Brush ULDroppedBrush = Brushes.DarkOrange;
-		public static readonly Brush ULUnknownBrush = Brushes.Gray;
-
-		// ReSharper disable UnusedMember.Local
-		//tile text colors
-		public static readonly Brush FavoriteProducerBrush = Brushes.Yellow;
-		public static readonly Brush ULPlayingBrush = Brushes.Yellow;
-		public static readonly Brush UnreleasedBrush = Brushes.White;
-
-		//text colors
-		private static readonly Color NormalColor = Colors.White;
-		private static readonly Color WarningColor = Colors.DarkKhaki;
-		private static readonly Color ErrorColor = Colors.Red;
-
+		
 		/// <summary>
 		/// Categories of VN Tags
 		/// </summary>
@@ -84,7 +69,6 @@ namespace Happy_Apps_Core
 		}
 
 		public static readonly CoreSettings CSettings;
-		public static readonly GuiSettings GSettings;
 		public static readonly MultiLogger Logger;
 		public static VndbConnection Conn;
 #pragma warning restore 1591
@@ -92,16 +76,15 @@ namespace Happy_Apps_Core
 		static StaticHelpers()
 		{
 			Directory.CreateDirectory(StoredDataFolder);
-			File.Create(LogFile).Close();
 			CSettings = SettingsJsonFile.Load<CoreSettings>(CoreSettingsJson);
-			GSettings = SettingsJsonFile.Load<GuiSettings>(GuiSettingsJson);
-			Logger = new MultiLogger(LogFile);
+			Logger = new MultiLogger(LogsFolder);
 		}
 
 		public static VisualNovelDatabase LocalDatabase;
 
 		public static bool VNIsByFavoriteProducer(ListedVN vn)
 		{
+			if (!vn.ProducerID.HasValue) return false;
 			int tries = 0;
 			Exception exception;
 			do
@@ -109,7 +92,8 @@ namespace Happy_Apps_Core
 				tries++;
 				try
 				{
-					return LocalDatabase.CurrentUser.FavoriteProducers.Any(x => x.ID == vn.ProducerID);
+					return LocalDatabase.UserProducers[(vn.ProducerID.Value, LocalDatabase.CurrentUser.Id)] != null;
+					//return LocalDatabase.CurrentUser.FavoriteProducers.Any(x => x.ID == vn.ProducerID); 
 				}
 				catch (InvalidOperationException ex)
 				{
@@ -151,9 +135,19 @@ namespace Happy_Apps_Core
 		public static string GetDescription(this Enum value)
 		{
 			if (value == null) return "N/A";
-			FieldInfo field = value.GetType().GetField(value.ToString());
-			Attribute attribute = Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute));
-			return attribute is DescriptionAttribute descriptionAttribute ? descriptionAttribute.Description : value.ToString();
+			try
+			{
+				FieldInfo field = value.GetType().GetField(value.ToString());
+				Attribute attribute = Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute));
+				return attribute is DescriptionAttribute descriptionAttribute
+					? descriptionAttribute.Description
+					: value.ToString();
+			}
+			catch (Exception ex)
+			{
+				Logger.ToFile(ex);
+				return value.ToString();
+			}
 		}
 
 		/// <summary>
@@ -184,8 +178,8 @@ namespace Happy_Apps_Core
 		{
 			hasFullDate = false;
 			//unreleased if date is null or doesnt have any digits (tba, n/a etc)
-			if (date == null || !date.Any(Char.IsDigit)) return DateTime.MaxValue;
-			int[] dateArray = date.Split('-').Select(Int32.Parse).ToArray();
+			if (date == null || !date.Any(char.IsDigit)) return DateTime.MaxValue;
+			int[] dateArray = date.Split('-').Select(int.Parse).ToArray();
 			var dtDate = new DateTime();
 			var dateRegex = new Regex(@"^\d{4}-\d{2}-\d{2}$");
 			if (dateRegex.IsMatch(date))
@@ -272,16 +266,37 @@ namespace Happy_Apps_Core
 			return value.Length <= maxChars ? value : value.Substring(0, maxChars - 3) + "...";
 		}
 
+		public static DateTime Epoch { get; } = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+
 		/// <summary>
 		///     Convert DateTime to UnixTimestamp.
 		/// </summary>
 		/// <param name="dateTime">DateTime to be converted</param>
 		/// <returns>UnixTimestamp (double)</returns>
-		public static double DateTimeToUnixTimestamp(DateTime dateTime)
+		public static double ToUnixTimestamp(this DateTime dateTime)
 		{
-			return (dateTime - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
+			return (dateTime - Epoch).TotalSeconds;
 		}
 
+		/// <summary>
+		/// Convert DateTime to UnixTimestamp, if date time is null, returns null.
+		/// </summary>
+		/// <param name="dateTime">DateTime to be converted</param>
+		/// <returns>UnixTimestamp (int)</returns>
+		public static int? ToUnixTimestamp(this DateTime? dateTime)
+		{
+			if (!dateTime.HasValue) return null;
+			return (int) ToUnixTimestamp(dateTime.Value);
+		}
+
+		/// <summary>
+		/// Convert Unix Timestamp to date time, if timestamp is null, returns null.
+		/// </summary>
+		public static DateTime? UnixTimestampToDateTime(this int? timestamp)
+		{
+			if (!timestamp.HasValue) return null;
+			return Epoch.AddSeconds(timestamp.Value);
+		}
 		public static string ToSeconds(this TimeSpan time) => $"{time.TotalSeconds:N0}.{time.Milliseconds} seconds";
 
 		/// <summary>
@@ -326,6 +341,101 @@ namespace Happy_Apps_Core
 			byte[] vv = ProtectedData.Unprotect(password, entropy, DataProtectionScope.CurrentUser);
 			Logger.ToFile("Loaded Login Password");
 			return Encoding.UTF8.GetChars(vv);
+		}
+
+		public static void AddParameter(this DbCommand command, string parameterName, object value)
+		{
+			var parameter = command.CreateParameter();
+			parameter.ParameterName = parameterName;
+			parameter.Value = value;
+			command.Parameters.Add(parameter);
+		}
+
+		public static DateTime? GetNullableDate(object dbObject)
+		{
+			return dbObject == DBNull.Value ? (DateTime?) null : Convert.ToDateTime(dbObject);
+		}
+
+		public static int? GetNullableInt(object dbObject)
+		{
+			return dbObject == DBNull.Value ? (int?) null : Convert.ToInt32(dbObject);
+		}
+
+		public static string GetNullableString(object dbObject)
+		{
+			return dbObject == DBNull.Value ? null : Convert.ToString(dbObject);
+		}
+
+		public static bool DownloadFile(string uri, string destinationFolderPath, string destinationFileName, out string destinationFilePath)
+		{
+			WebResponse response = null;
+			Stream stream = null;
+			Stream destinationStream = null;
+			destinationFilePath = null;
+			try
+			{
+				Logger.ToFile($"Starting download of {uri}");
+				// ReSharper disable once AssignNullToNotNullAttribute
+				Directory.CreateDirectory(Path.GetDirectoryName(destinationFolderPath));
+				var request = WebRequest.Create(uri);
+				response = request.GetResponse();
+				stream = response.GetResponseStream();
+				if (stream == null) return false;
+				if (string.IsNullOrWhiteSpace(destinationFileName))
+				{
+					if (!string.IsNullOrEmpty(response.Headers["Content-Disposition"]))
+					{
+						destinationFileName = response.Headers["Content-Disposition"]
+							.Substring(response.Headers["Content-Disposition"].IndexOf("filename=", StringComparison.Ordinal) + 10).Replace("\"", "");
+					}
+					else destinationFileName = Path.GetFileName(response.ResponseUri.AbsolutePath);
+				}
+				destinationFilePath = Path.Combine(destinationFolderPath, destinationFileName);
+				if (File.Exists(destinationFilePath)) return true;
+				destinationStream = File.OpenWrite(destinationFilePath);
+				Logger.ToFile($"Downloading to {destinationFilePath}");
+				stream.CopyTo(destinationStream);
+				return true;
+			}
+			catch (Exception ex) when (ex is NotSupportedException || ex is ArgumentNullException ||
+			                           ex is SecurityException || ex is UriFormatException || ex is ExternalException)
+			{
+				Logger.ToFile(ex);
+				return false;
+			}
+			finally
+			{
+				response?.Dispose();
+				stream?.Dispose();
+				destinationStream?.Dispose();
+			}
+		}
+
+		public static void RunWithRetries(Action action, Action onFailure, int maxAtempts, Func<Exception, bool> exceptionValid)
+		{
+			int attempts = 0;
+			while (attempts < maxAtempts)
+			{
+				try
+				{
+					action();
+					break;
+				}
+				catch (Exception ex)
+				{
+					if (!exceptionValid(ex) || attempts == maxAtempts-1) throw;
+					onFailure?.Invoke();
+					attempts++;
+				}
+			}
+		}
+
+		public static string GetImageLocation(string imageId2)
+		{
+			var folder = imageId2.Substring(0, 2);
+			var id = int.Parse(imageId2.Substring(2));
+			var filePath = Path.GetFullPath($"{ImagesFolder}\\{folder}\\{id % 100:00}\\{id}.jpg");
+			return filePath;
 		}
 	}
 }

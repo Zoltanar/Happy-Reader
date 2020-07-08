@@ -25,6 +25,7 @@
 								<Setter TargetName="Border" Property="Background" Value="AliceBlue" />
 								<Setter TargetName="Border" Property="BorderThickness" Value="1" />
 								<Setter TargetName="Border" Property="BorderBrush" Value="Black" />
+								<Setter TargetName="ContentSite" Property="TextBlock.FontWeight" Value="Bold" />
 							</Trigger>
 							<Trigger Property="IsMouseOver" Value="True">
 								<Setter Property="Panel.ZIndex" Value="100"/>
@@ -39,14 +40,28 @@
 		<Style x:Key="ContainerStyle" TargetType="{x:Type GroupItem}">
 			<Setter Property="Template">
 				<Setter.Value>
-					<ControlTemplate>
+					<ControlTemplate TargetType="{x:Type GroupItem}">
 						<!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
-						<Expander Header="{Binding Name}" IsExpanded="True">
+						<Expander IsExpanded="True">
+							<Expander.Header>
+								<TextBlock>
+									<TextBlock.Text>
+										<MultiBinding StringFormat="{}{0} ({1} Items)">
+											<Binding Path="Name"/>
+											<Binding Path="ItemCount" />
+										</MultiBinding>
+									</TextBlock.Text>
+								</TextBlock>
+							</Expander.Header>
 							<ItemsPresenter />
 						</Expander>
 					</ControlTemplate>
 				</Setter.Value>
 			</Setter>
+		</Style>
+		<Style TargetType="ListBoxItem">
+			<Setter Property="HorizontalContentAlignment" Value="Left"/>
+			<Setter Property="VerticalContentAlignment" Value="Center"/>
 		</Style>
 	</Window.Resources>
 	<Grid Background="#FF2E4876">
@@ -68,28 +83,41 @@
 							</ItemsPanelTemplate>
 						</ListBox.ItemsPanel>
 						<ListBox.ItemContainerStyle>
-							<Style TargetType="ListBoxItem">
+							<Style TargetType="{x:Type ListBoxItem}">
 								<Setter Property="HorizontalContentAlignment" Value="Left"/>
 								<Setter Property="VerticalContentAlignment" Value="Center"/>
 							</Style>
 						</ListBox.ItemContainerStyle>
 					</ListBox>
-					<StackPanel CanHorizontallyScroll="True" Orientation="Horizontal" Height="53" VerticalAlignment="Bottom">
-						<Button Margin="5,5" Padding="5,0" Content="Debug"  Click="Debug_Button" />
-						<Button Margin="5,5" Padding="5,0" Content="By Producer"  Click="GroupByProducer" />
-						<Button Margin="5,5" Padding="5,0" Content="By Month"  Click="GroupByMonth"  />
-						<Button Margin="5,5" Padding="5,0" Content="By Name"  Click="GroupByName" />
-						<Button Margin="5,5" Padding="5,0" Content="By Last Played"  Click="GroupByLastPlayed" />
-						<Button Margin="5,5" Padding="5,0" Content="By Time Played"  Click="GroupByTimePlayed" />
-						<Button Margin="5,5" Padding="5,0" Content="By Added" Click="GroupByAdded"  />
-						<CheckBox Content="Capture Clipboard" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"  IsChecked="{Binding CaptureClipboard}"/>
-					</StackPanel>
+					<Grid Height="53" VerticalAlignment="Bottom">
+						<Grid.RowDefinitions>
+							<RowDefinition/>
+							<RowDefinition/>
+						</Grid.RowDefinitions>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition/>
+							<ColumnDefinition/>
+							<ColumnDefinition/>
+							<ColumnDefinition/>
+							<ColumnDefinition/>
+						</Grid.ColumnDefinitions>
+						<Button Margin="2" Grid.Row="0" Grid.Column="0" Content="By Added" Click="GroupByAdded" />
+						<Button Margin="2" Grid.Row="1" Grid.Column="0" Content="By Producer" Click="GroupByProducer" />
+						<Button Margin="2" Grid.Row="0" Grid.Column="1" Content="By Month" Click="GroupByMonth" />
+						<Button Margin="2" Grid.Row="1" Grid.Column="1" Content="By Name" Click="GroupByName" />
+						<Button Margin="2" Grid.Row="0" Grid.Column="2" Content="By Last Played"  Click="GroupByLastPlayed" />
+						<Button Margin="2" Grid.Row="1" Grid.Column="2" Content="By Time Played"  Click="GroupByTimePlayed" />
+						<CheckBox Margin="2" Grid.Row="0" Grid.Column="3" Content="Show File Not Found" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsChecked="{Binding ShowFileNotFound}" />
+						<CheckBox Margin="2" Grid.Row="1" Grid.Column="3" Content="Capture Clipboard" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"  IsChecked="{Binding CaptureClipboard}" />
+						<Button Margin="2" Grid.Row="0" Grid.Column="4" Content="By Tag"  Click="GroupByTag" />
+						<TextBlock Margin="2" Grid.Row="1" Grid.Column="4" Text="{Binding UserGameItems.Count, StringFormat={}{0} Items.}" Background="Aquamarine" TextAlignment="Center" />
+					</Grid>
 				</Grid>
 			</TabItem>
-			<TabItem Header="ITHVNR">
+			<TabItem Header="ITHVNR" x:Name="IthTabItem">
 				<tabs:IthVnrTab DataContext="{Binding IthViewModel}"/>
 			</TabItem>
-			<TabItem Header="Entries">
+			<TabItem Header="Entries" x:Name="EntriesTabItem">
 				<Grid>
 					<CheckBox Content="Game-only" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="{Binding OnlyGameEntries, Mode=TwoWay}"/>
 					<Button Content="Add Entry" Margin="83,0,0,0" VerticalAlignment="Top" Click="AddEntry_Click" HorizontalAlignment="Left" Width="90"/>
@@ -115,117 +143,37 @@
 					</DataGrid>
 				</Grid>
 			</TabItem>
-			<TabItem Header="Test">
+			<TabItem Header="Test" x:Name="TestTabItem">
 				<tabs:TestTranslationTab DataContext="{Binding TestViewModel}"/>
 			</TabItem>
-			<TabItem Header="Visual Novels">
+			<TabItem Header="Visual Novels" Style="{StaticResource DatabaseTabItem}">
 				<tabs:DatabaseTab DataContext="{Binding DatabaseViewModel}"/>
 			</TabItem>
-			<TabItem Header="VN Producers">
+			<TabItem Header="Producers" Style="{StaticResource DatabaseTabItem}">
 				<tabs:ProducersTab DataContext="{Binding ProducersViewModel}"/>
+			</TabItem>
+			<TabItem Header="Characters" Style="{StaticResource DatabaseTabItem}">
+				<tabs:CharactersTab DataContext="{Binding CharactersViewModel}"/>
 			</TabItem>
 			<TabItem Header="Filters">
 				<tabs:FiltersTab DataContext="{Binding FiltersViewModel}"/>
 			</TabItem>
 			<TabItem Header="Info/Settings">
-				<Grid Background="DimGray">
-					<Grid.Style>
-						<Style TargetType="Grid">
-							<Style.Resources>
-								<Style TargetType="Control">
-									<Setter Property="Foreground" Value="White" />
-								</Style>
-								<Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type Control}}"/>
-								<Style TargetType="Label" BasedOn="{StaticResource {x:Type Control}}"/>
-							</Style.Resources>
-						</Style>
-					</Grid.Style>
-					<Grid.RowDefinitions>
-						<RowDefinition Height="Auto"/>
-						<RowDefinition Height="*"/>
-					</Grid.RowDefinitions>
-					<Grid Row="0">
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition/>
-							<ColumnDefinition Width="435"/>
-						</Grid.ColumnDefinitions>
-						<TextBox TextWrapping="Wrap" IsReadOnly="True" Text="Information About This Program" Margin="10,5" Background="Black" Foreground="White"/>
-						<GroupBox Grid.Column="1" Header="Settings" Foreground="White" BorderThickness="1" Margin="5">
-							<StackPanel>
-								<CheckBox Content="Show Content Tags" IsChecked="{Binding GSettings.ContentTags}"/>
-								<CheckBox Content="Show Sexual Tags" IsChecked="{Binding GSettings.SexualTags}"/>
-								<CheckBox Content="Show Technical Tags" IsChecked="{Binding GSettings.TechnicalTags}"/>
-								<CheckBox Content="Show NSFW Images" IsChecked="{Binding GSettings.NSFWImages}"/>
-								<CheckBox Content="Start Capturing Clipboard From Launch" IsChecked="{Binding GSettings.CaptureClipboardOnStart}"/>
-								<Grid>
-									<Grid.ColumnDefinitions>
-										<ColumnDefinition Width="160"/>
-										<ColumnDefinition/>
-										<ColumnDefinition Width="53"/>
-										<ColumnDefinition Width="53"/>
-									</Grid.ColumnDefinitions>
-									<Label Grid.Column="0" Content="Max Clipboard Capture Size:"/>
-									<Slider Grid.Column="1" Name="ClipboardSizeSlider" Value="{Binding GSettings.MaxClipboardSize, Mode=OneWay}" Minimum="0" Maximum="1000" Foreground="White" IsSnapToTickEnabled="True" Thumb.DragCompleted="SetClipboardSize"/>
-									<TextBox Grid.Column="2" Text="{Binding ElementName=ClipboardSizeSlider, Path=Value}" Foreground="White" Style="{StaticResource NoBorderTextBox}"/>
-								</Grid>
-								<Grid>
-									<Grid.ColumnDefinitions>
-										<ColumnDefinition Width="Auto"/>
-										<ColumnDefinition/>
-									</Grid.ColumnDefinitions>
-									<Label Grid.Column="0" Content="Culture:"/>
-									<ComboBox Grid.Column="1" ItemsSource="{Binding Cultures}" SelectedItem="{Binding GSettings.CultureInfo}" Margin="5,0" />
-								</Grid>
-								<Grid>
-									<Grid.ColumnDefinitions>
-										<ColumnDefinition/>
-										<ColumnDefinition/>
-										<ColumnDefinition/>
-									</Grid.ColumnDefinitions>
-									<Label Grid.Column="0" Content="Google Translate Mode:"/>
-									<RadioButton Grid.Column="1" Content="Credential" Foreground="White" VerticalAlignment="Center"  IsChecked="{Binding GSettings.GoogleUseCredential, Converter={StaticResource RadioButtonCheckedConverter},
-    ConverterParameter={StaticResource True}}" />
-									<RadioButton Grid.Column="2" Content="Free" Foreground="White" VerticalAlignment="Center"  IsChecked="{Binding GSettings.GoogleUseCredential, Converter={StaticResource RadioButtonCheckedConverter},
-    ConverterParameter={StaticResource False}}" />
-								</Grid>
-							</StackPanel>
-						</GroupBox>
-					</Grid>
-					<Grid Row="1">
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="*"/>
-							<ColumnDefinition Width="2.5*"/>
-						</Grid.ColumnDefinitions>
-						<TextBox Height="47" Margin="10,10,10,0" TextWrapping="Wrap" Text="Send Query Here" VerticalAlignment="Top"/>
-						<Button Grid.Column="0" Content="Send" Margin="0,62,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="48"/>
-						<ListBox Grid.Column="0" Background="Black" ItemsSource="{Binding VndbQueries}" Margin="10,87,10,10" 
-                                 HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-							<ListBox.ItemTemplate>
-								<DataTemplate>
-									<StackPanel Width="{Binding ViewportWidth, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ScrollViewer}}}">
-										<TextBox TextWrapping="Wrap" Text="{Binding Path=DataContext ,RelativeSource={RelativeSource Self}}" Foreground="White" Background="{x:Null}" BorderBrush="LightGray" />
-									</StackPanel>
-								</DataTemplate>
-							</ListBox.ItemTemplate>
-						</ListBox>
-						<Button Grid.Column="0" Content="Clear" Margin="0,62,63,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="45"/>
-						<CheckBox Foreground="White" Grid.Column="0" Content="Advanced Mode" Margin="0,65,113,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="71" IsChecked="{Binding GSettings.AdvancedMode}"/>
-						<ListBox Grid.Column="1" Margin="10" ItemsSource="{Binding VndbResponses}" Background="Black" 
-                                 HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-							<ListBox.ItemTemplate>
-								<DataTemplate>
-									<StackPanel Width="{Binding ViewportWidth, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ScrollViewer}}}">
-										<TextBox TextWrapping="Wrap" Text="{Binding Path=DataContext ,RelativeSource={RelativeSource Self}}" Foreground="White" Background="{x:Null}" BorderBrush="LightGray" />
-									</StackPanel>
-								</DataTemplate>
-							</ListBox.ItemTemplate>
-						</ListBox>
-					</Grid>
-				</Grid>
+				<tabs:SettingsTab DataContext="{Binding SettingsViewModel}"/>
 			</TabItem>
-
 			<TabItem Header="Logs">
-				<DataGrid ItemsSource="{Binding LogsList}" AutoGenerateColumns="True" CanUserAddRows="False" />
+				<DataGrid ItemsSource="{Binding LogsList}" AutoGenerateColumns="False" CanUserAddRows="False" >
+					<DataGrid.Columns>
+						<DataGridTextColumn Binding="{Binding Timestamp, StringFormat=yyyy-MM-dd}" Header="Date" Width="Auto"/>
+						<DataGridTemplateColumn Header="Description" Width="*">
+							<DataGridTemplateColumn.CellTemplate>
+								<DataTemplate DataType="viewModel:DisplayLog">
+									<DataGridCell Content="{Binding Description}"/>
+								</DataTemplate>
+							</DataGridTemplateColumn.CellTemplate>
+						</DataGridTemplateColumn>
+					</DataGrid.Columns>
+				</DataGrid>
 			</TabItem>
 		</TabControl>
 		<Grid Grid.Row="1" Grid.Column="0" Background="LightSkyBlue" Height="20">

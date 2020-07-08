@@ -59,13 +59,34 @@
             <Button Margin="5" Content="Don't Post Others" Command="{Binding DontPostOthersCommand}"/>
         </UniformGrid>
         <!-- row 1 -->
-        <ComboBox Grid.Row="1" Margin="5,5,0,5" x:Name="ProcessComboBox" ItemsSource="{Binding DisplayProcesses}" SelectedItem="{Binding SelectedProcess, Mode=TwoWay}"  HorizontalAlignment="Left"  Width="120"/>
+        <ComboBox Grid.Row="1" Margin="5,5,0,5" x:Name="ProcessComboBox" ItemsSource="{Binding DisplayProcesses}" SelectedItem="{Binding SelectedProcess, Mode=TwoWay}"  HorizontalAlignment="Left"  Width="120">
+			<ComboBox.ItemContainerStyle>
+		        <Style TargetType="{x:Type ComboBoxItem}">
+			        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+			        <Setter Property="VerticalContentAlignment" Value="Center"/>
+		        </Style>
+	        </ComboBox.ItemContainerStyle>
+		</ComboBox>
         <TextBox  Grid.Row="1" Margin="130,5,5,5" TextWrapping="Wrap" Text="Enter command here..." KeyUp="EnterCommand"/>
         <!-- row 2 -->
-        <ComboBox ItemsSource="{Binding DisplayThreads}" SelectedItem="{Binding SelectedTextThread, Mode=TwoWay}" Grid.Row="2" Margin="5,0,239,0" SelectionChanged="TextThreadChanged"/>
-        <CheckBox Grid.Row="2" Content="Posting" Margin="0,0,171,0" IsChecked="{Binding SelectedTextThread.IsPosting}" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="63"/>
+        <ComboBox ItemsSource="{Binding DisplayThreads}" SelectedItem="{Binding SelectedTextThread, Mode=TwoWay}" Grid.Row="2" Margin="5,0,239,0" SelectionChanged="TextThreadChanged">
+	        <ComboBox.ItemContainerStyle>
+		        <Style TargetType="{x:Type ComboBoxItem}">
+			        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+			        <Setter Property="VerticalContentAlignment" Value="Center"/>
+		        </Style>
+	        </ComboBox.ItemContainerStyle>
+          </ComboBox>
+			<CheckBox Grid.Row="2" Content="Posting" Margin="0,0,171,0" IsChecked="{Binding SelectedTextThread.IsPosting}" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="63"/>
         <CheckBox Grid.Row="2" Content="Paused" Margin="0,0,103,0" IsChecked="{Binding SelectedTextThread.IsPaused}" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="63"/>
-        <ComboBox ItemsSource="{Binding Encodings}" DisplayMemberPath="EncodingName" SelectedItem="{Binding PrefEncoding, Mode=TwoWay}" Grid.Row="2" Margin="0,0,10,0" SelectionChanged="EncodingChanged" HorizontalAlignment="Right" Width="88"/>
+        <ComboBox ItemsSource="{Binding Encodings}" DisplayMemberPath="EncodingName" SelectedItem="{Binding PrefEncoding, Mode=TwoWay}" Grid.Row="2" Margin="0,0,10,0" SelectionChanged="EncodingChanged" HorizontalAlignment="Right" Width="88">
+	        <ComboBox.ItemContainerStyle>
+		        <Style TargetType="{x:Type ComboBoxItem}">
+			        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+			        <Setter Property="VerticalContentAlignment" Value="Center"/>
+		        </Style>
+	        </ComboBox.ItemContainerStyle>
+		</ComboBox>
         <!--row 3 -->
         <UniformGrid Grid.Row="3" Rows="1">
             <Button Margin="5" Content="Clear Text"     Command="{Binding ClearThreadCommand}"/>

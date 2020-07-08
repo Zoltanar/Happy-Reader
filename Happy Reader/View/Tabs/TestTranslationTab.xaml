@@ -37,13 +37,13 @@
         <controls:AutoCompleteBox Grid.Row="0" Grid.Column="0" Margin="46,0,31,35"  Text="None" VerticalContentAlignment="Center" Padding="0" Height="18" VerticalAlignment="Bottom"  
                                               FilterMode="Contains" ItemsSource="{Binding UserGameNames}" KeyUp="EnterOnTester"/>
         <Button Content="Test" Margin="10,0,10,10" VerticalAlignment="Bottom" Click="TestTranslationClick" Grid.Row="0" Grid.Column="0" />
-        <Label Content="Stage 1" Grid.Row="0" Grid.Column="1" />
-        <Label Content="Stage 2" Grid.Row="0" Grid.Column="2" />
-        <Label Content="Stage 3" Grid.Row="0" Grid.Column="3" />
-        <Label Content="Stage 4" Grid.Row="1" Grid.Column="0" />
-        <Label Content="Stage 5" Grid.Row="1" Grid.Column="1" />
-        <Label Content="Stage 6" Grid.Row="1" Grid.Column="2" />
-        <Label Content="Stage 7" Grid.Row="1" Grid.Column="3" />
+        <Label Content="Stage 1 (Game)" Grid.Row="0" Grid.Column="1" />
+        <Label Content="Stage 2 (Input)" Grid.Row="0" Grid.Column="2" />
+        <Label Content="Stage 3 (Yomi)" Grid.Row="0" Grid.Column="3" />
+        <Label Content="Stage 4 (Name>Proxy)" Grid.Row="1" Grid.Column="0" />
+        <Label Content="Stage 5 (Translate)" FontWeight="Bold" Grid.Row="1" Grid.Column="1" />
+        <Label Content="Stage 6 (Proxy>Name)" Grid.Row="1" Grid.Column="2" />
+        <Label Content="Stage 7 (Output)" Grid.Row="1" Grid.Column="3" />
         <TextBox Text="{Binding Stage1}" Grid.Row="0" Grid.Column="1" Margin="10,45,10,103"/>
         <TextBox Text="{Binding Stage2}" Grid.Row="0" Grid.Column="2" />
         <TextBox Text="{Binding Stage3}" Grid.Row="0" Grid.Column="3" />

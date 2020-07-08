@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using static Happy_Apps_Core.StaticHelpers;
 // ReSharper disable InconsistentNaming
@@ -37,7 +35,7 @@ namespace Happy_Apps_Core
 		public int? Length { get; set; }
 		public string Description { get; set; }
 		public WebLinks Links { get; set; }
-		public string Image { get; set; }
+		public string ImageId { get; set; }
 		public bool Image_Nsfw { get; set; }
 
 		public AnimeItem[] Anime { get; set; } //flag: anime
@@ -79,10 +77,12 @@ namespace Happy_Apps_Core
 		/// <param name="update">Get new image regardless of whether one already exists?</param>
 		public void SaveCover(bool update = false)
 		{
-			if (!Directory.Exists(VNImagesFolder)) Directory.CreateDirectory(VNImagesFolder);
-			if (Image == null || Image.Equals("")) return;
-			var imageParts = Image.Split('/');
-			string imageLocation = $"{VNImagesFolder}{string.Join("\\", imageParts.Skip(imageParts.Length - 2))}";
+			if (!Directory.Exists(ImagesFolder)) Directory.CreateDirectory(ImagesFolder);
+			if (ImageId == null || ImageId == "\\N") return;
+			var imageParts = ImageId.Trim('(', ')').Split(',');
+			var imageId = Convert.ToInt32(imageParts[1]);
+			var imageLocation = Path.GetFullPath($"{ImagesFolder}\\{imageParts[0]}{imageId % 100:00}\\{imageId}.jpg");
+			Directory.GetParent(imageLocation).Create();
 			if (File.Exists(imageLocation) && update == false) return;
 			Logger.ToFile($"Start downloading cover image for {this}");
 			WebResponse responsePic = null;
@@ -90,15 +90,14 @@ namespace Happy_Apps_Core
 			Stream destinationStream = null;
 			try
 			{
+				// ReSharper disable once AssignNullToNotNullAttribute
 				Directory.CreateDirectory(Path.GetDirectoryName(imageLocation));
-				var requestPic = WebRequest.Create(Image);
+				var requestPic = WebRequest.Create(ImageId);
 				responsePic = requestPic.GetResponse();
 				stream = responsePic.GetResponseStream();
 				if (stream == null) return;
 				destinationStream = File.OpenWrite(imageLocation);
 				stream.CopyTo(destinationStream);
-				/*var webImage = System.Drawing.Image.FromStream(stream);
-				webImage.Save(imageLocation);*/
 			}
 			catch (Exception ex) when (ex is NotSupportedException || ex is ArgumentNullException ||
 																 ex is SecurityException || ex is UriFormatException || ex is ExternalException)
@@ -148,44 +147,30 @@ namespace Happy_Apps_Core
 			/// <summary>
 			/// URL of screenshot 
 			/// </summary>
-			public string Image { get; set; }
+			public string ImageId { get; set; }
 			public int RID { get; set; }
 			public bool Nsfw { get; set; }
 			public int Height { get; set; }
 			public int Width { get; set; }
 
+			private string _imageSource;
+
 			/// <summary>
-			/// Get path of stored screenshot (Doesn't check if it exists).
+			/// Get path of stored screenshot
 			/// </summary>
+			[JsonIgnore]
 			public string StoredLocation
 			{
 				get
 				{
-					string[] urlSplit = Image.Split('/');
-					return $"{VNScreensFolder}{urlSplit[urlSplit.Length - 2]}\\{urlSplit[urlSplit.Length - 1]}";
-				}
-			}
-
-			/// <summary>
-			/// Downloads screenshot into screens folder
-			/// </summary>
-			public void Download()
-			{
-				if (string.IsNullOrWhiteSpace(Image)) return;
-				if (!Directory.Exists(VNScreensFolder)) Directory.CreateDirectory(VNScreensFolder);
-				string[] urlSplit = Image.Split('/');
-				if (!Directory.Exists($"{VNScreensFolder}\\{urlSplit[urlSplit.Length - 2]}"))
-					Directory.CreateDirectory($"{VNScreensFolder}\\{urlSplit[urlSplit.Length - 2]}");
-				if (File.Exists(StoredLocation)) return;
-				var requestPic = WebRequest.Create(Image);
-				using (var responsePic = requestPic.GetResponse())
-				{
-					using (var stream = responsePic.GetResponseStream())
+					if (_imageSource != null) return _imageSource;
+					if (ImageId == null) _imageSource = Path.GetFullPath(NoImageFile);
+					else
 					{
-						if (stream == null) return;
-						var webImage = System.Drawing.Image.FromStream(stream);
-						webImage.Save(StoredLocation);
+						var filePath = GetImageLocation(ImageId);
+						_imageSource = File.Exists(filePath) ? filePath : Path.GetFullPath(NoImageFile);
 					}
+					return _imageSource;
 				}
 			}
 		}
@@ -256,29 +241,6 @@ namespace Happy_Apps_Core
 			public override string ToString() => $"[{ID},{Score},{Spoiler}]";
 
 
-		}
-
-		/// <summary>
-		/// Custom Json class for having notes and groups as a string in title notes.
-		/// </summary>
-		public class CustomItemNotes
-		{
-			public string Notes { get; set; }
-			public List<string> Groups { get; set; }
-
-			public CustomItemNotes(string notes, List<string> groups)
-			{
-				Notes = notes;
-				Groups = groups;
-			}
-
-			public string Serialize()
-			{
-				if (Notes.Equals("") && !Groups.Any()) return "";
-				string serializedString = $"Notes: {Notes}|Groups: {string.Join(",", Groups)}";
-				string escapedString = JsonConvert.ToString(serializedString);
-				return escapedString.Substring(1, escapedString.Length - 2);
-			}
 		}
 
 		#endregion

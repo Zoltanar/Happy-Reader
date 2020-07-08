@@ -3,67 +3,90 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:sampleData="clr-namespace:Happy_Reader.View.SampleData"
              mc:Ignorable="d" Height="375" Width="230" 
-             d:DataContext="{d:DesignData Source=/View/SampleData/ListedVNSampleData.xaml}" 
-             >
+             d:DataContext="{d:DesignInstance sampleData:SampleListedVN, IsDesignTimeCreatable=True}">
 	<UserControl.ContextMenu>
 		<ContextMenu Opened="ContextMenuOpened">
 			<MenuItem Header="Update Data" Click="UpdateVN"/>
 			<Separator/>
-			<MenuItem x:Name="UserListMenu" Header="User List">
-				<MenuItem Header="Unknown" Click="ChangeUserListStatus" />
-				<MenuItem Header="Playing" Click="ChangeUserListStatus" />
-				<MenuItem Header="Finished" Click="ChangeUserListStatus" />
-				<MenuItem Header="Stalled" Click="ChangeUserListStatus" />
-				<MenuItem Header="Dropped" Click="ChangeUserListStatus" />
-			</MenuItem>
-			<MenuItem x:Name="WishListMenu" Header="Wish List">
-				<MenuItem Header="High" Click="ChangeWishListStatus" />
-				<MenuItem Header="Medium" Click="ChangeWishListStatus" />
-				<MenuItem Header="Low" Click="ChangeWishListStatus" />
-				<MenuItem Header="Blacklist" Click="ChangeWishListStatus" />
+			<MenuItem x:Name="Labels" Header="Labels">
+				<MenuItem Header="Owned" Tag="Owned" Click="ChangeLabel" />
+				<MenuItem Header="Playing" Tag="Playing" Click="ChangeLabel" />
+				<MenuItem Header="Finished" Tag="Finished" Click="ChangeLabel" />
+				<MenuItem Header="Stalled" Tag="Stalled" Click="ChangeLabel" />
+				<MenuItem Header="Dropped" Tag="Dropped" Click="ChangeLabel" />
+				<MenuItem Header="Wishlist - High" Tag="Wishlist,WishlistHigh" Click="ChangeLabel" />
+				<MenuItem Header="Wishlist - Medium" Tag="Wishlist,WishlistMedium" Click="ChangeLabel" />
+				<MenuItem Header="Wishlist - Low" Tag="Wishlist,WishlistLow" Click="ChangeLabel" />
+				<MenuItem Header="Blacklist" Tag="Blacklist" Click="ChangeLabel" />
 			</MenuItem>
 			<MenuItem x:Name="VoteMenu" Header="Vote">
-				<MenuItem Header="None"/>
-				<MenuItem Header="1"/>
-				<MenuItem Header="2"/>
-				<MenuItem Header="3"/>
-				<MenuItem Header="4"/>
-				<MenuItem Header="5"/>
-				<MenuItem Header="6"/>
-				<MenuItem Header="7"/>
-				<MenuItem Header="8"/>
-				<MenuItem Header="9"/>
-				<MenuItem Header="10"/>
-				<MenuItem Header="Precise Number"/>
+				<MenuItem Click="ChangeVote" Header="None"/>
+				<MenuItem Click="ChangeVote" Header="10"/>
+				<MenuItem Click="ChangeVote" Header="20"/>
+				<MenuItem Click="ChangeVote" Header="30"/>
+				<MenuItem Click="ChangeVote" Header="40"/>
+				<MenuItem Click="ChangeVote" Header="50"/>
+				<MenuItem Click="ChangeVote" Header="60"/>
+				<MenuItem Click="ChangeVote" Header="70"/>
+				<MenuItem Click="ChangeVote" Header="80"/>
+				<MenuItem Click="ChangeVote" Header="90"/>
+				<MenuItem Click="ChangeVote" Header="100"/>
+				<MenuItem IsEnabled="False" Click="ChangeVote" Header="Precise Number"/>
 			</MenuItem>
 			<Separator/>
 			<MenuItem Header="Show Titles By Producer" Click="ShowTitlesByProducer" />
 			<MenuItem x:Name="AddProducerToFavoritesItem" Header="Add Producer to Favorites"/>
+			<Separator/>
 			<MenuItem Header="Browse to VNDB Page" Click="BrowseToVndbPage"/>
+			<MenuItem x:Name="ReleaseLinkItem" Header="Browse to Release Page" Click="BrowseToReleasePage"/>
 			<MenuItem Header="Browse to Extra Page" Click="BrowseToExtraPage"/>
+			<Separator/>
+			<MenuItem Header="Copy Title" Click="CopyTitle"/>
+			<MenuItem Header="Copy Original Title" Click="CopyOriginalTitle"/>
 		</ContextMenu>
 	</UserControl.ContextMenu>
-	<Border BorderBrush="Black" BorderThickness="1" CornerRadius="10" Background="{Binding BackBrush}">
-        <Grid>
-            <Label Content="{Binding Title}" Margin="10,10,10,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="{Binding ForeBrush}"/>
-            <Label Content="{Binding Producer.Name}" Foreground="{Binding ProducerBrush}" Margin="10,0,10,52" VerticalAlignment="Bottom" Padding="0"/>
-            <Label Margin="10,0,97,31" VerticalAlignment="Bottom" Padding="0" Foreground="{Binding ForeBrush}">
-                <TextBlock>
-                    <TextBlock.Text>
-                        <MultiBinding StringFormat="{}{0:0.00} ({1} votes)">
-                            <Binding Path="Rating"/>
-                            <Binding Path="VoteCount"/>
-                        </MultiBinding>
-                    </TextBlock.Text>
-                </TextBlock>
-            </Label>
-            <Label Content="{Binding ReleaseDateString}" Margin="0,0,10,31" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="82" HorizontalContentAlignment="Right" Foreground="{Binding DateBrush}" Padding="0"/>
-            <Label Content="{Binding UserRelatedStatus}" Margin="10,0,10,10" VerticalAlignment="Bottom" Foreground="{Binding UserRelatedBrush}" Padding="0"/>
-			<Image Margin="10,41,10,73" Source="{Binding CoverSource}"/>
-			<Image Source="{Binding FlagSource}" Margin="194,41,10,320"/>
-      <Image Source="{Binding SpecialFlag}" Margin="194,61,10,300"/>
+	<Border BorderBrush="Black" BorderThickness="1" CornerRadius="10" Background="{Binding UserVN, Converter={StaticResource UserVnToBackgroundConverter}}">
+		<Grid>
+			<Label Content="{Binding Title}" Margin="10,10,10,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="{Binding UserVN, Converter={StaticResource UserVnToForegroundConverter}}"/>
+			<Label Content="{Binding Producer.Name}" Foreground="{Binding Path=DataContext, RelativeSource={RelativeSource Self}, Converter={StaticResource VnToProducerForegroundConverter}}" Margin="10,0,10,52" VerticalAlignment="Bottom" Padding="0"/>
+			<Label Content="{Binding LengthTime, Converter={StaticResource EnumDescriptionConverter}}" Foreground="Purple" Margin="10,0,10,52" VerticalAlignment="Bottom" HorizontalAlignment="Right" Padding="0"/>
+			<Label Margin="10,0,97,31" VerticalAlignment="Bottom" Padding="0" Foreground="{Binding UserVN, Converter={StaticResource UserVnToForegroundConverter}}">
+				<TextBlock>
+					<TextBlock.Text>
+						<MultiBinding StringFormat="{}{0:0.00} ({1} votes)">
+							<Binding Path="Rating"/>
+							<Binding Path="VoteCount"/>
+						</MultiBinding>
+					</TextBlock.Text>
+				</TextBlock>
+			</Label>
+			<Label Margin="0,0,10,31" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="82" HorizontalContentAlignment="Right" 
+			       Foreground="{Binding Path=., Converter={StaticResource DateToBrushConverter}}" Padding="0">
+			<TextBlock Text="{Binding ReleaseDateString}" FontWeight="{Binding ReleaseDate, Converter={StaticResource DateToWeightConverter}}"/>
+				</Label>
+			<Label Content="{Binding UserRelatedStatus}" Margin="10,0,10,10" VerticalAlignment="Bottom" Foreground="{Binding UserVN, Converter={StaticResource UserVnToForegroundConverter}}" Padding="0"/>
+			<Image Margin="10,41,10,73"		Source="{Binding CoverSource}" />
+			<Image Margin="194,41,10,320" Source="{Binding FlagSource}"/>
+			<Border Margin="0,59,10,0" Width="20" Height="20" HorizontalAlignment="Right"  VerticalAlignment="Top" BorderBrush="Purple" BorderThickness="2" CornerRadius="10" Background="MediumPurple" Visibility="{Binding Path=., Converter={StaticResource VnToSpecialFlagVisibilityConverter}}">
+				<TextBlock  Foreground="White" TextAlignment="Center" Text="S" />
+			</Border>
+			<Border Margin="10,59,0,0" Width="20" Height="20" HorizontalAlignment="Left"  VerticalAlignment="Top" BorderBrush="Gray" BorderThickness="2" CornerRadius="5" Background="Black" Visibility="{Binding HasAnime, Converter={StaticResource BooleanToVisibilityConverter}}">
+				<TextBlock  Foreground="White" TextAlignment="Center" Text="A" />
+			</Border>
+			<Border Margin="0,80,10,0" Width="20" Height="20" HorizontalAlignment="Right"  VerticalAlignment="Top" BorderBrush="Gold" BorderThickness="2" CornerRadius="10" 
+			        Background="{Binding IsOwned, Converter={StaticResource OwnedStatusToColorConverter}}"
+			        Visibility="{Binding IsOwned, Converter={StaticResource OwnedStatusToVisibilityConverter}}">
+				<TextBlock Foreground="White" TextAlignment="Center" Text="{Binding IsOwned, Converter={StaticResource OwnedStatusToTextConverter}}" />
+			</Border>
+			<Border Margin="145,101,10,255" Background="#AA000000" CornerRadius="5" Opacity="{Binding Suggestion, Converter={StaticResource NullableToOpacityConverter}}" HorizontalAlignment="Right">
+				<TextBlock Margin="0,0" Padding="10,0" HorizontalAlignment="Center" VerticalAlignment="Center">
+					<Run Text="{Binding Suggestion.TagScore, StringFormat=0.##, Mode=OneWay}" Foreground="Gold"></Run>
+					<Run Text="{Binding Suggestion.TraitScore, StringFormat=0.##, Mode=OneWay}" Foreground="DeepSkyBlue"></Run>
+				</TextBlock>
+			</Border>
 			<Label Content="{Binding VNID}" HorizontalAlignment="Left" Margin="194,-1,0,0" VerticalAlignment="Top" Foreground="#FF9C9C9C" FontSize="9" Width="34" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"/>
-        </Grid>
-    </Border>
+		</Grid>
+	</Border>
 </UserControl>

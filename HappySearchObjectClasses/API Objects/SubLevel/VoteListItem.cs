@@ -1,8 +1,11 @@
-﻿namespace Happy_Apps_Core
+﻿using JetBrains.Annotations;
+
+namespace Happy_Apps_Core
 {
     /// <summary>
     /// From get votelist commands
     /// </summary>
+    [UsedImplicitly]
     public class VoteListItem
     {
         public VoteListItem(int vn, int vote, int added)

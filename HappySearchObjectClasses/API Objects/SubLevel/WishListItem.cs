@@ -1,8 +1,11 @@
-﻿namespace Happy_Apps_Core
+﻿using JetBrains.Annotations;
+
+namespace Happy_Apps_Core
 {
     /// <summary>
     /// From get wishlist commands
     /// </summary>
+    [UsedImplicitly]
     public class WishListItem
     {
         public WishListItem(int vn, int priority, int added)

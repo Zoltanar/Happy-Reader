@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
-using System.Linq.Expressions;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Newtonsoft.Json;
@@ -26,6 +25,7 @@ namespace Happy_Reader
 				Value = "";
 			}
 		}
+
 		public string TypeName
 		{
 			get => _typeName;
@@ -64,11 +64,7 @@ namespace Happy_Reader
 						IntValue = (int)enumValue;
 						_stringValue = IntValue.ToString();
 						break;
-					case WishlistStatus enumValue:
-						IntValue = (int)enumValue;
-						_stringValue = IntValue.ToString();
-						break;
-					case UserlistStatus enumValue:
+					case UserVN.LabelKind enumValue:
 						IntValue = (int)enumValue;
 						_stringValue = IntValue.ToString();
 						break;
@@ -80,6 +76,10 @@ namespace Happy_Reader
 						IntValue = boolValue ? 1 : 0;
 						Exclude = !boolValue;
 						_stringValue = boolValue.ToString();
+						break;
+					case DateTime dateValue:
+						_stringValue = dateValue.ToString("yyyyMMdd");
+						IntValue = int.Parse(_stringValue);
 						break;
 					default:
 						IntValue = 0;
@@ -93,7 +93,7 @@ namespace Happy_Reader
 		public bool Exclude { get; set; }
 
 		[JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-		public int AdditionalInt { get; set; }
+		public int? AdditionalInt { get; set; }
 #pragma warning restore 1591
 
 		/// <summary>
@@ -128,64 +128,44 @@ namespace Happy_Reader
 				case VnFilterType.Voted:
 					return vn => vn.Voted != Exclude;
 				case VnFilterType.Blacklisted:
-					return vn => vn.Blacklisted != Exclude;
+					return vn => (vn.UserVN?.Blacklisted ?? false) != Exclude;
 				case VnFilterType.ByFavoriteProducer:
 					return vn => StaticHelpers.VNIsByFavoriteProducer(vn) != Exclude;
-				case VnFilterType.WishlistStatus:
-					return vn => vn.UserVN?.WLStatus == (WishlistStatus)IntValue != Exclude;
-				case VnFilterType.UserlistStatus:
-					return vn => vn.UserVN?.ULStatus == (UserlistStatus)IntValue != Exclude;
+				case VnFilterType.Label:
+					return vn => (vn.UserVN?.Labels.Any(l => l == (UserVN.LabelKind)IntValue) ?? false) != Exclude;
 				case VnFilterType.Language:
 					return vn => vn.HasLanguage(StringValue) != Exclude;
 				case VnFilterType.OriginalLanguage:
 					return vn => vn.HasOriginalLanguage(StringValue) != Exclude;
 				case VnFilterType.Tags:
-					if (AdditionalInt != 0) return vn => vn.DbTags.Any(t => t.TagId == IntValue && t.Score >= AdditionalInt) != Exclude;
-					else return vn => vn.DbTags.Any(t => t.TagId == IntValue) != Exclude;
+					var writtenTag = DumpFiles.GetTag(IntValue);
+					//todo make it better, allow handling arrays
+					if (AdditionalInt != null)
+					{
+						return vn =>
+						{
+							var contains = writtenTag.InCollection(vn.Tags.Select(t => t.TagId), out int match);
+							return (!contains || vn.Tags.First(t => t.TagId == match).Score >= AdditionalInt.Value) != Exclude;
+						};
+					}
+					else return vn => writtenTag.InCollection(vn.Tags.Select(t => t.TagId)) != Exclude;
 				case VnFilterType.Traits:
-					//todo vn => vn.DbTraits.Any(t => t.TraitId == Value) != Exclude; //return vn => vn.MatchesSingleTrait(Convert.ToInt32(Value)) != Exclude;
-					throw new NotImplementedException();
+					var writtenTrait = DumpFiles.GetTrait(IntValue);
+					return vn => writtenTrait.InCollection(StaticHelpers.LocalDatabase.GetCharactersTraitsForVn(vn.VNID,true).Select(t => t.TraitId)) != Exclude;
 				case VnFilterType.HasFullDate:
 					return vn => vn.HasFullDate != Exclude;
-				default:
-					throw new ArgumentOutOfRangeException();
-			}
-		}
-
-		/// <summary>
-		/// Gets function that determines if vn matches filter.
-		/// </summary>
-		/// <returns></returns>
-		public Expression<Func<ListedVN, bool>> GetExpression()
-		{
-			switch (Type)
-			{
-				case VnFilterType.Length:
-					return vn => vn.LengthTime == (LengthFilterEnum)IntValue != Exclude;
-				case VnFilterType.ReleaseStatus:
-					return vn => vn.ReleaseStatus == (ReleaseStatusEnum)IntValue != Exclude;
-				case VnFilterType.Voted:
-					return vn => vn.Voted != Exclude;
-				case VnFilterType.Blacklisted:
-					return vn => vn.Blacklisted != Exclude;
-				case VnFilterType.ByFavoriteProducer:
-					return vn => StaticHelpers.VNIsByFavoriteProducer(vn) != Exclude;
-				case VnFilterType.WishlistStatus:
-					return vn => (vn.UserVN != null && vn.UserVN.WLStatus == (WishlistStatus)IntValue) != Exclude;
-				case VnFilterType.UserlistStatus:
-					return vn => (vn.UserVN != null && vn.UserVN.ULStatus == (UserlistStatus)IntValue) != Exclude;
-				case VnFilterType.Language:
-					return vn => vn.HasLanguage(StringValue) != Exclude;
-				case VnFilterType.OriginalLanguage:
-					return vn => vn.HasOriginalLanguage(StringValue) != Exclude;
-				case VnFilterType.Tags:
-					if (AdditionalInt != 0) return vn => vn.DbTags.Any(t => t.TagId == IntValue && t.Score >= AdditionalInt) != Exclude;
-					else return vn => vn.DbTags.Any(t => t.TagId == IntValue) != Exclude;
-				case VnFilterType.Traits:
-					// todo vn => vn.DbTraits.Any(t => t.TraitId == IntValue) != Exclude; //return vn => vn.MatchesSingleTrait(Convert.ToInt32(Value)) != Exclude;
-					throw new NotImplementedException();
-				case VnFilterType.HasFullDate:
-					return vn => vn.HasFullDate != Exclude;
+				case VnFilterType.GameOwned:
+					return vn => vn.IsOwned == (OwnedStatus)IntValue != Exclude;
+				case VnFilterType.UserVN:
+					return vn => vn.UserVN != null != Exclude;
+				case VnFilterType.ReleasedAfter:
+					var afterDate = DateTime.ParseExact(StringValue, "yyyyMMdd", CultureInfo.CurrentCulture);
+					return vn => vn.ReleaseDate > afterDate != Exclude;
+				case VnFilterType.ReleasedBefore:
+					var beforeDate = DateTime.ParseExact(StringValue, "yyyyMMdd", CultureInfo.CurrentCulture);
+					return vn => vn.ReleaseDate < beforeDate != Exclude;
+				case VnFilterType.HasAnime:
+					return vn => vn.HasAnime != Exclude;
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
@@ -194,31 +174,35 @@ namespace Happy_Reader
 		public override string ToString()
 		{
 			var typeDesc = Type.GetDescription();
+			var result = $"{(Exclude ? "Exclude" : "Include")}: {typeDesc}";
 			switch (Type)
 			{
-				case VnFilterType.Length:
-					return $"{(Exclude ? "Exclude" : "Include")}: {typeDesc} - {((LengthFilterEnum)IntValue).GetDescription()}";
-				case VnFilterType.ReleaseStatus:
-					return $"{(Exclude ? "Exclude" : "Include")}: {typeDesc} - {((ReleaseStatusEnum)IntValue).GetDescription()}";
-				case VnFilterType.WishlistStatus:
-					return $"{(Exclude ? "Exclude" : "Include")}: {typeDesc} - {((WishlistStatus)IntValue).GetDescription()}";
-				case VnFilterType.UserlistStatus:
-					return $"{(Exclude ? "Exclude" : "Include")}: {typeDesc} - {((UserlistStatus)IntValue).GetDescription()}";
 				case VnFilterType.Voted:
 				case VnFilterType.Blacklisted:
 				case VnFilterType.ByFavoriteProducer:
-					return $"{(Exclude ? "Exclude" : "Include")}: {typeDesc}";
+				case VnFilterType.HasFullDate:
+				case VnFilterType.GameOwned:
+				case VnFilterType.UserVN:
+				case VnFilterType.HasAnime:
+					return result;
+				case VnFilterType.Length:
+					return $"{result} - {(StringValue == null ? "None" : ((LengthFilterEnum)IntValue).GetDescription())}";
+				case VnFilterType.ReleaseStatus:
+					return $"{result} - {(StringValue == null ? "None" : ((ReleaseStatusEnum)IntValue).GetDescription())}";
+				case VnFilterType.Label:
+					return $"{result} - {(StringValue == null ? "None" : ((UserVN.LabelKind)IntValue).GetDescription())}";
 				case VnFilterType.Language:
 				case VnFilterType.OriginalLanguage:
-					return $"{(Exclude ? "Exclude" : "Include")}: {typeDesc} - { CultureInfo.GetCultureInfo(StringValue).DisplayName}";
+					return $"{result} - {CultureInfo.GetCultureInfo(StringValue).DisplayName}";
 				case VnFilterType.Tags:
-					var tag = DumpFiles.GetTag(IntValue);
-					var result = $"{(Exclude ? "Exclude" : "Include")}: {typeDesc} - {tag.Name}";
-					if (AdditionalInt != 0) result += $" Score >= {AdditionalInt}";
+					result += $" - {DumpFiles.GetTag(IntValue).Name}";
+					if (AdditionalInt != null) result += $" Score >= {AdditionalInt.Value}";
 					return result;
 				case VnFilterType.Traits:
-					return $"{(Exclude ? "Exclude" : "Include")}: {typeDesc} - {DumpFiles.PlainTraits.Find(x => x.ID == IntValue).Name}";
-				default:
+					return $"{result} - {DumpFiles.GetTrait(IntValue).Name}";
+				case VnFilterType.ReleasedAfter:
+				case VnFilterType.ReleasedBefore:
+					return $"{result} - {DateTime.ParseExact(StringValue, "yyyyMMdd", CultureInfo.CurrentCulture)}"; default:
 					throw new ArgumentOutOfRangeException();
 			}
 		}

@@ -31,7 +31,7 @@ namespace Happy_Reader.ViewModel
 		private string _vndbConnectionReply;
 		private Brush _vndbConnectionColor;
 		private readonly MainWindowViewModel _mainViewModel;
-		private Func<VisualNovelDatabase, IEnumerable<ListedProducer>> _dbFunction = x => x.CurrentUser?.FavoriteProducers ?? x.LocalProducers;
+		private Func<VisualNovelDatabase, IEnumerable<ListedProducer>> _dbFunction = x => x.CurrentUser?.FavoriteProducers ?? x.Producers.AsEnumerable();
 		private Func<ListedProducer, string> _order => producer => producer.Name;
 
 		public PausableUpdateList<ListedProducer> ListedProducers { get; set; } = new PausableUpdateList<ListedProducer>();
@@ -60,6 +60,7 @@ namespace Happy_Reader.ViewModel
 
 		public void VndbConnectionText(string text, VndbConnection.MessageSeverity severity)
 		{
+			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			Application.Current.Dispatcher.Invoke(() =>
 			{
 				VndbConnectionReply = text;
@@ -90,10 +91,10 @@ namespace Happy_Reader.ViewModel
 				var watch = Stopwatch.StartNew();
 				_finalPage = false;
 				_listedProducersPage = 1;
-				if (showAll) _dbFunction = x => x.CurrentUser?.FavoriteProducers ?? x.LocalProducers;
+				if (showAll) _dbFunction = x => x.CurrentUser?.FavoriteProducers ?? x.Producers.AsEnumerable();
 				AllProducerResults = _dbFunction.Invoke(LocalDatabase).OrderBy(_order).Select(x => x.ID).ToArray();
 				var firstPage = AllProducerResults.Take(PageSize).ToArray();
-				List<ListedProducer> results = LocalDatabase.LocalProducers.Where(x => firstPage.Contains(x.ID)).OrderBy(_order).ToList();
+				List<ListedProducer> results = LocalDatabase.Producers.WithKeyIn(firstPage).OrderBy(_order).ToList();
 				if (LocalDatabase.CurrentUser != null)
 				{
 					//var m = LocalDatabase.UserListedProducers.Where(x => x.User_Id == LocalDatabase.CurrentUser.Id).ToArray();
@@ -101,6 +102,7 @@ namespace Happy_Reader.ViewModel
 					foreach (var listedProducer in results) listedProducer.SetFavoriteProducerData(LocalDatabase, now);
 				}
 				if (AllProducerResults.Length <= PageSize) _finalPage = true;
+				Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 				Application.Current.Dispatcher.Invoke(() =>
 				{
 					ListedProducers.SetRange(results);
@@ -122,7 +124,7 @@ namespace Happy_Reader.ViewModel
 				if (newPage.Count == 0) return;
 			}
 
-			var newProducers = LocalDatabase.LocalProducers.Where(x => newPage.Contains(x.ID)).OrderBy(_order).ToArray();
+			var newProducers = LocalDatabase.Producers.WithKeyIn(newPage).OrderBy(_order).ToArray();
 
 			if (LocalDatabase.CurrentUser != null)
 			{
@@ -136,7 +138,7 @@ namespace Happy_Reader.ViewModel
 
 		public async Task SearchForProducer(string text)
 		{
-			_dbFunction = db => db.LocalProducers.Where(x => x.Name.ToLowerInvariant().Contains(text.ToLowerInvariant()));
+			_dbFunction = db => db.Producers.Where(x => x.Name.ToLowerInvariant().Contains(text.ToLowerInvariant()));
 			await RefreshListedProducers();
 		}
 	}

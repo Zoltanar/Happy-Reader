@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace Happy_Apps_Core
 {
     /// <summary>
     /// From get release commands
     /// </summary>
+    [UsedImplicitly]
     public class ReleaseItem
     {
         public List<ProducerItem> Producers { get; set; }

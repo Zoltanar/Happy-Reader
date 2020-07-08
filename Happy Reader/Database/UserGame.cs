@@ -45,10 +45,13 @@ namespace Happy_Reader.Database
 		public string DefaultHookFull { get; set; }
 		public bool MergeByHookCode { get; set; }
 		public string ProcessName { get; set; }
+		public string Tag { get; set; }
+
 		/// <summary>
 		/// Store output window location and dimensions as a string in the 'form x,y,width,height' 
 		/// </summary>
 		public string OutputWindow { get; set; }
+
 		[NotMapped]
 		public Rectangle OutputRectangle
 		{
@@ -70,6 +73,7 @@ namespace Happy_Reader.Database
 			get => TimeSpan.FromTicks(TimeOpenDT.Ticks);
 			set => TimeOpenDT = new DateTime(value.Ticks);
 		}
+
 		[NotMapped]
 		public ListedVN VN
 		{
@@ -78,7 +82,7 @@ namespace Happy_Reader.Database
 				if (Id == 0) return _vn;
 				if (!_vnGot)
 				{
-					if (VNID != null) _vn = StaticHelpers.LocalDatabase.LocalVisualNovels.SingleOrDefault(x => x.VNID == VNID);
+					if (VNID != null) _vn = StaticHelpers.LocalDatabase.VisualNovels[VNID.Value];
 					_vnGot = true;
 				}
 				return _vn;
@@ -89,6 +93,7 @@ namespace Happy_Reader.Database
 				_vnGot = true;
 			}
 		}
+
 		[NotMapped]
 		public Process Process
 		{
@@ -109,12 +114,13 @@ namespace Happy_Reader.Database
 		[NotMapped]
 		public string DisplayName =>
 			UserDefinedName ?? StaticMethods.TruncateStringFunction30(VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath));
+
 		[NotMapped]
 		public BitmapImage Image
 		{
 			get
 			{
-				Bitmap image = null;
+				Bitmap image;
 				if (!File.Exists(FilePath))
 				{
 					// ReSharper disable once PossibleNullReferenceException
@@ -122,7 +128,8 @@ namespace Happy_Reader.Database
 					image = new Bitmap(iconStream);
 				}
 				else if (VN == null) image = Icon.ExtractAssociatedIcon(FilePath)?.ToBitmap();
-				else if (File.Exists(VN.StoredCover)) image = new Bitmap(VN.StoredCover);
+				else if (File.Exists(VN.ImageSource)) image = new Bitmap(VN.ImageSource);
+				else image = Icon.ExtractAssociatedIcon(FilePath)?.ToBitmap();
 				if (image == null)
 				{
 					// ReSharper disable once PossibleNullReferenceException
@@ -167,7 +174,8 @@ namespace Happy_Reader.Database
 			}
 		}
 		[NotMapped]
-		public string DisplayNameGroup => DisplayName.Substring(0, 1);
+		public string DisplayNameGroup => DisplayName.Substring(0, Math.Min(DisplayName.Length, 1));
+
 		[NotMapped]
 		public DateTime MonthGrouping
 		{
@@ -182,6 +190,8 @@ namespace Happy_Reader.Database
 				return newDt;
 			}
 		}
+		[NotMapped]
+		public string TagSort => string.IsNullOrWhiteSpace(Tag) ? char.MaxValue.ToString() : Tag;
 
 		[NotMapped]
 		public DateTime LastPlayedDate
@@ -216,6 +226,15 @@ namespace Happy_Reader.Database
 			OnPropertyChanged(nameof(TimeOpen));
 		}
 
+		public void ResetTimePlayed()
+		{
+			TimeOpen = new TimeSpan();
+			var log = Log.NewResetTimePlayedLog(Id, false);
+			StaticMethods.Data.Logs.Add(log);
+			StaticMethods.Data.SaveChanges();
+			OnPropertyChanged(nameof(TimeOpen));
+		}
+
 		private void ProcessExited(object sender, EventArgs e) => SaveTimePlayed(true);
 
 		[NotifyPropertyChangedInvocator]
@@ -228,11 +247,19 @@ namespace Happy_Reader.Database
 			OnPropertyChanged(nameof(DisplayName));
 		}
 
+
+		public void SaveTag([NotNull]string text)
+		{
+			Tag = string.IsNullOrWhiteSpace(text) ? null : text.Trim();
+			StaticMethods.Data.SaveChanges();
+			OnPropertyChanged(nameof(Tag));
+		}
+
 		public void SaveVNID(int? vnid)
 		{
 			VNID = vnid;
 			StaticMethods.Data.SaveChanges();
-			VN = vnid == null ? null : StaticHelpers.LocalDatabase.LocalVisualNovels.SingleOrDefault(x => x.VNID == vnid);
+			VN = vnid == null ? null : StaticHelpers.LocalDatabase.VisualNovels[vnid.Value];
 			OnPropertyChanged(nameof(DisplayName));
 			OnPropertyChanged(nameof(Image));
 			OnPropertyChanged(nameof(VN));
@@ -265,6 +292,11 @@ namespace Happy_Reader.Database
 
 		public static readonly SortedList<DateTime, long> LastGamesPlayed = new SortedList<DateTime, long>();
 		public static Encoding[] Encodings => IthVnrViewModel.Encodings;
+
+		public bool HasVN => VNID.HasValue;
+		public bool FileExists => File.Exists(FilePath);
+
+
 		public enum EncodingEnum
 		{
 			// ReSharper disable once InconsistentNaming

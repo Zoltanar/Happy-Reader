@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data.Entity;
@@ -6,6 +7,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Management;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -38,6 +40,7 @@ namespace Happy_Reader.ViewModel
 		private string _statusText;
 		private bool _onlyGameEntries;
 		private bool _captureClipboard;
+		private bool _showFileNotFound;
 		public ClipboardManager ClipboardManager;
 		private Thread _monitor;
 		private DateTime _lastUpdateTime = DateTime.MinValue;
@@ -59,6 +62,7 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged();
 			}
 		}
+
 		public bool OnlyGameEntries
 		{
 			get => _onlyGameEntries;
@@ -69,6 +73,7 @@ namespace Happy_Reader.ViewModel
 				SetEntries();
 			}
 		}
+
 		public bool CaptureClipboard
 		{
 			get => _captureClipboard;
@@ -80,16 +85,27 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged();
 			}
 		}
-		public GuiSettings GSettings => StaticMethods.GSettings;
-		public BindingList<string> VndbQueries { get; set; }
-		public BindingList<string> VndbResponses { get; set; }
+
+		public bool ShowFileNotFound
+		{
+			get => _showFileNotFound;
+			set
+			{
+				if (value == _showFileNotFound) return;
+				_showFileNotFound = value;
+				LoadUserGames().RunSynchronously();
+				OnPropertyChanged();
+			}
+		}
 
 		[NotNull] public TranslationTester TestViewModel { get; }
 		[NotNull] public Translator Translator { get; }
 		[NotNull] public VNTabViewModel DatabaseViewModel { get; }
+		[NotNull] public CharactersTabViewModel CharactersViewModel { get; }
 		[NotNull] public ProducersTabViewModel ProducersViewModel { get; }
 		[NotNull] public FiltersViewModel FiltersViewModel { get; }
 		[NotNull] public IthViewModel IthViewModel { get; }
+		[NotNull] public GuiSettings SettingsViewModel { get; }
 
 		public bool TranslatePaused
 		{
@@ -106,8 +122,9 @@ namespace Happy_Reader.ViewModel
 		public PausableUpdateList<DisplayEntry> EntriesList { get; } = new PausableUpdateList<DisplayEntry>();
 		public PausableUpdateList<DisplayLog> LogsList { get; } = new PausableUpdateList<DisplayLog>();
 		public ObservableCollection<UserGameTile> UserGameItems { get; } = new ObservableCollection<UserGameTile>();
-		public string DisplayUser => "User: " + (User?.ToString() ?? "(none)");
-		public string DisplayGame => "Game: " + (UserGame?.ToString() ?? "(none)");
+		public string DisplayUser => $"User: {User?.ToString() ?? "(none)"}";
+		public string DisplayGame => $"Game: {UserGame?.ToString() ?? "(none)"}";
+
 		public User User
 		{
 			get => _user;
@@ -117,6 +134,7 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged(nameof(DisplayUser));
 			}
 		}
+
 		public UserGame UserGame
 		{
 			get => _userGame;
@@ -126,28 +144,35 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged(nameof(DisplayGame));
 			}
 		}
-
-		public CultureInfo[] Cultures { get; } = CultureInfo.GetCultures(CultureTypes.InstalledWin32Cultures);
+		
+		/// <summary>
+		/// Used by XAML.
+		/// </summary>
+		[UsedImplicitly]
+		public MainWindowViewModel() { }
 
 		public MainWindowViewModel(MainWindow mainWindow)
 		{
 			Application.Current.Exit += ExitProcedures;
-			VndbQueries = _vndbQueriesList.Items;
-			VndbResponses = _vndbResponsesList.Items;
+			SettingsViewModel = StaticMethods.GSettings;
+			SettingsViewModel.VndbQueries = _vndbQueriesList.Items;
+			SettingsViewModel.VndbResponses = _vndbResponsesList.Items;
 			Translator = new Translator(StaticMethods.Data);
 			Translation.Translator = Translator;
 			TestViewModel = new TranslationTester(this);
 			FiltersViewModel = new FiltersViewModel();
 			DatabaseViewModel = new VNTabViewModel(this, FiltersViewModel.Filters, FiltersViewModel.PermanentFilter);
+			CharactersViewModel = new CharactersTabViewModel();
 			ProducersViewModel = new ProducersTabViewModel(this);
 			IthViewModel = new IthViewModel(this);
-			OnPropertyChanged(nameof(VndbQueries));
+			SettingsViewModel.OnPropertyChanged(nameof(SettingsViewModel.VndbQueries));
 			OutputWindow = new OutputWindow(mainWindow);
 			Log.AddToList += AddLogToList;
 		}
 
 		private void AddLogToList(Log log)
 		{
+			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			Application.Current.Dispatcher.Invoke(() =>
 			{
 				LogsList.Add(new DisplayLog(log));
@@ -163,6 +188,7 @@ namespace Happy_Reader.ViewModel
 				: StaticMethods.Data.GetSeriesOnlyEntries(UserGame?.VN))
 					: StaticMethods.Data.Entries).ToArray();
 			var entries = items.Select(x => new DisplayEntry(x)).ToArray();
+			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			Application.Current.Dispatcher.Invoke(() =>
 			{
 				EntriesList.SetRange(entries);
@@ -202,19 +228,7 @@ namespace Happy_Reader.ViewModel
 				StatusText = $"This file has already been added. ({userGame.DisplayName})";
 				return null;
 			}
-			//todo cleanup
-			var filename = Path.GetFileNameWithoutExtension(file);
-			ListedVN[] fileResults = LocalDatabase.LocalVisualNovels.Where(VisualNovelDatabase.ListVNByNameOrAliasFunc(filename)).ToArray();
-			ListedVN vn = null;
-			if (fileResults.Length == 1) vn = fileResults.First();
-			else
-			{
-				var parent = Directory.GetParent(file);
-				var folder = parent.Name.Equals("data", StringComparison.OrdinalIgnoreCase) ? Directory.GetParent(parent.FullName).Name : parent.Name;
-				ListedVN[] folderResults = LocalDatabase.LocalVisualNovels.Where(VisualNovelDatabase.ListVNByNameOrAliasFunc(folder)).ToArray();
-				if (folderResults.Length == 1) vn = folderResults.First();
-			}
-			//ListedVN[] allResults = fileResults.Concat(folderResults).ToArray(); //todo list results and ask user
+			var vn = StaticMethods.ResolveVNForFile(file);
 			userGame = new UserGame(file, vn) { Id = StaticMethods.Data.UserGames.Max(x => x.Id) + 1 };
 			StaticMethods.Data.UserGames.Add(userGame);
 			StaticMethods.Data.SaveChanges();
@@ -224,7 +238,7 @@ namespace Happy_Reader.ViewModel
 
 		public async Task Initialize(Stopwatch watch, RoutedEventHandler defaultUserGameGrouping, bool initialiseIthVnr, bool initialiseEntries)
 		{
-			CaptureClipboard = GSettings.CaptureClipboardOnStart;
+			CaptureClipboard = SettingsViewModel.CaptureClipboardOnStart;
 			await Task.Run(() =>
 			{
 				StatusText = "Loading Dumpfiles...";
@@ -232,6 +246,7 @@ namespace Happy_Reader.ViewModel
 			});
 			await DatabaseViewModel.Initialize();
 			await ProducersViewModel.Initialize();
+			await CharactersViewModel.Initialize(this);
 			await Task.Run(() =>
 			{
 				if (!initialiseEntries) return;
@@ -245,7 +260,22 @@ namespace Happy_Reader.ViewModel
 				SetEntries();
 			});
 			StatusText = "Loading User Games...";
-			LoadUserGames();
+			await Task.Yield();
+			await LoadUserGames();
+			ListedVN.VnIsOwned = vnid =>
+			{
+				var status = OwnedStatus.NeverOwned;
+				foreach (var userGame in StaticMethods.Data.UserGames.Where(ug => ug.VNID.Value == vnid))
+				{
+					if (!userGame.FileExists) status = OwnedStatus.PastOwned;
+					else
+					{
+						status = OwnedStatus.CurrentlyOwned;
+						break;
+					}
+				}
+				return status;
+			};
 			LoadLogs();
 			SetLastPlayed();
 			defaultUserGameGrouping(null, null);
@@ -264,22 +294,48 @@ namespace Happy_Reader.ViewModel
 		}
 
 
-		public void LoadUserGames()
+		public async Task LoadUserGames()
 		{
-			StaticMethods.Data.UserGames.Load();
-			foreach (var game in StaticMethods.Data.UserGames.Local)
+			UserGameItems.Clear();
+			IEnumerable<UserGame> orderedGames = null;
+			 await Task.Run(() =>
 			{
-				game.VN = game.VNID != null
-						? LocalDatabase.LocalVisualNovels.FirstOrDefault(x => x.VNID == game.VNID)
+				StaticMethods.Data.UserGames.Load();
+				foreach (var game in StaticMethods.Data.UserGames.Local)
+				{
+					game.VN = game.VNID != null
+						? LocalDatabase.VisualNovels[game.VNID.Value]
 						: null;
-			}
-			foreach (var game in StaticMethods.Data.UserGames.Local.OrderBy(x => x.VNID ?? 0)) { UserGameItems.Add(new UserGameTile(game)); }
+				}
+				orderedGames = StaticMethods.Data.UserGames.Local.OrderBy(x => x.VNID ?? 0).ToList();
+				if (!ShowFileNotFound) orderedGames = orderedGames.Where(og => og.FileExists);
+			});
+			foreach (var game in orderedGames) { UserGameItems.Add(new UserGameTile(game)); }
 			OnPropertyChanged(nameof(UserGameItems));
 		}
+
 		public void LoadLogs()
 		{
 			StaticMethods.Data.Logs.Load();
-			LogsList.AddRange(StaticMethods.Data.Logs.Local.Select(x => new DisplayLog(x)));
+			var logs = new List<DisplayLog>();
+			foreach (var group in StaticMethods.Data.Logs.Local.GroupBy(i => (i.Timestamp.Date, i.Kind, i.AssociatedId)))
+			{
+				if (group.Key.Kind != LogKind.TimePlayed || group.Key.Date == DateTime.Now.Date)
+				{
+					logs.AddRange(group.Where(l => l.AssociatedIdExists).Select(l => new DisplayLog(l)));
+				}
+				else
+				{
+					var templateLog = (Log)group.First().Clone();
+					if (!templateLog.AssociatedIdExists) continue;
+					var totalTimeSpan = new TimeSpan(group.Sum(l => ((TimeSpan)l.ParsedData).Ticks));
+					if (totalTimeSpan.TotalMinutes < 2) continue;
+					templateLog.ParsedData = totalTimeSpan;
+					templateLog.Timestamp = group.Key.Date;
+					logs.Add(new DisplayLog(templateLog));
+				}
+			}
+			LogsList.AddRange(logs.OrderBy(l => l.Timestamp));
 			OnPropertyChanged(nameof(LogsList));
 		}
 
@@ -293,21 +349,10 @@ namespace Happy_Reader.ViewModel
 				if (userGame != null && File.Exists(userGame.FilePath)) UserGame.LastGamesPlayed.Add(log.Timestamp, log.AssociatedId);
 			}
 		}
-		public async Task SetUser(int userid, bool newId)
+		public void SetUser(int userid)
 		{
 			CSettings.UserID = userid;
-			if (newId)
-			{
-				await Task.Run(() =>
-				{
-					foreach (var vn in LocalDatabase.LocalVisualNovels)
-					{
-						vn.UserVNId = LocalDatabase.LocalUserVisualNovels.SingleOrDefault(x => x.UserId == CSettings.UserID && x.VNID == vn.VNID)?.Id;
-					}
-				});
-				await LocalDatabase.SaveChangesAsync();
-			}
-			User = LocalDatabase.LocalUsers.Single(x => x.Id == CSettings.UserID);
+			User = LocalDatabase.Users[CSettings.UserID];
 			LocalDatabase.CurrentUser = User;
 		}
 
@@ -334,7 +379,6 @@ namespace Happy_Reader.ViewModel
 		{
 			Debug.WriteLine($"MonitorStart starting with ID: {Thread.CurrentThread.ManagedThreadId}");
 			StaticMethods.Data.UserGames.Load();
-			//NotificationEvent.Invoke(this, $"Processes to monitor: {StaticMethods.Data.UserGameProcesses.Length}");
 			while (true)
 			{
 				if (_closing) return;
@@ -368,8 +412,22 @@ namespace Happy_Reader.ViewModel
 				var gameProcess = processes.FirstOrDefault(p => userGameProcesses.Contains(p.ProcessName));
 				try
 				{
-					if (gameProcess == null || gameProcess.HasExited || gameProcess.MainModule == null || gameProcess.Is64BitProcess()) return false;
-					var possibleUserGames = StaticMethods.Data.UserGames.Local.Where(x => x.ProcessName == gameProcess.ProcessName);
+					if (gameProcess == null || gameProcess.HasExited) return false;
+					string processFileName;
+					if (gameProcess.Is64BitProcess())
+					{
+						var searcher = new ManagementObjectSearcher("root\\CIMV2",
+							$"SELECT ExecutablePath FROM Win32_Process WHERE ProcessId = {gameProcess.Id}");
+						processFileName = searcher.Get().Cast<ManagementObject>().FirstOrDefault()?["ExecutablePath"].ToString() ?? string.Empty;
+						if(string.IsNullOrWhiteSpace(processFileName)) throw new InvalidOperationException("Did not find executable path for process");
+					}
+					else
+					{
+						Trace.Assert(gameProcess.MainModule != null, "gameProcess.MainModule != null");
+						processFileName = gameProcess.MainModule.FileName;
+					}
+					var possibleUserGames =
+						StaticMethods.Data.UserGames.Local.Where(x => x.ProcessName == gameProcess.ProcessName);
 					foreach (var userGame in possibleUserGames)
 					{
 						if (_closing) return true;
@@ -378,26 +436,31 @@ namespace Happy_Reader.ViewModel
 							Debug.WriteLine($"MonitorLoop ending with ID: {Thread.CurrentThread.ManagedThreadId}");
 							return true;
 						}
-						if (gameProcess.Is64BitProcess()) continue;
 						if (gameProcess.HasExited) continue;
-						Debug.Assert(gameProcess.MainModule != null, "gameProcess.MainModule != null");
-						if (!userGame.FilePath.Equals(gameProcess.MainModule.FileName, StringComparison.InvariantCultureIgnoreCase)) continue;
-						HookUserGame(userGame, gameProcess);
+						if (!userGame.FilePath.Equals(processFileName, StringComparison.InvariantCultureIgnoreCase)) continue;
+						HookUserGame(userGame, gameProcess, false);
 						Debug.WriteLine($"MonitorLoop ending with ID: {Thread.CurrentThread.ManagedThreadId}");
 						return true; //end monitor
 					}
-
 				}
 
-				catch (Win32Exception) { }
+				catch (Win32Exception ex)
+				{
+					//Only part of a ReadProcessMemory or WriteProcessMemory request was completed
+					//Access is denied
+					if (ex.NativeErrorCode != 299 && ex.NativeErrorCode != 5)
+						throw; 
+				}
 				catch (InvalidOperationException)
 				{ } //can happen if process is closed after getting reference
 			}
 			finally
 			{
-				foreach (var process in processes) if (process != UserGame?.Process) process.Dispose();
+				foreach (var process in processes)
+				{
+					if (process != UserGame?.Process) process.Dispose();
+				}
 			}
-
 			return false;
 		}
 
@@ -411,6 +474,7 @@ namespace Happy_Reader.ViewModel
 			StaticMethods.Data.SaveChanges();
 			OnPropertyChanged(nameof(TestViewModel));
 		}
+
 		public void RemoveUserGame(UserGame item)
 		{
 			var tile = UserGameItems.Single(x => x.UserGame == item);
@@ -420,7 +484,7 @@ namespace Happy_Reader.ViewModel
 		public void ClipboardChanged(object sender, EventArgs e)
 		{
 			if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl) || TranslatePaused) return;
-			if (UserGame.Process == null) return;
+			if (UserGame?.Process == null) return;
 			var cpOwner = StaticMethods.GetClipboardOwner();
 			var b1 = cpOwner == null;
 			var b2 = cpOwner?.Id == UserGame.Process.Id;
@@ -451,17 +515,21 @@ namespace Happy_Reader.ViewModel
 				if ((sender as TextThread)?.IsConsole ?? false) return false;
 				var rect = StaticMethods.GetWindowDimensions(UserGame.Process);
 				if (rect.ZeroSized) return false; //todo show it somehow or show error.
-				var translation = Translator.Translate(User, UserGame?.VN, e.Text);
-				if (string.IsNullOrWhiteSpace(translation?.Output))
+				Translation translation;
+				if (false && e.FromClipboard) //todo fix this
 				{
-					//todo report error
-					return false;
+					translation = new Translation(e.Text, true);
 				}
-				Action postOutput = delegate
+				else
 				{
-					OutputWindow.AddTranslation(translation);
-				};
-				DispatchIfRequired(postOutput, new TimeSpan(0, 0, 5));
+					translation = Translator.Translate(User, UserGame?.VN, e.Text);
+					if (string.IsNullOrWhiteSpace(translation?.Output))
+					{
+						//todo report error
+						return false;
+					}
+				}
+				DispatchIfRequired(()=> OutputWindow.AddTranslation(translation), new TimeSpan(0, 0, 5));
 			}
 			catch (Exception ex)
 			{
@@ -473,21 +541,25 @@ namespace Happy_Reader.ViewModel
 
 		private static void DispatchIfRequired(Action action, TimeSpan timeout)
 		{
+			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			if (Application.Current.Dispatcher.CheckAccess()) action();
 			else Application.Current.Dispatcher.Invoke(action, timeout);
 		}
 
 		private static T DispatchIfRequired<T>(Func<T> action)
 		{
+			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			return Application.Current.Dispatcher.CheckAccess() ? action() : Application.Current.Dispatcher.Invoke(action);
 		}
 
 		public void VndbAdvancedAction(string text, bool isQuery)
 		{
+			if (!StaticMethods.GSettings.AdvancedMode) return;
+			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			Application.Current.Dispatcher.Invoke(() => (isQuery ? _vndbQueriesList : _vndbResponsesList).AddWithId(text));
 		}
 
-		public void HookUserGame(UserGame userGame, Process process)
+		public void HookUserGame(UserGame userGame, Process process, bool useLocaleEmulator)
 		{
 			lock (HookLock)
 			{
@@ -500,7 +572,9 @@ namespace Happy_Reader.ViewModel
 				UserGame = userGame;
 				if (process == null)
 				{
-					process = UserGame.LaunchPath != null ? StaticMethods.StartProcessThroughProxy(UserGame) : StaticMethods.StartProcess(UserGame.FilePath);
+					process = useLocaleEmulator ? StaticMethods.StartProcessThroughLocaleEmulator(UserGame) :
+										UserGame.LaunchPath != null ? StaticMethods.StartProcessThroughProxy(UserGame) :
+										StaticMethods.StartProcess(UserGame.FilePath);
 				}
 
 				//process can be closed at any point
@@ -546,52 +620,13 @@ namespace Happy_Reader.ViewModel
 		private void HookedProcessOnExited(object sender, EventArgs eventArgs)
 		{
 			UserGame.OutputRectangle = OutputWindow.GetRectangle();
+			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			Application.Current.Dispatcher.Invoke(() => OutputWindow.Hide());
 			UserGame = null;
-			GC.Collect();
 			//restart monitor
 			if (_monitor != null && _monitor.IsAlive) return;
 			_monitor = new Thread(MonitorStart) { IsBackground = true };
 			_monitor.Start();
-		}
-
-		private bool _debugStop;
-		private Thread _debugObject;
-		public void DebugButton()
-		{
-			//todo simulate repeated redrawing of outputwindow
-			if (_debugObject == null)
-			{
-				_debugStop = false;
-				_debugObject = new Thread(DebugThread);
-				_debugObject.Start();
-			}
-			else
-			{
-				_debugStop = true;
-				_debugObject.Join();
-				_debugObject = null;
-			}
-			//end
-			GC.Collect();
-			StaticMethods.Data.SaveChanges();
-			OutputWindow.Show();
-		}
-
-		public void DebugThread()
-		{
-			var translation = Translator.Translate(User, UserGame?.VN, "じゃがいもはとっても美味しいですね？");
-			var translation2 = Translator.Translate(User, UserGame?.VN, "にくじゃがはとっても悪いです！");
-			int counter = 0;
-			while (true)
-			{
-				if (_debugStop) return;
-				var trans = (counter % 2 == 0 ? translation : translation2).Clone() as Translation;
-				DispatchIfRequired(() => OutputWindow.AddTranslation(trans), new TimeSpan(0, 0, 5));
-				counter++;
-				if (counter % 50 == 0) Debug.WriteLine($"Debug Counter {counter}");
-				Thread.Sleep(100);
-			}
 		}
 
 		// ReSharper disable UnusedTupleComponentInReturnValue

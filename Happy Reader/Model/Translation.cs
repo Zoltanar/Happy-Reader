@@ -19,6 +19,7 @@ namespace Happy_Reader
 		public readonly string Romaji;
 		public string Output => Results[7];
 		public bool IsCharacterOnly { get; }
+		public bool FromClipboard { get; }
 
 		public Translation(string original)
 		{
@@ -30,7 +31,20 @@ namespace Happy_Reader
 			originalForRomaji = romajiRegex.Replace(originalForRomaji, "");
 			Romaji = Kakasi.JapaneseToRomaji(originalForRomaji);
 			//IsCharacterOnly = Original.StartsWith("【") && Original.EndsWith("】") && Original.Length < 10;
-			IsCharacterOnly = Original.IndexOfAny(new [] {'「','」'}) < 0 && Original.Length < 10;
+			IsCharacterOnly = Original.IndexOfAny(new[] { '「', '」' }) < 0 && Original.Length < 10;
+		}
+
+		public Translation(string text, bool fromClipboard) : this(text)
+		{/*
+			Original = text;
+			Romaji = string.Empty;
+			IsCharacterOnly = false;
+			for (int stage = 0; stage < Results.Length; stage++)
+			{
+				Results[stage] = text;
+			}*/
+
+			FromClipboard = fromClipboard;
 		}
 
 		private Translation(string original, string romaji, string[] results)
@@ -96,23 +110,33 @@ namespace Happy_Reader
 		public void SetParagraphs()
 		{
 			var originalP = new Paragraph(new Run(Original));
-			originalP.Inlines.FirstInline.Foreground = Brushes.Ivory;
+			originalP.Inlines.FirstInline.Foreground = StaticMethods.GSettings.OriginalColor;
+			SetFont(originalP, StaticMethods.GSettings.OriginalTextFont);
 			OriginalBlock = originalP;
 			if (!string.IsNullOrWhiteSpace(Romaji) && !Romaji.Equals(Original))
 			{
 				var romajiP = new Paragraph(new Run(Romaji));
-				romajiP.Inlines.FirstInline.Foreground = Brushes.Pink;
+				romajiP.Inlines.FirstInline.Foreground = StaticMethods.GSettings.RomajiColor;
+				SetFont(romajiP, StaticMethods.GSettings.RomajiTextFont);
 				RomajiBlock = romajiP;
 			}
 			if (!string.IsNullOrWhiteSpace(Output) && !Output.Equals(Original))
 			{
 				var translatedP = new Paragraph(new Run(Output));
-				translatedP.Inlines.FirstInline.Foreground = Brushes.GreenYellow;
+				translatedP.Inlines.FirstInline.Foreground = StaticMethods.GSettings.TranslationColor;
+				SetFont(translatedP, StaticMethods.GSettings.TranslatedTextFont);
 				TranslatedBlock = translatedP;
 			}
 		}
 
-		public List<Paragraph> GetBlocks(bool original, bool romaji, double fontSize = 19d)
+		private static void SetFont(TextElement block, string fontName)
+		{
+			if (string.IsNullOrWhiteSpace(fontName)) return;
+			if (!StaticMethods.FontsInstalled.TryGetValue(fontName, out var fontFamily)) return;
+			block.FontFamily = fontFamily;
+		}
+
+		public List<Paragraph> GetBlocks(bool original, bool romaji)
 		{
 			var blocks = new List<Paragraph>();
 			if (original) blocks.Add(OriginalBlock);
@@ -122,7 +146,7 @@ namespace Happy_Reader
 			{
 				block.Margin = new Thickness(0);
 				block.TextAlignment = TextAlignment.Center;
-				block.FontSize = fontSize;
+				block.FontSize = StaticMethods.GSettings.FontSize;
 			}
 			var spacer = new Paragraph(new Run("￣￣￣"));
 			spacer.Inlines.FirstInline.Foreground = Brushes.White;
@@ -136,13 +160,13 @@ namespace Happy_Reader
 
 		public static Translation Error(string error)
 		{
-			return new Translation(error, "", Enumerable.Repeat(error,8).ToArray());
+			return new Translation(error, "", Enumerable.Repeat(error, 8).ToArray());
 		}
 
 		public object Clone()
 		{
 			//return MemberwiseClone();
-			return new Translation(Original,Romaji,Results);
+			return new Translation(Original, Romaji, Results);
 		}
 	}
 }
