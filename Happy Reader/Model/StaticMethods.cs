@@ -29,13 +29,18 @@ namespace Happy_Reader
 		public static readonly string CustomFiltersJson = Path.Combine(StaticHelpers.StoredDataFolder, "customfilters.json");
 		public static readonly string PermanentFilterJson = Path.Combine(StaticHelpers.StoredDataFolder, "filters.json");
 		public static readonly string GuiSettingsJson = Path.Combine(StaticHelpers.StoredDataFolder, "guisettings.json");
+		public static readonly string TranslatorSettingsJson = Path.Combine(StaticHelpers.StoredDataFolder, "translatorsettings.json");
 		public static HappyReaderDatabase Data { get; } = new HappyReaderDatabase();
 		public static readonly GuiSettings GSettings;
+		public static readonly TranslatorSettings TSettings;
 
 		static StaticMethods()
 		{
 			GSettings = SettingsJsonFile.Load<GuiSettings>(GuiSettingsJson);
+			TSettings = SettingsJsonFile.Load<TranslatorSettings>(TranslatorSettingsJson);
+			GSettings.TSettings = TSettings;
 		}
+
 		public static string GetLocalizedTime(this DateTime dateTime)
 		{
 			bool isAmPm = GSettings.CultureInfo.DateTimeFormat.AMDesignator != string.Empty;

@@ -31,7 +31,13 @@ namespace Happy_Reader
 
 		public Translator(HappyReaderDatabase data) => _data = data;
 
-		public void SetCache() => GoogleTranslate.Initialize(_data.CachedTranslations.AsNoTracking().ToDictionary(x => x.Input), _data.CachedTranslations.Local, Kakasi.JapaneseToRomaji);
+		public void SetCache() => GoogleTranslate.Initialize(
+			_data.CachedTranslations.AsNoTracking().ToDictionary(x => x.Input), 
+			_data.CachedTranslations.Local, 
+			Kakasi.JapaneseToRomaji,
+			StaticMethods.TSettings.GoogleCredentialPath,
+			StaticMethods.TSettings.FreeUserAgent,
+			StaticMethods.TSettings.UntouchedStrings);
 
 		public Translation Translate(User user, ListedVN game, string input)
 		{
@@ -296,7 +302,7 @@ namespace Happy_Reader
 				throw new Exception("Error in TranslateStageFour, see inner", ex);
 			}
 			result[4] = sb.ToString();
-			if(StaticMethods.GSettings.GoogleUseCredential) GoogleTranslate.Translate(sb);
+			if(StaticMethods.TSettings.GoogleUseCredential) GoogleTranslate.Translate(sb);
 			else GoogleTranslate.TranslateFree(sb);
 			StaticHelpers.Logger.Verbose($"Stage 5: {sb}");
 			result[5] = sb.ToString();

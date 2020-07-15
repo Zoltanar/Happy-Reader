@@ -17,42 +17,45 @@ namespace HRGoogleTranslate
 	{
 		private static Dictionary<string, GoogleTranslation> _cache = new Dictionary<string, GoogleTranslation>();
 		private static readonly HashSet<string> UntouchedStrings = new HashSet<string>();
-		private const string GoogleCredential = @"C:\Google\hrtranslate-credential.json"; //todo make this an external setting
 
-		private static readonly TranslationClient Client;
+		private static string GoogleCredentialPath;
+		private static bool CanUseGoogleCredential;
+		private static TranslationClient Client;
+
 		private static readonly HttpClient FreeClient = new HttpClient();
 		private static Func<string, string> _japaneseToRomaji;
 		public static uint GotFromCacheCount { get; private set; }
 		public static uint GotFromAPICount { get; private set; }
 		private static ObservableCollection<GoogleTranslation> _linkedCache = new ObservableCollection<GoogleTranslation>();
 
-		public static void Initialize([NotNull] Dictionary<string, GoogleTranslation> existingCache, [NotNull]ObservableCollection<GoogleTranslation> inputCache, [NotNull] Func<string, string> japaneseToRomaji)
+		public static void Initialize(
+			[NotNull] Dictionary<string, GoogleTranslation> existingCache, 
+			[NotNull]ObservableCollection<GoogleTranslation> inputCache, 
+			[NotNull] Func<string, string> japaneseToRomaji, 
+			string credentialLocation,
+			string userAgentString,
+			HashSet<string> untouchedStrings)
 		{
 			_japaneseToRomaji = japaneseToRomaji;
 			_linkedCache = inputCache;
 			_cache = existingCache;
-		}
-
-		static GoogleTranslate()
-		{
-			// ReSharper disable once StringLiteralTypo
-			//todo make this an externally loaded string
-			FreeClient.DefaultRequestHeaders.Add(@"user-agent", @"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
-			using (var stream = File.OpenRead(GoogleCredential))
+			GoogleCredentialPath = credentialLocation;
+			CanUseGoogleCredential = !string.IsNullOrWhiteSpace(GoogleCredentialPath) && File.Exists(GoogleCredentialPath);
+			FreeClient.DefaultRequestHeaders.Add(@"user-agent", userAgentString);
+			if (CanUseGoogleCredential)
 			{
-				Client = TranslationClient.Create(Google.Apis.Auth.OAuth2.GoogleCredential.FromStream(stream));
+				using (var stream = File.OpenRead(GoogleCredentialPath))
+				{
+					Client = TranslationClient.Create(Google.Apis.Auth.OAuth2.GoogleCredential.FromStream(stream));
+				}
 			}
-			BuildUntouchedStrings();
-		}
-
-		private static void BuildUntouchedStrings()
-		{
-			//todo make this an externally loaded list
 			UntouchedStrings.Clear();
-			UntouchedStrings.Add("");
-			UntouchedStrings.Add("\r\n");
+			foreach (var untouchedString in untouchedStrings)
+			{
+				UntouchedStrings.Add(untouchedString);
+			}
 		}
-
+		
 		public static void TranslateFree(StringBuilder text)
 		{
 #if NOTRANSLATION
@@ -156,10 +159,14 @@ namespace HRGoogleTranslate
 					return;
 				}
 			}
-			LogVerbose($"{nameof(HRGoogleTranslate)} - Getting string from API, input: {input}");
+			if (!CanUseGoogleCredential)
+			{
+				text.Append($"Failed: {nameof(CanUseGoogleCredential)} is false");
+				return;
+			}
 			try
 			{
-
+				LogVerbose($"{nameof(HRGoogleTranslate)} - Getting string from API, input: {input}");
 				var response = Client.TranslateText(input, "en", "ja", TranslationModel.Base);
 				GotFromAPICount++;
 				if (!string.IsNullOrWhiteSpace(response?.TranslatedText))

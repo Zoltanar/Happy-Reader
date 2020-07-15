@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 using System.Windows.Media;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
-using JetBrains.Annotations;
 using Newtonsoft.Json;
 
 namespace Happy_Reader
 {
-	public class GuiSettings : SettingsJsonFile, INotifyPropertyChanged
+	public class GuiSettings : SettingsJsonFile
 	{
 		private bool _nsfwImages;
 		private bool _advancedMode;
@@ -22,13 +19,16 @@ namespace Happy_Reader
 		private int _maxClipboardSize;
 		private bool _captureClipboardOnStart;
 		private CultureInfo _cultureInfo = CultureInfo.DefaultThreadCurrentCulture ?? CultureInfo.CurrentCulture;
-		private bool _googleUseCredential;
 		private string _originalTextFont;
 		private string _romajiTextFont;
 		private string _translatedTextFont;
 		private string _localeEmulatorPath;
 		private string _extraPageLink;
+		//todo: only used to bind to settingstab, change later
+		[JsonIgnore]
+		public TranslatorSettings TSettings { get; set; }
 
+		[JsonIgnore]
 		public CultureInfo[] Cultures { get; } = CultureInfo.GetCultures(CultureTypes.InstalledWin32Cultures);
 
 		public GuiSettings()
@@ -146,18 +146,7 @@ namespace Happy_Reader
 				if (Loaded) Save();
 			}
 		}
-
-		public bool GoogleUseCredential
-		{
-			get => _googleUseCredential;
-			set
-			{
-				if (_googleUseCredential == value) return;
-				_googleUseCredential = value;
-				if (Loaded) Save();
-			}
-		}
-
+		
 		public string About =>
 			$"{StaticHelpers.ClientName} {StaticHelpers.ClientVersion} for VNDB API version {StaticHelpers.APIVersion}";
 
@@ -253,15 +242,7 @@ namespace Happy_Reader
 				if (Loaded) Save();
 			}
 		}
-
-		public event PropertyChangedEventHandler PropertyChanged;
-
-		[NotifyPropertyChangedInvocator]
-		public virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-		{
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-		}
-
+		
 		public Dictionary<DumpFiles.WrittenTag, double> GetTagScoreDictionary()
 		{
 			var tagScoreDict = new Dictionary<DumpFiles.WrittenTag, double>();

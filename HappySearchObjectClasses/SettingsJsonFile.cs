@@ -1,13 +1,16 @@
-﻿using System.IO;
+﻿using System.ComponentModel;
+using System.IO;
+using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 
 namespace Happy_Apps_Core
 {
-	public class SettingsJsonFile
+	public abstract class SettingsJsonFile : INotifyPropertyChanged
 	{
 		protected bool Loaded { get; private set; }
 
-		public string FilePath { get; private set; }
+		protected string FilePath { get; private set; }
 
 		public static T Load<T>(string jsonPath) where T : SettingsJsonFile, new()
 		{
@@ -58,6 +61,14 @@ namespace Happy_Apps_Core
 			{
 				StaticHelpers.Logger.ToFile(exception);
 			}
+		}
+
+		public event PropertyChangedEventHandler PropertyChanged;
+
+		[NotifyPropertyChangedInvocator]
+		public virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+		{
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 	}
 }
