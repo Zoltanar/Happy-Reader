@@ -10,6 +10,7 @@ using System.Windows;
 using Happy_Apps_Core;
 using Happy_Reader.Database;
 using System.Linq.Expressions;
+using System.Management;
 using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -43,7 +44,7 @@ namespace Happy_Reader
 
 		public static string GetLocalizedTime(this DateTime dateTime)
 		{
-			bool isAmPm = GSettings.CultureInfo.DateTimeFormat.AMDesignator != string.Empty;
+			bool isAmPm = GSettings.CultureInfo.DateTimeFormat.AMDesignator != String.Empty;
 			return dateTime.ToString(isAmPm ? "hh:mm tt" : "HH:mm", GSettings.CultureInfo);
 		}
 
@@ -297,8 +298,13 @@ namespace Happy_Reader
 		public static ComboBoxItem[] GetEnumValues(Type enumType)
 		{
 			var result = Enum.GetValues(enumType);
-			if (result.Length == 0) return new ComboBoxItem[0];
-			return result.Cast<Enum>().Select(x => new ComboBoxItem { Content = x.GetDescription(), Tag = x, HorizontalContentAlignment = HorizontalAlignment.Left, VerticalContentAlignment = VerticalAlignment.Center}).ToArray();
+			return result.Length == 0 ? new ComboBoxItem[0] : result.Cast<Enum>().Select(x => new ComboBoxItem
+			{
+				Content = x.GetDescription(), 
+				Tag = x, 
+				HorizontalContentAlignment = HorizontalAlignment.Left, 
+				VerticalContentAlignment = VerticalAlignment.Center
+			}).ToArray();
 		}
 
 		//todo make this an externally loaded list
@@ -339,13 +345,7 @@ namespace Happy_Reader
 						parent = parent.Parent;
 						continue;
 					}
-
-					//todo may not be needed anymore
-					var folder = parent.Name.Equals("data", StringComparison.OrdinalIgnoreCase)
-						? Directory.GetParent(parent.FullName).Name
-						: parent.Name;
-					ListedVN[] folderResults =
-						StaticHelpers.LocalDatabase.VisualNovels.Where(VisualNovelDatabase.SearchForVN(folder)).ToArray();
+					ListedVN[] folderResults = StaticHelpers.LocalDatabase.VisualNovels.Where(VisualNovelDatabase.SearchForVN(parent.Name)).ToArray();
 					if (folderResults.Length == 1)
 					{
 						vn = folderResults.First();
@@ -409,7 +409,7 @@ namespace Happy_Reader
 			}
 		}
 
-		public static Dictionary<string,FontFamily> FontsInstalled = 
+		public static Dictionary<string, FontFamily> FontsInstalled = 
 			//select all font families
 			Fonts.SystemFontFamilies
 				//for each font family
@@ -422,6 +422,21 @@ namespace Happy_Reader
 			.ToDictionary(f => f.Key, f => f.Value);
 
 
-
+		public static string GetProcessFileName(Process process)
+		{
+			string processFileName;
+			if (process.Is64BitProcess())
+			{
+				var searcher = new ManagementObjectSearcher("root\\CIMV2", $"SELECT ExecutablePath FROM Win32_Process WHERE ProcessId = {process.Id}");
+				processFileName = searcher.Get().Cast<ManagementObject>().FirstOrDefault()?["ExecutablePath"].ToString() ?? String.Empty;
+				if (String.IsNullOrWhiteSpace(processFileName)) throw new InvalidOperationException("Did not find executable path for process");
+			}
+			else
+			{
+				Trace.Assert(process.MainModule != null, "gameProcess.MainModule != null");
+				processFileName = process.MainModule.FileName;
+			}
+			return processFileName;
+		}
 	}
 }

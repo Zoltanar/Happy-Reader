@@ -262,8 +262,26 @@ namespace Happy_Reader.ViewModel
 			StatusText = "Loading User Games...";
 			await Task.Yield();
 			await LoadUserGames();
-			ListedVN.VnIsOwned = vnid =>
+			ListedVN.VnIsOwned = VnIsOwned;
+			LoadLogs();
+			SetLastPlayed();
+			defaultUserGameGrouping(null, null);
+			TestViewModel.Initialize();
+			OnPropertyChanged(nameof(TestViewModel));
+			if (initialiseIthVnr)
 			{
+				StatusText = "Initializing ITHVNR...";
+				IthViewModel.Initialize(RunTranslation, GetPreferredHookCode);
+			}
+			_monitor = new Thread(MonitorStart) { IsBackground = true };
+			_monitor.Start();
+			_loadingComplete = true;
+			StatusText = "Loading complete.";
+			NotificationEvent(this, $"Took {watch.Elapsed.ToSeconds()}.", "Loading Complete");
+		}
+
+		private static OwnedStatus VnIsOwned(int vnid)
+		{
 				var status = OwnedStatus.NeverOwned;
 				foreach (var userGame in StaticMethods.Data.UserGames.Where(ug => ug.VNID.Value == vnid))
 				{
@@ -275,22 +293,6 @@ namespace Happy_Reader.ViewModel
 					}
 				}
 				return status;
-			};
-			LoadLogs();
-			SetLastPlayed();
-			defaultUserGameGrouping(null, null);
-			TestViewModel.Initialize();
-			OnPropertyChanged(nameof(TestViewModel));
-			_monitor = new Thread(MonitorStart) { IsBackground = true };
-			_monitor.Start();
-			if (initialiseIthVnr)
-			{
-				StatusText = "Initializing ITHVNR...";
-				IthViewModel.Initialize(RunTranslation, GetPreferredHookCode);
-			}
-			_loadingComplete = true;
-			StatusText = "Loading complete.";
-			NotificationEvent(this, $"Took {watch.Elapsed.ToSeconds()}.", "Loading Complete");
 		}
 
 
@@ -400,9 +402,8 @@ namespace Happy_Reader.ViewModel
 		}
 
 		/// <summary>
-		/// Returns true if loop should be broken.
+		/// Returns true if loop should be stopped.
 		/// </summary>
-		/// <returns></returns>
 		private bool MonitorLoop()
 		{
 			var processes = Process.GetProcesses();
@@ -413,46 +414,24 @@ namespace Happy_Reader.ViewModel
 				try
 				{
 					if (gameProcess == null || gameProcess.HasExited) return false;
-					string processFileName;
-					if (gameProcess.Is64BitProcess())
-					{
-						var searcher = new ManagementObjectSearcher("root\\CIMV2",
-							$"SELECT ExecutablePath FROM Win32_Process WHERE ProcessId = {gameProcess.Id}");
-						processFileName = searcher.Get().Cast<ManagementObject>().FirstOrDefault()?["ExecutablePath"].ToString() ?? string.Empty;
-						if(string.IsNullOrWhiteSpace(processFileName)) throw new InvalidOperationException("Did not find executable path for process");
-					}
-					else
-					{
-						Trace.Assert(gameProcess.MainModule != null, "gameProcess.MainModule != null");
-						processFileName = gameProcess.MainModule.FileName;
-					}
-					var possibleUserGames =
-						StaticMethods.Data.UserGames.Local.Where(x => x.ProcessName == gameProcess.ProcessName);
+					var processFileName = StaticMethods.GetProcessFileName(gameProcess);
+					var possibleUserGames = StaticMethods.Data.UserGames.Local.Where(x => x.ProcessName == gameProcess.ProcessName);
 					foreach (var userGame in possibleUserGames)
 					{
 						if (_closing) return true;
-						if (UserGame?.Process != null)
-						{
-							Debug.WriteLine($"MonitorLoop ending with ID: {Thread.CurrentThread.ManagedThreadId}");
-							return true;
-						}
+						if (UserGame?.Process != null) return true;
 						if (gameProcess.HasExited) continue;
 						if (!userGame.FilePath.Equals(processFileName, StringComparison.InvariantCultureIgnoreCase)) continue;
 						HookUserGame(userGame, gameProcess, false);
-						Debug.WriteLine($"MonitorLoop ending with ID: {Thread.CurrentThread.ManagedThreadId}");
-						return true; //end monitor
+						return true;
 					}
 				}
-
 				catch (Win32Exception ex)
 				{
-					//Only part of a ReadProcessMemory or WriteProcessMemory request was completed
-					//Access is denied
-					if (ex.NativeErrorCode != 299 && ex.NativeErrorCode != 5)
-						throw; 
+					//Only part of a ReadProcessMemory or WriteProcessMemory request was completed, Access is denied
+					if (ex.NativeErrorCode != 299 && ex.NativeErrorCode != 5) throw; 
 				}
-				catch (InvalidOperationException)
-				{ } //can happen if process is closed after getting reference
+				catch (InvalidOperationException) { } //can happen if process is closed after getting reference
 			}
 			finally
 			{

@@ -16,8 +16,7 @@ namespace Happy_Apps_Core
 		private enum QueryResult { Fail, Success, Throttled }
 
 		public ApiQuery ActiveQuery { get; private set; }
-
-
+		
 		/// <summary>
 		/// string is text to be passed, bool is true if query, false if response
 		/// </summary>
@@ -60,7 +59,7 @@ namespace Happy_Apps_Core
 				TextAction($"Wait until {ActiveQuery.ActionName} is done.", MessageSeverity.Error);
 				return false;
 			}
-			ActiveQuery = new ApiQuery(featureName, refreshList, additionalMessage, ignoreDateLimit, _refreshListOnAddAction);
+			ActiveQuery = new ApiQuery(featureName, refreshList, additionalMessage, _refreshListOnAddAction);
 			TextAction($"Running {featureName}...", MessageSeverity.Normal);
 			return true;
 		}
@@ -97,19 +96,6 @@ namespace Happy_Apps_Core
 				currentArray.Remove(deletedVN);
 			}
 		}
-
-		private static void RemoveDeletedCharacters(ResultsRoot<CharacterItem> root, ICollection<int> currentArray)
-		{
-			if (root.Num >= currentArray.Count) return;
-			//some vns were deleted, find which ones and remove them
-			IEnumerable<int> deletedChars = currentArray.Where(presentCharId => root.Items.All(receivedCharacter => receivedCharacter.ID != presentCharId)).ToArray();
-			foreach (var deletedCharacter in deletedChars)
-			{
-				LocalDatabase.RemoveCharacter(deletedCharacter, false);
-				currentArray.Remove(deletedCharacter);
-			}
-		}
-
 		#endregion
 
 		#region Private
@@ -144,69 +130,109 @@ namespace Happy_Apps_Core
 				if (!currentArray.Any()) return;
 				var vnsToBeUpserted = new List<(VNItem VN, ProducerItem Producer, VNLanguages Languages)>(); //this is not a dictionary because vns should be distinct
 				var producersToBeUpserted = new Dictionary<int, ProducerItem>(); //this is a dictionary because we dont want to fetch/upsert the same producer twice
-				await HandleVNItems(vnRoot.Items, producersToBeUpserted, vnsToBeUpserted);
-				LocalDatabase.Connection.Open();
-				try
-				{
-					vnsToBeUpserted.ForEach(vn => LocalDatabase.UpsertSingleVN(vn, true, false));
-					foreach (var producer in producersToBeUpserted.Values) LocalDatabase.UpsertProducer(producer, false);
-					ActiveQuery.RunActionOnAdd();
-				}
-				catch (Exception ex)
-				{
-					Logger.ToFile(ex);
-					throw;
-				}
-				finally
-				{
-					LocalDatabase.Connection.Close();
-				}
-				await GetCharacters(currentArray, false);
+				await HandleVNItems(vnRoot.Items, producersToBeUpserted, vnsToBeUpserted, updateAll);
+				UpdateVisualNovelsInDatabase(vnsToBeUpserted, producersToBeUpserted);
+				await GetCharacters(currentArray);
 				done += APIMaxResults;
 			} while (done < vnIDs.Count);
+		}
 
-			async Task HandleVNItems(List<VNItem> itemList, Dictionary<int, ProducerItem> upsertProducers, List<(VNItem VN, ProducerItem Producer, VNLanguages Languages)> upsertTitles)
+		private async Task HandleVNItems(List<VNItem> itemList, Dictionary<int, ProducerItem> upsertProducers, List<(VNItem VN, ProducerItem Producer, VNLanguages Languages)> upsertTitles, bool updateAll)
+		{
+			foreach (var vnItem in itemList)
 			{
-				foreach (var vnItem in itemList)
+				vnItem.SaveCover();
+				var releases = await GetReleases(vnItem.ID, Resources.svn_query_error);
+				var mainRelease = releases.FirstOrDefault(item => item.Producers.Exists(x => x.Developer));
+				var relProducer = mainRelease?.Producers.FirstOrDefault(p => p.Developer);
+				var languages = new VNLanguages(vnItem.Orig_Lang, vnItem.Languages);
+				if (relProducer != null && !upsertProducers.ContainsKey(relProducer.ID))
 				{
-					vnItem.SaveCover();
-					var releases = await GetReleases(vnItem.ID, Resources.svn_query_error);
-					var mainRelease = releases.FirstOrDefault(item => item.Producers.Exists(x => x.Developer));
-					var relProducer = mainRelease?.Producers.FirstOrDefault(p => p.Developer);
-					var languages = new VNLanguages(vnItem.Orig_Lang, vnItem.Languages);
-					if (relProducer != null && !upsertProducers.ContainsKey(relProducer.ID))
+					var gpResult = await GetProducer(relProducer.ID, Resources.gmvn_query_error, updateAll);
+					if (!gpResult.Item1)
 					{
-						var gpResult = await GetProducer(relProducer.ID, Resources.gmvn_query_error, updateAll);
-						if (!gpResult.Item1)
-						{
-							_changeStatusAction?.Invoke(Status);
-							return;
-						}
-						if (gpResult.Item2 != null) upsertProducers[relProducer.ID] = gpResult.Item2;
+						_changeStatusAction?.Invoke(Status);
+						return;
 					}
-					ActiveQuery.AddTitleAdded(vnItem.ID);
-					upsertTitles.Add((vnItem, relProducer, languages));
+					if (gpResult.Item2 != null) upsertProducers[relProducer.ID] = gpResult.Item2;
 				}
+				ActiveQuery.AddTitleAdded(vnItem.ID);
+				upsertTitles.Add((vnItem, relProducer, languages));
+			}
+		}
+
+		private void UpdateVisualNovelsInDatabase(List<(VNItem VN, ProducerItem Producer, VNLanguages Languages)> vnsToBeUpserted, Dictionary<int, ProducerItem> producersToBeUpserted)
+		{
+			LocalDatabase.Connection.Open();
+			try
+			{
+				vnsToBeUpserted.ForEach(vn => LocalDatabase.UpsertSingleVN(vn, true, false));
+				foreach (var producer in producersToBeUpserted.Values) LocalDatabase.UpsertProducer(producer, false);
+				ActiveQuery.RunActionOnAdd();
+			}
+			catch (Exception ex)
+			{
+				Logger.ToFile(ex);
+				throw;
+			}
+			finally
+			{
+				LocalDatabase.Connection.Close();
 			}
 		}
 
 		/// <summary>
 		/// Get character data about multiple visual novels.
 		/// </summary>
-		/// <param name="ids">List of Ids to fetch by</param>
-		/// <param name="isCharacterList">true if list of ids is characters ids, false if its vnids</param>
-		private async Task GetCharacters(HashSet<int> ids, bool isCharacterList)
+		/// <param name="ids">List of visual novel ids to fetch characters for.</param>
+		private async Task GetCharacters(HashSet<int> ids)
 		{
 			if (!ids.Any()) return;
 			var currentArray = ids.Take(APIMaxResults).ToList();
-			string queryFormat = $"get character basic,details,traits,vns,voiced ({(isCharacterList ? "id" : "vn")} = {{0}})";
+			string queryFormat = "get character basic,details,traits,vns,voiced (vn = {{0}})";
 			var queryResult = await TryQuery(FormatQuery(queryFormat, currentArray), $"{nameof(GetCharacters)} Query Error");
 			if (!queryResult) return;
 			ResultsRoot<CharacterItem> charRoot = JsonConvert.DeserializeObject<ResultsRoot<CharacterItem>>(LastResponse.JsonPayload);
+			UpdateCharactersInDatabase(charRoot);
+			bool moreResults = charRoot.More;
+			int pageNo = 1;
+			var success = await ProcessMoreResults();
+			if (!success) return;
+			int done = APIMaxResults;
+			while (done < ids.Count)
+			{
+				currentArray = ids.Skip(done).Take(APIMaxResults).ToList();
+				queryResult = await TryQuery(FormatQuery(queryFormat, currentArray), $"{nameof(GetCharacters)} Query Error");
+				if (!queryResult) return;
+				charRoot = JsonConvert.DeserializeObject<ResultsRoot<CharacterItem>>(LastResponse.JsonPayload);
+				UpdateCharactersInDatabase(charRoot);
+				moreResults = charRoot.More;
+				pageNo = 1;
+				success = await ProcessMoreResults();
+				if (!success) return;
+				done += APIMaxResults;
+			}
+
+			async Task<bool> ProcessMoreResults()
+			{
+				// ReSharper disable AccessToModifiedClosure
+				while (moreResults)
+				{
+					pageNo++;
+					var result = await HandleMoreCharacterResults(queryFormat, currentArray, charRoot, pageNo);
+					moreResults = result.MoreResults;
+					if (!result.Success) return false;
+				}
+				return true;
+				// ReSharper restore AccessToModifiedClosure
+			}
+		}
+
+		private void UpdateCharactersInDatabase(ResultsRoot<CharacterItem> charRoot)
+		{
 			LocalDatabase.Connection.Open();
 			try
 			{
-				RemoveDeletedCharacters(charRoot, currentArray);
 				foreach (var character in charRoot.Items)
 				{
 					if (LocalDatabase.UpsertSingleCharacter(character, false)) ActiveQuery.AddCharactersAdded();
@@ -217,69 +243,19 @@ namespace Happy_Apps_Core
 			{
 				LocalDatabase.Connection.Close();
 			}
-			bool moreResults = charRoot.More;
-			int pageNo = 1;
-			while (moreResults)
-			{
-				if (!await HandleMoreResults()) return;
-			}
-			int done = APIMaxResults;
-			while (done < ids.Count)
-			{
-				currentArray = ids.Skip(done).Take(APIMaxResults).ToList();
-				queryResult = await TryQuery(FormatQuery(queryFormat, currentArray), $"{nameof(GetCharacters)} Query Error");
-				if (!queryResult) return;
-				charRoot = JsonConvert.DeserializeObject<ResultsRoot<CharacterItem>>(LastResponse.JsonPayload);
-				LocalDatabase.Connection.Open();
-				try
-				{
-					RemoveDeletedCharacters(charRoot, currentArray);
-					foreach (var character in charRoot.Items)
-					{
-						if (LocalDatabase.UpsertSingleCharacter(character, false)) ActiveQuery.AddCharactersAdded();
-						else ActiveQuery.AddCharactersUpdated();
-					}
-				}
-				finally
-				{
-					LocalDatabase.Connection.Close();
-				}
-				moreResults = charRoot.More;
-				pageNo = 1;
-				while (moreResults)
-				{
-					if (!await HandleMoreResults()) return;
-				}
-				done += APIMaxResults;
-			}
+		}
 
-			async Task<bool> HandleMoreResults()
+		private async Task<(bool Success, bool MoreResults)> HandleMoreCharacterResults(string queryFormat, List<int> currentArray, ResultsRoot<CharacterItem> charRoot, int pageNo)
+		{
+			var queryResult = await TryQuery(FormatQuery(queryFormat, currentArray, pageNo), $"{nameof(GetCharacters)} Query Error");
+			if (!queryResult) return (false,false);
+			charRoot = JsonConvert.DeserializeObject<ResultsRoot<CharacterItem>>(LastResponse.JsonPayload);
+			await Task.Run(() =>
 			{
-				// ReSharper disable AccessToModifiedClosure
-				pageNo++;
-				queryResult = await TryQuery(FormatQuery(queryFormat, currentArray, pageNo), $"{nameof(GetCharacters)} Query Error");
-				if (!queryResult) return false;
-				charRoot = JsonConvert.DeserializeObject<ResultsRoot<CharacterItem>>(LastResponse.JsonPayload);
-				await Task.Run(() =>
-				{
-					LocalDatabase.Connection.Open();
-					try
-					{
-						foreach (var character in charRoot.Items)
-						{
-							if (LocalDatabase.UpsertSingleCharacter(character, false)) ActiveQuery.AddCharactersAdded();
-							else ActiveQuery.AddCharactersUpdated();
-						}
-					}
-					finally
-					{
-						LocalDatabase.Connection.Close();
-					}
-				});
-				moreResults = charRoot.More;
-				// ReSharper restore AccessToModifiedClosure
-				return true;
-			}
+				UpdateCharactersInDatabase(charRoot);
+			});
+			// ReSharper restore AccessToModifiedClosure
+			return (true,charRoot.More);
 		}
 
 		/// <summary>
@@ -494,7 +470,7 @@ namespace Happy_Apps_Core
 					LocalDatabase.UpdateVNTagsStats(vnItem, false);
 					ActiveQuery.AddTitleAdded(vnItem.ID);
 				}
-				await GetCharacters(currentArray, false);
+				await GetCharacters(currentArray);
 				int done = APIMaxResults;
 				while (done < vnIDs.Count)
 				{
@@ -509,7 +485,7 @@ namespace Happy_Apps_Core
 						LocalDatabase.UpdateVNTagsStats(vnItem, false);
 						ActiveQuery.AddTitleAdded(vnItem.ID);
 					}
-					await GetCharacters(currentArray, false);
+					await GetCharacters(currentArray);
 					done += APIMaxResults;
 				}
 
@@ -779,7 +755,7 @@ namespace Happy_Apps_Core
 				TextAction($"Updating characters for titles from {year}.  Started at {startTimeString}", MessageSeverity.Normal);
 				var vnids = LocalDatabase.VisualNovels.Where(x => x.ReleaseDate.Year == year && x.DateUpdated < DateTime.UtcNow.AddDays(-2)).OrderByDescending(x => x.VNID).Select(x => x.VNID);
 				var set = new HashSet<int>(vnids);
-				await Task.Run(() => GetCharacters(set, false));
+				await Task.Run(() => GetCharacters(set));
 
 				ActiveQuery.CompletedMessage = $"Updated characters for titles from {year}, ({ActiveQuery.CharactersAdded}/{ActiveQuery.CharactersUpdated} added/updated).";
 			}

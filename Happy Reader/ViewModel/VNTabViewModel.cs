@@ -114,7 +114,7 @@ namespace Happy_Reader.ViewModel
 				var password = LoadPassword();
 				Conn.Login(password != null
 					? new VndbConnection.LoginCredentials(ClientName, ClientVersion, CSettings.Username, password)
-					: new VndbConnection.LoginCredentials(ClientName, ClientVersion));
+					: new VndbConnection.LoginCredentials(ClientName, ClientVersion), false);
 			});
 			_mainViewModel.StatusText = "Loading VN List...";
 			await RefreshListedVns();

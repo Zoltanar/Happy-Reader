@@ -59,6 +59,63 @@ namespace DatabaseDumpReader
 			DumpFiles.Load();
 			var votesFilePath = FindVotesFile();
 			Load<ListedProducer>((i, t) => Database.Producers.Add(i, false, true, t), "db\\producers");
+			LoadReleases();
+			LoadAndResolveTags();/*    
+			Load<StaffItem>((i, t) =>
+			{
+				Staff[i.Id] = i;
+			}, "db\\staff");*/
+			LoadCharacters();
+			var votesUngrouped = new List<DumpVote>();
+			Load<DumpVote>((i, t) => votesUngrouped.Add(i), votesFilePath, false);
+			Votes = votesUngrouped.GroupBy(vote => vote.VNId).ToDictionary(g => g.Key, g => g.ToList());
+			LoadAnimeScreensRelations();
+			LoadUserVn();
+			Load<ListedVN>((i, t) =>
+			{
+				ResolveOtherForVn(i);
+				Database.VisualNovels.Add(i, false, true, t);
+				ResolveUserVnForVn(i, t);
+			}, "db\\vn");
+			SaveLatestDumpUpdate(dumpDate);
+			Console.ResetColor();
+			StaticHelpers.Logger.ToFile("Completed.");
+		}
+
+		private void LoadAnimeScreensRelations()
+		{
+			Load<DumpAnime>((i, t) => Animes.Add(i.Id, i), "db\\anime");
+			Load<DumpVnAnime>((i, t) =>
+			{
+				if (!VnAnimes.ContainsKey(i.VnId)) VnAnimes[i.VnId] = new List<DumpVnAnime>();
+				VnAnimes[i.VnId].Add(i);
+			}, "db\\vn_anime");
+			Load<DumpScreen>((i, t) => Screens.Add(i.Id, i), "db\\images");
+			Load<DumpVnScreen>((i, t) =>
+			{
+				if (!VnScreens.ContainsKey(i.VnId)) VnScreens[i.VnId] = new List<DumpVnScreen>();
+				VnScreens[i.VnId].Add(i);
+			}, "db\\vn_screenshots");
+			Load<DumpRelation>((i, t) =>
+			{
+				if (!VnRelations.ContainsKey(i.Id)) VnRelations[i.Id] = new List<DumpRelation>();
+				VnRelations[i.Id].Add(i);
+			}, "db\\vn_relations");
+		}
+
+		private void LoadCharacters()
+		{
+			Load<CharacterItem>((i, t) => Database.Characters.Add(i, false, true, t), "db\\chars");
+			Load<CharacterVN>((i, t) =>
+			{
+				if (Database.CharacterVNs[i.Key] != null) return;
+				Database.CharacterVNs.Add(i, false, true, t);
+			}, "db\\chars_vns");
+			Load<DbTrait>((i, t) => Database.Traits.Add(i, false, true, t), "db\\chars_traits");
+		}
+
+		private void LoadReleases()
+		{
 			Load<ProducerRelease>((i, t) =>
 			{
 				if (!i.Developer) return;
@@ -83,53 +140,6 @@ namespace DatabaseDumpReader
 				release.Producers = producerRelease ?? new List<int>();
 				VnReleases[i.VnId].Add(release);
 			}, "db\\releases_vn");
-			Load<VnTag>((i, t) =>
-			{
-				if (i.Ignore) return;
-				VnTags.Add(i);
-			}, "db\\tags_vn");
-			ResolveTags();/*    
-			Load<StaffItem>((i, t) =>
-			{
-				Staff[i.Id] = i;
-			}, "db\\staff");*/
-			Load<CharacterItem>((i, t) => Database.Characters.Add(i, false, true, t), "db\\chars");
-			Load<CharacterVN>((i, t) =>
-			{
-				if (Database.CharacterVNs[i.Key] != null) return;
-				Database.CharacterVNs.Add(i, false, true, t);
-			}, "db\\chars_vns");
-			Load<DbTrait>((i, t) => Database.Traits.Add(i, false, true, t), "db\\chars_traits");
-			var votesUngrouped = new List<DumpVote>();
-			Load<DumpVote>((i, t) => votesUngrouped.Add(i), votesFilePath, false);
-			Votes = votesUngrouped.GroupBy(vote => vote.VNId).ToDictionary(g => g.Key, g => g.ToList());
-			Load<DumpAnime>((i, t) => Animes.Add(i.Id, i), "db\\anime");
-			Load<DumpVnAnime>((i, t) =>
-			{
-				if (!VnAnimes.ContainsKey(i.VnId)) VnAnimes[i.VnId] = new List<DumpVnAnime>();
-				VnAnimes[i.VnId].Add(i);
-			}, "db\\vn_anime");
-			Load<DumpScreen>((i, t) => Screens.Add(i.Id, i), "db\\images");
-			Load<DumpVnScreen>((i, t) =>
-			{
-				if (!VnScreens.ContainsKey(i.VnId)) VnScreens[i.VnId] = new List<DumpVnScreen>();
-				VnScreens[i.VnId].Add(i);
-			}, "db\\vn_screenshots");
-			Load<DumpRelation>((i, t) =>
-			{
-				if (!VnRelations.ContainsKey(i.Id)) VnRelations[i.Id] = new List<DumpRelation>();
-				VnRelations[i.Id].Add(i);
-			}, "db\\vn_relations");
-			LoadUserVn();
-			Load<ListedVN>((i, t) =>
-			{
-				ResolveOtherForVn(i);
-				Database.VisualNovels.Add(i, false, true, t);
-				ResolveUserVnForVn(i, t);
-			}, "db\\vn");
-			SaveLatestDumpUpdate(dumpDate);
-			Console.ResetColor();
-			StaticHelpers.Logger.ToFile("Completed.");
 		}
 
 		private void ResolveUserVnForVn(ListedVN vn, SQLiteTransaction transaction)
@@ -181,8 +191,13 @@ namespace DatabaseDumpReader
 			return file.FullName;
 		}
 
-		private void ResolveTags()
+		private void LoadAndResolveTags()
 		{
+			Load<VnTag>((i, t) =>
+			{
+				if (i.Ignore) return;
+				VnTags.Add(i);
+			}, "db\\tags_vn");
 			StaticHelpers.Logger.ToFile("Resolving Tags...");
 			var groupedTags = VnTags.GroupBy(t => (t.TagId, t.VnId)).ToArray();
 			WrapInTransaction(trans =>

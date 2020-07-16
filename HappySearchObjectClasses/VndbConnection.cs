@@ -39,16 +39,7 @@ namespace Happy_Apps_Core
 			Logger.ToFile($"Attempting to open connection to {VndbHost}:{VndbPortTLS}");
 			var complete = false;
 			var retries = 0;
-			var certs = new X509CertificateCollection();
-			var certFiles = Directory.GetFiles("Program Data\\Certificates");
-			foreach (var certFile in certFiles) certs.Add(X509Certificate.CreateFromCertFile(certFile));
-#if !DONTPRINTCERTS
-			if (printCertificates)
-			{
-				Logger.ToFile("Local Certificate data - subject/issuer/format/effectivedate/expirationdate");
-				foreach (var cert in certs) Logger.ToFile($"{cert.Subject}\t{cert.Issuer}\t{cert.GetFormat()}\t{cert.GetEffectiveDateString()}\t{cert.GetExpirationDateString()}");
-			}
-#endif
+			var certs = GetCertificates(printCertificates);
 			while (!complete && retries < 5)
 			{
 				try
@@ -62,23 +53,7 @@ namespace Happy_Apps_Core
 					Logger.ToFile("SSL Stream received...");
 					sslStream.AuthenticateAsClient(VndbHost, certs, SslProtocols.Tls12, true);
 					Logger.ToFile("SSL Stream authenticated...");
-					if (sslStream.RemoteCertificate != null)
-					{
-						var subject = sslStream.RemoteCertificate.Subject;
-						if (printCertificates)
-						{
-							Logger.ToFile("Remote Certificate data - subject/issuer/format/effectivedate/expirationdate",
-								$"{subject}\t-{sslStream.RemoteCertificate.Issuer}\t-{sslStream.RemoteCertificate.GetFormat()}\t-{sslStream.RemoteCertificate.GetEffectiveDateString()}\t-{sslStream.RemoteCertificate.GetExpirationDateString()}");
-						}
-						if (!subject.Substring(3).Equals(VndbHost))
-						{
-							Logger.ToFile(
-								$"Certificate received isn't for {VndbHost} so connection is closed (it was for {subject.Substring(3)})");
-							Status = APIStatus.Error;
-							return;
-						}
-					}
-
+					if (!CheckRemoteCertificate(printCertificates, sslStream.RemoteCertificate)) return;
 					_stream = sslStream;
 					complete = true;
 					Logger.ToFile($"Connected after {retries} tries.");
@@ -86,21 +61,9 @@ namespace Happy_Apps_Core
 				catch (SocketException e)
 				{
 					Logger.ToFile(e, "Conn Socket Error");
-					if (e.InnerException == null) continue;
-					Logger.ToFile(e, "Conn Socket Error - Inner");
 					Thread.Sleep(1000);
 				}
-				catch (IOException e)
-				{
-					Logger.ToFile(e, "Conn Open Error");
-				}
-				catch (AuthenticationException e)
-				{
-					Logger.ToFile(e, "Conn Authentication Error");
-					if (e.InnerException == null) continue;
-					Logger.ToFile(e, "Conn Authentication Error - Inner");
-				}
-				catch (Exception ex) when (ex is ArgumentNullException || ex is InvalidOperationException)
+				catch (Exception ex) when (ex is ArgumentNullException || ex is InvalidOperationException || ex is IOException || ex is AuthenticationException)
 				{
 					Logger.ToFile(ex, "Conn Other Error");
 				}
@@ -109,6 +72,41 @@ namespace Happy_Apps_Core
 			Logger.ToFile($"Failed to connect after {retries} tries.");
 			Status = APIStatus.Error;
 			AskForNonSsl();
+		}
+
+		private bool CheckRemoteCertificate(bool printCertificates, X509Certificate remoteCertificate)
+		{
+			if (remoteCertificate != null)
+			{
+				var subject = remoteCertificate.Subject;
+				if (printCertificates)
+				{
+					Logger.ToFile("Remote Certificate data - subject/issuer/format/effectivedate/expirationdate",
+						$"{subject}\t-{remoteCertificate.Issuer}\t-{remoteCertificate.GetFormat()}\t-{remoteCertificate.GetEffectiveDateString()}\t-{remoteCertificate.GetExpirationDateString()}");
+				}
+				if (subject.Substring(3).Equals(VndbHost)) return true;
+				Logger.ToFile($"Certificate received isn't for {VndbHost} so connection is closed (it was for {subject.Substring(3)})");
+				Status = APIStatus.Error;
+				return false;
+			}
+
+			return true;
+		}
+
+		private static X509CertificateCollection GetCertificates(bool printCertificates)
+		{
+			var certs = new X509CertificateCollection();
+			var certFiles = Directory.GetFiles("Program Data\\Certificates");
+			foreach (var certFile in certFiles) certs.Add(X509Certificate.CreateFromCertFile(certFile));
+			if (printCertificates)
+			{
+				Logger.ToFile("Local Certificate data - subject/issuer/format/effectivedate/expirationdate");
+				foreach (var cert in certs)
+					Logger.ToFile(
+						$"{cert.Subject}\t{cert.Issuer}\t{cert.GetFormat()}\t{cert.GetEffectiveDateString()}\t{cert.GetExpirationDateString()}");
+			}
+
+			return certs;
 		}
 
 		private void AskForNonSsl()
@@ -154,8 +152,8 @@ namespace Happy_Apps_Core
 		/// Log into VNDB API, optionally using username/password.
 		/// </summary>
 		/// <param name="loginCredentials">Credentials to use for login command</param>
-		/// <param name="printCertificates">Default is true, logs certificates and prints to debug</param>
-		public void Login(LoginCredentials loginCredentials, bool printCertificates = true)
+		/// <param name="printCertificates">Logs certificates and prints to debug</param>
+		public void Login(LoginCredentials loginCredentials, bool printCertificates)
 		{
 			if (Status != APIStatus.Closed) Close();
 			Open(printCertificates);
@@ -280,7 +278,7 @@ namespace Happy_Apps_Core
 		{
 			try
 			{
-				if(_tcpClient.Connected) _tcpClient.GetStream().Close();
+				if (_tcpClient.Connected) _tcpClient.GetStream().Close();
 				_tcpClient.Close();
 			}
 			catch (ObjectDisposedException e)
@@ -354,33 +352,25 @@ namespace Happy_Apps_Core
 			_changeStatusAction?.Invoke(Status);
 			await Task.Run(() =>
 			{
-				if (CSettings.DecadeLimit && (!ActiveQuery?.IgnoreDateLimit ?? false) && query.StartsWith("get vn ") && !query.Contains("id = "))
-				{
-					query = Regex.Replace(query, "\\)", $" and released > \"{DateTime.UtcNow.Year - 10}\")");
-				}
 				Logger.ToFile(query);
-				RunWithRetries(() => Query(query),()=> Login(_loginCredentials), 5, ex =>
-				{
-					SocketException socketException;
-					switch (ex)
-					{
-						case IOException ioException:
-							if (ioException.InnerException is SocketException innerException) socketException = innerException;
-							else return false;
-							break;
-						case SocketException sockException:
-							socketException = sockException;
-							break;
-						default: return false;
-					}
-
-					return socketException.ErrorCode == 10054;
-				});
+				RunWithRetries(() => Query(query), () => Login(_loginCredentials, false), 5, ex =>
+					 {
+						 SocketException socketException;
+						 switch (ex)
+						 {
+							 case IOException ioException:
+								 if (ioException.InnerException is SocketException innerException) socketException = innerException;
+								 else return false;
+								 break;
+							 case SocketException sockException:
+								 socketException = sockException;
+								 break;
+							 default: return false;
+						 }
+						 return socketException.ErrorCode == 10054;
+					 });
 			});
-			if (LastResponse.Type == ResponseType.Unknown)
-			{
-				return QueryResult.Fail;
-			}
+			if (LastResponse.Type == ResponseType.Unknown) return QueryResult.Fail;
 			while (LastResponse.Type == ResponseType.Error)
 			{
 				if (!LastResponse.Error.ID.Equals("throttled"))
@@ -390,19 +380,10 @@ namespace Happy_Apps_Core
 					ActiveQuery.CompletedMessageSeverity = MessageSeverity.Error;
 					return QueryResult.Fail;
 				}
-				string fullThrottleMessage = "";
-				double minWait = 0;
-				await Task.Run(() =>
-				{
-					minWait = Math.Min(5 * 60, LastResponse.Error.Fullwait); //wait 5 minutes
-					string normalWarning = $"Throttled for {Math.Floor(minWait / 60)} mins.";
-					string additionalWarning = "";
-					if (ActiveQuery.TitlesAdded.Count > 0) additionalWarning += $" Added {ActiveQuery.TitlesAdded.Count}.";
-					if (ActiveQuery.TitlesSkipped.Count > 0) additionalWarning += $" Skipped {ActiveQuery.TitlesSkipped.Count}.";
-					fullThrottleMessage = ActiveQuery.AdditionalMessage ? normalWarning + additionalWarning : normalWarning;
-				});
-				TextAction(fullThrottleMessage, MessageSeverity.Warning);
-				Logger.ToFile($"Local: {DateTime.Now} - {fullThrottleMessage}");
+				var minWait = Math.Min(5 * 60, LastResponse.Error.Fullwait); //wait 5 minutes
+				var throttleMessage = $"Throttled for {Math.Floor(minWait / 60)} mins." + ActiveQuery.GetAdditionalWarning();
+				TextAction(throttleMessage, MessageSeverity.Warning);
+				Logger.ToFile($"Local: {DateTime.Now} - {throttleMessage}");
 				var waitMS = minWait * 1000;
 				_throttleWaitTime = Convert.ToInt32(waitMS);
 				return QueryResult.Throttled;

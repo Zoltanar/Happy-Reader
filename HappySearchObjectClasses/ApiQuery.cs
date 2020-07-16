@@ -24,12 +24,7 @@ namespace Happy_Apps_Core
 		/// Print Added/Skipped message on throttled connection
 		/// </summary>
 		public readonly bool AdditionalMessage;
-
-		/// <summary>
-		/// Ignore 10 year limit (if applicable)
-		/// </summary>
-		public readonly bool IgnoreDateLimit;
-
+		
 		/// <summary>
 		/// Query has been completed
 		/// </summary>
@@ -41,14 +36,12 @@ namespace Happy_Apps_Core
 		/// <param name="actionName">Name of action</param>
 		/// <param name="refreshList">Refresh OLV on throttled connection</param>
 		/// <param name="additionalMessage">Print Added/Skipped message on throttled connection</param>
-		/// <param name="ignoreDateLimit">Ignore 10 year limit (if applicable)</param>
 		/// <param name="actionOnAdd">Action to perform when item is added to <see cref="TitlesAdded"/></param>
-		public ApiQuery(string actionName, bool refreshList, bool additionalMessage, bool ignoreDateLimit, Action<List<int>> actionOnAdd)
+		public ApiQuery(string actionName, bool refreshList, bool additionalMessage, Action<List<int>> actionOnAdd)
 		{
 			ActionName = actionName;
 			RefreshList = refreshList;
 			AdditionalMessage = additionalMessage;
-			IgnoreDateLimit = ignoreDateLimit;
 			_actionOnAdd = actionOnAdd;
 			Completed = false;
 		}
@@ -110,6 +103,15 @@ namespace Happy_Apps_Core
 			if (_actionOnAdd == null || TitlesAdded.Count == _itemCountDuringLastActionOnAdd) return;
 			if(RefreshList) _actionOnAdd.Invoke(TitlesAdded);
 			_itemCountDuringLastActionOnAdd = TitlesAdded.Count;
+		}
+
+		public string GetAdditionalWarning()
+		{
+			if (!AdditionalMessage) return string.Empty;
+			string additionalWarning = "";
+			if (TitlesAdded.Count > 0) additionalWarning += $" Added {TitlesAdded.Count}.";
+			if (TitlesSkipped.Count > 0) additionalWarning += $" Skipped {TitlesSkipped.Count}.";
+			return additionalWarning;
 		}
 	}
 

@@ -6,6 +6,7 @@ using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Google;
 using Google.Cloud.Translation.V2;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -65,14 +66,7 @@ namespace HRGoogleTranslate
 			if (UntouchedStrings.Contains(text.ToString())) return;
 			var input = text.ToString();
 			text.Clear();
-			bool inCache1 = _cache.TryGetValue(input, out var cachedTranslation);
-			if (inCache1)
-			{
-				LogVerbose($"HRTranslate.Google - Getting string from cache, input: {input}");
-				GotFromCacheCount++;
-				text.Append(cachedTranslation.Output);
-				return;
-			}
+			if (GetFromCache(text, input)) return;
 			if (input.Length == 1)
 			{
 				var character = input[0];
@@ -128,6 +122,16 @@ namespace HRGoogleTranslate
 #endif
 		}
 
+		private static bool GetFromCache(StringBuilder text, string input)
+		{
+			bool inCache1 = _cache.TryGetValue(input, out var cachedTranslation);
+			if (!inCache1) return false;
+			LogVerbose($"HRTranslate.Google - Getting string from cache, input: {input}");
+			GotFromCacheCount++;
+			text.Append(cachedTranslation.Output);
+			return true;
+		}
+
 		public static void Translate(StringBuilder text)
 		{
 #if NOTRANSLATION
@@ -137,25 +141,13 @@ namespace HRGoogleTranslate
 			if (UntouchedStrings.Contains(text.ToString())) return;
 			var input = text.ToString();
 			text.Clear();
-			bool inCache1 = _cache.TryGetValue(input, out var cachedTranslation);
-			if (inCache1)
-			{
-				LogVerbose($"{nameof(HRGoogleTranslate)} - Getting string from cache, input: {input}");
-				GotFromCacheCount++;
-				text.Append(cachedTranslation.Output);
-				return;
-			}
+			if (GetFromCache(text, input)) return;
 			if (input.Length == 1)
 			{
 				var character = input[0];
-				// ReSharper disable once UnusedVariable
 				if (character.IsHiragana() || character.IsKatakana())
 				{
-					var output = _japaneseToRomaji(input);
-					text.Append(output);
-					var translation = new GoogleTranslation(input, output);
-					_linkedCache.Add(translation);
-					_cache[input] = translation;
+					ConvertSingleKana(text, input);
 					return;
 				}
 			}
@@ -178,15 +170,21 @@ namespace HRGoogleTranslate
 				}
 				else text.Append("Failed to translate");
 			}
-			catch (Google.GoogleApiException ex)
+			catch (Exception ex)
 			{
-				text.Append($"Failed: {ex.Error.Message}");
-			}
-			catch (Exception gex)
-			{
-				text.Append($"Failed: {gex.Message}");
+				text.Append($"Failed: {(ex is GoogleApiException gex ? gex.Error.Message : ex.Message)}");
 			}
 #endif
+		}
+
+		private static void ConvertSingleKana(StringBuilder text, string input)
+		{
+			var output = _japaneseToRomaji(input);
+			text.Append(output);
+			var translation = new GoogleTranslation(input, output);
+			_linkedCache.Add(translation);
+			_cache[input] = translation;
+			return;
 		}
 
 		[Conditional("LOGVERBOSE")]

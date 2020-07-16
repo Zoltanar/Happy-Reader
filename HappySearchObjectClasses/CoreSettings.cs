@@ -9,7 +9,6 @@ namespace Happy_Apps_Core
         private DateTime _dumpfileDate;
         private DateTime _statsDate;
         private DateTime _urtDate;
-        private bool _decadeLimit;
 
         /// <summary>
         /// Username of user.
@@ -80,21 +79,7 @@ namespace Happy_Apps_Core
                 if (Loaded) Save();
             }
         }
-
-        /// <summary>
-        /// Don't get titles released over a decade ago (does not apply to searched by name or favorite producer titles).
-        /// </summary>
-        public bool DecadeLimit
-        {
-            get => _decadeLimit;
-            set
-            {
-                if (_decadeLimit == value) return;
-                _decadeLimit = value;
-                if (Loaded) Save();
-            }
-        }
-
+    
         /// <summary>
         /// Default constructor, sets all values to default.
         /// </summary>
@@ -102,7 +87,6 @@ namespace Happy_Apps_Core
         {
             Username = "guest";
             UserID = 0;
-            DecadeLimit = true;
             DumpfileDate = DateTime.MinValue;
             StatsDate = DateTime.MinValue;
             URTDate = DateTime.MinValue;
