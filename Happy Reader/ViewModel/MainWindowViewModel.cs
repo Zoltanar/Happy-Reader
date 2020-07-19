@@ -20,6 +20,7 @@ using Happy_Reader.Database;
 using JetBrains.Annotations;
 using Newtonsoft.Json.Linq;
 using Happy_Reader.View;
+using Happy_Reader.View.Tabs;
 using Happy_Reader.View.Tiles;
 using IthVnrSharpLib;
 using static Happy_Apps_Core.StaticHelpers;
@@ -105,7 +106,8 @@ namespace Happy_Reader.ViewModel
 		[NotNull] public ProducersTabViewModel ProducersViewModel { get; }
 		[NotNull] public FiltersViewModel FiltersViewModel { get; }
 		[NotNull] public IthViewModel IthViewModel { get; }
-		[NotNull] public GuiSettings SettingsViewModel { get; }
+		[NotNull] public SettingsViewModel SettingsViewModel { get; }
+		[NotNull] public ApiLogViewModel ApiLogViewModel { get; }
 
 		public bool TranslatePaused
 		{
@@ -154,9 +156,12 @@ namespace Happy_Reader.ViewModel
 		public MainWindowViewModel(MainWindow mainWindow)
 		{
 			Application.Current.Exit += ExitProcedures;
-			SettingsViewModel = StaticMethods.GSettings;
-			SettingsViewModel.VndbQueries = _vndbQueriesList.Items;
-			SettingsViewModel.VndbResponses = _vndbResponsesList.Items;
+			SettingsViewModel = new SettingsViewModel(CSettings, StaticMethods.GSettings, StaticMethods.TSettings);
+			ApiLogViewModel = new ApiLogViewModel
+			{
+				VndbQueries = _vndbQueriesList.Items, 
+				VndbResponses = _vndbResponsesList.Items
+			};
 			Translator = new Translator(StaticMethods.Data);
 			Translation.Translator = Translator;
 			TestViewModel = new TranslationTester(this);
@@ -165,7 +170,6 @@ namespace Happy_Reader.ViewModel
 			CharactersViewModel = new CharactersTabViewModel();
 			ProducersViewModel = new ProducersTabViewModel(this);
 			IthViewModel = new IthViewModel(this);
-			SettingsViewModel.OnPropertyChanged(nameof(SettingsViewModel.VndbQueries));
 			OutputWindow = new OutputWindow(mainWindow);
 			Log.AddToList += AddLogToList;
 		}
@@ -238,7 +242,7 @@ namespace Happy_Reader.ViewModel
 
 		public async Task Initialize(Stopwatch watch, RoutedEventHandler defaultUserGameGrouping, bool initialiseIthVnr, bool initialiseEntries)
 		{
-			CaptureClipboard = SettingsViewModel.CaptureClipboardOnStart;
+			CaptureClipboard = SettingsViewModel.TranslatorSettings.CaptureClipboardOnStart;
 			await Task.Run(() =>
 			{
 				StatusText = "Loading Dumpfiles...";

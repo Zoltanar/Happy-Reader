@@ -200,6 +200,11 @@ namespace Happy_Apps_Core
 				Password = password;
 			}
 		}
+		
+		/// <summary>
+		/// Sends a query to the API without waiting on throttle error.
+		/// </summary>
+		public void SendQuery(string text) => Query(text);
 
 		private void Query(string command)
 		{
@@ -332,7 +337,6 @@ namespace Happy_Apps_Core
 					return new Response(ResponseType.Unknown, payload);
 			}
 		}
-
 
 		/// <summary>
 		/// Send query through API Connection.

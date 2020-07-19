@@ -39,7 +39,6 @@ namespace Happy_Reader
 		{
 			GSettings = SettingsJsonFile.Load<GuiSettings>(GuiSettingsJson);
 			TSettings = SettingsJsonFile.Load<TranslatorSettings>(TranslatorSettingsJson);
-			GSettings.TSettings = TSettings;
 		}
 
 		public static string GetLocalizedTime(this DateTime dateTime)

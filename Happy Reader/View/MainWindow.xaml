@@ -161,6 +161,9 @@
 			<TabItem Header="Info/Settings">
 				<tabs:SettingsTab DataContext="{Binding SettingsViewModel}"/>
 			</TabItem>
+			<TabItem Header="API Log">
+				<tabs:ApiLogTab DataContext="{Binding ApiLogViewModel}"/>
+			</TabItem>
 			<TabItem Header="Logs">
 				<DataGrid ItemsSource="{Binding LogsList}" AutoGenerateColumns="False" CanUserAddRows="False" >
 					<DataGrid.Columns>

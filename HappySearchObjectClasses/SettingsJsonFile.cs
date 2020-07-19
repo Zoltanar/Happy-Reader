@@ -14,6 +14,7 @@ namespace Happy_Apps_Core
 
 		public static T Load<T>(string jsonPath) where T : SettingsJsonFile, new()
 		{
+			System.Diagnostics.Debug.WriteLine($"Loading file...: {jsonPath}");
 			T settings = null;
 			if (!File.Exists(jsonPath))
 			{
@@ -51,8 +52,9 @@ namespace Happy_Apps_Core
 			return settings;
 		}
 
-		protected void Save()
+		protected void Save([CallerMemberName]string source = null)
 		{
+			System.Diagnostics.Debug.WriteLine($"Saving file ({source})...: {FilePath}");
 			try
 			{
 				File.WriteAllText(FilePath, JsonConvert.SerializeObject(this, Formatting.Indented));

@@ -3,10 +3,17 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:happyReader="clr-namespace:Happy_Reader"
+             xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
-             d:DataContext="{d:DesignInstance happyReader:GuiSettings}">
+             d:DataContext="{d:DesignInstance viewModel:SettingsViewModel}">
+	<UserControl.Resources>
+		<Style TargetType="GroupBox">
+			<Setter Property="Foreground" Value="White"/>
+			<Setter Property="BorderThickness" Value="1"/>
+			<Setter Property="Margin" Value="5"/>
+		</Style>
+	</UserControl.Resources>
 	<Grid Background="DimGray">
 		<Grid.Style>
 			<Style TargetType="Grid">
@@ -21,115 +28,85 @@
 		</Grid.Style>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="*"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
-		<Grid Row="0">
-			<Grid.RowDefinitions>
-				<RowDefinition Height="Auto"/>
-				<RowDefinition Height="*"/>
-			</Grid.RowDefinitions>
-			<TextBox TextWrapping="Wrap" IsReadOnly="True" Text="{Binding About, Mode=OneWay}" Margin="10,5" Background="Black" Foreground="White"/>
-			<GroupBox Grid.Row="1" Header="Settings" Foreground="White" BorderThickness="1" Margin="5">
-				<StackPanel>
-					<CheckBox Content="Show Content Tags" IsChecked="{Binding ContentTags}"/>
-					<CheckBox Content="Show Sexual Tags" IsChecked="{Binding SexualTags}"/>
-					<CheckBox Content="Show Technical Tags" IsChecked="{Binding TechnicalTags}"/>
-					<CheckBox Content="Show NSFW Images" IsChecked="{Binding NSFWImages}"/>
-					<CheckBox Content="Start Capturing Clipboard From Launch" IsChecked="{Binding CaptureClipboardOnStart}"/>
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="160"/>
-							<ColumnDefinition/>
-							<ColumnDefinition Width="53"/>
-							<ColumnDefinition Width="53"/>
-						</Grid.ColumnDefinitions>
-						<Label Grid.Column="0" Content="Max Clipboard Capture Size:"/>
-						<Slider Grid.Column="1" Name="ClipboardSizeSlider" Value="{Binding MaxClipboardSize, Mode=OneWay}" Minimum="0" Maximum="1000" Foreground="White" IsSnapToTickEnabled="True" Thumb.DragCompleted="SetClipboardSize"/>
-						<TextBox Grid.Column="2" Text="{Binding ElementName=ClipboardSizeSlider, Path=Value}" Foreground="White" Style="{StaticResource NoBorderTextBox}"/>
-					</Grid>
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="120"/>
-							<ColumnDefinition/>
-						</Grid.ColumnDefinitions>
-						<Label Grid.Column="0" Content="Original Text Font:"/>
-						<TextBox Grid.Column="1" Text="{Binding OriginalTextFont}" Margin="5,0" />
-					</Grid>
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="120"/>
-							<ColumnDefinition/>
-						</Grid.ColumnDefinitions>
-						<Label Grid.Column="0" Content="Romaji Text Font:"/>
-						<TextBox Grid.Column="1" Text="{Binding RomajiTextFont}" Margin="5,0" />
-					</Grid>
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="120"/>
-							<ColumnDefinition/>
-						</Grid.ColumnDefinitions>
-						<Label Grid.Column="0" Content="Translated Text Font:"/>
-						<TextBox Grid.Column="1" Text="{Binding TranslatedTextFont}" Margin="5,0" />
-					</Grid>
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="Auto"/>
-							<ColumnDefinition/>
-						</Grid.ColumnDefinitions>
-						<Label Grid.Column="0" Content="Culture:"/>
-						<ComboBox Grid.Column="1" ItemsSource="{Binding Cultures}" SelectedItem="{Binding CultureInfo}" Margin="5,0">
-							<ComboBox.ItemContainerStyle>
-								<Style TargetType="{x:Type ComboBoxItem}">
-									<Setter Property="HorizontalContentAlignment" Value="Left"/>
-									<Setter Property="VerticalContentAlignment" Value="Center"/>
-								</Style>
-							</ComboBox.ItemContainerStyle>
-						</ComboBox>
-					</Grid>
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition/>
-							<ColumnDefinition/>
-							<ColumnDefinition/>
-						</Grid.ColumnDefinitions>
-						<Label Grid.Column="0" Content="Google Translate Mode:"/>
-						<RadioButton Grid.Column="1" Content="Credential" Foreground="White" VerticalAlignment="Center"  IsChecked="{Binding TSettings.GoogleUseCredential, Converter={StaticResource RadioButtonCheckedConverter},
-    ConverterParameter={StaticResource True}}" />
-						<RadioButton Grid.Column="2" Content="Free" Foreground="White" VerticalAlignment="Center"  IsChecked="{Binding TSettings.GoogleUseCredential, Converter={StaticResource RadioButtonCheckedConverter},
-    ConverterParameter={StaticResource False}}" />
-					</Grid>
-				</StackPanel>
-			</GroupBox>
-		</Grid>
-		<Grid Row="1">
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="*"/>
-				<ColumnDefinition Width="2.5*"/>
-			</Grid.ColumnDefinitions>
-			<TextBox Height="47" Margin="10,10,10,0" TextWrapping="Wrap" Text="Send Query Here" VerticalAlignment="Top"/>
-			<Button Grid.Column="0" Content="Send" Margin="0,62,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="48"/>
-			<ListBox Grid.Column="0" Background="Black" ItemsSource="{Binding VndbQueries}" Margin="10,87,10,10" 
-                                 HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-				<ListBox.ItemTemplate>
-					<DataTemplate>
-						<StackPanel Width="{Binding ViewportWidth, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ScrollViewer}}}">
-							<TextBox TextWrapping="Wrap" Text="{Binding Path=DataContext ,RelativeSource={RelativeSource Self}}" Foreground="White" Background="{x:Null}" BorderBrush="LightGray" />
-						</StackPanel>
-					</DataTemplate>
-				</ListBox.ItemTemplate>
-			</ListBox>
-			<Button Grid.Column="0" Content="Clear" Margin="0,62,63,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="45"/>
-			<CheckBox Foreground="White" Grid.Column="0" Content="Advanced Mode" Margin="0,65,113,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="71" IsChecked="{Binding AdvancedMode}"/>
-			<ListBox Grid.Column="1" Margin="10" ItemsSource="{Binding VndbResponses}" Background="Black" 
-			         HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-				<ListBox.ItemTemplate>
-					<DataTemplate>
-						<StackPanel Width="{Binding ViewportWidth, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ScrollViewer}}}">
-							<TextBox TextWrapping="Wrap" Text="{Binding Path=DataContext ,RelativeSource={RelativeSource Self}}" Foreground="White" Background="{x:Null}" BorderBrush="LightGray" />
-						</StackPanel>
-					</DataTemplate>
-				</ListBox.ItemTemplate>
-			</ListBox>
-		</Grid>
+		<TextBox TextWrapping="Wrap" IsReadOnly="True" Text="{Binding GuiSettings.About, Mode=OneWay}" Margin="10,5" Background="Black" Foreground="White"/>
+		<GroupBox Header="Core Settings" Grid.Row="1" DataContext="{Binding CoreSettings}">
+		</GroupBox>
+		<GroupBox Grid.Row="2" Header="Interface Settings" DataContext="{Binding GuiSettings}">
+			<StackPanel>
+				<CheckBox Content="Show Content Tags" IsChecked="{Binding ContentTags}"/>
+				<CheckBox Content="Show Sexual Tags" IsChecked="{Binding SexualTags}"/>
+				<CheckBox Content="Show Technical Tags" IsChecked="{Binding TechnicalTags}"/>
+				<CheckBox Content="Show NSFW Images" IsChecked="{Binding NSFWImages}"/>
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition/>
+					</Grid.ColumnDefinitions>
+					<Label Grid.Column="0" Content="Culture:"/>
+					<ComboBox Grid.Column="1" ItemsSource="{Binding Cultures}" SelectedItem="{Binding CultureInfo}" Margin="5,0">
+						<ComboBox.ItemContainerStyle>
+							<Style TargetType="{x:Type ComboBoxItem}">
+								<Setter Property="HorizontalContentAlignment" Value="Left"/>
+								<Setter Property="VerticalContentAlignment" Value="Center"/>
+							</Style>
+						</ComboBox.ItemContainerStyle>
+					</ComboBox>
+				</Grid>
+			</StackPanel>
+		</GroupBox>
+		<GroupBox Header="Translation Settings" Grid.Row="3" DataContext="{Binding TranslatorSettings}">
+			<StackPanel>
+				<CheckBox Content="Start Capturing Clipboard From Launch" IsChecked="{Binding CaptureClipboardOnStart}"/>
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="160"/>
+						<ColumnDefinition/>
+						<ColumnDefinition Width="53"/>
+						<ColumnDefinition Width="53"/>
+					</Grid.ColumnDefinitions>
+					<Label Grid.Column="0" Content="Max Clipboard Capture Size:"/>
+					<Slider Grid.Column="1" Name="ClipboardSizeSlider" Value="{Binding MaxClipboardSize, Mode=OneWay}" Minimum="0" Maximum="1000" Foreground="White" IsSnapToTickEnabled="True" Thumb.DragCompleted="SetClipboardSize"/>
+					<TextBox Grid.Column="2" Text="{Binding ElementName=ClipboardSizeSlider, Path=Value}" Foreground="White" Style="{StaticResource NoBorderTextBox}"/>
+				</Grid>
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="120"/>
+						<ColumnDefinition/>
+					</Grid.ColumnDefinitions>
+					<Label Grid.Column="0" Content="Original Text Font:"/>
+					<TextBox Grid.Column="1" Text="{Binding OriginalTextFont}" Margin="5,0" />
+				</Grid>
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="120"/>
+						<ColumnDefinition/>
+					</Grid.ColumnDefinitions>
+					<Label Grid.Column="0" Content="Romaji Text Font:"/>
+					<TextBox Grid.Column="1" Text="{Binding RomajiTextFont}" Margin="5,0" />
+				</Grid>
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="120"/>
+						<ColumnDefinition/>
+					</Grid.ColumnDefinitions>
+					<Label Grid.Column="0" Content="Translated Text Font:"/>
+					<TextBox Grid.Column="1" Text="{Binding TranslatedTextFont}" Margin="5,0" />
+				</Grid>
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition/>
+						<ColumnDefinition/>
+						<ColumnDefinition/>
+					</Grid.ColumnDefinitions>
+					<Label Grid.Column="0" Content="Google Translate Mode:"/>
+					<RadioButton Grid.Column="1" Content="Credential" Foreground="White" VerticalAlignment="Center"  IsChecked="{Binding GoogleUseCredential, Converter={StaticResource RadioButtonCheckedConverter},    ConverterParameter={StaticResource True}}" />
+					<RadioButton Grid.Column="2" Content="Free" Foreground="White" VerticalAlignment="Center"  IsChecked="{Binding GoogleUseCredential, Converter={StaticResource RadioButtonCheckedConverter},    ConverterParameter={StaticResource False}}" />
+				</Grid>
+			</StackPanel>
+		</GroupBox>
 	</Grid>
 </UserControl>

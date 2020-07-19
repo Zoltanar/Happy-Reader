@@ -838,7 +838,7 @@ namespace Happy_Apps_Core
 			try
 			{
 				Logger.ToFile($"Starting {nameof(UpdateURT)} for {CSettings.UserID}, previously had {LocalDatabase.URTVisualNovels.Count()} titles.");
-				//clone list to make sure it doesnt keep command status.
+				//clone list to make sure it doesn't keep command status.
 				var pre = LocalDatabase.UserVisualNovels.Where(x => x.UserId == CSettings.UserID).OrderBy(x => x.VNID).ToArray();
 				List<VisualNovelDatabase.UrtListItem> localURTList = pre.Select(x => new VisualNovelDatabase.UrtListItem(x)).ToList();
 				await GetUserList(localURTList);
@@ -849,7 +849,6 @@ namespace Happy_Apps_Core
 				//SetFavoriteProducersData();
 				//UpdateUserStats();
 				ActiveQuery.CompletedMessage = $"Updated URT ({ActiveQuery.TitlesAdded.Count} added).";
-				CSettings.URTDate = DateTime.UtcNow;
 				return ActiveQuery.TitlesAdded.Count;
 			}
 			catch (Exception ex)

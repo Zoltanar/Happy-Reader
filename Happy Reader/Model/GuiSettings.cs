@@ -16,24 +16,15 @@ namespace Happy_Reader
 		private bool _sexualTags;
 		private bool _technicalTags;
 		private string _culture;
-		private int _maxClipboardSize;
-		private bool _captureClipboardOnStart;
 		private CultureInfo _cultureInfo = CultureInfo.DefaultThreadCurrentCulture ?? CultureInfo.CurrentCulture;
-		private string _originalTextFont;
-		private string _romajiTextFont;
-		private string _translatedTextFont;
 		private string _localeEmulatorPath;
 		private string _extraPageLink;
-		//todo: only used to bind to settingstab, change later
-		[JsonIgnore]
-		public TranslatorSettings TSettings { get; set; }
 
 		[JsonIgnore]
 		public CultureInfo[] Cultures { get; } = CultureInfo.GetCultures(CultureTypes.InstalledWin32Cultures);
 
 		public GuiSettings()
 		{
-			_maxClipboardSize = 700;
 			_culture = CultureInfo.CurrentCulture.ToString();
 			ListedVN.ShowNSFWImages = () => NSFWImages;
 		}
@@ -49,6 +40,9 @@ namespace Happy_Reader
 			}
 		}
 
+		/// <summary>
+		/// Whether API queries/responses should be logged.
+		/// </summary>
 		public bool AdvancedMode
 		{
 			get => _advancedMode;
@@ -125,28 +119,6 @@ namespace Happy_Reader
 			}
 		}
 
-		public int MaxClipboardSize
-		{
-			get => _maxClipboardSize;
-			set
-			{
-				if (_maxClipboardSize == value) return;
-				_maxClipboardSize = value;
-				if (Loaded) Save();
-			}
-		}
-
-		public bool CaptureClipboardOnStart
-		{
-			get => _captureClipboardOnStart;
-			set
-			{
-				if (_captureClipboardOnStart == value) return;
-				_captureClipboardOnStart = value;
-				if (Loaded) Save();
-			}
-		}
-		
 		public string About =>
 			$"{StaticHelpers.ClientName} {StaticHelpers.ClientVersion} for VNDB API version {StaticHelpers.APIVersion}";
 
@@ -162,65 +134,7 @@ namespace Happy_Reader
 		//todo make editable
 		public List<double> AlertTraitValues { get; } = new List<double>();
 
-		[JsonIgnore]
-		public BindingList<string> VndbQueries { get; set; }
-		[JsonIgnore]
-		public BindingList<string> VndbResponses { get; set; }
-
-		public string OriginalTextFont
-		{
-			get => _originalTextFont;
-			set
-			{
-				if (_originalTextFont == value) return;
-				if (!string.IsNullOrWhiteSpace(value) && !StaticMethods.FontsInstalled.ContainsKey(value))
-				{
-					StaticHelpers.Logger.ToFile($"Did not find font with name '{value}'");
-				}
-				_originalTextFont = value;
-				if (Loaded) Save();
-			}
-		}
-
-		public string RomajiTextFont
-		{
-			get => _romajiTextFont;
-			set
-			{
-				if (_romajiTextFont == value) return;
-				if (!string.IsNullOrWhiteSpace(value) && !StaticMethods.FontsInstalled.ContainsKey(value))
-				{
-					StaticHelpers.Logger.ToFile($"Did not find font with name '{value}'");
-				}
-				_romajiTextFont = value;
-				if (Loaded) Save();
-			}
-		}
-
-		public string TranslatedTextFont
-		{
-			get => _translatedTextFont;
-			set
-			{
-				if (_translatedTextFont == value) return;
-				if (!string.IsNullOrWhiteSpace(value) && !StaticMethods.FontsInstalled.ContainsKey(value))
-				{
-					StaticHelpers.Logger.ToFile($"Did not find font with name '{value}'");
-				}
-				_translatedTextFont = value;
-				if (Loaded) Save();
-			}
-		}
-
-		[JsonIgnore]
-		public Brush OriginalColor => Brushes.Ivory;
-		[JsonIgnore]
-		public Brush RomajiColor => Brushes.Pink;
-		[JsonIgnore]
-		public Brush TranslationColor => Brushes.GreenYellow;
-		[JsonIgnore]
-		public double FontSize => 22d;
-
+		//todo make editable
 		public string LocaleEmulatorPath
 		{
 			get => _localeEmulatorPath;
@@ -232,6 +146,7 @@ namespace Happy_Reader
 			}
 		}
 
+		//todo make editable
 		public string ExtraPageLink
 		{
 			get => _extraPageLink;
@@ -263,5 +178,4 @@ namespace Happy_Reader
 			return traitScoreDict;
 		}
 	}
-
 }

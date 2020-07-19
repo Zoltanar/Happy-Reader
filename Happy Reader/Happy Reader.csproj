@@ -157,12 +157,16 @@
     <Compile Include="ViewModel\FiltersViewModel.cs" />
     <Compile Include="ViewModel\NamedFunction.cs" />
     <Compile Include="ViewModel\ProducersTabViewModel.cs" />
+    <Compile Include="ViewModel\SettingsViewModel.cs" />
     <Compile Include="View\Converters.cs" />
     <Compile Include="View\MergeWindow.xaml.cs">
       <DependentUpon>MergeWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\RadioButtonCheckedConverter.cs" />
     <Compile Include="View\SampleData\SampleListedVN.cs" />
+    <Compile Include="View\Tabs\ApiLogTab.xaml.cs">
+      <DependentUpon>ApiLogTab.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\Tabs\CharactersTab.xaml.cs">
       <DependentUpon>CharactersTab.xaml</DependentUpon>
     </Compile>
@@ -238,6 +242,10 @@
       <DependentUpon>VnMenuItem.xaml</DependentUpon>
     </Compile>
     <Page Include="View\MergeWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Tabs\ApiLogTab.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

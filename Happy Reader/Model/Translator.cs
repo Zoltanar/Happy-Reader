@@ -43,7 +43,7 @@ namespace Happy_Reader
 		{
 			input = input.Replace("\r", "");
 			if (string.IsNullOrWhiteSpace(input)) return null;
-			if (input.Length > StaticMethods.GSettings.MaxClipboardSize) return null; //todo report error
+			if (input.Length > StaticMethods.TSettings.MaxClipboardSize) return null; //todo report error
 			if (LatinOnlyRegex.IsMatch(input)) return null;
 			input = input.Replace("\r\n", "");
 			input = CheckRepeatedString(input);

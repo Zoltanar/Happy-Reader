@@ -1,26 +1,18 @@
 ﻿using System;
 using System.Windows.Controls;
-using Happy_Apps_Core;
+using Happy_Reader.ViewModel;
 
 namespace Happy_Reader.View.Tabs
 {
-	/// <summary>
-	/// Interaction logic for SettingsTab.xaml
-	/// </summary>
 	public partial class SettingsTab : UserControl
 	{
-		private GuiSettings _viewModel => DataContext as GuiSettings ??
-		                                  throw new ArgumentNullException(
-			                                  $"Expected view model to be of type {nameof(GuiSettings)}");
+		private SettingsViewModel ViewModel => DataContext as SettingsViewModel ?? throw new ArgumentNullException($"Expected view model to be of type {nameof(SettingsViewModel)}");
 
-		public SettingsTab()
-		{
-			InitializeComponent();
-		}
+		public SettingsTab() => InitializeComponent();
 
 		private void SetClipboardSize(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
 		{
-			_viewModel.MaxClipboardSize = (int)((Slider)e.Source).Value;
+			ViewModel.TranslatorSettings.MaxClipboardSize = (int)((Slider)e.Source).Value;
 		}
 	}
 }
