@@ -8,7 +8,6 @@ namespace Happy_Apps_Core
 		private int _userID = 0;
 		private DateTime _dumpfileDate = DateTime.MinValue;
 
-		//todo make editable
 		/// <summary>
 		/// Username of user.
 		/// </summary>
@@ -22,8 +21,7 @@ namespace Happy_Apps_Core
 				if (Loaded) Save();
 			}
 		}
-
-		//todo make editable
+		
 		/// <summary>
 		/// VNDB's UserID for user (found in the user's profile page).
 		/// </summary>

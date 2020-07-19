@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Windows.Controls;
+using System.Windows.Input;
+using Happy_Apps_Core;
 using Happy_Reader.ViewModel;
+using static Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Reader.View.Tabs
 {
@@ -13,6 +16,23 @@ namespace Happy_Reader.View.Tabs
 		private void SetClipboardSize(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
 		{
 			ViewModel.TranslatorSettings.MaxClipboardSize = (int)((Slider)e.Source).Value;
+		}
+
+		private void PasswordChanged(object sender, KeyEventArgs e)
+		{
+			if ((e as KeyEventArgs).Key != Key.Enter) return;
+			var pwBox = (PasswordBox)sender;
+			StaticHelpers.SavePassword(pwBox.Password.ToCharArray());
+			LoginResponseBlock.Text = "Saved new password.";
+		}
+
+		private void LogInWithDetails(object sender, System.Windows.RoutedEventArgs e)
+		{
+			var password = LoadPassword();
+			var response = Conn.Login(password != null
+				? new VndbConnection.LoginCredentials(ClientName, ClientVersion, CSettings.Username, password)
+				: new VndbConnection.LoginCredentials(ClientName, ClientVersion), false);
+			LoginResponseBlock.Text = response;
 		}
 	}
 }

@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
+             xmlns:view="clr-namespace:Happy_Reader.View"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              d:DataContext="{d:DesignInstance viewModel:SettingsViewModel}">
@@ -34,6 +35,26 @@
 		</Grid.RowDefinitions>
 		<TextBox TextWrapping="Wrap" IsReadOnly="True" Text="{Binding GuiSettings.About, Mode=OneWay}" Margin="10,5" Background="Black" Foreground="White"/>
 		<GroupBox Header="Core Settings" Grid.Row="1" DataContext="{Binding CoreSettings}">
+			<StackPanel>
+				<view:LabeledTextBox LabelWidth="120" Label="UserID:" Text="{Binding UserID}"/>
+				<view:LabeledTextBox LabelWidth="120" Label="Username:" Text="{Binding Username}"/>
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="120"/>
+						<ColumnDefinition/>
+					</Grid.ColumnDefinitions>
+					<Label Grid.Column="0" Content="Password:"/>
+					<PasswordBox Grid.Column="1" Margin="5,0" KeyUp="PasswordChanged" />
+				</Grid>
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="120"/>
+						<ColumnDefinition/>
+					</Grid.ColumnDefinitions>
+					<Button Grid.Column="0" Content="Log In" Click="LogInWithDetails"/>
+					<TextBlock Grid.Column="1" Margin="5,0" x:Name="LoginResponseBlock" />
+				</Grid>
+			</StackPanel>
 		</GroupBox>
 		<GroupBox Grid.Row="2" Header="Interface Settings" DataContext="{Binding GuiSettings}">
 			<StackPanel>
@@ -72,30 +93,9 @@
 					<Slider Grid.Column="1" Name="ClipboardSizeSlider" Value="{Binding MaxClipboardSize, Mode=OneWay}" Minimum="0" Maximum="1000" Foreground="White" IsSnapToTickEnabled="True" Thumb.DragCompleted="SetClipboardSize"/>
 					<TextBox Grid.Column="2" Text="{Binding ElementName=ClipboardSizeSlider, Path=Value}" Foreground="White" Style="{StaticResource NoBorderTextBox}"/>
 				</Grid>
-				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="120"/>
-						<ColumnDefinition/>
-					</Grid.ColumnDefinitions>
-					<Label Grid.Column="0" Content="Original Text Font:"/>
-					<TextBox Grid.Column="1" Text="{Binding OriginalTextFont}" Margin="5,0" />
-				</Grid>
-				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="120"/>
-						<ColumnDefinition/>
-					</Grid.ColumnDefinitions>
-					<Label Grid.Column="0" Content="Romaji Text Font:"/>
-					<TextBox Grid.Column="1" Text="{Binding RomajiTextFont}" Margin="5,0" />
-				</Grid>
-				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="120"/>
-						<ColumnDefinition/>
-					</Grid.ColumnDefinitions>
-					<Label Grid.Column="0" Content="Translated Text Font:"/>
-					<TextBox Grid.Column="1" Text="{Binding TranslatedTextFont}" Margin="5,0" />
-				</Grid>
+				<view:LabeledTextBox LabelWidth="120" Label="Original Text Font:" Text="{Binding OriginalTextFont}"/>
+				<view:LabeledTextBox LabelWidth="120" Label="Romaji Text Font:" Text="{Binding RomajiTextFont}"/>
+				<view:LabeledTextBox LabelWidth="120" Label="Translated Text Font:" Text="{Binding TranslatedTextFont}"/>
 				<Grid>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition/>

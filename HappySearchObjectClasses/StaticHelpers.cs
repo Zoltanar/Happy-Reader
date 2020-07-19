@@ -299,48 +299,46 @@ namespace Happy_Apps_Core
 		}
 		public static string ToSeconds(this TimeSpan time) => $"{time.TotalSeconds:N0}.{time.Milliseconds} seconds";
 
+		private const string PasswordRegistryKey = "SOFTWARE\\" + ClientName;
+		private const string PasswordRegistryCipherValueName = "Data1";
+		private const string PasswordRegistryEntropyValueName = "Data2";
+
 		/// <summary>
 		///     Save user's VNDB login password to Windows Registry (encrypted).
 		/// </summary>
 		/// <param name="password">User's password</param>
-		public static void SaveCredentials(char[] password)
+		public static void SavePassword(char[] password)
 		{
 			//prepare data
 			byte[] stringBytes = Encoding.UTF8.GetBytes(password);
-
 			var entropy = new byte[20];
-			using (var rng = new RNGCryptoServiceProvider())
-			{
-				rng.GetBytes(entropy);
-			}
-			byte[] cipherText = ProtectedData.Protect(stringBytes, entropy,
-				DataProtectionScope.CurrentUser);
-
+			using (var rng = new RNGCryptoServiceProvider()) rng.GetBytes(entropy);
+			byte[] cipherText = ProtectedData.Protect(stringBytes, entropy, DataProtectionScope.CurrentUser);
 			//store data
-			var key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{ClientName}", true) ??
-			          Registry.CurrentUser.CreateSubKey($"SOFTWARE\\{ClientName}", true);
-			if (key == null) return;
-			key.SetValue("Data1", cipherText);
-			key.SetValue("Data2", entropy);
+			var key = Registry.CurrentUser.OpenSubKey(PasswordRegistryKey, true) ??
+			          Registry.CurrentUser.CreateSubKey(PasswordRegistryKey, true) ??
+				throw new ArgumentNullException(@"key",$"Registry key not found/created: {PasswordRegistryKey}");
+			key.SetValue(PasswordRegistryCipherValueName, cipherText);
+			key.SetValue(PasswordRegistryEntropyValueName, entropy);
 			key.Close();
 			Logger.ToFile("Saved Login Password");
 		}
 
 		/// <summary>
-		///     Load user's VNDB login credentials from Windows Registry
+		/// Load user's VNDB login credentials from Windows Registry
 		/// </summary>
 		public static char[] LoadPassword()
 		{
 			//get key data
-			var key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{ClientName}");
+			var key = Registry.CurrentUser.OpenSubKey(PasswordRegistryKey);
 			if (key == null) return null;
-			var password = key.GetValue("Data1") as byte[];
-			var entropy = key.GetValue("Data2") as byte[];
+			var password = key.GetValue(PasswordRegistryCipherValueName) as byte[];
+			var entropy = key.GetValue(PasswordRegistryEntropyValueName) as byte[];
 			key.Close();
 			if (password == null || entropy == null) return null;
-			byte[] vv = ProtectedData.Unprotect(password, entropy, DataProtectionScope.CurrentUser);
+			byte[] passwordBytes = ProtectedData.Unprotect(password, entropy, DataProtectionScope.CurrentUser);
 			Logger.ToFile("Loaded Login Password");
-			return Encoding.UTF8.GetChars(vv);
+			return Encoding.UTF8.GetChars(passwordBytes);
 		}
 
 		public static void AddParameter(this DbCommand command, string parameterName, object value)

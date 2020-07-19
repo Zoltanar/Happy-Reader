@@ -153,36 +153,21 @@ namespace Happy_Apps_Core
 		/// </summary>
 		/// <param name="loginCredentials">Credentials to use for login command</param>
 		/// <param name="printCertificates">Logs certificates and prints to debug</param>
-		public void Login(LoginCredentials loginCredentials, bool printCertificates)
+		public string Login(LoginCredentials loginCredentials, bool printCertificates)
 		{
 			if (Status != APIStatus.Closed) Close();
+			LogIn = LogInStatus.No;
 			Open(printCertificates);
-			string loginBuffer;
-
-			if (loginCredentials.Username != null && loginCredentials.Password != null)
+			string loginBuffer = $"login {{\"protocol\":1,\"client\":\"{loginCredentials.ClientName}\",\"clientver\":\"{loginCredentials.ClientVersion}\"{loginCredentials.CredentialsString}}}";
+			Query(loginBuffer);
+			if (LastResponse.Type == ResponseType.Ok)
 			{
-				loginBuffer =
-					$"login {{\"protocol\":1,\"client\":\"{loginCredentials.ClientName}\",\"clientver\":\"{loginCredentials.ClientVersion}\",\"username\":\"{loginCredentials.Username}\",\"password\":\"{new string(loginCredentials.Password)}\"}}";
-				Query(loginBuffer);
-				if (LastResponse.Type == ResponseType.Ok)
-				{
-					LogIn = LogInStatus.YesWithPassword;
-					Status = APIStatus.Ready;
-				}
+				LogIn = loginCredentials.HasCredentials ? LogInStatus.YesWithPassword : LogInStatus.Yes;
+				Status = APIStatus.Ready;
 			}
-			else
-			{
-				loginBuffer = $"login {{\"protocol\":1,\"client\":\"{loginCredentials.ClientName}\",\"clientver\":\"{loginCredentials.ClientVersion}\"}}";
-				Query(loginBuffer);
-				if (LastResponse.Type == ResponseType.Ok)
-				{
-					LogIn = LogInStatus.Yes;
-					Status = APIStatus.Ready;
-				}
-			}
-
 			_loginCredentials = loginCredentials;
 			_changeStatusAction?.Invoke(Status);
+			return $"{LogIn} {LastResponse.JsonPayload}";
 		}
 
 		public readonly struct LoginCredentials
@@ -191,6 +176,8 @@ namespace Happy_Apps_Core
 			public string ClientVersion { get; }
 			public string Username { get; }
 			public char[] Password { get; }
+			public bool HasCredentials => !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(new string(Password));
+			public string CredentialsString => HasCredentials ? $",\"username\":\"{Username}\",\"password\":\"{new string(Password)}\"" : string.Empty;
 
 			public LoginCredentials(string clientName, string clientVersion, string username = null, char[] password = null)
 			{
@@ -200,7 +187,7 @@ namespace Happy_Apps_Core
 				Password = password;
 			}
 		}
-		
+
 		/// <summary>
 		/// Sends a query to the API without waiting on throttle error.
 		/// </summary>
