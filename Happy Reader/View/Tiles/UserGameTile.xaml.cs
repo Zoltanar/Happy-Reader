@@ -8,23 +8,25 @@ using Happy_Reader.ViewModel;
 
 namespace Happy_Reader.View.Tiles
 {
-	/// <summary>
-	/// Interaction logic for TitledImage.xaml
-	/// </summary>
 	public partial class UserGameTile
 	{
+		private VnMenuItem _vnMenu;
+		private bool _loaded;
+
 		public UserGame UserGame { get; }
+
+		private VnMenuItem VnMenu => _vnMenu ??= new VnMenuItem() { DataContext = UserGame?.VN, VnItem = UserGame?.VN, };
 
 		public UserGameTile()
 		{
 			InitializeComponent();
 		}
 
-		public UserGameTile(UserGame usergame)
+		public UserGameTile(UserGame userGame)
 		{
 			InitializeComponent();
-			DataContext = usergame;
-			UserGame = usergame;
+			DataContext = userGame;
+			UserGame = userGame;
 		}
 
 		public void GameDetails(object sender, EventArgs e)
@@ -43,12 +45,6 @@ namespace Happy_Reader.View.Tiles
 				directory = directory.Parent;
 			}
 			Process.Start("explorer", $"\"{directory.FullName}\"");
-		}
-
-		public void BrowseToVndb(object sender, RoutedEventArgs e)
-		{
-			if (!UserGame.HasVN) return;
-			Process.Start($"http://vndb.org/v{UserGame.VNID}/");
 		}
 
 		public void RemoveUserGame(object sender, RoutedEventArgs e)
@@ -101,6 +97,18 @@ namespace Happy_Reader.View.Tiles
 				MessageBoxButton.OKCancel);
 			if (result != MessageBoxResult.OK) return;
 			UserGame.ResetTimePlayed();
+		}
+
+		private void OpenVnSubmenu(object sender, RoutedEventArgs e)
+		{
+			VnMenu.ContextMenuOpened();
+		}
+
+		private void UserGameTile_OnLoaded(object sender, RoutedEventArgs e)
+		{
+			if (_loaded) return;
+			VnMenu.TransferItems(VnMenuParent);
+			_loaded = true;
 		}
 	}
 }

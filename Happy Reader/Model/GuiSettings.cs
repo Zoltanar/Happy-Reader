@@ -134,7 +134,6 @@ namespace Happy_Reader
 		//todo make editable
 		public List<double> AlertTraitValues { get; } = new List<double>();
 
-		//todo make editable
 		public string LocaleEmulatorPath
 		{
 			get => _localeEmulatorPath;
@@ -146,7 +145,6 @@ namespace Happy_Reader
 			}
 		}
 
-		//todo make editable
 		public string ExtraPageLink
 		{
 			get => _extraPageLink;

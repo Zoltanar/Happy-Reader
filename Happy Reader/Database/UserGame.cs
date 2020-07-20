@@ -295,7 +295,7 @@ namespace Happy_Reader.Database
 
 		public bool HasVN => VNID.HasValue;
 		public bool FileExists => File.Exists(FilePath);
-
+		
 
 		public enum EncodingEnum
 		{

@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:database="clr-namespace:Happy_Reader.Database"
              xmlns:view="clr-namespace:Happy_Reader.View"
-             mc:Ignorable="d" d:DesignHeight="220" d:DesignWidth="160">
+             mc:Ignorable="d" d:DesignHeight="220" d:DesignWidth="160" Loaded="UserGameTile_OnLoaded">
 	<UserControl.DataContext>
 		<database:UserGame/>
 	</UserControl.DataContext>
@@ -64,7 +64,7 @@
 			<MenuItem Header="Reset Time Played" Click="ResetTimePlayed"/>
 			<MenuItem Header="Launch with LE (Japan)" Click="LaunchWithLeJapan" />
 			<MenuItem Header="Open VN Details" Click="OpenVNDetails" IsEnabled="{Binding HasVN}"/>
-			<view:VnMenuItem IsEnabled="{Binding HasVN}" VnItem="{Binding VN}"  Header="VNDB"/>
+			<MenuItem IsEnabled="{Binding HasVN}" Header="VNDB" SubmenuOpened="OpenVnSubmenu" x:Name="VnMenuParent" />
 		</ContextMenu>
 	</UserControl.ContextMenu>
 </UserControl>
