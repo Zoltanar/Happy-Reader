@@ -114,11 +114,19 @@ namespace DatabaseDumpReader.DumpItems
 			Id = id == "\\N" ? null : id;
 			Width = Convert.ToInt32(GetPart(parts, "width"));
 			Height = Convert.ToInt32(GetPart(parts, "height"));
+			Sexual = Convert.ToDouble(GetPart(parts, "c_sexual_avg"));
+			Violence = Convert.ToDouble(GetPart(parts, "c_violence_avg"));
 		}
 
 		public int Height { get; set; }
 
 		public int Width { get; set; }
+		
+		public double Sexual { get; set; }
+
+		public double Violence { get; set; }
+
+		public bool Nsfw => Sexual > 2.5 || Violence > 2.5;
 
 		public string Id { get; set; }
 
@@ -140,10 +148,10 @@ namespace DatabaseDumpReader.DumpItems
 			VnId = Convert.ToInt32(GetPart(parts, "id"));
 			var imageId = GetPart(parts, "scr");
 			ImageId = imageId == "\\N" ? null : imageId;
-			Nsfw = GetPart(parts, "nsfw") == "t";
+			//Nsfw = GetPart(parts, "nsfw") == "t";
 		}
 
-		public bool Nsfw { get; set; }
+		//public bool Nsfw { get; set; }
 
 		public string ImageId { get; set; }
 
@@ -159,15 +167,15 @@ namespace DatabaseDumpReader.DumpItems
 			Headers = parts.ToDictionary(c => c, c => colIndex++);
 		}
 
-		public VNItem.ScreenItem ToScreenItem(Dictionary<string, DumpScreen> screenDict)
+		public VNItem.ScreenItem ToScreenItem(Dictionary<string, DumpScreen> imageDictionary)
 		{
-			if (!screenDict.TryGetValue(ImageId, out var screenshot)) return null;
+			if (!imageDictionary.TryGetValue(ImageId, out var image)) return null;
 			return new VNItem.ScreenItem
 			{
 				ImageId = ImageId,
-				Nsfw = Nsfw,
-				Height = screenshot.Height,
-				Width = screenshot.Width
+				Nsfw = image.Nsfw,
+				Height = image.Height,
+				Width = image.Width
 			};
 		}
 	}

@@ -10,7 +10,8 @@ namespace Happy_Reader.View.Tiles
 		private bool _loaded;
 
 		public ListedVN VN { get; }
-		private VnMenuItem VnMenu => _vnMenu ??= new VnMenuItem { DataContext = VN };
+
+		private VnMenuItem VnMenu => _vnMenu ??= new VnMenuItem(VN);
 
 		public VNTile(ListedVN vn)
 		{

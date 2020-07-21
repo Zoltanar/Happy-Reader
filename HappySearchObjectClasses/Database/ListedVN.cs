@@ -565,7 +565,6 @@ namespace Happy_Apps_Core.Database
 				Aliases = GetPart(parts, "alias");
 				DateUpdated = DateTime.UtcNow;
 				if (!string.IsNullOrWhiteSpace(GetPart(parts, "length"))) LengthTime = (LengthFilterEnum)Convert.ToInt32(GetPart(parts, "length"));
-				ImageNSFW = GetPart(parts, "img_nsfw") == "t";
 				var imageId = GetPart(parts, "image");
 				ImageId = imageId == "\\N" ? null : imageId;
 				Description = Convert.ToString(GetPart(parts, "desc"));

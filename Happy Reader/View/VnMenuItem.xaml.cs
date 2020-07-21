@@ -13,14 +13,18 @@ namespace Happy_Reader.View
 	public partial class VnMenuItem : ItemsControl
 	{
 		[NotNull]
-		private MainWindow MainWindow => (MainWindow)Window.GetWindow(this) ?? throw new ArgumentNullException(nameof(MainWindow));
+		private MainWindow MainWindow(FrameworkElement sender) => (MainWindow)Window.GetWindow(sender) ?? throw new ArgumentNullException(nameof(MainWindow));
 
-		private MainWindowViewModel MainViewModel => MainWindow.ViewModel;
-		private VNTabViewModel ViewModel => MainViewModel.DatabaseViewModel;
+		private MainWindowViewModel MainViewModel(FrameworkElement sender) => MainWindow(sender).ViewModel;
+		private VNTabViewModel ViewModel(FrameworkElement sender) => MainViewModel(sender).DatabaseViewModel;
 
 		private ListedVN VN => (ListedVN)DataContext;
 
-		public VnMenuItem() => InitializeComponent();
+		public VnMenuItem(ListedVN vn)
+		{
+			InitializeComponent();
+			DataContext = vn;
+		}
 
 		private void BrowseToVndbPage(object sender, RoutedEventArgs e) => Process.Start($"http://vndb.org/v{VN.VNID}/");
 
@@ -32,6 +36,7 @@ namespace Happy_Reader.View
 
 		private void BrowseToExtraPage(object sender, RoutedEventArgs e)
 		{
+			if (string.IsNullOrWhiteSpace(StaticMethods.GSettings.ExtraPageLink)) return; //todo disable when this is true
 			var title = string.IsNullOrWhiteSpace(VN.KanjiTitle) ? VN.Title : VN.KanjiTitle;
 			//remove minus so search includes term
 			var titleFixed = title.Replace("-", "").Replace("ー", "");
@@ -91,10 +96,10 @@ namespace Happy_Reader.View
 			else
 			{
 				labelsToSet = new HashSet<UserVN.LabelKind>();
-				if (VN.UserVN?.Labels.Contains(UserVN.LabelKind.Voted) ?? false) labelsToSet.Add(UserVN.LabelKind.Voted);
+				if (VN.UserVN?.Labels?.Contains(UserVN.LabelKind.Voted) ?? false) labelsToSet.Add(UserVN.LabelKind.Voted);
 				labelsToSet.UnionWith(labels);
 			}
-			var success = await ViewModel.ChangeVNStatus(VN, labelsToSet);
+			var success = await ViewModel(menuItem).ChangeVNStatus(VN, labelsToSet);
 			if (success) VN.OnPropertyChanged(null);
 		}
 
@@ -104,19 +109,21 @@ namespace Happy_Reader.View
 			var remove = menuItem.IsChecked;
 			var header = menuItem.Header.ToString();
 			var voteValue = remove ? null : header == "None" ? (int?)null : int.Parse(header);
-			var success = await ViewModel.ChangeVote(VN, voteValue);
+			var success = await ViewModel(menuItem).ChangeVote(VN, voteValue);
 			if (success) VN.OnPropertyChanged(null);
 		}
 
 		private async void UpdateVN(object sender, RoutedEventArgs e)
 		{
-			var success = await ViewModel.UpdateVN(VN);
+			var menuItem = (MenuItem)sender;
+			var success = await ViewModel(menuItem).UpdateVN(VN);
 			if (success) VN.OnPropertyChanged(null);
 		}
 
 		private async void ShowTitlesByProducer(object sender, RoutedEventArgs e)
 		{
-			await ViewModel.ShowForProducer(VN.Producer);
+			var menuItem = (MenuItem)sender;
+			await ViewModel(menuItem).ShowForProducer(VN.Producer);
 		}
 
 		private void CopyTitle(object sender, RoutedEventArgs e)

@@ -15,7 +15,7 @@ namespace Happy_Reader.View.Tiles
 
 		public UserGame UserGame { get; }
 
-		private VnMenuItem VnMenu => _vnMenu ??= new VnMenuItem() { DataContext = UserGame?.VN, VnItem = UserGame?.VN, };
+		private VnMenuItem VnMenu => _vnMenu ??= new VnMenuItem(UserGame?.VN);
 
 		public UserGameTile()
 		{

@@ -25,7 +25,7 @@ namespace DatabaseDumpReader
 		public Dictionary<int, List<Release>> VnReleases { get; } = new Dictionary<int, List<Release>>();
 		public Dictionary<int, DumpAnime> Animes { get; } = new Dictionary<int, DumpAnime>();
 		public Dictionary<int, List<DumpVnAnime>> VnAnimes { get; } = new Dictionary<int, List<DumpVnAnime>>();
-		public Dictionary<string, DumpScreen> Screens { get; } = new Dictionary<string, DumpScreen>();
+		public Dictionary<string, DumpScreen> Images { get; } = new Dictionary<string, DumpScreen>();
 		public Dictionary<int, List<DumpVnScreen>> VnScreens { get; } = new Dictionary<int, List<DumpVnScreen>>();
 		public Dictionary<int, List<DumpRelation>> VnRelations { get; } = new Dictionary<int, List<DumpRelation>>();
 		public Dictionary<int, UserVN.LabelKind> UserLabels { get; } = new Dictionary<int, UserVN.LabelKind>();
@@ -90,7 +90,7 @@ namespace DatabaseDumpReader
 				if (!VnAnimes.ContainsKey(i.VnId)) VnAnimes[i.VnId] = new List<DumpVnAnime>();
 				VnAnimes[i.VnId].Add(i);
 			}, "db\\vn_anime");
-			Load<DumpScreen>((i, t) => Screens.Add(i.Id, i), "db\\images");
+			Load<DumpScreen>((i, t) => Images.Add(i.Id, i), "db\\images");
 			Load<DumpVnScreen>((i, t) =>
 			{
 				if (!VnScreens.ContainsKey(i.VnId)) VnScreens[i.VnId] = new List<DumpVnScreen>();
@@ -274,8 +274,12 @@ namespace DatabaseDumpReader
 
 			void ResolveScreens()
 			{
+				if (!string.IsNullOrWhiteSpace(vn.ImageId) && Images.TryGetValue(vn.ImageId, out var cover))
+				{
+					vn.ImageNSFW = cover.Nsfw;
+				}
 				var screensObject = VnScreens.TryGetValue(vn.VNID, out var screens)
-					? screens.Select(r => r.ToScreenItem(Screens)).Where(i=>i != null).ToArray()
+					? screens.Select(r => r.ToScreenItem(Images)).Where(i=>i != null).ToArray()
 					: Array.Empty<VNItem.ScreenItem>();
 				var screensString = JsonConvert.SerializeObject(screensObject);
 				vn.SetScreens(screensString, screensObject);
