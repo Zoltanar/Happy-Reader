@@ -11,6 +11,7 @@ namespace Happy_Reader
 		private string _googleCredentialPath = "C:\\Google\\hrtranslate-credential.json";
 		private string _freeUserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)";
 		private int _maxClipboardSize = 700;
+		private double _fontSize = 22d;
 		private bool _captureClipboardOnStart;
 		private string _originalTextFont;
 		private string _romajiTextFont;
@@ -109,9 +110,16 @@ namespace Happy_Reader
 		[JsonIgnore]
 		public Brush TranslationColor => Brushes.GreenYellow;
 
-		//todo make editable
-		[JsonIgnore]
-		public double FontSize => 22d;
+		public double FontSize
+		{
+			get => _fontSize;
+			set
+			{
+				if (_fontSize == value) return;
+				_fontSize = value;
+				if (Loaded) Save();
+			}
+		}
 		
 		public int MaxClipboardSize
 		{

@@ -6,7 +6,7 @@
              xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
              xmlns:view="clr-namespace:Happy_Reader.View"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800"
+             d:DesignHeight="650" d:DesignWidth="800"
              d:DataContext="{d:DesignInstance viewModel:SettingsViewModel}">
 	<UserControl.Resources>
 		<Style TargetType="GroupBox">
@@ -98,6 +98,7 @@
 				<view:LabeledTextBox LabelWidth="120" Label="Original Text Font:" Text="{Binding OriginalTextFont}"/>
 				<view:LabeledTextBox LabelWidth="120" Label="Romaji Text Font:" Text="{Binding RomajiTextFont}"/>
 				<view:LabeledTextBox LabelWidth="120" Label="Translated Text Font:" Text="{Binding TranslatedTextFont}"/>
+				<view:LabeledTextBox LabelWidth="120" Label="Font Size:" Text="{Binding FontSize}"/>
 				<Grid>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition/>

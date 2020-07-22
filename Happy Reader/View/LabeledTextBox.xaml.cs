@@ -6,7 +6,7 @@ namespace Happy_Reader.View
 	public partial class LabeledTextBox : UserControl
 	{
 		public static readonly DependencyProperty TextProperty =
-			DependencyProperty.Register(nameof(Text), typeof(string), typeof(LabeledTextBox), new UIPropertyMetadata(null));
+			DependencyProperty.Register(nameof(Text), typeof(string), typeof(LabeledTextBox), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
 		public static readonly DependencyProperty LabelProperty =
 			DependencyProperty.Register(nameof(Label), typeof(string), typeof(LabeledTextBox), new UIPropertyMetadata(null));
