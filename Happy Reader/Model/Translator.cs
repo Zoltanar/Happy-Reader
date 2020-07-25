@@ -174,6 +174,7 @@ namespace Happy_Reader
 			}
 			if (usefulEntriesWithProxies.Count == 0) return usefulEntriesWithProxies;
 			usefulEntriesWithProxies = usefulEntriesWithProxies.OrderBy(x => x.Location).ToList();
+			RemoveSubEntries(usefulEntriesWithProxies);
 			//merge entries that are together
 			var entriesToRemove = new List<Entry>();
 			var entriesToAdd = new List<Entry>();
@@ -197,9 +198,10 @@ namespace Happy_Reader
 			foreach (var entry in entriesToAdd) usefulEntriesWithProxies.Add(entry);
 			foreach (var entry in usefulEntriesWithProxies)
 			{
-				AssignProxy(proxies, entry);
-				LogReplace(sb, entry.Input, entry.AssignedProxy.FullRoleString, entry.Id);
+				var proxyAssigned = AssignProxy(proxies, entry);
+				if(proxyAssigned) LogReplace(sb, entry.Input, entry.AssignedProxy.FullRoleString, entry.Id);
 			}
+			usefulEntriesWithProxies = usefulEntriesWithProxies.Where(e => e.AssignedProxy != null).ToList();
 			StaticHelpers.Logger.Verbose($"Stage 4.0: {sb}");
 			//perform replaces involving proxies
 			var entriesOnProxies = _entries.Where(i => i.Type == EntryType.ProxyMod).ToArray();
@@ -210,6 +212,32 @@ namespace Happy_Reader
 			}
 			StaticHelpers.Logger.Verbose($"Stage 4.2: {sb}");
 			return usefulEntriesWithProxies;
+		}
+
+		/// <summary>
+		/// Removes entries from the list, when there are other entries that contain their input.
+		/// </summary>
+		/// <param name="entriesWithProxies">List of entries, will be modified</param>
+		/// <example>
+		/// 2 entries: おかあーさん,かあーさん
+		/// Input string: おかあーさんはどこですか？
+		/// We don't need to keep the second entry because it's included in the first.
+		/// In a different example:
+		/// Input string: おかあーさんとか、かあーさんとか
+		/// We don't remove the second entry because it stands on its own.
+		/// </example>
+		private static void RemoveSubEntries(List<Entry> entriesWithProxies)
+		{
+			foreach (var entry in entriesWithProxies.ToList())
+			{
+				var superEntry = entriesWithProxies.FirstOrDefault(e => e != entry && e.Input.Contains(entry.Input));
+				if (superEntry == null) continue;
+				//we use the location in the string to be translated, to ensure we don't remove a proxy for an input that stands on its own
+				//example:　おかあーさんとか、かあーさんとか
+				//given that we have proxies for おかあーさん and かあーさん, we want to keep them both so that the latter is also translated.
+				var superEntryEndLocation = superEntry.Location + superEntry.Input.Length;
+				if (entry.Location > superEntry.Location && entry.Location < superEntryEndLocation) entriesWithProxies.Remove(entry);
+			}
 		}
 
 		private Dictionary<string, ProxiesWithCount> BuildProxiesList(HappyReaderDatabase data, string[] roles)
@@ -232,18 +260,19 @@ namespace Happy_Reader
 			return proxies;
 		}
 
-		private void AssignProxy(Dictionary<string, ProxiesWithCount> proxies, Entry entry)
+		private bool AssignProxy(Dictionary<string, ProxiesWithCount> proxies, Entry entry)
 		{
 			var proxy = proxies[entry.RoleString].Proxies.Count == 0 ? null : proxies[entry.RoleString].Proxies.Dequeue();
 			proxies[entry.RoleString].Count++;
 			if (proxy == null)
 			{
-				StaticHelpers.Logger.ToFile("No proxy available, stopping translate.");
+				StaticHelpers.Logger.ToFile("No proxy available, won't proxy-translate.");
 				throw new Exception("Error - no proxy available.");
 			}
 			proxy.FullRoleString = $"[[{entry.RoleString}#{proxies[entry.RoleString].Count}]]";
 			proxy.Id = proxies[entry.RoleString].Count;
 			entry.AssignedProxy = proxy;
+			return true;
 		}
 
 		private void TranslateStage4P1(StringBuilder sb, IReadOnlyCollection<Entry> entriesWithProxies, IEnumerable<Entry> entriesOnProxies)
@@ -299,7 +328,12 @@ namespace Happy_Reader
 			}
 			catch (Exception ex)
 			{
-				throw new Exception("Error in TranslateStageFour, see inner", ex);
+				result[4] = ex.Message;
+				result[5] = ex.Message;
+				result[6] = ex.Message;
+				result[7] = ex.Message;
+				return result;
+				//throw new Exception("Error in TranslateStageFour, see inner", ex);
 			}
 			result[4] = sb.ToString();
 			if(StaticMethods.TSettings.GoogleUseCredential) GoogleTranslate.Translate(sb);
