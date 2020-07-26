@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Reader.ViewModel;
 using JetBrains.Annotations;
@@ -30,13 +32,12 @@ namespace Happy_Reader.View
 
 		private void BrowseToReleasePage(object sender, RoutedEventArgs e)
 		{
-			if (string.IsNullOrWhiteSpace(VN.ReleaseLink)) return; //todo disable when this is true
+			if (!Uri.IsWellFormedUriString(VN.ReleaseLink, UriKind.Absolute)) throw new InvalidOperationException($"'{VN.ReleaseLink}' is not a well formed URI.");
 			Process.Start(VN.ReleaseLink);
 		}
 
 		private void BrowseToExtraPage(object sender, RoutedEventArgs e)
 		{
-			if (string.IsNullOrWhiteSpace(StaticMethods.GSettings.ExtraPageLink)) return; //todo disable when this is true
 			var title = string.IsNullOrWhiteSpace(VN.KanjiTitle) ? VN.Title : VN.KanjiTitle;
 			//remove minus so search includes term
 			var titleFixed = title.Replace("-", "").Replace("ー", "");
@@ -45,15 +46,12 @@ namespace Happy_Reader.View
 
 		public void ContextMenuOpened()
 		{
-			if (string.IsNullOrWhiteSpace(VN.ReleaseLink))
-			{
-				ReleaseLinkItem.IsEnabled = false;
-				ReleaseLinkItem.ToolTip = @"No link found.";
-			}
+			ReleaseLinkItem.IsEnabled = !string.IsNullOrWhiteSpace(VN.ReleaseLink);
+			OriginalTitleItem.IsEnabled = !string.IsNullOrWhiteSpace(VN.KanjiTitle);
+			ExtraPageItem.IsEnabled = !string.IsNullOrWhiteSpace(StaticMethods.GSettings.ExtraPageLink);
 			//clearing previous
 			foreach (MenuItem item in Labels.Items) item.IsChecked = false;
 			foreach (MenuItem item in VoteMenu.Items) item.IsChecked = false;
-
 			//set new
 			Labels.IsChecked = VN.UserVN?.Labels.Any(l => l != UserVN.LabelKind.Voted) ?? false;
 			VoteMenu.IsChecked = VN.UserVN?.Vote > 0;
@@ -113,6 +111,24 @@ namespace Happy_Reader.View
 			if (success) VN.OnPropertyChanged(null);
 		}
 
+		private async void ChangePreciseNumber(object sender, RoutedEventArgs e)
+		{
+			var menuItem = (MenuItem)sender;
+			var inputWindow = new InputWindow
+			{
+				Title = $"{StaticHelpers.ClientName} - Enter Visual Novel Vote",
+				InputLabel = "Enter vote value from 10 to 100", 
+				Filter = (s) => int.TryParse(s, out var vote) && vote >= 10 && vote <= 100,
+			};
+			var result = inputWindow.ShowDialog();
+			if (result == true)
+			{
+				var voteValue = int.Parse(inputWindow.InputText);
+				var success = await ViewModel(menuItem).ChangeVote(VN, voteValue);
+				if (success) VN.OnPropertyChanged(null);
+			}
+		}
+
 		private async void UpdateVN(object sender, RoutedEventArgs e)
 		{
 			var menuItem = (MenuItem)sender;
@@ -126,16 +142,9 @@ namespace Happy_Reader.View
 			await ViewModel(menuItem).ShowForProducer(VN.Producer);
 		}
 
-		private void CopyTitle(object sender, RoutedEventArgs e)
-		{
-			Clipboard.SetText(VN.Title);
-		}
+		private void CopyTitle(object sender, RoutedEventArgs e) => Clipboard.SetText(VN.Title);
 
-		private void CopyOriginalTitle(object sender, RoutedEventArgs e)
-		{
-			if (string.IsNullOrWhiteSpace(VN.KanjiTitle)) return; //todo disable when this is true
-			Clipboard.SetText(VN.KanjiTitle);
-		}
+		private void CopyOriginalTitle(object sender, RoutedEventArgs e) => Clipboard.SetText(VN.KanjiTitle);
 
 		public void TransferItems(ItemsControl parent)
 		{

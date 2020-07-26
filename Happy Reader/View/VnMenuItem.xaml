@@ -29,7 +29,7 @@
 			<MenuItem Click="ChangeVote" Header="80"/>
 			<MenuItem Click="ChangeVote" Header="90"/>
 			<MenuItem Click="ChangeVote" Header="100"/>
-			<MenuItem IsEnabled="False" Click="ChangeVote" Header="Precise Number"/>
+			<MenuItem Click="ChangePreciseNumber" Header="Precise Number"/>
 		</MenuItem>
 		<Separator/>
 		<MenuItem Header="Show Titles By Producer" Click="ShowTitlesByProducer" />
@@ -37,8 +37,8 @@
 		<Separator/>
 		<MenuItem Header="Browse to VNDB Page" Click="BrowseToVndbPage"/>
 		<MenuItem x:Name="ReleaseLinkItem" Header="Browse to Release Page" Click="BrowseToReleasePage"/>
-		<MenuItem Header="Browse to Extra Page" Click="BrowseToExtraPage"/>
+		<MenuItem x:Name="ExtraPageItem" Header="Browse to Extra Page" Click="BrowseToExtraPage"/>
 		<Separator/>
 		<MenuItem Header="Copy Title" Click="CopyTitle"/>
-		<MenuItem Header="Copy Original Title" Click="CopyOriginalTitle"/>
+		<MenuItem x:Name="OriginalTitleItem" Header="Copy Original Title" Click="CopyOriginalTitle"/>
 </ItemsControl>

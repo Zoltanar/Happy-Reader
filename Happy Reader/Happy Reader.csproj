@@ -159,6 +159,9 @@
     <Compile Include="ViewModel\ProducersTabViewModel.cs" />
     <Compile Include="ViewModel\SettingsViewModel.cs" />
     <Compile Include="View\Converters.cs" />
+    <Compile Include="View\InputWindow.xaml.cs">
+      <DependentUpon>InputWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\LabeledTextBox.xaml.cs">
       <DependentUpon>LabeledTextBox.xaml</DependentUpon>
     </Compile>
@@ -244,6 +247,10 @@
     <Compile Include="View\VnMenuItem.xaml.cs">
       <DependentUpon>VnMenuItem.xaml</DependentUpon>
     </Compile>
+    <Page Include="View\InputWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\LabeledTextBox.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
