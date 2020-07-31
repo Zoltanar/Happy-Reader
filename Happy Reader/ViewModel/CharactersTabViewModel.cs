@@ -125,8 +125,7 @@ namespace Happy_Reader.ViewModel
 
 		public async Task ShowFiltered()
 		{
-			var td = StaticMethods.GSettings.GetTraitScoreDictionary();
-			var trait = DumpFiles.GetTrait(StaticMethods.GSettings.AlertTraitIDs.First()); //todo use gsettings properly
+			var trait = DumpFiles.GetTrait(StaticHelpers.CSettings.AlertTraitIDs.First()); //todo use csettings properly
 			var filter = new CustomVnFilter();
 			filter.AndFilters.Add(new VnFilter(VnFilterType.Blacklisted, null, true));
 			filter.AndFilters.Add(new VnFilter(VnFilterType.Label, UserVN.LabelKind.Finished, true));

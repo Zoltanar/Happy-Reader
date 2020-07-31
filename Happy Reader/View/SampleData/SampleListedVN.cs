@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using JetBrains.Annotations;
 using Newtonsoft.Json;

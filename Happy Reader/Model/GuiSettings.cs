@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
-using System.Windows.Media;
+﻿using System.Globalization;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Newtonsoft.Json;
@@ -122,18 +119,6 @@ namespace Happy_Reader
 		public string About =>
 			$"{StaticHelpers.ClientName} {StaticHelpers.ClientVersion} for VNDB API version {StaticHelpers.APIVersion}";
 
-		//todo make editable
-		public List<int> AlertTagIDs { get; } = new List<int>();
-
-		//todo make editable
-		public List<int> AlertTraitIDs { get; } = new List<int>();
-
-		//todo make editable
-		public List<double> AlertTagValues { get; } = new List<double>();
-
-		//todo make editable
-		public List<double> AlertTraitValues { get; } = new List<double>();
-
 		public string LocaleEmulatorPath
 		{
 			get => _localeEmulatorPath;
@@ -154,26 +139,6 @@ namespace Happy_Reader
 				_extraPageLink = value;
 				if (Loaded) Save();
 			}
-		}
-		
-		public Dictionary<DumpFiles.WrittenTag, double> GetTagScoreDictionary()
-		{
-			var tagScoreDict = new Dictionary<DumpFiles.WrittenTag, double>();
-			for (var index = 0; index < AlertTagIDs.Count; index++)
-			{
-				tagScoreDict.Add(DumpFiles.GetTag(AlertTagIDs[index]), AlertTagValues[index]);
-			}
-			return tagScoreDict;
-		}
-
-		public Dictionary<DumpFiles.WrittenTrait, double> GetTraitScoreDictionary()
-		{
-			var traitScoreDict = new Dictionary<DumpFiles.WrittenTrait, double>();
-			for (var index = 0; index < AlertTraitIDs.Count; index++)
-			{
-				traitScoreDict.Add(DumpFiles.GetTrait(AlertTraitIDs[index]), AlertTraitValues[index]);
-			}
-			return traitScoreDict;
 		}
 	}
 }

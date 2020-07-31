@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Happy_Apps_Core
 {
@@ -48,6 +49,38 @@ namespace Happy_Apps_Core
 				_dumpfileDate = value;
 				if (Loaded) Save();
 			}
+		}
+
+		//todo make editable
+		public List<int> AlertTagIDs { get; } = new List<int>();
+
+		//todo make editable
+		public List<int> AlertTraitIDs { get; } = new List<int>();
+
+		//todo make editable
+		public List<double> AlertTagValues { get; } = new List<double>();
+
+		//todo make editable
+		public List<double> AlertTraitValues { get; } = new List<double>();
+
+		public Dictionary<DumpFiles.WrittenTag, double> GetTagScoreDictionary()
+		{
+			var tagScoreDict = new Dictionary<DumpFiles.WrittenTag, double>();
+			for (var index = 0; index < AlertTagIDs.Count; index++)
+			{
+				tagScoreDict.Add(DumpFiles.GetTag(AlertTagIDs[index]), AlertTagValues[index]);
+			}
+			return tagScoreDict;
+		}
+
+		public Dictionary<DumpFiles.WrittenTrait, double> GetTraitScoreDictionary()
+		{
+			var traitScoreDict = new Dictionary<DumpFiles.WrittenTrait, double>();
+			for (var index = 0; index < AlertTraitIDs.Count; index++)
+			{
+				traitScoreDict.Add(DumpFiles.GetTrait(AlertTraitIDs[index]), AlertTraitValues[index]);
+			}
+			return traitScoreDict;
 		}
 	}
 }

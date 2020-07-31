@@ -19,6 +19,7 @@ namespace DatabaseDumpReader
 		public string DumpFolder { get; }
 		public string OutputFilePath { get; }
 		public VisualNovelDatabase Database { get; }
+		public SuggestionScorer SuggestionScorer { get; }
 		public Dictionary<int, Release> Releases { get; } = new Dictionary<int, Release>();
 		public Dictionary<int, List<string>> LangReleases { get; } = new Dictionary<int, List<string>>();
 		public Dictionary<int, List<int>> ProducerReleases { get; } = new Dictionary<int, List<int>>();
@@ -38,17 +39,21 @@ namespace DatabaseDumpReader
 			if (!Directory.Exists(dumpFolder)) throw new IOException($"Dump folder does not exist: '{dumpFolder}'");
 			var dbFile = new FileInfo(dbFilePath);
 			if (!dbFile.Exists) throw new IOException($"Original database does not exist: '{dbFile}'");
-			var dbDirectory = Path.GetDirectoryName(dbFile.FullName) ??
-												throw new ArgumentNullException(nameof(Path.GetDirectoryName));
-			var backupPath = Path.Combine(dbDirectory,
-				$"{Path.GetFileNameWithoutExtension(dbFile.FullName)}-DRB{DateTime.Now:yyyyMMdd-HHmmss}{dbFile.Extension}");
+			var dbDirectory = Path.GetDirectoryName(dbFile.FullName) ?? throw new ArgumentNullException(nameof(Path.GetDirectoryName));
+			var backupPath = Path.Combine(dbDirectory, $"{Path.GetFileNameWithoutExtension(dbFile.FullName)}-DRB{DateTime.Now:yyyyMMdd-HHmmss}{dbFile.Extension}");
 			StaticHelpers.Logger.ToFile($"Backing up database to {backupPath}");
 			File.Copy(dbFile.FullName, backupPath);
 			UserId = userId;
 			DumpFolder = dumpFolder;
 			OutputFilePath = dbFile.FullName;
 			Database = new VisualNovelDatabase(OutputFilePath, false);
+			StaticHelpers.LocalDatabase = Database;
 			Database.DeleteForDump();
+			DumpFiles.Load();
+			SuggestionScorer = new SuggestionScorer(
+				StaticHelpers.CSettings.GetTagScoreDictionary(),
+				StaticHelpers.CSettings.GetTraitScoreDictionary(),
+				Database);
 		}
 
 		public void Run(DateTime dumpDate)
@@ -271,6 +276,7 @@ namespace DatabaseDumpReader
 			ResolveRelations();
 			ResolveAnime();
 			ResolveScreens();
+			SuggestionScorer.GetScore(vn, false);
 
 			void ResolveScreens()
 			{

@@ -380,8 +380,8 @@ namespace Happy_Reader.ViewModel
 			{
 				if (_suggestionScorer != null) return _suggestionScorer;
 				_suggestionScorer = new SuggestionScorer(
-					StaticMethods.GSettings.GetTagScoreDictionary(),
-					StaticMethods.GSettings.GetTraitScoreDictionary(),
+					StaticHelpers.CSettings.GetTagScoreDictionary(),
+					StaticHelpers.CSettings.GetTraitScoreDictionary(),
 					LocalDatabase);
 				return _suggestionScorer;
 			}

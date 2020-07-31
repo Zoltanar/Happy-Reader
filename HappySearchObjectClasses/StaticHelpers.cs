@@ -359,6 +359,11 @@ namespace Happy_Apps_Core
 			return dbObject == DBNull.Value ? (int?) null : Convert.ToInt32(dbObject);
 		}
 
+		public static double? GetNullableDouble(object dbObject)
+		{
+			return dbObject == DBNull.Value ? (double?)null : Convert.ToDouble(dbObject);
+		}
+
 		public static string GetNullableString(object dbObject)
 		{
 			return dbObject == DBNull.Value ? null : Convert.ToString(dbObject);

@@ -68,10 +68,7 @@ namespace Happy_Reader.View.Tiles
 				foreach (var trait in @group)
 				{
 					Inline content = new Run(trait?.Name ?? "Not Found");
-					if (trait != null &&
-					    (StaticMethods.GSettings.AlertTraitIDs.Contains(trait.ID) ||
-					     MainViewModel.DatabaseViewModel.SuggestionScorer.IdTraits.ContainsKey(trait.ID)))
-						content = new Bold(content);
+					if (trait != null && StaticHelpers.CSettings.AlertTraitIDs.Contains(trait.ID)) content = new Bold(content);
 					var link = new Hyperlink(content) {Tag = trait};
 					linkList.Add(link);
 				}

@@ -1,4 +1,4 @@
-﻿namespace Happy_Apps_Core.Database
+﻿namespace Happy_Apps_Core
 {
 	public class SuggestionScoreObject
 	{
@@ -9,10 +9,10 @@
 		public double TraitScore { get; }
 		public string Detail { get; }
 
-		public SuggestionScoreObject(double tagScore, double traitScore)
+		public SuggestionScoreObject(double? tagScore, double? traitScore)
 		{
-			TagScore = tagScore;
-			TraitScore = traitScore;
+			TagScore = tagScore ?? 0;
+			TraitScore = traitScore ?? 0;
 			Score = TagScore + TraitScore;
 			const string intFormat = "0.##";
 			if (TagScore == default && TraitScore == default) Detail = 0.ToString(intFormat);

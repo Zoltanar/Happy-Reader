@@ -83,7 +83,7 @@ namespace Happy_Reader.View
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if (!(value is ListedVN vn)) throw new NotSupportedException($"Value was type {value.GetType()}");
-			var alert = vn.GetAlertFlag(StaticMethods.GSettings.AlertTagIDs, StaticMethods.GSettings.AlertTraitIDs);
+			var alert = vn.GetAlertFlag(StaticHelpers.CSettings.AlertTagIDs, StaticHelpers.CSettings.AlertTraitIDs);
 			return alert ? Visibility.Visible : Visibility.Hidden;
 		}
 

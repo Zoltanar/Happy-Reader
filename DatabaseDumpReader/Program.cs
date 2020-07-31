@@ -16,26 +16,33 @@ namespace DatabaseDumpReader
 		private const string LatestVoteDumpUrl = "https://dl.vndb.org/dump/vndb-votes-latest.gz";
 		private const int UpToDateDays = 1;
 
-		private static void Main(string[] args)
+		/// <summary>
+		/// The exit code represents:
+		///  0 - Success (Updated)
+		///  1 - Success (Not Updated)
+		/// -1 - Error
+		/// </summary>
+		/// <param name="args">Must pass 1 argument, Path to folder with DB Dump, or no arguments, to use default path.</param>
+		/// <returns></returns>
+		private static int Main(string[] args)
 		{
 			if (args.Length > 1) throw new ArgumentException("Must pass 1 argument, Path to folder with DB Dump, or no arguments, to use default path.");
 			var dumpFolder = args.Length > 0 ? args[0] : DumpFolder;
 			var userId = args.Length > 1 ? Convert.ToInt32(args[1]) : UserId;
 			try
 			{
-				Run(dumpFolder, userId);
+				return (int)Run(dumpFolder, userId);
 			}
 			catch (Exception ex)
 			{
 				Console.ForegroundColor = ConsoleColor.Red;
 				StaticHelpers.Logger.ToFile(ex);
 				Console.ResetColor();
+				return (int)ExitCode.Error;
 			}
-			StaticHelpers.Logger.ToFile("Press any key to exit...");
-			Console.ReadKey(true);
 		}
 
-		private static void Run(string dumpFolder, int userId)
+		private static ExitCode Run(string dumpFolder, int userId)
 		{
 			var previousDumpUpdate = DumpReader.GetLatestDumpUpdate(StaticHelpers.DatabaseFile);
 			var upToDate = GetLatestDump(previousDumpUpdate, dumpFolder, out var latestDumpFolder, out var newFileDate);
@@ -45,28 +52,31 @@ namespace DatabaseDumpReader
 			if (upToDate || !newFileDate.HasValue)
 			{
 				StaticHelpers.Logger.ToFile(oldDateString, "Already up to date.");
-				return;
+				Console.WriteLine("Do you wish to reload latest dump? (y/n)");
+				var input = Console.ReadLine();
+				Debug.Assert(input != null, nameof(input) + " != null");
+				if (input.ToLowerInvariant() != "y")
+				{
+					Console.WriteLine("Not reloading.");
+					return ExitCode.NoUpdate;
+				}
 			}
-			StaticHelpers.Logger.ToFile(oldDateString, $"Getting new update to: {newFileDate.Value.ToShortDateString()}.");
+			StaticHelpers.Logger.ToFile(oldDateString, $"Getting update to: {newFileDate.Value.ToShortDateString()}.");
 			var processor = new DumpReader(latestDumpFolder, StaticHelpers.DatabaseFile, userId);
 			processor.Run(newFileDate.Value);
+			return upToDate ? ExitCode.ReloadLatest : ExitCode.Update;
 		}
 
 		private static bool GetLatestDump(DateTime? previousUpdate, string dumpsFolder, out string dumpFolder, out DateTime? newFileDate)
 		{
-			if (previousUpdate == null || (DateTime.UtcNow - previousUpdate.Value).TotalDays > UpToDateDays)
-			{
-				var di = Directory.CreateDirectory(dumpsFolder);
-				DownloadLatestDumpFiles(out var latestDump, out var latestVoteDump);
-				newFileDate = latestDump.LastWriteTimeUtc;
-				var targetFolder = ExtractTarToFolder(latestDump, di);
-				ExtractGzToFolder(latestVoteDump, new DirectoryInfo(targetFolder));
-				dumpFolder = targetFolder;
-				return false;
-			}
-			newFileDate = null;
-			dumpFolder = string.Empty;
-			return true;
+			var upToDate = !(previousUpdate == null || (DateTime.UtcNow - previousUpdate.Value).TotalDays > UpToDateDays);
+			var di = Directory.CreateDirectory(dumpsFolder);
+			DownloadLatestDumpFiles(out var latestDump, out var latestVoteDump);
+			newFileDate = latestDump.LastWriteTimeUtc;
+			var targetFolder = ExtractTarToFolder(latestDump, di);
+			ExtractGzToFolder(latestVoteDump, new DirectoryInfo(targetFolder));
+			dumpFolder = targetFolder;
+			return upToDate;
 		}
 
 		private static void ExtractGzToFolder(FileInfo file, DirectoryInfo folder)
@@ -91,14 +101,26 @@ namespace DatabaseDumpReader
 
 		private static string ExtractTarToFolder(FileInfo file, DirectoryInfo folder)
 		{
-			using var extractStream = new Zstandard.Net.ZstandardStream(file.OpenRead(), CompressionMode.Decompress);
 			var fileName = Path.Combine(folder.FullName, Path.GetFileNameWithoutExtension(file.Name));
 			var folderName = Path.Combine(folder.FullName, Path.GetFileNameWithoutExtension(fileName));
-			using var tarStream = File.Open(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-			extractStream.CopyTo(tarStream);
-			tarStream.Seek(0, SeekOrigin.Begin);
-			extractStream.Dispose();
-			ExtractTar(tarStream, folderName);
+			Stream tarStream = null;
+			try
+			{
+				if (!File.Exists(fileName))
+				{
+					using var extractStream = new Zstandard.Net.ZstandardStream(file.OpenRead(), CompressionMode.Decompress);
+					tarStream = File.Open(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+					extractStream.CopyTo(tarStream);
+					tarStream.Seek(0, SeekOrigin.Begin);
+					extractStream.Dispose();
+				}
+				else tarStream = File.Open(fileName, FileMode.Open, FileAccess.Read);
+				ExtractTar(tarStream, folderName);
+			}
+			finally
+			{
+				tarStream?.Dispose();
+			}
 			return folderName;
 		}
 
@@ -109,6 +131,7 @@ namespace DatabaseDumpReader
 		/// <param name="outputDir">Output directory to write the files.</param>
 		private static void ExtractTar(Stream stream, string outputDir)
 		{
+			if (Directory.Exists(outputDir)) return;
 			var buffer = new byte[100];
 			while (true)
 			{
@@ -134,6 +157,14 @@ namespace DatabaseDumpReader
 				if (offset == 512) offset = 0;
 				stream.Seek(offset, SeekOrigin.Current);
 			}
+		}
+
+		private enum ExitCode
+		{
+			Error = -1,
+			Update = 0,
+			ReloadLatest = 1,
+			NoUpdate = 2,
 		}
 	}
 }

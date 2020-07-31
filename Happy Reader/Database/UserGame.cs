@@ -288,7 +288,7 @@ namespace Happy_Reader.Database
 			OnPropertyChanged(nameof(LaunchPath));
 		}
 
-		public override string ToString() => DisplayName;
+		public override string ToString() => UserDefinedName ?? VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath);
 
 		public static readonly SortedList<DateTime, long> LastGamesPlayed = new SortedList<DateTime, long>();
 		public static Encoding[] Encodings => IthVnrViewModel.Encodings;

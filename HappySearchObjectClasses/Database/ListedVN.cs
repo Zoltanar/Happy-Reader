@@ -591,9 +591,9 @@ namespace Happy_Apps_Core.Database
 		{
 			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO ListedVNs" +
 				"(VNID,Title,KanjiTitle,ReleaseDateString,ProducerID,DateUpdated,Image,ImageNSFW,Description,LengthTime,Popularity," +
-				"Rating,VoteCount,Relations,Screens,Anime,Aliases,Languages,DateFullyUpdated,Series,ReleaseDate,ReleaseLink) VALUES " +
+				"Rating,VoteCount,Relations,Screens,Anime,Aliases,Languages,DateFullyUpdated,Series,ReleaseDate,ReleaseLink,TagScore,TraitScore) VALUES " +
 				"(@VNID,@Title,@KanjiTitle,@ReleaseDateString,@ProducerId,@DateUpdated,@Image,@ImageNSFW,@Description,@LengthTime,@Popularity," +
-				"@Rating,@VoteCount,@Relations,@Screens,@Anime,@Aliases,@Languages,@DateFullyUpdated,@Series,@ReleaseDate,@ReleaseLink)";
+				"@Rating,@VoteCount,@Relations,@Screens,@Anime,@Aliases,@Languages,@DateFullyUpdated,@Series,@ReleaseDate,@ReleaseLink,@TagScore,@TraitScore)";
 			var command = connection.CreateCommand();
 			command.CommandText = sql;
 			command.AddParameter("@VNID", VNID);
@@ -618,6 +618,8 @@ namespace Happy_Apps_Core.Database
 			command.AddParameter("@Series", Series);
 			command.AddParameter("@ReleaseDate", ReleaseDate);
 			command.AddParameter("@ReleaseLink", ReleaseLink);
+			command.AddParameter("@TagScore", Suggestion?.TagScore);
+			command.AddParameter("@TraitScore", Suggestion?.TraitScore);
 			return command;
 		}
 
@@ -650,6 +652,7 @@ namespace Happy_Apps_Core.Database
 				Series = Convert.ToString(reader["Series"]);
 				ReleaseDate = Convert.ToDateTime(reader["ReleaseDate"]);
 				ReleaseLink = Convert.ToString(reader["ReleaseLink"]);
+				Suggestion = new SuggestionScoreObject(StaticHelpers.GetNullableDouble(reader["TagScore"]), StaticHelpers.GetNullableDouble(reader["TraitScore"]));
 			}
 			catch (Exception ex)
 			{
