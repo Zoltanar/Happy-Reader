@@ -310,19 +310,15 @@ namespace Happy_Apps_Core
 				// protocol violation!
 				throw new Exception("Protocol violation: last character in response is first space");
 			}
-			switch (firstWord)
+
+			return firstWord switch
 			{
-				case "ok":
-					return new Response(ResponseType.Ok, payload);
-				case "results":
-					return new Response(ResponseType.Results, payload);
-				case "dbstats":
-					return new Response(ResponseType.DBStats, payload);
-				case "error":
-					return new Response(ResponseType.Error, payload);
-				default:
-					return new Response(ResponseType.Unknown, payload);
-			}
+				"ok" => new Response(ResponseType.Ok, payload),
+				"results" => new Response(ResponseType.Results, payload),
+				"dbstats" => new Response(ResponseType.DBStats, payload),
+				"error" => new Response(ResponseType.Error, payload),
+				_ => new Response(ResponseType.Unknown, payload)
+			};
 		}
 
 		/// <summary>

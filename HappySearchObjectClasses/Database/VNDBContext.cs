@@ -48,6 +48,11 @@ namespace Happy_Apps_Core.Database
 			Tags = new DACollection<(int, int), DbTag>(Connection);
 			if (!File.Exists(dbFile)) Seed();
 			if (!loadAllTables) return;
+			LoadAllTables();
+		}
+
+		private void LoadAllTables()
+		{
 			Connection.Open();
 			try
 			{

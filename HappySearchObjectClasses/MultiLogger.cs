@@ -56,18 +56,36 @@ namespace Happy_Apps_Core
 				if (counter > 5) throw new IOException("Logfile is locked!");
 				Thread.Sleep(25);
 			}
-			if(stream == null) throw new ArgumentNullException(nameof(stream), "Log file stream was null.");
+			if (stream == null) throw new ArgumentNullException(nameof(stream), "Log file stream was null.");
 			using var writer = new StreamWriter(stream);
 			foreach (var message in messages)
 			{
-				var time = TimeString;
-				Console.WriteLine(time + message);
-				writer.WriteLine(time + message);
+				var messageWithTime = TimeString + message;
+				Console.WriteLine(messageWithTime);
+				//Debug.WriteLine(messageWithTime);
+				writer.WriteLine(messageWithTime);
 			}
 		}
-		
 
-		private static string TimeString => $"[{DateTime.Now.ToString("hh:mm:ss:fff").PadRight(12)}] ";
+		private static DateTime? _previousLogTime;
+
+		private static string TimeString
+		{
+			get
+			{
+				var dt = DateTime.Now;
+				var timePassedString = string.Empty;
+				if (_previousLogTime.HasValue)
+				{
+					var timePassed = dt - _previousLogTime.Value;
+					var ts = timePassed.TotalSeconds < 10 ? $"{(int)timePassed.TotalMilliseconds:D0} ms" : $"{(int)timePassed.TotalSeconds:D0} s"; ;
+					timePassedString = $" ({ts,7})";
+				}
+				_previousLogTime = dt;
+				var timeString = $"[{dt,-12:hh:mm:ss:fff}{timePassedString}] ";
+				return timeString;
+			}
+		}
 
 		/// <summary>
 		/// Check if file is locked

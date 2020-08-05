@@ -21,7 +21,7 @@ namespace Happy_Reader.View.Tabs
 			var loc = e.VerticalOffset + e.ViewportHeight * 2;
 			if (loc < e.ExtentHeight) return;
 			ViewModel.AddPage();
-			((ScrollViewer)e.OriginalSource).ScrollToVerticalOffset(loc);
+			//((ScrollViewer)e.OriginalSource).ScrollToVerticalOffset(loc);
 		}
 
 		private async void ShowAll(object sender, RoutedEventArgs e)

@@ -86,14 +86,13 @@ namespace Happy_Apps_Core
 		{
 			get
 			{
-				switch (Gender)
+				return Gender switch
 				{
-					case "f": return "♀";
-					case "m": return "♂";
-					case "b": return "⚤";
-					default: return "";
-
-				}
+					"f" => "♀",
+					"m" => "♂",
+					"b" => "⚤",
+					_ => ""
+				};
 			}
 		}
 

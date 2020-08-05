@@ -35,6 +35,8 @@ namespace Happy_Reader
 		ReleasedBefore = 16,
 		[Description("Has Anime")]
 		HasAnime = 17,
+		[Description("Suggestion Score Over")]
+		SuggestionScoreOver
 #pragma warning restore 1591
 	}
 }

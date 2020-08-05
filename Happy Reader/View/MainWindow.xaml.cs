@@ -61,15 +61,17 @@ namespace Happy_Reader.View
 			if (DesignerProperties.GetIsInDesignMode(this)) return;
 			Stopwatch watch = Stopwatch.StartNew();
 			ViewModel.ClipboardManager = new ClipboardManager(this);
-			var noHook = Environment.GetCommandLineArgs().Contains("-nh");
-			var noEntries = Environment.GetCommandLineArgs().Contains("-ne");
+			var commandLineArgs = Environment.GetCommandLineArgs();
+			var noHook = commandLineArgs.Contains("-nh");
+			var noEntries = commandLineArgs.Contains("-ne");
+			var noTranslation = commandLineArgs.Contains("-nt");
 			if (noHook) IthTabItem.Visibility = Visibility.Collapsed;
 			if (noEntries)
 			{
 				EntriesTabItem.Visibility = Visibility.Collapsed;
 				TestTabItem.Visibility = Visibility.Collapsed;
 			}
-			await ViewModel.Initialize(watch, GroupByAdded, !noHook, !Environment.GetCommandLineArgs().Contains("-ne"));
+			await ViewModel.Initialize(watch, GroupByAdded, !noHook, !noEntries,noTranslation);
 		}
 
 		private void AddEntry_Click(object sender, RoutedEventArgs e) => CreateAddEntryTab(new Entry());
@@ -313,8 +315,7 @@ namespace Happy_Reader.View
 		public void SelectTab(Type type)
 		{
 			var tab = MainTabControl.Items.OfType<TabItem>().FirstOrDefault(t => t.Content.GetType() == type);
-			if (tab == null) throw new ArgumentNullException(nameof(tab), $"Did not find tab of type {type}");
-			MainTabControl.SelectedItem = tab;
+			MainTabControl.SelectedItem = tab ?? throw new ArgumentNullException(nameof(tab), $"Did not find tab of type {type}");
 		}
 	}
 }

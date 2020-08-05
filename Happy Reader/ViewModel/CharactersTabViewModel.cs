@@ -86,12 +86,10 @@ namespace Happy_Reader.ViewModel
 				if (newPage.Count == 0) return;
 			}
 			var watch = Stopwatch.StartNew();
-			var newTiles = newPage.Select(c => CharacterTile.FromCharacter(LocalDatabase.Characters[c], HideTraits));
-			Logger.ToDebug($"[{nameof(AddPage)}] After Creating Tiles: {watch.Elapsed.ToSeconds()}.");
+			var newTiles = newPage.Select(c => CharacterTile.FromCharacter(LocalDatabase.Characters[c], HideTraits)).ToList();
+			Logger.ToDebug($"[{nameof(AddPage)}] Creating character tiles: {watch.Elapsed.ToSeconds()}.");
 			CharacterTiles.AddRange(newTiles);
-			Logger.ToDebug($"[{nameof(AddPage)}] After Adding Tiles: {watch.Elapsed.ToSeconds()}.");
 			OnPropertyChanged(nameof(CharacterTiles));
-			Logger.ToDebug($"[{nameof(AddPage)}] After OnPropertyChanged: {watch.Elapsed.ToSeconds()}.");
 		}
 
 		public async Task Search(string text)

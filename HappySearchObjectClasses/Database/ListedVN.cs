@@ -542,7 +542,7 @@ namespace Happy_Apps_Core.Database
 			Screens = screensString;
 			_screensObject = screensObject;
 		}
-
+		
 		#region IDumpItem Implementation
 
 		public static Dictionary<string, int> Headers = new Dictionary<string, int>();

@@ -115,15 +115,12 @@ namespace Happy_Apps_Core.Database
 		public int CompareTo(object other)
 		{
 			if (ReferenceEquals(this, other)) return 0;
-			switch (other)
+			return other switch
 			{
-				case null:
-					return 1;
-				case ListedProducer otherProducer:
-					return ID.CompareTo(otherProducer.ID);
-				default:
-					return 1;
-			}
+				null => 1,
+				ListedProducer otherProducer => ID.CompareTo(otherProducer.ID),
+				_ => 1
+			};
 		}
 
 		public int CompareTo(ListedProducer other)
@@ -142,7 +139,7 @@ namespace Happy_Apps_Core.Database
 
 		private bool _userDataSet;
 
-		public void SetFavoriteProducerData(VisualNovelDatabase database, DateTime now)
+		public void SetFavoriteProducerData(VisualNovelDatabase database)
 		{
 			if (_userDataSet) return;
 			_userDataSet = true;

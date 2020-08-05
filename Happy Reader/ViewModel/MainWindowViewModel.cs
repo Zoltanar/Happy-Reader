@@ -4,10 +4,8 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data.Entity;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Management;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -240,7 +238,7 @@ namespace Happy_Reader.ViewModel
 			return new UserGameTile(userGame);
 		}
 
-		public async Task Initialize(Stopwatch watch, RoutedEventHandler defaultUserGameGrouping, bool initialiseIthVnr, bool initialiseEntries)
+		public async Task Initialize(Stopwatch watch, RoutedEventHandler defaultUserGameGrouping, bool initialiseIthVnr, bool initialiseEntries, bool noApiTranslation)
 		{
 			CaptureClipboard = SettingsViewModel.TranslatorSettings.CaptureClipboardOnStart;
 			await Task.Run(() =>
@@ -256,7 +254,7 @@ namespace Happy_Reader.ViewModel
 				if (!initialiseEntries) return;
 				StatusText = "Loading Cached Translations...";
 				var cacheLoadWatch = Stopwatch.StartNew();
-				Translator.SetCache();
+				Translator.SetCache(noApiTranslation);
 				Debug.WriteLine($"Loaded cached translations in {cacheLoadWatch.ElapsedMilliseconds} ms");
 				StatusText = "Populating Proxies...";
 				PopulateProxies();
@@ -553,13 +551,9 @@ namespace Happy_Reader.ViewModel
 					return;
 				}
 				UserGame = userGame;
-				if (process == null)
-				{
-					process = useLocaleEmulator ? StaticMethods.StartProcessThroughLocaleEmulator(UserGame) :
-										UserGame.LaunchPath != null ? StaticMethods.StartProcessThroughProxy(UserGame) :
-										StaticMethods.StartProcess(UserGame.FilePath);
-				}
-
+				process ??= useLocaleEmulator ? StaticMethods.StartProcessThroughLocaleEmulator(UserGame) :
+					UserGame.LaunchPath != null ? StaticMethods.StartProcessThroughProxy(UserGame) :
+					StaticMethods.StartProcess(UserGame.FilePath);
 				//process can be closed at any point
 				try
 				{
@@ -577,17 +571,12 @@ namespace Happy_Reader.ViewModel
 						game.ProcessName = process.ProcessName;
 						StaticMethods.Data.SaveChanges();
 					}
-					UserGame.Process = process;
-					UserGame.Process.EnableRaisingEvents = true;
-					UserGame.Process.Exited += HookedProcessOnExited;
+					UserGame.SetActiveProcess(process, HookedProcessOnExited);
 					TestViewModel.Game = UserGame.VN;
 					if (!UserGame.HookProcess) return;
 					while (!_loadingComplete) Thread.Sleep(25);
 					OutputWindow.SetLocation(UserGame.OutputRectangle);
-					IthViewModel.MergeByHookCode = UserGame.MergeByHookCode;
-					IthViewModel.PrefEncoding = UserGame.PrefEncoding;
-					IthViewModel.Commands?.ProcessCommand($"/P{UserGame.Process.Id}", 0);
-					if (!string.IsNullOrWhiteSpace(UserGame.HookCode)) IthViewModel.Commands?.ProcessCommand(UserGame.HookCode, UserGame.Process.Id);
+					SetIthUserGameParameters();
 				}
 				//todo catch more specific exception
 				catch (Exception ex)
@@ -598,6 +587,15 @@ namespace Happy_Reader.ViewModel
 					throw;
 				}
 			}
+		}
+
+		private void SetIthUserGameParameters()
+		{
+			IthViewModel.MergeByHookCode = UserGame.MergeByHookCode;
+			IthViewModel.PrefEncoding = UserGame.PrefEncoding;
+			IthViewModel.Commands?.ProcessCommand($"/P{UserGame.Process.Id}", 0);
+			if (!string.IsNullOrWhiteSpace(UserGame.HookCode))
+				IthViewModel.Commands?.ProcessCommand(UserGame.HookCode, UserGame.Process.Id);
 		}
 
 		private void HookedProcessOnExited(object sender, EventArgs eventArgs)

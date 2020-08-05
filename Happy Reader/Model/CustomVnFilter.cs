@@ -65,6 +65,12 @@ namespace Happy_Reader
 			Name = "Custom Filter";
 		}
 
+		public CustomVnFilter(string name, VnFilter singleFilter)
+		{
+			Name = name;
+			AndFilters = new ObservableCollection<VnFilter>{singleFilter};
+		}
+
 		public Func<ListedVN, bool> GetFunction()
 		{
 			Func<ListedVN, bool>[] andFunctions = AndFilters.Select(filter => filter.GetFunction()).ToArray();

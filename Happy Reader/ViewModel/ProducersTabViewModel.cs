@@ -32,7 +32,7 @@ namespace Happy_Reader.ViewModel
 		private Brush _vndbConnectionColor;
 		private readonly MainWindowViewModel _mainViewModel;
 		private Func<VisualNovelDatabase, IEnumerable<ListedProducer>> _dbFunction = x => x.CurrentUser?.FavoriteProducers ?? x.Producers.AsEnumerable();
-		private Func<ListedProducer, string> _order => producer => producer.Name;
+		private Func<ListedProducer, string> Order => producer => producer.Name;
 
 		public PausableUpdateList<ListedProducer> ListedProducers { get; set; } = new PausableUpdateList<ListedProducer>();
 		public int[] AllProducerResults { get; private set; }
@@ -92,14 +92,12 @@ namespace Happy_Reader.ViewModel
 				_finalPage = false;
 				_listedProducersPage = 1;
 				if (showAll) _dbFunction = x => x.CurrentUser?.FavoriteProducers ?? x.Producers.AsEnumerable();
-				AllProducerResults = _dbFunction.Invoke(LocalDatabase).OrderBy(_order).Select(x => x.ID).ToArray();
+				AllProducerResults = _dbFunction.Invoke(LocalDatabase).OrderBy(Order).Select(x => x.ID).ToArray();
 				var firstPage = AllProducerResults.Take(PageSize).ToArray();
-				List<ListedProducer> results = LocalDatabase.Producers.WithKeyIn(firstPage).OrderBy(_order).ToList();
+				List<ListedProducer> results = LocalDatabase.Producers.WithKeyIn(firstPage).OrderBy(Order).ToList();
 				if (LocalDatabase.CurrentUser != null)
 				{
-					//var m = LocalDatabase.UserListedProducers.Where(x => x.User_Id == LocalDatabase.CurrentUser.Id).ToArray();
-					var now = DateTime.UtcNow;
-					foreach (var listedProducer in results) listedProducer.SetFavoriteProducerData(LocalDatabase, now);
+					foreach (var listedProducer in results) listedProducer.SetFavoriteProducerData(LocalDatabase);
 				}
 				if (AllProducerResults.Length <= PageSize) _finalPage = true;
 				Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
@@ -124,13 +122,11 @@ namespace Happy_Reader.ViewModel
 				if (newPage.Count == 0) return;
 			}
 
-			var newProducers = LocalDatabase.Producers.WithKeyIn(newPage).OrderBy(_order).ToArray();
+			var newProducers = LocalDatabase.Producers.WithKeyIn(newPage).OrderBy(Order).ToArray();
 
 			if (LocalDatabase.CurrentUser != null)
 			{
-				var now = DateTime.UtcNow;
-				//var m = LocalDatabase.UserListedProducers.Where(x => x.User_Id == LocalDatabase.CurrentUser.Id).ToArray();
-				foreach (var listedProducer in newProducers) listedProducer.SetFavoriteProducerData(LocalDatabase, now);
+				foreach (var listedProducer in newProducers) listedProducer.SetFavoriteProducerData(LocalDatabase);
 			}
 			ListedProducers.AddRange(newProducers);
 			OnPropertyChanged(nameof(ListedProducers));

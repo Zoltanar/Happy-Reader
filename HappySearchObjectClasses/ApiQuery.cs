@@ -8,7 +8,7 @@ namespace Happy_Apps_Core
 	/// </summary>
 	public class ApiQuery
 	{
-		private Action<List<int>> _actionOnAdd;
+		private readonly Action<List<int>> _actionOnAdd;
 
 		/// <summary>
 		/// Name of action

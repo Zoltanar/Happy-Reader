@@ -228,19 +228,11 @@ namespace Happy_Apps_Core
 		/// <param name="outputFile">Output File</param>
 		public static void GZipDecompress(string fileToDecompress, string outputFile)
 		{
-			using (var originalFileStream = File.OpenRead(fileToDecompress))
-			{
-				var newFileName = outputFile;
-
-				using (var decompressedFileStream = File.Create(newFileName))
-				{
-					using (var decompressionStream = new GZipStream(originalFileStream, CompressionMode.Decompress))
-					{
-						decompressionStream.CopyTo(decompressedFileStream);
-						Logger.ToFile($@"Decompressed: {fileToDecompress}");
-					}
-				}
-			}
+			using var originalFileStream = File.OpenRead(fileToDecompress);
+			using var decompressedFileStream = File.Create(outputFile);
+			using var decompressionStream = new GZipStream(originalFileStream, CompressionMode.Decompress);
+			decompressionStream.CopyTo(decompressedFileStream);
+			Logger.ToFile($@"Decompressed: {fileToDecompress}");
 		}
 
 		/// <summary>
@@ -297,7 +289,7 @@ namespace Happy_Apps_Core
 			if (!timestamp.HasValue) return null;
 			return Epoch.AddSeconds(timestamp.Value);
 		}
-		public static string ToSeconds(this TimeSpan time) => $"{time.TotalSeconds:N0}.{time.Milliseconds} seconds";
+		public static string ToSeconds(this TimeSpan time) => $"{(int)(time.TotalSeconds):N0}.{time.Milliseconds} seconds";
 
 		private const string PasswordRegistryKey = "SOFTWARE\\" + ClientName;
 		private const string PasswordRegistryCipherValueName = "Data1";

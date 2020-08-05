@@ -49,9 +49,8 @@ namespace Happy_Apps_Core
 		/// <param name="featureName">Name of feature calling the query</param>
 		/// <param name="refreshList">Refresh OLV on throttled connection</param>
 		/// <param name="additionalMessage">Print Added/Skipped message on throttled connection</param>
-		/// <param name="ignoreDateLimit">Ignore 10 year limit (if applicable)</param>
 		/// <returns>If connection was ready</returns>
-		internal bool StartQuery(string featureName, bool refreshList, bool additionalMessage, bool ignoreDateLimit)
+		internal bool StartQuery(string featureName, bool refreshList, bool additionalMessage)
 		{
 			if (CSettings.UserID < 1) return false;
 			if (ActiveQuery != null && !ActiveQuery.Completed)
@@ -73,7 +72,6 @@ namespace Happy_Apps_Core
 		}
 
 		#region Static
-
 		private static string FormatQuery(string format, IEnumerable<int> idArray, int pageNo = 1)
 		{
 			var arrayString = '[' + string.Join(",", idArray) + ']';
@@ -99,7 +97,6 @@ namespace Happy_Apps_Core
 		#endregion
 
 		#region Private
-
 		/// <summary>
 		/// Get data about multiple visual novels.
 		/// Creates its own SQLite Transactions.
@@ -443,65 +440,9 @@ namespace Happy_Apps_Core
 			}
 			await GetMultipleVN(new HashSet<int>(producerVNList), updateAll);
 		}
-
 		#endregion
 
 		#region Public Functions
-
-		/// <summary>
-		/// Update tags, traits and stats of titles.
-		/// </summary>
-		/// <param name="vnIDs">List of IDs of titles to be updated.</param>
-		public async Task UpdateTagsTraitsStats(HashSet<int> vnIDs)
-		{
-			if (!StartQuery(nameof(UpdateTagsTraitsStats), true, true, true)) return;
-			try
-			{
-				if (!vnIDs.Any()) return;
-				var currentArray = new HashSet<int>(vnIDs.Take(APIMaxResults));
-				const string queryFormat = "get vn tags,stats (id = {0})";
-				var queryResult = await TryQuery(FormatQuery(queryFormat, currentArray), Resources.gmvn_query_error);
-				if (!queryResult) return;
-				var vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
-				RemoveDeletedVNs(vnRoot, currentArray);
-				if (!currentArray.Any()) return;
-				foreach (var vnItem in vnRoot.Items)
-				{
-					LocalDatabase.UpdateVNTagsStats(vnItem, false);
-					ActiveQuery.AddTitleAdded(vnItem.ID);
-				}
-				await GetCharacters(currentArray);
-				int done = APIMaxResults;
-				while (done < vnIDs.Count)
-				{
-					currentArray = new HashSet<int>(vnIDs.Skip(done).Take(APIMaxResults));
-					queryResult = await TryQuery(FormatQuery(queryFormat, currentArray), Resources.gmvn_query_error);
-					if (!queryResult) return;
-					vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
-					RemoveDeletedVNs(vnRoot, currentArray);
-					if (!currentArray.Any()) return;
-					foreach (var vnItem in vnRoot.Items)
-					{
-						LocalDatabase.UpdateVNTagsStats(vnItem, false);
-						ActiveQuery.AddTitleAdded(vnItem.ID);
-					}
-					await GetCharacters(currentArray);
-					done += APIMaxResults;
-				}
-
-				ActiveQuery.CompletedMessage =
-						$"Updated tags, traits and stats for {ActiveQuery.TitlesAdded.Count} titles.";
-			}
-			catch (Exception ex)
-			{
-				ActiveQuery.SetException(ex);
-			}
-			finally
-			{
-				EndQuery();
-			}
-		}
-
 		/// <summary>
 		/// Change  user vote.
 		/// </summary>
@@ -510,7 +451,7 @@ namespace Happy_Apps_Core
 		/// <returns>Returns whether it as successful.</returns>
 		public async Task<bool> ChangeVote(ListedVN vn, int? vote)
 		{
-			if (!StartQuery(nameof(ChangeVote), false, false, true)) return false;
+			if (!StartQuery(nameof(ChangeVote), false, false)) return false;
 			try
 			{
 				bool remove = !vote.HasValue;
@@ -553,7 +494,7 @@ namespace Happy_Apps_Core
 		/// <returns>Returns whether it as successful.</returns>
 		public async Task<bool> ChangeVNStatus(ListedVN vn, HashSet<UserVN.LabelKind> labels)
 		{
-			if (!StartQuery(nameof(ChangeVNStatus), false, false, true)) return false;
+			if (!StartQuery(nameof(ChangeVNStatus), false, false)) return false;
 			try
 			{
 				string queryString;
@@ -591,7 +532,7 @@ namespace Happy_Apps_Core
 		/// </summary>
 		public async Task<string> GetUsernameFromID(int userID)
 		{
-			if (!StartQuery(nameof(GetUsernameFromID), false, false, true)) return "";
+			if (!StartQuery(nameof(GetUsernameFromID), false, false)) return "";
 			try
 			{
 				var result = await TryQueryNoReply($"get user basic (id={userID})");
@@ -620,7 +561,7 @@ namespace Happy_Apps_Core
 		/// </summary>
 		public async Task<int> GetIDFromUsername(string username)
 		{
-			if (!StartQuery(nameof(GetIDFromUsername), false, false, true)) return -1;
+			if (!StartQuery(nameof(GetIDFromUsername), false, false)) return -1;
 			try
 			{
 				var result = await TryQueryNoReply($"get user basic (username=\"{username}\")");
@@ -649,7 +590,7 @@ namespace Happy_Apps_Core
 		/// </summary>
 		public async Task<List<ProducerItem>> AddProducersBySearchedName(string producerName)
 		{
-			if (!StartQuery(nameof(AddProducersBySearchedName), false, false, true)) return null;
+			if (!StartQuery(nameof(AddProducersBySearchedName), false, false)) return null;
 			try
 			{
 				string prodSearchQuery = $"get producer basic (search~\"{producerName}\") {{{MaxResultsString}}}";
@@ -690,7 +631,7 @@ namespace Happy_Apps_Core
 
 		public async Task<ICollection<int>> SearchByNameOrAlias(string searchString)
 		{
-			if (!StartQuery(nameof(SearchByNameOrAlias), true, true, true)) return null;
+			if (!StartQuery(nameof(SearchByNameOrAlias), true, true)) return null;
 			try
 			{
 				string queryFormat = "get vn basic (search ~ \"{0}\")";
@@ -727,7 +668,7 @@ namespace Happy_Apps_Core
 
 		public async Task UpdateForYear(int year)
 		{
-			if (!StartQuery(nameof(UpdateForYear), true, true, true)) return;
+			if (!StartQuery(nameof(UpdateForYear), true, true)) return;
 			try
 			{
 				var ids = new HashSet<int>(LocalDatabase.VisualNovels.Where(x => x.ReleaseDate.Year == year && x.DateUpdated < DateTime.UtcNow.AddDays(-2))
@@ -747,7 +688,7 @@ namespace Happy_Apps_Core
 
 		public async Task UpdateCharactersForYear(int year)
 		{
-			if (!StartQuery(nameof(UpdateCharactersForYear), true, true, true)) return;
+			if (!StartQuery(nameof(UpdateCharactersForYear), true, true)) return;
 			try
 			{
 				var startTime = DateTime.UtcNow.ToLocalTime();
@@ -771,7 +712,7 @@ namespace Happy_Apps_Core
 
 		public async Task FetchForYear(int fromYear = 0, int toYear = VndbAPIMaxYear)
 		{
-			if (!StartQuery(nameof(FetchForYear), true, true, true)) return;
+			if (!StartQuery(nameof(FetchForYear), true, true)) return;
 			try
 			{
 				var startTime = DateTime.UtcNow.ToLocalTime();
@@ -834,7 +775,7 @@ namespace Happy_Apps_Core
 
 		public async Task<int> UpdateURT()
 		{
-			if (!StartQuery(nameof(UpdateURT), true, true, true)) return -1;
+			if (!StartQuery(nameof(UpdateURT), true, true)) return -1;
 			try
 			{
 				Logger.ToFile($"Starting {nameof(UpdateURT)} for {CSettings.UserID}, previously had {LocalDatabase.URTVisualNovels.Count()} titles.");
@@ -864,7 +805,7 @@ namespace Happy_Apps_Core
 
 		public async Task<bool> GetAndSetRelationsForVN(ListedVN vn)
 		{
-			if (!StartQuery(nameof(GetAndSetRelationsForVN), false, false, true)) return false;
+			if (!StartQuery(nameof(GetAndSetRelationsForVN), false, false)) return false;
 			try
 			{
 				await TryQuery($"get vn relations (id = {vn.VNID})", "Relations Query Error");
@@ -887,7 +828,7 @@ namespace Happy_Apps_Core
 
 		public async Task<bool> GetAndSetAnimeForVN(ListedVN vn)
 		{
-			if (!StartQuery(nameof(GetAndSetAnimeForVN), false, false, true)) return false;
+			if (!StartQuery(nameof(GetAndSetAnimeForVN), false, false)) return false;
 			try
 			{
 				await TryQuery($"get vn anime (id = {vn.VNID})", "Anime Query Error");
@@ -910,7 +851,7 @@ namespace Happy_Apps_Core
 
 		public async Task<bool> GetAndSetScreensForVN(ListedVN vn)
 		{
-			if (!StartQuery(nameof(GetAndSetScreensForVN), false, false, true)) return false;
+			if (!StartQuery(nameof(GetAndSetScreensForVN), false, false)) return false;
 			try
 			{
 				await TryQuery($"get vn screens (id = {vn.VNID})", "Screens Query Error");
@@ -933,7 +874,7 @@ namespace Happy_Apps_Core
 
 		public async Task UpdateForProducers(IEnumerable<ListedProducer> producers)
 		{
-			if (!StartQuery(nameof(UpdateForProducers), true, true, true)) return;
+			if (!StartQuery(nameof(UpdateForProducers), true, true)) return;
 			try
 			{
 				foreach (var producer in producers) await GetProducerTitles(producer, false);
@@ -953,7 +894,7 @@ namespace Happy_Apps_Core
 
 		public async Task<bool> UpdateVN(ListedVN vn)
 		{
-			if (!StartQuery(nameof(UpdateVN), false, true, false)) return false;
+			if (!StartQuery(nameof(UpdateVN), false, true)) return false;
 			try
 			{
 				await Conn.GetMultipleVN(new HashSet<int> { vn.VNID }, true);

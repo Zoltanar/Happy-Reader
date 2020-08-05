@@ -138,20 +138,10 @@ namespace Happy_Reader
 				case VnFilterType.OriginalLanguage:
 					return vn => vn.HasOriginalLanguage(StringValue) != Exclude;
 				case VnFilterType.Tags:
-					var writtenTag = DumpFiles.GetTag(IntValue);
-					//todo make it better, allow handling arrays
-					if (AdditionalInt != null)
-					{
-						return vn =>
-						{
-							var contains = writtenTag.InCollection(vn.Tags.Select(t => t.TagId), out int match);
-							return (!contains || vn.Tags.First(t => t.TagId == match).Score >= AdditionalInt.Value) != Exclude;
-						};
-					}
-					else return vn => writtenTag.InCollection(vn.Tags.Select(t => t.TagId)) != Exclude;
+					return GetTagsFunction();
 				case VnFilterType.Traits:
 					var writtenTrait = DumpFiles.GetTrait(IntValue);
-					return vn => writtenTrait.InCollection(StaticHelpers.LocalDatabase.GetCharactersTraitsForVn(vn.VNID,true).Select(t => t.TraitId)) != Exclude;
+					return vn => writtenTrait.InCollection(StaticHelpers.LocalDatabase.GetCharactersTraitsForVn(vn.VNID, true).Select(t => t.TraitId)) != Exclude;
 				case VnFilterType.HasFullDate:
 					return vn => vn.HasFullDate != Exclude;
 				case VnFilterType.GameOwned:
@@ -166,9 +156,26 @@ namespace Happy_Reader
 					return vn => vn.ReleaseDate < beforeDate != Exclude;
 				case VnFilterType.HasAnime:
 					return vn => vn.HasAnime != Exclude;
+				case VnFilterType.SuggestionScoreOver:
+					return vn => vn.Suggestion.Score >= IntValue != Exclude;
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
+		}
+
+		private Func<ListedVN, bool> GetTagsFunction()
+		{
+			var writtenTag = DumpFiles.GetTag(IntValue);
+			//todo make it better, allow handling arrays
+			if (AdditionalInt != null)
+			{
+				return vn =>
+				{
+					var contains = writtenTag.InCollection(vn.Tags.Select(t => t.TagId), out int match);
+					return (!contains || vn.Tags.First(t => t.TagId == match).Score >= AdditionalInt.Value) != Exclude;
+				};
+			}
+			return vn => writtenTag.InCollection(vn.Tags.Select(t => t.TagId)) != Exclude;
 		}
 
 		public override string ToString()
@@ -184,6 +191,7 @@ namespace Happy_Reader
 				case VnFilterType.GameOwned:
 				case VnFilterType.UserVN:
 				case VnFilterType.HasAnime:
+				case VnFilterType.SuggestionScoreOver:
 					return result;
 				case VnFilterType.Length:
 					return $"{result} - {(StringValue == null ? "None" : ((LengthFilterEnum)IntValue).GetDescription())}";
@@ -202,7 +210,8 @@ namespace Happy_Reader
 					return $"{result} - {DumpFiles.GetTrait(IntValue).Name}";
 				case VnFilterType.ReleasedAfter:
 				case VnFilterType.ReleasedBefore:
-					return $"{result} - {DateTime.ParseExact(StringValue, "yyyyMMdd", CultureInfo.CurrentCulture)}"; default:
+					return $"{result} - {DateTime.ParseExact(StringValue, "yyyyMMdd", CultureInfo.CurrentCulture)}";
+				default:
 					throw new ArgumentOutOfRangeException();
 			}
 		}

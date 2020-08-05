@@ -200,7 +200,6 @@ namespace Happy_Reader.ViewModel
 				var firstPage = AllVNResults.Take(PageSize).ToArray();
 				return _ordering(LocalDatabase.VisualNovels.WithKeyIn(firstPage)).ToList();
 			});
-			await ScoreTitles(results);
 			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			Application.Current.Dispatcher.Invoke(() =>
 			{
@@ -243,7 +242,7 @@ namespace Happy_Reader.ViewModel
 			return messageResult == System.Windows.Forms.DialogResult.Yes;
 		}
 
-		public async Task AddListedVNPage()
+		public void AddListedVNPage()
 		{
 			if (_finalPage) return;
 			var newPage = AllVNResults.Skip(_listedVnPage * PageSize).Take(PageSize).ToList();
@@ -253,17 +252,12 @@ namespace Happy_Reader.ViewModel
 				_finalPage = true;
 				if (newPage.Count == 0) return;
 			}
-
 			var watch = Stopwatch.StartNew();
-			var newVns = LocalDatabase.VisualNovels.WithKeyIn(newPage).OrderByDescending(vn => vn.ReleaseDate).ToList();
-			await ScoreTitles(newVns);
-			var newTiles = newVns.Select(VNTile.FromListedVN);
-			Logger.ToDebug($"[{nameof(AddListedVNPage)}] After Creating VNTiles: {watch.Elapsed.ToSeconds()}.");
+			var newTiles = LocalDatabase.VisualNovels.WithKeyIn(newPage).OrderByDescending(vn => vn.ReleaseDate).Select(VNTile.FromListedVN).ToList();
+			Logger.ToDebug($"[{nameof(AddListedVNPage)}] Creating VN tiles: {watch.Elapsed.ToSeconds()}.");
 			ListedVNs.AddRange(newTiles);
-			Logger.ToDebug($"[{nameof(AddListedVNPage)}] After Adding VNTiles: {watch.Elapsed.ToSeconds()}.");
 			OnPropertyChanged(nameof(ListedVNs));
 			OnPropertyChanged(nameof(AllVNResults));
-			Logger.ToDebug($"[{nameof(AddListedVNPage)}] After OnPropertyChanged: {watch.Elapsed.ToSeconds()}.");
 		}
 
 		public async Task UpdateURT()
@@ -280,40 +274,8 @@ namespace Happy_Reader.ViewModel
 				SetReplyText($"Found no results for '{text}'", VndbConnection.MessageSeverity.Normal);
 				return;
 			}
-			await ScoreTitles(vns);
 			_dbFunction = new NamedFunction(db => db.VisualNovels.Where(VisualNovelDatabase.SearchForVN(text)), "Search For VN", true);
 			await RefreshListedVns();
-		}
-
-		private async Task ScoreTitles(IEnumerable<ListedVN> vns)
-		{
-			await Task.Run(() =>
-			{
-				var watch = Stopwatch.StartNew();
-				int counter = 0;
-				LocalDatabase.Connection.Open();
-				try
-				{
-					foreach (var vn in vns.Where(vn => vn.Suggestion == null))
-					{
-						counter++;
-						if (counter % 100 == 0) ReplyText = $"Scoring titles: {counter}";
-						SuggestionScorer.GetScore(vn, false);
-					}
-				}
-				catch (Exception ex)
-				{
-					Logger.ToFile(ex);
-				}
-				finally
-				{
-					LocalDatabase.Connection.Close();
-				}
-				watch.Stop();
-				Logger.ToFile($"Scored {counter} titles, took " + (watch.Elapsed.TotalMinutes >= 1d
-					? $"{watch.Elapsed.TotalMinutes} minutes."
-					: $"{watch.Elapsed.TotalSeconds} seconds."));
-			});
 		}
 
 		public async Task ShowTagged(DumpFiles.WrittenTag tag)
@@ -367,7 +329,6 @@ namespace Happy_Reader.ViewModel
 		public async Task ShowSuggested()
 		{
 			var scoredKeys = LocalDatabase.VisualNovels.Select(v => v.VNID).ToArray();
-			await ScoreTitles(LocalDatabase.VisualNovels.WithKeyIn(scoredKeys));
 			_dbFunction = new NamedFunction(db => db.VisualNovels.WithKeyIn(scoredKeys), "Suggested");
 			_ordering = lvn => lvn.OrderByDescending(vn => vn.Suggestion.Score);
 			await RefreshListedVns();
@@ -395,7 +356,6 @@ namespace Happy_Reader.ViewModel
 
 		public async Task SortByRecommended()
 		{
-			await ScoreTitles(LocalDatabase.VisualNovels.WithKeyIn(AllVNResults));
 			_ordering = lvn => lvn.OrderByDescending(vn => vn.Suggestion?.Score ?? 0d)
 				.ThenBy(vn => vn.UserVN == null ? 4 :
 					vn.UserVN.Labels.Contains(UserVN.LabelKind.WishlistHigh) ? 1 :

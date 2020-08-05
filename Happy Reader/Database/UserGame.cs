@@ -20,6 +20,9 @@ namespace Happy_Reader.Database
 	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 	public class UserGame : INotifyPropertyChanged
 	{
+		public static readonly SortedList<DateTime, long> LastGamesPlayed = new SortedList<DateTime, long>();
+		public static Encoding[] Encodings => IthVnrViewModel.Encodings;
+
 		private Stopwatch _runningTime;
 		private Process _process;
 		private ListedVN _vn;
@@ -47,6 +50,9 @@ namespace Happy_Reader.Database
 		public string ProcessName { get; set; }
 		public string Tag { get; set; }
 
+		public bool HasVN => VNID.HasValue;
+		public bool FileExists => File.Exists(FilePath);
+		
 		/// <summary>
 		/// Store output window location and dimensions as a string in the 'form x,y,width,height' 
 		/// </summary>
@@ -136,17 +142,15 @@ namespace Happy_Reader.Database
 					Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/no-image.png")).Stream;
 					image = new Bitmap(iconStream);
 				}
-				using (MemoryStream memory = new MemoryStream())
-				{
-					image.Save(memory, System.Drawing.Imaging.ImageFormat.Bmp);
-					memory.Position = 0;
-					BitmapImage bitmapimage = new BitmapImage();
-					bitmapimage.BeginInit();
-					bitmapimage.StreamSource = memory;
-					bitmapimage.CacheOption = BitmapCacheOption.OnLoad;
-					bitmapimage.EndInit();
-					return bitmapimage;
-				}
+				using var memory = new MemoryStream();
+				image.Save(memory, System.Drawing.Imaging.ImageFormat.Bmp);
+				memory.Position = 0;
+				var bitmapImage = new BitmapImage();
+				bitmapImage.BeginInit();
+				bitmapImage.StreamSource = memory;
+				bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+				bitmapImage.EndInit();
+				return bitmapImage;
 			}
 		}
 		[NotMapped]
@@ -246,8 +250,7 @@ namespace Happy_Reader.Database
 			StaticMethods.Data.SaveChanges();
 			OnPropertyChanged(nameof(DisplayName));
 		}
-
-
+		
 		public void SaveTag([NotNull]string text)
 		{
 			Tag = string.IsNullOrWhiteSpace(text) ? null : text.Trim();
@@ -290,12 +293,12 @@ namespace Happy_Reader.Database
 
 		public override string ToString() => UserDefinedName ?? VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath);
 
-		public static readonly SortedList<DateTime, long> LastGamesPlayed = new SortedList<DateTime, long>();
-		public static Encoding[] Encodings => IthVnrViewModel.Encodings;
-
-		public bool HasVN => VNID.HasValue;
-		public bool FileExists => File.Exists(FilePath);
-		
+		public void SetActiveProcess(Process process, EventHandler hookedProcessOnExited)
+		{
+			Process = process;
+			Process.EnableRaisingEvents = true;
+			Process.Exited += hookedProcessOnExited;
+		}
 
 		public enum EncodingEnum
 		{

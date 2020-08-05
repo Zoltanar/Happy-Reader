@@ -16,15 +16,16 @@ namespace Happy_Reader.View.Tabs
 	{
 		public VNTabViewModel ViewModel { get; private set; }
 		private MainWindow _mainWindow;
+		private bool _userInteractionHistory;
+		private bool _loaded;
 		public DatabaseTab() => InitializeComponent();
 
-		private async void ScrollViewer_OnScrollChanged(object sender, ScrollChangedEventArgs e)
+		private void ScrollViewer_OnScrollChanged(object sender, ScrollChangedEventArgs e)
 		{
 			if (!(e.VerticalChange > 0)) return;
 			var loc = e.VerticalOffset + e.ViewportHeight * 2;
 			if (loc < e.ExtentHeight) return;
-			await ViewModel.AddListedVNPage();
-			//((ScrollViewer)e.OriginalSource).ScrollToVerticalOffset(loc);*/
+			ViewModel.AddListedVNPage();
 		}
 
 		private async void ShowAll(object sender, RoutedEventArgs e)
@@ -37,7 +38,6 @@ namespace Happy_Reader.View.Tabs
 			if (e.Key != Key.Enter) return;
 			await ViewModel.SearchForVN(((TextBox)sender).Text);
 		}
-		private bool _loaded = false;
 
 		private void VNTab_OnLoaded(object sender, RoutedEventArgs e)
 		{
@@ -97,12 +97,10 @@ namespace Happy_Reader.View.Tabs
 		private async void SelectProducer(object sender, SelectionChangedEventArgs e)
 		{
 			if (e.AddedItems.Count == 0) return;
-			var producer = e.AddedItems[0] as ListedProducer;
-			if (producer == null) return;
+			if (!(e.AddedItems[0] is ListedProducer producer)) return;
 			await ViewModel.ShowForProducer(producer);
 		}
-				
-		private bool _userInteractionHistory;
+
 		private async void BrowseHistory(object sender, SelectionChangedEventArgs e)
 		{
 			if (!_userInteractionHistory || e.AddedItems.Count == 0) return;

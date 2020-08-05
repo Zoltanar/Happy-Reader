@@ -280,46 +280,38 @@ namespace DatabaseDumpReader
 
 			void ResolveScreens()
 			{
-				if (!string.IsNullOrWhiteSpace(vn.ImageId) && Images.TryGetValue(vn.ImageId, out var cover))
-				{
-					vn.ImageNSFW = cover.Nsfw;
-				}
+				if (!string.IsNullOrWhiteSpace(vn.ImageId) && Images.TryGetValue(vn.ImageId, out var cover)) vn.ImageNSFW = cover.Nsfw;
 				var screensObject = VnScreens.TryGetValue(vn.VNID, out var screens)
-					? screens.Select(r => r.ToScreenItem(Images)).Where(i=>i != null).ToArray()
+					? screens.Select(r => r.ToScreenItem(Images)).Where(i => i != null).ToArray()
 					: Array.Empty<VNItem.ScreenItem>();
-				var screensString = JsonConvert.SerializeObject(screensObject);
-				vn.SetScreens(screensString, screensObject);
+				vn.SetScreens(JsonConvert.SerializeObject(screensObject), screensObject);
 			}
 			void ResolveAnime()
 			{
 				var animeObject = VnAnimes.TryGetValue(vn.VNID, out var animes)
 					? animes.Select(r => r.ToAnimeItem(Animes)).ToArray()
 					: Array.Empty<VNItem.AnimeItem>();
-				var animeString = JsonConvert.SerializeObject(animeObject);
-				vn.SetAnime(animeString, animeObject);
+				vn.SetAnime(JsonConvert.SerializeObject(animeObject), animeObject);
 			}
 			void ResolveRelations()
 			{
 				var relationsObject = VnRelations.TryGetValue(vn.VNID, out var relations)
 					? relations.Select(r => r.ToRelationItem()).ToArray()
 					: Array.Empty<VNItem.RelationsItem>();
-				var relationsString = JsonConvert.SerializeObject(relationsObject);
-				vn.SetRelations(relationsString, relationsObject);
+				vn.SetRelations(JsonConvert.SerializeObject(relationsObject), relationsObject);
 			}
 			void ResolveRelease()
 			{
 				if (!VnReleases.ContainsKey(vn.VNID)) return;
 				var releases = VnReleases[vn.VNID].OrderBy(r => r.Released).ToList();
 				var release = releases.FirstOrDefault();
-				if (release != null)
-				{
-					vn.SetReleaseDate(StringToDateString(release.Released));
-					var languages = new VNLanguages(release.Languages.ToArray(),
-						releases.SelectMany(r => r.Languages).Distinct().ToArray());
-					vn.Languages = JsonConvert.SerializeObject(languages);
-					vn.ProducerID = releases.SelectMany(r => r.Producers).FirstOrDefault(p => Database.Producers[p] != null);
-					vn.ReleaseLink = release.Website;
-				}
+				if (release == null) return;
+				vn.SetReleaseDate(StringToDateString(release.Released));
+				var languages = new VNLanguages(release.Languages.ToArray(),
+					releases.SelectMany(r => r.Languages).Distinct().ToArray());
+				vn.Languages = JsonConvert.SerializeObject(languages);
+				vn.ProducerID = releases.SelectMany(r => r.Producers).FirstOrDefault(p => Database.Producers[p] != null);
+				vn.ReleaseLink = release.Website;
 			}
 		}
 
@@ -351,7 +343,7 @@ namespace DatabaseDumpReader
 
 		public void SaveLatestDumpUpdate(DateTime updateDate)
 		{
-			var tableDetail = new TableDetail {Key = LatestDumpUpdateKey, Value = updateDate.ToString(DateFormat, CultureInfo.InvariantCulture)};
+			var tableDetail = new TableDetail { Key = LatestDumpUpdateKey, Value = updateDate.ToString(DateFormat, CultureInfo.InvariantCulture) };
 			Database.TableDetails.Upsert(tableDetail, true);
 		}
 	}

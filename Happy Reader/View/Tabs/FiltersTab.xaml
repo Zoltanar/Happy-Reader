@@ -171,6 +171,9 @@
 						<TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
 					</TabItem>
 					<TabItem Visibility="Collapsed" Content="Has Anime" Header="Traits"/>
+					<TabItem Visibility="Collapsed" Header="Suggestion Score Over">
+						<TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
+					</TabItem>
 				</TabControl>
 				<Button Grid.Column="0" Content="Add To Permanent Filter" VerticalAlignment="Bottom" Margin="5,0" Command="{Binding AddToPermanentFilterCommand}" Grid.ColumnSpan="2"/>
 				<Button Grid.Column="2" Content="Add To Custom Filter"    VerticalAlignment="Bottom" Margin="5,0" Command="{Binding AddToCustomFilterCommand}"/>

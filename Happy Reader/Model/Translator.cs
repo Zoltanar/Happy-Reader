@@ -31,13 +31,14 @@ namespace Happy_Reader
 
 		public Translator(HappyReaderDatabase data) => _data = data;
 
-		public void SetCache() => GoogleTranslate.Initialize(
-			_data.CachedTranslations.AsNoTracking().ToDictionary(x => x.Input), 
-			_data.CachedTranslations.Local, 
+		public void SetCache(bool noApiTranslation) => GoogleTranslate.Initialize(
+			_data.CachedTranslations.AsNoTracking().ToDictionary(x => x.Input),
+			_data.CachedTranslations.Local,
 			Kakasi.JapaneseToRomaji,
 			StaticMethods.TSettings.GoogleCredentialPath,
 			StaticMethods.TSettings.FreeUserAgent,
-			StaticMethods.TSettings.UntouchedStrings);
+			StaticMethods.TSettings.UntouchedStrings,
+			noApiTranslation);
 
 		public Translation Translate(User user, ListedVN game, string input)
 		{
@@ -84,7 +85,7 @@ namespace Happy_Reader
 			}
 		}
 
-		private void SetEntries([NotNull]User user, ListedVN game)
+		private void SetEntries([NotNull] User user, ListedVN game)
 		{
 			RefreshEntries = false;
 			_lastUser = user;
@@ -157,9 +158,32 @@ namespace Happy_Reader
 		/// </summary>
 		private IEnumerable<Entry> TranslateStageFour(StringBuilder sb, HappyReaderDatabase data)
 		{
+			var usefulEntriesWithProxies = GetRelevantEntriesWithProxies(sb, data, out Dictionary<string, ProxiesWithCount> proxies);
+			if (usefulEntriesWithProxies.Count == 0) return usefulEntriesWithProxies;
+			foreach (var entry in usefulEntriesWithProxies)
+			{
+				var proxyAssigned = AssignProxy(proxies, entry);
+				if (proxyAssigned) LogReplace(sb, entry.Input, entry.AssignedProxy.FullRoleString, entry.Id);
+			}
+			usefulEntriesWithProxies = usefulEntriesWithProxies.Where(e => e.AssignedProxy != null).ToList();
+			StaticHelpers.Logger.Verbose($"Stage 4.0: {sb}");
+			//perform replaces involving proxies
+			var entriesOnProxies = _entries.Where(i => i.Type == EntryType.ProxyMod).ToArray();
+			TranslateStage4P1(sb, usefulEntriesWithProxies, entriesOnProxies);
+			foreach (var entry in usefulEntriesWithProxies)
+			{
+				LogReplace(sb, entry.AssignedProxy.FullRoleString, entry.AssignedProxy.Entry.Input, entry.Id);
+			}
+			StaticHelpers.Logger.Verbose($"Stage 4.2: {sb}");
+			return usefulEntriesWithProxies;
+		}
+
+		private List<Entry> GetRelevantEntriesWithProxies(StringBuilder sb, HappyReaderDatabase data, out Dictionary<string, ProxiesWithCount> proxies)
+		{
 			var roles = _entries.Select(z => z.RoleString).Distinct().ToArray();
-			var proxies = BuildProxiesList(data, roles);
-			var entriesWithProxiesArray = _entries.Where(i => i.Type == EntryType.Name || i.Type == EntryType.Translation).OrderByDescending(x => x.Input.Length).ToArray();
+			proxies = BuildProxiesList(data, roles);
+			var entriesWithProxiesArray = _entries.Where(i => i.Type == EntryType.Name || i.Type == EntryType.Translation)
+				.OrderByDescending(x => x.Input.Length).ToArray();
 			var usefulEntriesWithProxies = entriesWithProxiesArray.OrderByDescending(x => x.Input.Length).ToList();
 			//remove unused entries
 			foreach (var entry in entriesWithProxiesArray)
@@ -196,21 +220,6 @@ namespace Happy_Reader
 			}
 			foreach (var entry in entriesToRemove) usefulEntriesWithProxies.Remove(entry);
 			foreach (var entry in entriesToAdd) usefulEntriesWithProxies.Add(entry);
-			foreach (var entry in usefulEntriesWithProxies)
-			{
-				var proxyAssigned = AssignProxy(proxies, entry);
-				if(proxyAssigned) LogReplace(sb, entry.Input, entry.AssignedProxy.FullRoleString, entry.Id);
-			}
-			usefulEntriesWithProxies = usefulEntriesWithProxies.Where(e => e.AssignedProxy != null).ToList();
-			StaticHelpers.Logger.Verbose($"Stage 4.0: {sb}");
-			//perform replaces involving proxies
-			var entriesOnProxies = _entries.Where(i => i.Type == EntryType.ProxyMod).ToArray();
-			TranslateStage4P1(sb, usefulEntriesWithProxies, entriesOnProxies);
-			foreach (var entry in usefulEntriesWithProxies)
-			{
-				LogReplace(sb, entry.AssignedProxy.FullRoleString, entry.AssignedProxy.Entry.Input, entry.Id);
-			}
-			StaticHelpers.Logger.Verbose($"Stage 4.2: {sb}");
 			return usefulEntriesWithProxies;
 		}
 
@@ -336,7 +345,7 @@ namespace Happy_Reader
 				//throw new Exception("Error in TranslateStageFour, see inner", ex);
 			}
 			result[4] = sb.ToString();
-			if(StaticMethods.TSettings.GoogleUseCredential) GoogleTranslate.Translate(sb);
+			if (StaticMethods.TSettings.GoogleUseCredential) GoogleTranslate.Translate(sb);
 			else GoogleTranslate.TranslateFree(sb);
 			StaticHelpers.Logger.Verbose($"Stage 5: {sb}");
 			result[5] = sb.ToString();
