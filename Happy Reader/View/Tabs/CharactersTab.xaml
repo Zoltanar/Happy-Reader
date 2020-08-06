@@ -58,7 +58,6 @@
 		<Button Content="Reset" HorizontalAlignment="Right" Margin="0,1,0,29" Width="39" Click="ShowAll" Grid.Row="1" Grid.RowSpan="2"/>
 		<controls:AutoCompleteBox  Height="30" Grid.Row="2" ItemsSource="{Binding ProducerList}" ItemFilter="ProducerBoxFilter" SelectionChanged="SelectProducer" Margin="65,0,214,0"/>
 		<Button Content="Show Filtered" Click="ShowFiltered" Height="30" Grid.Row="2" HorizontalAlignment="Right" Width="209"/>
-		<Label Content="{Binding CSettings.URTDate}" ContentStringFormat="Last URT Update: {0}" VerticalContentAlignment="Stretch" Grid.Row="3" VerticalAlignment="Stretch" Margin="53,0,214,0"/>
 		<TextBlock Grid.Row="3" Width="70" Background="Aquamarine" Text="{Binding CharacterTiles.Count, StringFormat={}{0} Items.}" HorizontalAlignment="Right" TextAlignment="Center" Padding="5"/>
 		<Label Content="Producer:" HorizontalAlignment="Left" VerticalContentAlignment="Center" Grid.Row="2"/>
 		<CheckBox Content="Hide Traits" VerticalContentAlignment="Center" Grid.Row="2" Margin="0,29,75,1" Grid.RowSpan="2" HorizontalAlignment="Right" Width="134" IsChecked="{Binding HideTraits}"/>

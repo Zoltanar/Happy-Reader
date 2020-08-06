@@ -148,7 +148,7 @@
 							<Label Content="Tag ID"/>
 							<TextBox Text="{Binding NewFilter.StringValue, Mode=OneWayToSource}"/>
 							<Label Content="Score Required"/>
-							<TextBox Text="{Binding NewFilter.AdditionalInt, Mode=OneWayToSource}"/>
+							<TextBox Text="{Binding NewFilter.AdditionalInt, Mode=OneWayToSource, Converter={StaticResource StringToNullableIntConverter}}"/>
 						</UniformGrid>
 					</TabItem>
 					<TabItem Visibility="Collapsed" Content="Traits" Header="Traits"/>

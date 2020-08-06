@@ -3,9 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:sampleData="clr-namespace:Happy_Reader.View.SampleData"
+             xmlns:database="clr-namespace:Happy_Apps_Core.Database;assembly=Happy_Apps_Core"
              mc:Ignorable="d" Height="375" Width="230" 
-             d:DataContext="{d:DesignInstance sampleData:SampleListedVN, IsDesignTimeCreatable=True}" Loaded="VNTile_OnLoaded">
+             d:DataContext="{d:DesignInstance database:ListedVN, IsDesignTimeCreatable=True}" Loaded="VNTile_OnLoaded">
 	<UserControl.ContextMenu>
 		<ContextMenu Opened="ContextMenuOpened" x:Name="VnMenuParent"/>
 	</UserControl.ContextMenu>

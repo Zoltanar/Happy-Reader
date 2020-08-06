@@ -42,18 +42,6 @@ namespace Happy_Apps_Core.Database
 			var screensString = ListToJsonArray(screensObject);
 			vn.SetScreens(screensString, screensObject);
 		}
-		
-		public void UpdateVNTagsStats(VNItem vnItem, bool saveChanges)
-		{
-			var vn = VisualNovels[vnItem.ID];
-			if (saveChanges) Connection.Open();
-			RefreshTags(vn, vnItem, false);
-			vn.Popularity = vnItem.Popularity;
-			vn.Rating = vnItem.Rating;
-			vn.VoteCount = vnItem.VoteCount;
-			VisualNovels.Upsert(vn, false);
-			if (saveChanges) Connection.Close();
-		}
 
 		public void InsertFavoriteProducers(List<ListedProducer> addProducerList, int userid)
 		{
@@ -108,7 +96,6 @@ namespace Happy_Apps_Core.Database
 							uvn = new UserVN { VNID = item.ID, UserId = userid };
 							goto case Command.Update;
 						case Command.Update:
-							Debug.Assert(uvn != null, nameof(uvn) + " != null");
 							uvn.Labels = item.Labels.ToHashSet();
 							uvn.ULNote = item.ULNote;
 							uvn.Vote = item.Vote;
@@ -117,23 +104,15 @@ namespace Happy_Apps_Core.Database
 							UserVisualNovels.Upsert(uvn, false);
 							break;
 						case Command.Delete:
-							Debug.Assert(uvn != null, nameof(uvn) + " != null");
 							UserVisualNovels.Remove(uvn, false);
 							break;
 					}
 				}
 			}
-			catch (Exception ex)
-			{
-				StaticHelpers.Logger.ToFile(ex);
-#if !DEBUG
-throw;
-#endif
-			}
 			finally
 			{
 				Connection.Close();
-			}/**/
+			}
 		}
 
 		/// <summary>
@@ -142,63 +121,35 @@ throw;
 		/// <returns>True if added or false if updated</returns>
 		public bool UpsertSingleCharacter(CharacterItem character, bool saveChanges)
 		{
+			bool result;
+			var dbCharacter = Characters[character.ID];
+			if (dbCharacter == null)
+			{
+				dbCharacter = new CharacterItem { ID = character.ID };
+				result = true;
+			}
+			else result = false;
+			dbCharacter.Name = character.Name;
+			dbCharacter.Original = character.Original;
+			dbCharacter.Gender = character.Gender;
+			dbCharacter.Aliases = character.Aliases;
+			dbCharacter.Description = character.Description;
+			dbCharacter.ImageId = character.ImageId;
+			if (saveChanges) Connection.Open();
 			try
 			{
-				bool result;
-				var dbCharacter = Characters[character.ID];
-				if (dbCharacter == null)
-				{
-					dbCharacter = new CharacterItem { ID = character.ID };
-					result = true;
-				}
-				else result = false;
-				dbCharacter.Name = character.Name;
-				dbCharacter.Original = character.Original;
-				dbCharacter.Gender = character.Gender;
-				dbCharacter.BloodT = character.BloodT;
-				// ReSharper disable PossibleInvalidOperationException
-				try
-				{
-					if (character.Birthday?.Length == 2 && character.Birthday.All(x => x != null))
-						dbCharacter.BirthDate =
-							new DateTime(2000, character.Birthday[1].Value, character.Birthday[0].Value);
-				}
-				catch (ArgumentOutOfRangeException ex)
-				{
-					Debug.Assert(character.Birthday != null, "character.Birthday != null");
-					StaticHelpers.Logger.ToFile($"Exception in {nameof(UpsertSingleCharacter)} (CID: {character.ID}), {ex.Message} ({character.Birthday[1].Value}, {character.Birthday[0].Value})");
-				}
-				// ReSharper restore PossibleInvalidOperationException
-				dbCharacter.Aliases = character.Aliases;
-				dbCharacter.Description = character.Description;
-				dbCharacter.ImageId = character.ImageId;
-				dbCharacter.DateUpdated = DateTime.UtcNow;
-				if (saveChanges) Connection.Open();
-				try
-				{
-					var traitCh = character.Traits.Select(trait => DbTrait.From(trait, character.ID)).ToList();
-					var traitsToRemove = dbCharacter.DbTraits.Except(traitCh, DbTrait.ValueComparer).ToArray();
-					foreach (var trait in traitsToRemove) Traits.Remove(trait, false);
-					foreach (var trait in traitCh) Traits.Upsert(trait, false);
-					Characters.Upsert(dbCharacter, false);
-					foreach (var characterVn in dbCharacter.VisualNovels)
-					{
-						CharacterVNs.Remove(characterVn, false);
-					}
-					foreach (var characterVn in character.VNs)
-					{
-						CharacterVNs.Add(CharacterVN.From(characterVn, character.ID), false);
-					}
-					var staffCh = (character.Voiced?.Select(v => CharacterStaff.From(v, character.ID)) ??
-												Array.Empty<CharacterStaff>()).ToArray();
-					var staffToRemove = dbCharacter.DbStaff.Except(staffCh, CharacterStaff.KeyComparer).ToArray();
-					foreach (var staff in staffToRemove) CharacterStaffs.Remove(staff, false);
-					foreach (var staff in staffCh) CharacterStaffs.Upsert(staff, false);
-				}
-				finally
-				{
-					if (saveChanges) Connection.Close();
-				}
+				var traitCh = character.Traits.Select(trait => DbTrait.From(trait, character.ID)).ToList();
+				var traitsToRemove = dbCharacter.DbTraits.Except(traitCh, DbTrait.ValueComparer).ToArray();
+				foreach (var trait in traitsToRemove) Traits.Remove(trait, false);
+				foreach (var trait in traitCh) Traits.Upsert(trait, false);
+				Characters.Upsert(dbCharacter, false);
+				//replace character's visual novels with new data
+				foreach (var characterVn in dbCharacter.VisualNovels) CharacterVNs.Remove(characterVn, false);
+				foreach (var characterVn in character.VNs) CharacterVNs.Add(CharacterVN.From(characterVn, character.ID), false);
+				var staffCh = (character.Voiced?.Select(v => CharacterStaff.From(v, character.ID)) ?? Array.Empty<CharacterStaff>()).ToArray();
+				var staffToRemove = dbCharacter.DbStaff.Except(staffCh, CharacterStaff.KeyComparer).ToArray();
+				foreach (var staff in staffToRemove) CharacterStaffs.Remove(staff, false);
+				foreach (var staff in staffCh) CharacterStaffs.Upsert(staff, false);
 				return result;
 			}
 			catch (Exception ex)
@@ -206,9 +157,13 @@ throw;
 				StaticHelpers.Logger.ToFile(ex);
 				throw;
 			}
+			finally
+			{
+				if (saveChanges) Connection.Close();
+			}
 		}
 
-		public void UpsertSingleVN((VNItem item, ProducerItem producer, VNLanguages languages) data, bool setFullyUpdated, bool saveChanges)
+		public void UpsertSingleVN((VNItem item, ProducerItem producer, VNLanguages languages) data, bool saveChanges)
 		{
 			var (item, producer, languages) = data;
 			var vn = VisualNovels[item.ID] ?? new ListedVN { VNID = item.ID };
@@ -226,8 +181,6 @@ throw;
 			vn.VoteCount = item.VoteCount;
 			vn.Aliases = item.Aliases;
 			vn.Languages = languages?.ToString();
-			vn.DateUpdated = DateTime.UtcNow;
-			if (setFullyUpdated) vn.DateFullyUpdated = DateTime.UtcNow;
 			VisualNovels.Upsert(vn, saveChanges);
 		}
 
@@ -277,8 +230,8 @@ throw;
 		{
 			var lowerSearchString = searchString.ToLower();
 			return ch => ch.Name.ToLower().Contains(lowerSearchString) ||
-			             ch.Original != null && ch.Original.ToLower().Contains(lowerSearchString) ||
-			             ch.Aliases != null && ch.Aliases.ToLower().Contains(lowerSearchString);
+									 ch.Original != null && ch.Original.ToLower().Contains(lowerSearchString) ||
+									 ch.Aliases != null && ch.Aliases.ToLower().Contains(lowerSearchString);
 		}
 
 		/// <summary>
@@ -417,7 +370,7 @@ throw;
 
 			public DateTime? GetLastModified()
 			{
-				return new[] {WLAdded, ULAdded}.Where(v => v.HasValue).OrderByDescending(v=>v).FirstOrDefault().UnixTimestampToDateTime();
+				return new[] { WLAdded, ULAdded }.Where(v => v.HasValue).OrderByDescending(v => v).FirstOrDefault().UnixTimestampToDateTime();
 			}
 		}
 

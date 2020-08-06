@@ -77,38 +77,29 @@ namespace Happy_Apps_Core
 		/// <param name="update">Get new image regardless of whether one already exists?</param>
 		public void SaveCover(bool update = false)
 		{
-			if (!Directory.Exists(ImagesFolder)) Directory.CreateDirectory(ImagesFolder);
 			if (ImageId == null || ImageId == "\\N") return;
+			if (!Directory.Exists(ImagesFolder)) Directory.CreateDirectory(ImagesFolder);
 			var imageParts = ImageId.Trim('(', ')').Split(',');
 			var imageId = Convert.ToInt32(imageParts[1]);
 			var imageLocation = Path.GetFullPath($"{ImagesFolder}\\{imageParts[0]}{imageId % 100:00}\\{imageId}.jpg");
 			Directory.GetParent(imageLocation).Create();
 			if (File.Exists(imageLocation) && update == false) return;
 			Logger.ToFile($"Start downloading cover image for {this}");
-			WebResponse responsePic = null;
-			Stream stream = null;
-			Stream destinationStream = null;
 			try
 			{
 				// ReSharper disable once AssignNullToNotNullAttribute
 				Directory.CreateDirectory(Path.GetDirectoryName(imageLocation));
 				var requestPic = WebRequest.Create(ImageId);
-				responsePic = requestPic.GetResponse();
-				stream = responsePic.GetResponseStream();
+				using var responsePic = requestPic.GetResponse();
+				using var stream = responsePic.GetResponseStream();
 				if (stream == null) return;
-				destinationStream = File.OpenWrite(imageLocation);
+				using var destinationStream = File.OpenWrite(imageLocation);
 				stream.CopyTo(destinationStream);
 			}
 			catch (Exception ex) when (ex is NotSupportedException || ex is ArgumentNullException ||
 																 ex is SecurityException || ex is UriFormatException || ex is ExternalException)
 			{
 				Logger.ToFile(ex);
-			}
-			finally
-			{
-				responsePic?.Dispose();
-				stream?.Dispose();
-				destinationStream?.Dispose();
 			}
 		}
 

@@ -25,21 +25,8 @@ namespace Happy_Apps_Core.Database
 {
 	public class ListedVN : INotifyPropertyChanged, IDataItem<int>, IDumpItem
 	{
-
 		public static Func<bool> ShowNSFWImages { get; set; } = () => true;
 
-		/// <summary>
-		/// Returns true if a title was last updated over x days ago.
-		/// </summary>
-		/// <param name="days">Days since last update</param>
-		/// <param name="fullyUpdated">Use days since full update</param>
-		/// <returns></returns>
-		public bool LastUpdatedOverDaysAgo(int days, bool fullyUpdated = false)
-		{
-			var dateToUse = fullyUpdated ? DaysSinceFullyUpdated : UpdatedDate;
-			if (dateToUse == -1) return true;
-			return dateToUse > days;
-		}
 
 		#region Columns
 		/// <summary>
@@ -93,8 +80,6 @@ namespace Happy_Apps_Core.Database
 			}
 		}
 
-		public DateTime DateUpdated { get; set; }
-
 		public string ImageId { get; set; }
 
 		/// <summary>
@@ -146,8 +131,6 @@ namespace Happy_Apps_Core.Database
 
 		public string Languages { get; set; }
 
-		public DateTime DateFullyUpdated { get; set; }
-
 		public UserVN UserVN => StaticHelpers.LocalDatabase.UserVisualNovels[(StaticHelpers.CSettings.UserID, VNID)];
 
 		public DateTime ReleaseDate { get; set; }
@@ -174,19 +157,6 @@ namespace Happy_Apps_Core.Database
 			ReleaseDateString = releaseDateString;
 			ReleaseDate = StaticHelpers.StringToDate(releaseDateString, out var hasFullDate);
 			_hasFullDate = hasFullDate;
-		}
-
-		private int? _daysSinceFullyUpdated;
-		/// <summary>
-		/// Days since all fields were updated
-		/// </summary>
-		public int DaysSinceFullyUpdated
-		{
-			get
-			{
-				if (_daysSinceFullyUpdated == null) _daysSinceFullyUpdated = (int)(DateTime.UtcNow - DateFullyUpdated).TotalDays;
-				return _daysSinceFullyUpdated.Value;
-			}
 		}
 
 		private bool? _hasFullDate;
@@ -297,12 +267,6 @@ namespace Happy_Apps_Core.Database
 		private bool _dbTagsSet;
 		private List<DbTag> _dbTags;
 
-		/// <summary>
-		/// Days since last tags/stats/traits update
-		/// </summary>
-		[NotMapped]
-		public int UpdatedDate { get; set; }
-		
 		[NotMapped]
 		public SuggestionScoreObject Suggestion { get; set; }
 
@@ -333,7 +297,7 @@ namespace Happy_Apps_Core.Database
 
 		private OwnedStatus? _ownedStatus;
 
-		public virtual OwnedStatus IsOwned
+		public OwnedStatus IsOwned
 		{
 			get
 			{
@@ -413,7 +377,7 @@ namespace Happy_Apps_Core.Database
 
 		public string Series { get; set; }
 
-		public virtual object FlagSource => LanguagesObject.Originals.Select(language => $"{StaticHelpers.FlagsFolder}{language}.png")
+		public object FlagSource => LanguagesObject.Originals.Select(language => $"{StaticHelpers.FlagsFolder}{language}.png")
 																.Where(File.Exists).Select(Path.GetFullPath).FirstOrDefault() ?? DependencyProperty.UnsetValue;
 
 		private bool? _specialFlag;
@@ -455,7 +419,7 @@ namespace Happy_Apps_Core.Database
 		}
 
 		[NotNull]
-		public virtual Uri CoverSource
+		public Uri CoverSource
 		{
 			get
 			{
@@ -563,7 +527,6 @@ namespace Happy_Apps_Core.Database
 				Title = GetPart(parts, "title");
 				KanjiTitle = GetPart(parts, "original");
 				Aliases = GetPart(parts, "alias");
-				DateUpdated = DateTime.UtcNow;
 				if (!string.IsNullOrWhiteSpace(GetPart(parts, "length"))) LengthTime = (LengthFilterEnum)Convert.ToInt32(GetPart(parts, "length"));
 				var imageId = GetPart(parts, "image");
 				ImageId = imageId == "\\N" ? null : imageId;
@@ -590,10 +553,10 @@ namespace Happy_Apps_Core.Database
 		DbCommand IDataItem<int>.UpsertCommand(DbConnection connection, bool insertOnly)
 		{
 			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO ListedVNs" +
-				"(VNID,Title,KanjiTitle,ReleaseDateString,ProducerID,DateUpdated,Image,ImageNSFW,Description,LengthTime,Popularity," +
-				"Rating,VoteCount,Relations,Screens,Anime,Aliases,Languages,DateFullyUpdated,Series,ReleaseDate,ReleaseLink,TagScore,TraitScore) VALUES " +
-				"(@VNID,@Title,@KanjiTitle,@ReleaseDateString,@ProducerId,@DateUpdated,@Image,@ImageNSFW,@Description,@LengthTime,@Popularity," +
-				"@Rating,@VoteCount,@Relations,@Screens,@Anime,@Aliases,@Languages,@DateFullyUpdated,@Series,@ReleaseDate,@ReleaseLink,@TagScore,@TraitScore)";
+				"(VNID,Title,KanjiTitle,ReleaseDateString,ProducerID,Image,ImageNSFW,Description,LengthTime,Popularity," +
+				"Rating,VoteCount,Relations,Screens,Anime,Aliases,Languages,Series,ReleaseDate,ReleaseLink,TagScore,TraitScore) VALUES " +
+				"(@VNID,@Title,@KanjiTitle,@ReleaseDateString,@ProducerId,@Image,@ImageNSFW,@Description,@LengthTime,@Popularity," +
+				"@Rating,@VoteCount,@Relations,@Screens,@Anime,@Aliases,@Languages,@Series,@ReleaseDate,@ReleaseLink,@TagScore,@TraitScore)";
 			var command = connection.CreateCommand();
 			command.CommandText = sql;
 			command.AddParameter("@VNID", VNID);
@@ -601,7 +564,6 @@ namespace Happy_Apps_Core.Database
 			command.AddParameter("@KanjiTitle", KanjiTitle);
 			command.AddParameter("@ReleaseDateString", ReleaseDateString);
 			command.AddParameter("@ProducerID", ProducerID);
-			command.AddParameter("@DateUpdated", DateUpdated);
 			command.AddParameter("@Image", ImageId);
 			command.AddParameter("@ImageNSFW", ImageNSFW);
 			command.AddParameter("@Description", Description);
@@ -614,7 +576,6 @@ namespace Happy_Apps_Core.Database
 			command.AddParameter("@Anime", Anime);
 			command.AddParameter("@Aliases", Aliases);
 			command.AddParameter("@Languages", Languages);
-			command.AddParameter("@DateFullyUpdated", DateFullyUpdated);
 			command.AddParameter("@Series", Series);
 			command.AddParameter("@ReleaseDate", ReleaseDate);
 			command.AddParameter("@ReleaseLink", ReleaseLink);
@@ -633,7 +594,6 @@ namespace Happy_Apps_Core.Database
 				ReleaseDateString = Convert.ToString(reader["ReleaseDateString"]);
 				var producerIdObject = reader["ProducerID"];
 				if (!producerIdObject.Equals(DBNull.Value)) ProducerID = Convert.ToInt32(producerIdObject);
-				DateUpdated = Convert.ToDateTime(reader["DateUpdated"]);
 				var imageIdObject = reader["Image"];
 				if (!imageIdObject.Equals(DBNull.Value)) ImageId = Convert.ToString(imageIdObject);
 				ImageNSFW = Convert.ToInt32(reader["ImageNSFW"]) == 1;
@@ -648,7 +608,6 @@ namespace Happy_Apps_Core.Database
 				Anime = Convert.ToString(reader["Anime"]);
 				Aliases = Convert.ToString(reader["Aliases"]);
 				Languages = Convert.ToString(reader["Languages"]);
-				DateFullyUpdated = Convert.ToDateTime(reader["DateFullyUpdated"]);
 				Series = Convert.ToString(reader["Series"]);
 				ReleaseDate = Convert.ToDateTime(reader["ReleaseDate"]);
 				ReleaseLink = Convert.ToString(reader["ReleaseLink"]);

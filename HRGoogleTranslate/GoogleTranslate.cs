@@ -156,25 +156,26 @@ namespace HRGoogleTranslate
 			}
 		}
 
+		public static bool TranslateSingleKana(StringBuilder text, string input)
+		{
+			if (input.Length != 1) return false;
+			var character = input[0];
+			if (!character.IsHiragana() && !character.IsKatakana()) return false;
+			var output = _japaneseToRomaji(input);
+			text.Append(output);
+			var translation = new GoogleTranslation(input, output);
+			_linkedCache.Add(translation);
+			_cache[input] = translation;
+			return true;
+		}
+
 		private static bool TryGetWithoutAPI(StringBuilder text, bool isBlocked, out string input)
 		{
 			input = text.ToString();
 			if (UntouchedStrings.Contains(input)) return true;
 			text.Clear();
 			if (GetFromCache(text, input)) return true;
-			if (input.Length == 1)
-			{
-				var character = input[0];
-				if (character.IsHiragana() || character.IsKatakana())
-				{
-					var output = _japaneseToRomaji(input);
-					text.Append(output);
-					var translation = new GoogleTranslation(input, output);
-					_linkedCache.Add(translation);
-					_cache[input] = translation;
-					return true;
-				}
-			}
+			if (TranslateSingleKana(text, input)) return true;
 			if (!isBlocked) return false;
 			text.Append("Failed: Translation is blocked.");
 			return true;

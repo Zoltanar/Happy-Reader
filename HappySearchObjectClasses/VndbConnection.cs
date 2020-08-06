@@ -5,7 +5,6 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -284,11 +283,7 @@ namespace Happy_Apps_Core
 
 		private static bool IsCompleteMessage(byte[] message, int bytesUsed)
 		{
-			if (bytesUsed == 0)
-			{
-				throw new Exception("You have a bug, dummy. You should have at least one byte here.");
-			}
-
+			if (bytesUsed == 0) throw new Exception("You have a bug, dummy. You should have at least one byte here.");
 			// ASSUMPTION: simple request-response protocol, so we should see at most one message in a given byte array.
 			// So, there's no need to walk the whole array looking for validity - just be lazy and check the last byte for EOS.
 			return message[bytesUsed - 1] == EndOfStreamByte;
@@ -296,21 +291,12 @@ namespace Happy_Apps_Core
 
 		private static Response Parse(byte[] message, int bytesUsed)
 		{
-			if (!IsCompleteMessage(message, bytesUsed))
-			{
-				throw new Exception("You have a bug, dummy.");
-			}
-
-			var stringifiedResponse = Encoding.UTF8.GetString(message, 0, bytesUsed - 1);
-			var firstSpace = stringifiedResponse.IndexOf(' ');
-			var firstWord = firstSpace != -1 ? stringifiedResponse.Substring(0, firstSpace) : stringifiedResponse;
-			var payload = firstSpace > 0 ? stringifiedResponse.Substring(firstSpace) : "";
-			if (firstSpace == bytesUsed - 1)
-			{
-				// protocol violation!
-				throw new Exception("Protocol violation: last character in response is first space");
-			}
-
+			if (!IsCompleteMessage(message, bytesUsed)) throw new Exception("You have a bug, dummy.");
+			var stringResponse = Encoding.UTF8.GetString(message, 0, bytesUsed - 1);
+			var firstSpace = stringResponse.IndexOf(' ');
+			var firstWord = firstSpace != -1 ? stringResponse.Substring(0, firstSpace) : stringResponse;
+			var payload = firstSpace > 0 ? stringResponse.Substring(firstSpace) : "";
+			if (firstSpace == bytesUsed - 1) throw new Exception("Protocol violation: last character in response is first space");
 			return firstWord switch
 			{
 				"ok" => new Response(ResponseType.Ok, payload),
@@ -337,45 +323,57 @@ namespace Happy_Apps_Core
 			}
 			Status = APIStatus.Busy;
 			_changeStatusAction?.Invoke(Status);
+			await RunQueryWithRetriesAsync(query);
+			if (LastResponse.Type == ResponseType.Unknown) return QueryResult.Fail;
+			while (LastResponse.Type == ResponseType.Error)
+			{
+				return LastResponse.Error.ID.Equals("throttled") ? HandleThrottledResponse() : HandleFailResponse(errorMessage);
+			}
+			return QueryResult.Success;
+		}
+
+		private async Task RunQueryWithRetriesAsync(string query)
+		{
 			await Task.Run(() =>
 			{
 				Logger.ToFile(query);
 				RunWithRetries(() => Query(query), () => Login(_loginCredentials, false), 5, ex =>
-					 {
-						 SocketException socketException;
-						 switch (ex)
-						 {
-							 case IOException ioException:
-								 if (ioException.InnerException is SocketException innerException) socketException = innerException;
-								 else return false;
-								 break;
-							 case SocketException sockException:
-								 socketException = sockException;
-								 break;
-							 default: return false;
-						 }
-						 return socketException.ErrorCode == 10054;
-					 });
-			});
-			if (LastResponse.Type == ResponseType.Unknown) return QueryResult.Fail;
-			while (LastResponse.Type == ResponseType.Error)
-			{
-				if (!LastResponse.Error.ID.Equals("throttled"))
 				{
-					Logger.ToFile($"{nameof(TryQueryInner)} error: {LastResponse.JsonPayload}");
-					ActiveQuery.CompletedMessage = errorMessage;
-					ActiveQuery.CompletedMessageSeverity = MessageSeverity.Error;
-					return QueryResult.Fail;
-				}
-				var minWait = Math.Min(5 * 60, LastResponse.Error.Fullwait); //wait 5 minutes
-				var throttleMessage = $"Throttled for {Math.Floor(minWait / 60)} mins." + ActiveQuery.GetAdditionalWarning();
-				TextAction(throttleMessage, MessageSeverity.Warning);
-				Logger.ToFile($"Local: {DateTime.Now} - {throttleMessage}");
-				var waitMS = minWait * 1000;
-				_throttleWaitTime = Convert.ToInt32(waitMS);
-				return QueryResult.Throttled;
-			}
-			return QueryResult.Success;
+					SocketException socketException;
+					switch (ex)
+					{
+						case IOException ioException:
+							if (ioException.InnerException is SocketException innerException) socketException = innerException;
+							else return false;
+							break;
+						case SocketException sockException:
+							socketException = sockException;
+							break;
+						default: return false;
+					}
+					//if error has code 10054, we try again.
+					return socketException.ErrorCode == 10054;
+				});
+			});
+		}
+
+		private QueryResult HandleFailResponse(string errorMessage)
+		{
+			Logger.ToFile($"{nameof(TryQueryInner)} error: {LastResponse.JsonPayload}");
+			ActiveQuery.CompletedMessage = errorMessage;
+			ActiveQuery.CompletedMessageSeverity = MessageSeverity.Error;
+			return QueryResult.Fail;
+		}
+
+		private QueryResult HandleThrottledResponse()
+		{
+			var minWait = Math.Min(5 * 60, LastResponse.Error.Fullwait); //wait 5 minutes
+			var throttleMessage = $"Throttled for {Math.Floor(minWait / 60)} mins." + ActiveQuery.GetAdditionalWarning();
+			TextAction(throttleMessage, MessageSeverity.Warning);
+			Logger.ToFile($"Local: {DateTime.Now} - {throttleMessage}");
+			var waitMS = minWait * 1000;
+			_throttleWaitTime = Convert.ToInt32(waitMS);
+			return QueryResult.Throttled;
 		}
 
 		/// <summary>

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
@@ -44,6 +46,19 @@ namespace Happy_Reader.View
 			new NotSupportedException();
 	}
 
+	public class StringToNullableIntConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			if (!(value is string text)) throw new NotSupportedException("Input must be a string.");
+			if (string.IsNullOrWhiteSpace(text)) return (int?) null;
+			return int.Parse(text);
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => 
+			new NotSupportedException($"From {nameof(StringToNullableIntConverter)}");
+	}
+
 	public class TagConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -51,8 +66,7 @@ namespace Happy_Reader.View
 			return value is null || !(value is string tag) || string.IsNullOrWhiteSpace(tag) ? "No Tag" : tag;
 		}
 
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
-			new NotSupportedException();
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => new NotSupportedException();
 	}
 
 	public class NullableToOpacityConverter : IValueConverter
@@ -117,8 +131,7 @@ namespace Happy_Reader.View
 			};
 		}
 
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
-			throw new NotSupportedException();
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 	}
 
 	public class OwnedStatusToTextConverter : IValueConverter
@@ -135,8 +148,7 @@ namespace Happy_Reader.View
 			};
 		}
 
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
-			throw new NotSupportedException();
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 	}
 
 	public class DateToWeightConverter : IValueConverter
@@ -148,8 +160,7 @@ namespace Happy_Reader.View
 			return releaseDate.Date.Year == now.Year && releaseDate.Date.Month == now.Month ? FontWeights.Bold : FontWeights.Normal;
 		}
 
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
-			throw new NotSupportedException();
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 	}
 
 	public class DateToBrushConverter : IValueConverter
@@ -161,46 +172,36 @@ namespace Happy_Reader.View
 			return vn.ReleaseDate > DateTime.UtcNow ? Theme.UnreleasedBrush : (vn.UserVN?.Blacklisted ?? false) ? Brushes.White : Brushes.Black;
 		}
 
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
-			throw new NotSupportedException();
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 	}
 
 	public class UserVnToBackgroundConverter : IValueConverter
 	{
+		/// <summary>
+		/// If parameter is 1, the fallback brush is transparent, else it will be the default tile brush.
+		/// </summary>
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if (value is null) return parameter is string sP && sP == "1" ? Brushes.Transparent : Theme.DefaultTileBrush;
 			if (!(value is UserVN userVN)) throw new NotSupportedException();
-			foreach (var label in userVN.Labels)
+			var excludedLabels = new List<UserVN.LabelKind> { UserVN.LabelKind.Wishlist, UserVN.LabelKind.Voted };
+			var label = userVN.Labels.FirstOrDefault(i => !excludedLabels.Contains(i));
+			return label switch
 			{
-				switch (label)
-				{
-					case UserVN.LabelKind.Playing:
-						return Theme.ULPlayingBrush;
-					case UserVN.LabelKind.Finished:
-						return Theme.ULFinishedBrush;
-					case UserVN.LabelKind.Stalled:
-						return Theme.ULStalledBrush;
-					case UserVN.LabelKind.Dropped:
-						return Theme.ULDroppedBrush;
-					case UserVN.LabelKind.Owned:
-						return Theme.ULUnknownBrush;
-					case UserVN.LabelKind.WishlistHigh:
-						return Theme.WLHighBrush;
-					case UserVN.LabelKind.WishlistMedium:
-						return Theme.WLMediumBrush;
-					case UserVN.LabelKind.WishlistLow:
-						return Theme.WLLowBrush;
-					case UserVN.LabelKind.Blacklist:
-						return Theme.WLBlacklistBrush;
-					default: continue;
-				}
-			}
-			return parameter is string sP2 && sP2 == "1" ? Brushes.Transparent : Theme.DefaultTileBrush;
+				UserVN.LabelKind.Playing => Theme.ULPlayingBrush,
+				UserVN.LabelKind.Finished => Theme.ULFinishedBrush,
+				UserVN.LabelKind.Stalled => Theme.ULStalledBrush,
+				UserVN.LabelKind.Dropped => Theme.ULDroppedBrush,
+				UserVN.LabelKind.Owned => Theme.ULUnknownBrush,
+				UserVN.LabelKind.WishlistHigh => Theme.WLHighBrush,
+				UserVN.LabelKind.WishlistMedium => Theme.WLMediumBrush,
+				UserVN.LabelKind.WishlistLow => Theme.WLLowBrush,
+				UserVN.LabelKind.Blacklist => Theme.WLBlacklistBrush,
+				_ => parameter is string sP2 && sP2 == "1" ? Brushes.Transparent : Theme.DefaultTileBrush
+			};
 		}
 
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
-			throw new NotSupportedException();
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 	}
 
 	public class UserVnToForegroundConverter : IValueConverter
@@ -212,8 +213,7 @@ namespace Happy_Reader.View
 			return /*userVN.Labels.Contains(UserVN.LabelKind.Playing) ? Theme.ULPlayingBrush :*/ userVN.Blacklisted ? Brushes.White : Brushes.Black;
 		}
 
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
-			throw new NotSupportedException();
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 	}
 
 	public class VnToProducerForegroundConverter : IValueConverter
@@ -225,8 +225,7 @@ namespace Happy_Reader.View
 			return StaticHelpers.VNIsByFavoriteProducer(vn) ? Theme.FavoriteProducerBrush : (vn.UserVN?.Blacklisted ?? false) ? Brushes.White : Brushes.Black;
 		}
 
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
-			throw new NotSupportedException();
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 	}
 
 }

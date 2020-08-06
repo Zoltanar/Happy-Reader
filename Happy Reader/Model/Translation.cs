@@ -24,7 +24,7 @@ namespace Happy_Reader
 		public Translation(string original)
 		{
 			var s1Original = new StringBuilder(original);
-			Translator.TranslateStageOne(s1Original);
+			Translator.TranslateStageOne(s1Original, null);
 			Original = s1Original.ToString();
 			var originalForRomaji = Translator.ReplaceNames(s1Original.ToString());
 			var romajiRegex = new System.Text.RegularExpressions.Regex(@"っ(?=[…？！。「」【】、])");

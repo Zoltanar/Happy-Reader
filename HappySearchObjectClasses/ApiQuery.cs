@@ -73,6 +73,7 @@ namespace Happy_Apps_Core
 		public void SetException(Exception exception)
 		{
 			if (exception == null) throw new Exception("Setting Exception to null is not expected.");
+			StaticHelpers.Logger.ToFile(exception,ActionName);
 			CompletedMessage = $"Exception in {ActionName} - {exception.Message}";
 			CompletedMessageSeverity = VndbConnection.MessageSeverity.Error;
 		}

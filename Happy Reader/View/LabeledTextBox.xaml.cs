@@ -29,9 +29,10 @@ namespace Happy_Reader.View
 
 		public string LabelWidth
 		{
-			get => (string)GetValue(LabelWidthProperty);
+			get => (string)GetValue(LabelWidthProperty) ?? "100";
 			set => SetValue(LabelWidthProperty, value);
 		}
+
 
 		public LabeledTextBox() => InitializeComponent();
 	}

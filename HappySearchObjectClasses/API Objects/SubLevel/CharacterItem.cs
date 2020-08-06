@@ -29,12 +29,6 @@ namespace Happy_Apps_Core
 		public string Name { get; set; }
 		public string Original { get; set; }
 		public string Gender { get; set; }
-		public string BloodT { get; set; }
-		/// <summary>
-		/// Converted to BirthDate when fetched from vndb
-		/// </summary>
-		public int?[] Birthday { get; [UsedImplicitly] set; }
-		public DateTime? BirthDate { get; set; }
 		#endregion
 
 		#region Details Flag
@@ -42,8 +36,6 @@ namespace Happy_Apps_Core
 		public string Description { get; set; }
 		public string ImageId { get; set; }
 		#endregion
-
-		public DateTime? DateUpdated { get; set; }
 
 		/// <summary>
 		/// Only used in json convert from vndb
@@ -156,17 +148,14 @@ namespace Happy_Apps_Core
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
 		{
 			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO CharacterItems" +
-									 "(ID,Name,Original,Gender,BloodT,BirthDate,DateUpdated,Aliases,Description,Image) VALUES " +
-									 "(@ID,@Name,@Original,@Gender,@BloodT,@BirthDate,@DateUpdated,@Aliases,@Description,@Image)";
+									 "(ID,Name,Original,Gender,Aliases,Description,Image) VALUES " +
+									 "(@ID,@Name,@Original,@Gender,@Aliases,@Description,@Image)";
 			var command = connection.CreateCommand();
 			command.CommandText = sql;
 			command.AddParameter("@ID", ID);
 			command.AddParameter("@Name", Name);
 			command.AddParameter("@Original", Original);
 			command.AddParameter("@Gender", Gender);
-			command.AddParameter("@BloodT", BloodT);
-			command.AddParameter("@BirthDate", BirthDate);
-			command.AddParameter("@DateUpdated", DateUpdated);
 			command.AddParameter("@Aliases", Aliases);
 			command.AddParameter("@Description", Description);
 			command.AddParameter("@Image", ImageId);
@@ -181,9 +170,6 @@ namespace Happy_Apps_Core
 				Name = Convert.ToString(reader["Name"]);
 				Original = Convert.ToString(reader["Original"]);
 				Gender = Convert.ToString(reader["Gender"]);
-				BloodT = Convert.ToString(reader["BloodT"]);
-				BirthDate = StaticHelpers.GetNullableDate(reader["BirthDate"]);
-				DateUpdated = StaticHelpers.GetNullableDate(reader["DateUpdated"]);
 				Aliases = Convert.ToString(reader["Aliases"]);
 				Description = Convert.ToString(reader["Description"]);
 				var imageIdObject = reader["Image"];
@@ -232,7 +218,6 @@ namespace Happy_Apps_Core
 		object ICloneable.Clone()
 		{
 			var clone = (CharacterItem)this.MemberwiseClone();
-			clone.Birthday = Birthday;
 			clone.Traits = Traits;
 			clone.Voiced = Voiced;
 			return clone;

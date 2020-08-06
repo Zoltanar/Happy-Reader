@@ -163,7 +163,7 @@ namespace Happy_Apps_Core
 			LocalDatabase.Connection.Open();
 			try
 			{
-				vnsToBeUpserted.ForEach(vn => LocalDatabase.UpsertSingleVN(vn, true, false));
+				vnsToBeUpserted.ForEach(vn => LocalDatabase.UpsertSingleVN(vn, false));
 				foreach (var producer in producersToBeUpserted.Values) LocalDatabase.UpsertProducer(producer, false);
 				ActiveQuery.RunActionOnAdd();
 			}
@@ -340,40 +340,6 @@ namespace Happy_Apps_Core
 				//update if it already exists
 				else itemInlist.Update(item);
 			}*/
-		}
-
-		private async Task GetWishList(List<VisualNovelDatabase.UrtListItem> urtList)
-		{
-			Logger.ToFile("Starting GetWishList");
-			string wishListQuery = $"get wishlist basic (uid = {CSettings.UserID} ) {{\"results\":100}}";
-			var result = await TryQuery(wishListQuery, Resources.gwl_query_error);
-			if (!result) return;
-			var wlRoot = JsonConvert.DeserializeObject<ResultsRoot<WishListItem>>(LastResponse.JsonPayload);
-			if (wlRoot.Num == 0) return;
-			List<WishListItem> wlList = wlRoot.Items; //make list of vn in list
-			var pageNo = 1;
-			var moreResults = wlRoot.More;
-			while (moreResults)
-			{
-				pageNo++;
-				string wishListQuery2 = $"get wishlist basic (uid = {CSettings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
-				var moreResult = await TryQuery(wishListQuery2, Resources.gwl_query_error);
-				if (!moreResult) return;
-				var wlMoreRoot = JsonConvert.DeserializeObject<ResultsRoot<WishListItem>>(LastResponse.JsonPayload);
-				wlList.AddRange(wlMoreRoot.Items);
-				moreResults = wlMoreRoot.More;
-			}
-			foreach (var item in wlList)
-			{
-#if DEBUG
-				if (item.VN == VNIDToDebug) { }
-#endif
-				var itemInlist = urtList.FirstOrDefault(vn => vn.ID == item.VN);
-				//add if it doesn't exist
-				if (itemInlist == null) urtList.Add(new VisualNovelDatabase.UrtListItem(item));
-				//update if it already exists
-				else itemInlist.Update(item);
-			}
 		}
 
 		private async Task GetVoteList(List<VisualNovelDatabase.UrtListItem> urtList)
@@ -671,7 +637,7 @@ namespace Happy_Apps_Core
 			if (!StartQuery(nameof(UpdateForYear), true, true)) return;
 			try
 			{
-				var ids = new HashSet<int>(LocalDatabase.VisualNovels.Where(x => x.ReleaseDate.Year == year && x.DateUpdated < DateTime.UtcNow.AddDays(-2))
+				var ids = new HashSet<int>(LocalDatabase.VisualNovels.Where(x => x.ReleaseDate.Year == year)
 				.OrderByDescending(x => x.VNID).Select(x => x.VNID));
 				await GetMultipleVN(ids, true);
 				ActiveQuery.CompletedMessage = $"Updated titles released in {year}, ({ActiveQuery.TitlesAdded.Count} items).";
@@ -694,7 +660,7 @@ namespace Happy_Apps_Core
 				var startTime = DateTime.UtcNow.ToLocalTime();
 				var startTimeString = startTime.ToString("HH:mm");
 				TextAction($"Updating characters for titles from {year}.  Started at {startTimeString}", MessageSeverity.Normal);
-				var vnids = LocalDatabase.VisualNovels.Where(x => x.ReleaseDate.Year == year && x.DateUpdated < DateTime.UtcNow.AddDays(-2)).OrderByDescending(x => x.VNID).Select(x => x.VNID);
+				var vnids = LocalDatabase.VisualNovels.Where(x => x.ReleaseDate.Year == year).OrderByDescending(x => x.VNID).Select(x => x.VNID);
 				var set = new HashSet<int>(vnids);
 				await Task.Run(() => GetCharacters(set));
 
@@ -783,7 +749,6 @@ namespace Happy_Apps_Core
 				var pre = LocalDatabase.UserVisualNovels.Where(x => x.UserId == CSettings.UserID).OrderBy(x => x.VNID).ToArray();
 				List<VisualNovelDatabase.UrtListItem> localURTList = pre.Select(x => new VisualNovelDatabase.UrtListItem(x)).ToList();
 				await GetUserList(localURTList);
-				await GetWishList(localURTList);
 				await GetVoteList(localURTList);
 				LocalDatabase.UpdateURTTitles(CSettings.UserID, localURTList);
 				await GetRemainingTitles();

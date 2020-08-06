@@ -363,9 +363,6 @@ namespace Happy_Apps_Core
 
 		public static bool DownloadFile(string uri, string destinationFolderPath, string destinationFileName, out string destinationFilePath)
 		{
-			WebResponse response = null;
-			Stream stream = null;
-			Stream destinationStream = null;
 			destinationFilePath = null;
 			try
 			{
@@ -373,8 +370,8 @@ namespace Happy_Apps_Core
 				// ReSharper disable once AssignNullToNotNullAttribute
 				Directory.CreateDirectory(Path.GetDirectoryName(destinationFolderPath));
 				var request = WebRequest.Create(uri);
-				response = request.GetResponse();
-				stream = response.GetResponseStream();
+				using var response = request.GetResponse();
+				using var stream = response.GetResponseStream();
 				if (stream == null) return false;
 				if (string.IsNullOrWhiteSpace(destinationFileName))
 				{
@@ -387,7 +384,7 @@ namespace Happy_Apps_Core
 				}
 				destinationFilePath = Path.Combine(destinationFolderPath, destinationFileName);
 				if (File.Exists(destinationFilePath)) return true;
-				destinationStream = File.OpenWrite(destinationFilePath);
+				using var destinationStream = File.OpenWrite(destinationFilePath);
 				Logger.ToFile($"Downloading to {destinationFilePath}");
 				stream.CopyTo(destinationStream);
 				return true;
@@ -397,12 +394,6 @@ namespace Happy_Apps_Core
 			{
 				Logger.ToFile(ex);
 				return false;
-			}
-			finally
-			{
-				response?.Dispose();
-				stream?.Dispose();
-				destinationStream?.Dispose();
 			}
 		}
 

@@ -53,36 +53,40 @@ namespace Happy_Reader
 			{
 				if (user != _lastUser || game != _lastGame || RefreshEntries) SetEntries(user, game);
 				var item = new Translation(input);
-				input = item.Original;
-				int index = 0;
-				string currentPart = "";
-				while (index < input.Length)
-				{
-					var @char = input[index];
-					if (AllSeparators.Contains(@char))
-					{
-						if (InclusiveSeparators.Contains(@char))
-						{
-							currentPart += @char;
-							item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
-						}
-						else
-						{
-							if (currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
-							item.Parts.Add((@char.ToString(), false));
-						}
-						currentPart = "";
-						index++;
-						continue;
-
-					}
-					currentPart += @char;
-					index++;
-				}
-				if (currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
+				SplitInputIntoParts(item);
 				item.TranslateParts();
 				return item;
 			}
+		}
+
+		private static void SplitInputIntoParts(Translation item)
+		{
+			var input = item.Original;
+			int index = 0;
+			string currentPart = "";
+			while (index < input.Length)
+			{
+				var @char = input[index];
+				if (AllSeparators.Contains(@char))
+				{
+					if (InclusiveSeparators.Contains(@char))
+					{
+						currentPart += @char;
+						item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
+					}
+					else
+					{
+						if (currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
+						item.Parts.Add((@char.ToString(), false));
+					}
+					currentPart = "";
+					index++;
+					continue;
+				}
+				currentPart += @char;
+				index++;
+			}
+			if (currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
 		}
 
 		private void SetEntries([NotNull] User user, ListedVN game)
@@ -110,7 +114,7 @@ namespace Happy_Reader
 		/// <summary>
 		/// Replace entries of type Game.
 		/// </summary>
-		public void TranslateStageOne(StringBuilder sb)
+		public void TranslateStageOne(StringBuilder sb, string[] result)
 		{
 			foreach (var entry in _entries.Where(i => i.Type == EntryType.Game))
 			{
@@ -118,29 +122,32 @@ namespace Happy_Reader
 				else LogReplace(sb, entry.Input, entry.Output, entry.Id);
 			}
 			StaticHelpers.Logger.Verbose($"Stage 1: {sb}");
+			//Stage One is also used for Translation.Original which does not require setting result to array.
+			if(result != null) result[1] = sb.ToString();
 		}
 
 		/// <summary>
 		/// Replace entries of type Input.
 		/// </summary>
-		private void TranslateStageTwo(StringBuilder sb)
+		private void TranslateStageTwo(StringBuilder sb, string[] result)
 		{
-
 			foreach (var entry in _entries.Where(i => i.Type == EntryType.Input))
 			{
 				if (entry.Regex) LogReplaceRegex(sb, entry.Input, entry.Output, entry.Id);
 				else LogReplace(sb, entry.Input, entry.Output, entry.Id);
 			}
 			StaticHelpers.Logger.Verbose($"Stage 2: {sb}");
+			result[2] = sb.ToString();
 		}
 
 		/// <summary>
 		/// Replace entries of type Yomi.
 		/// </summary>
-		private void TranslateStageThree(StringBuilder sb)
+		private void TranslateStageThree(StringBuilder sb, string[] result)
 		{
 			foreach (var entry in _entries.Where(i => i.Type == EntryType.Yomi)) LogReplace(sb, entry.Input, entry.Output, entry.Id);
 			StaticHelpers.Logger.Verbose($"Stage 3: {sb}");
+			result[3] = sb.ToString();
 		}
 
 		public string ReplaceNames(string original)
@@ -156,7 +163,7 @@ namespace Happy_Reader
 		/// <summary>
 		/// Replace entries of type Name and translation to proxies.
 		/// </summary>
-		private IEnumerable<Entry> TranslateStageFour(StringBuilder sb, HappyReaderDatabase data)
+		private IEnumerable<Entry> TranslateStageFour(StringBuilder sb, HappyReaderDatabase data, string[] result)
 		{
 			var usefulEntriesWithProxies = GetRelevantEntriesWithProxies(sb, data, out Dictionary<string, ProxiesWithCount> proxies);
 			if (usefulEntriesWithProxies.Count == 0) return usefulEntriesWithProxies;
@@ -175,6 +182,7 @@ namespace Happy_Reader
 				LogReplace(sb, entry.AssignedProxy.FullRoleString, entry.AssignedProxy.Entry.Input, entry.Id);
 			}
 			StaticHelpers.Logger.Verbose($"Stage 4.2: {sb}");
+			result[4] = sb.ToString();
 			return usefulEntriesWithProxies;
 		}
 
@@ -303,37 +311,28 @@ namespace Happy_Reader
 		public string[] TranslatePart(string input)
 		{
 			var result = new string[8];
-			if (input.Length == 1)
-			{
-				var kana = Kakasi.JapaneseToKana(input);
-				if (kana == input)
-				{
-					var romaji = Kakasi.JapaneseToRomaji(input);
-					result[0] = input;
-					result[1] = input;
-					result[2] = input;
-					result[3] = input;
-					result[4] = input;
-					result[5] = romaji;
-					result[6] = romaji;
-					result[7] = romaji;
-					return result;
-				}
-			}
 			var sb = new StringBuilder(input);
-			//process in stages
+			if (GoogleTranslate.TranslateSingleKana(sb, input))
+			{
+				result[0] = input;
+				result[1] = input;
+				result[2] = input;
+				result[3] = input;
+				result[4] = input;
+				result[5] = sb.ToString();
+				result[6] = sb.ToString();
+				result[7] = sb.ToString();
+				return result;
+			}
 			StaticHelpers.Logger.Verbose($"Stage 0: {sb}");
 			result[0] = sb.ToString();
-			TranslateStageOne(sb);
-			result[1] = sb.ToString();
-			TranslateStageTwo(sb);
-			result[2] = sb.ToString();
-			TranslateStageThree(sb);
-			result[3] = sb.ToString();
+			TranslateStageOne(sb, result);
+			TranslateStageTwo(sb, result);
+			TranslateStageThree(sb, result);
 			IEnumerable<Entry> usefulEntriesWithProxies;
 			try
 			{
-				usefulEntriesWithProxies = TranslateStageFour(sb, _data);
+				usefulEntriesWithProxies = TranslateStageFour(sb, _data, result);
 			}
 			catch (Exception ex)
 			{
@@ -342,24 +341,20 @@ namespace Happy_Reader
 				result[6] = ex.Message;
 				result[7] = ex.Message;
 				return result;
-				//throw new Exception("Error in TranslateStageFour, see inner", ex);
 			}
-			result[4] = sb.ToString();
 			if (StaticMethods.TSettings.GoogleUseCredential) GoogleTranslate.Translate(sb);
 			else GoogleTranslate.TranslateFree(sb);
 			StaticHelpers.Logger.Verbose($"Stage 5: {sb}");
 			result[5] = sb.ToString();
-			TranslateStageSix(sb, usefulEntriesWithProxies);
-			result[6] = sb.ToString();
-			TranslateStageSeven(sb);
-			result[7] = sb.ToString();
+			TranslateStageSix(sb, usefulEntriesWithProxies, result);
+			TranslateStageSeven(sb, result);
 			return result;
 		}
 
 		/// <summary>
 		/// Replace Name and Translation proxies to entry outputs.
 		/// </summary>
-		private static void TranslateStageSix(StringBuilder sb, IEnumerable<Entry> usefulEntriesWithProxies)
+		private static void TranslateStageSix(StringBuilder sb, IEnumerable<Entry> usefulEntriesWithProxies, string[] result)
 		{
 			foreach (var entry in usefulEntriesWithProxies)
 			{
@@ -372,16 +367,18 @@ namespace Happy_Reader
 				LogReplace(sb, entry.AssignedProxy.FullRoleString, entry.Output, entry.Id);
 			}
 			StaticHelpers.Logger.Verbose($"Stage 6: {sb}");
+			result[6] = sb.ToString();
 		}
 
 		/// <summary>
 		/// Replace entries of type Output.
 		/// </summary>
-		private void TranslateStageSeven(StringBuilder sb)
+		private void TranslateStageSeven(StringBuilder sb, string[] result)
 		{
 			foreach (var entry in _entries.Where(i => i.Type == EntryType.Output && !i.Regex)) LogReplace(sb, entry.Input, entry.Output, entry.Id);
 			foreach (var entry in _entries.Where(i => i.Type == EntryType.Output && i.Regex)) LogReplaceRegex(sb, entry.Input, entry.Output, entry.Id);
 			StaticHelpers.Logger.Verbose($"Stage 7: {sb}");
+			result[7] = sb.ToString();
 		}
 
 		private static string CheckRepeatedString(string text)

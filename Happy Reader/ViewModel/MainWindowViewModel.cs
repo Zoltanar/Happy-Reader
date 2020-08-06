@@ -144,7 +144,7 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged(nameof(DisplayGame));
 			}
 		}
-		
+
 		/// <summary>
 		/// Used by XAML.
 		/// </summary>
@@ -157,7 +157,7 @@ namespace Happy_Reader.ViewModel
 			SettingsViewModel = new SettingsViewModel(CSettings, StaticMethods.GSettings, StaticMethods.TSettings);
 			ApiLogViewModel = new ApiLogViewModel
 			{
-				VndbQueries = _vndbQueriesList.Items, 
+				VndbQueries = _vndbQueriesList.Items,
 				VndbResponses = _vndbResponsesList.Items
 			};
 			Translator = new Translator(StaticMethods.Data);
@@ -249,18 +249,7 @@ namespace Happy_Reader.ViewModel
 			await DatabaseViewModel.Initialize();
 			await ProducersViewModel.Initialize();
 			await CharactersViewModel.Initialize(this);
-			await Task.Run(() =>
-			{
-				if (!initialiseEntries) return;
-				StatusText = "Loading Cached Translations...";
-				var cacheLoadWatch = Stopwatch.StartNew();
-				Translator.SetCache(noApiTranslation);
-				Debug.WriteLine($"Loaded cached translations in {cacheLoadWatch.ElapsedMilliseconds} ms");
-				StatusText = "Populating Proxies...";
-				PopulateProxies();
-				StatusText = "Loading Entries...";
-				SetEntries();
-			});
+			await Task.Run(() => InitializeEntries(initialiseEntries, noApiTranslation));
 			StatusText = "Loading User Games...";
 			await Task.Yield();
 			await LoadUserGames();
@@ -282,38 +271,50 @@ namespace Happy_Reader.ViewModel
 			NotificationEvent(this, $"Took {watch.Elapsed.ToSeconds()}.", "Loading Complete");
 		}
 
-		private static OwnedStatus VnIsOwned(int vnid)
+		private void InitializeEntries(bool initialiseEntries, bool noApiTranslation)
 		{
-				var status = OwnedStatus.NeverOwned;
-				foreach (var userGame in StaticMethods.Data.UserGames.Where(ug => ug.VNID.Value == vnid))
-				{
-					if (!userGame.FileExists) status = OwnedStatus.PastOwned;
-					else
-					{
-						status = OwnedStatus.CurrentlyOwned;
-						break;
-					}
-				}
-				return status;
+			if (!initialiseEntries) return;
+			StatusText = "Loading Cached Translations...";
+			var cacheLoadWatch = Stopwatch.StartNew();
+			Translator.SetCache(noApiTranslation);
+			Debug.WriteLine($"Loaded cached translations in {cacheLoadWatch.ElapsedMilliseconds} ms");
+			StatusText = "Populating Proxies...";
+			PopulateProxies();
+			StatusText = "Loading Entries...";
+			SetEntries();
 		}
 
-
+		private static OwnedStatus VnIsOwned(int vnid)
+		{
+			var status = OwnedStatus.NeverOwned;
+			foreach (var userGame in StaticMethods.Data.UserGames.Where(ug => ug.VNID.Value == vnid))
+			{
+				if (!userGame.FileExists) status = OwnedStatus.PastOwned;
+				else
+				{
+					status = OwnedStatus.CurrentlyOwned;
+					break;
+				}
+			}
+			return status;
+		}
+		
 		public async Task LoadUserGames()
 		{
 			UserGameItems.Clear();
 			IEnumerable<UserGame> orderedGames = null;
-			 await Task.Run(() =>
-			{
-				StaticMethods.Data.UserGames.Load();
-				foreach (var game in StaticMethods.Data.UserGames.Local)
-				{
-					game.VN = game.VNID != null
-						? LocalDatabase.VisualNovels[game.VNID.Value]
-						: null;
-				}
-				orderedGames = StaticMethods.Data.UserGames.Local.OrderBy(x => x.VNID ?? 0).ToList();
-				if (!ShowFileNotFound) orderedGames = orderedGames.Where(og => og.FileExists);
-			});
+			await Task.Run(() =>
+		 {
+			 StaticMethods.Data.UserGames.Load();
+			 foreach (var game in StaticMethods.Data.UserGames.Local)
+			 {
+				 game.VN = game.VNID != null
+					 ? LocalDatabase.VisualNovels[game.VNID.Value]
+					 : null;
+			 }
+			 orderedGames = StaticMethods.Data.UserGames.Local.OrderBy(x => x.VNID ?? 0).ToList();
+			 if (!ShowFileNotFound) orderedGames = orderedGames.Where(og => og.FileExists);
+		 });
 			foreach (var game in orderedGames) { UserGameItems.Add(new UserGameTile(game)); }
 			OnPropertyChanged(nameof(UserGameItems));
 		}
@@ -431,7 +432,7 @@ namespace Happy_Reader.ViewModel
 				catch (Win32Exception ex)
 				{
 					//Only part of a ReadProcessMemory or WriteProcessMemory request was completed, Access is denied
-					if (ex.NativeErrorCode != 299 && ex.NativeErrorCode != 5) throw; 
+					if (ex.NativeErrorCode != 299 && ex.NativeErrorCode != 5) throw;
 				}
 				catch (InvalidOperationException) { } //can happen if process is closed after getting reference
 			}
@@ -510,7 +511,7 @@ namespace Happy_Reader.ViewModel
 						return false;
 					}
 				}
-				DispatchIfRequired(()=> OutputWindow.AddTranslation(translation), new TimeSpan(0, 0, 5));
+				DispatchIfRequired(() => OutputWindow.AddTranslation(translation), new TimeSpan(0, 0, 5));
 			}
 			catch (Exception ex)
 			{

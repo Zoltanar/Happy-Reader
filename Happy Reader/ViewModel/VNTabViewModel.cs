@@ -124,35 +124,33 @@ namespace Happy_Reader.ViewModel
 		{
 			Dispatcher.CurrentDispatcher.Invoke(() =>
 			{
+				if (status != VndbConnection.APIStatus.Ready) VndbConnectionStatus = $@"{status} ({Conn.ActiveQuery.ActionName})";
 				switch (status)
 				{
 					case VndbConnection.APIStatus.Ready:
-						if (Environment.GetCommandLineArgs().Contains("-debug")) Logger.ToFile($"{Conn.ActiveQuery.ActionName} Ended");
+						Logger.Verbose($"{Conn.ActiveQuery.ActionName} Ended");
 						if (Conn.ActiveQuery != null) Conn.ActiveQuery.Completed = true;
 						VndbConnectionStatus = status.ToString();
-						VndbConnectionForeground = Brushes.Black;// SolidColorBrush new SolidColorBrush(Colors.Black);
-						VndbConnectionBackground = Brushes.LightGreen; //new SolidColorBrush(Colors.LightGreen);
+						VndbConnectionForeground = Brushes.Black;
+						VndbConnectionBackground = Brushes.LightGreen;
 						break;
 					case VndbConnection.APIStatus.Busy:
-						if (Environment.GetCommandLineArgs().Contains("-debug")) Logger.ToFile($"{Conn.ActiveQuery.ActionName} Started");
-						VndbConnectionStatus = $@"{status} ({Conn.ActiveQuery.ActionName})";
+						Logger.Verbose($"{Conn.ActiveQuery.ActionName} Started");
 						VndbConnectionForeground = new SolidColorBrush(Colors.Red);
 						VndbConnectionBackground = new SolidColorBrush(Colors.Khaki);
 						break;
 					case VndbConnection.APIStatus.Throttled:
-						if (Environment.GetCommandLineArgs().Contains("-debug")) Logger.ToFile($"{Conn.ActiveQuery.ActionName} Throttled");
+						Logger.Verbose($"{Conn.ActiveQuery.ActionName} Throttled");
 						VndbConnectionStatus = $@"{status} ({Conn.ActiveQuery.ActionName})";
 						VndbConnectionForeground = new SolidColorBrush(Colors.DarkRed);
 						VndbConnectionBackground = new SolidColorBrush(Colors.Khaki);
 						break;
 					case VndbConnection.APIStatus.Error:
-						VndbConnectionStatus = $@"{status} ({Conn.ActiveQuery.ActionName})";
 						VndbConnectionForeground = new SolidColorBrush(Colors.Black);
 						VndbConnectionBackground = new SolidColorBrush(Colors.Red);
 						Conn.Close();
 						break;
 					case VndbConnection.APIStatus.Closed:
-						VndbConnectionStatus = $@"{status} ({Conn.ActiveQuery.ActionName})";
 						VndbConnectionForeground = new SolidColorBrush(Colors.White);
 						VndbConnectionBackground = new SolidColorBrush(Colors.Black);
 						break;

@@ -53,15 +53,11 @@ namespace Happy_Apps_Core.Database
 	""Name""	TEXT,
 	""Original""	TEXT,
 	""Gender""	TEXT,
-	""BloodT""	INTEGER,
-	""BirthDate""	DATE,
-	""VNs""	TEXT,
-	""DateUpdated""	DATE,
 	""Aliases""	TEXT,
 	""Description""	TEXT,
-	""Image""	INTEGER,
+	""Image""	TEXT,
 	PRIMARY KEY(""ID"")
-)";
+);";
 			command.CommandText = sql;
 			command.ExecuteNonQuery();
 			command.Dispose();
@@ -119,8 +115,7 @@ namespace Happy_Apps_Core.Database
 	""KanjiTitle""	TEXT,
 	""ReleaseDateString""	TEXT,
 	""ProducerID""	INTEGER,
-	""DateUpdated""	DATE DEFAULT CURRENT_TIMESTAMP,
-	""Image""	INTEGER,
+	""Image""	TEXT,
 	""ImageNSFW""	INTEGER,
 	""Description""	TEXT,
 	""LengthTime""	INTEGER,
@@ -132,11 +127,13 @@ namespace Happy_Apps_Core.Database
 	""Anime""	TEXT,
 	""Aliases""	TEXT,
 	""Languages""	TEXT,
-	""DateFullyUpdated""	DATE,
 	""Series""	TEXT,
 	""ReleaseDate""	DATE,
+	""ReleaseLink""	TEXT,
+	""TagScore""	REAL,
+	""TraitScore""	REAL,
 	PRIMARY KEY(""VNID"")
-)";
+);";
 			command.CommandText = sql;
 			command.ExecuteNonQuery();
 			command.Dispose();

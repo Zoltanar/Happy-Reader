@@ -8,7 +8,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
 	<Grid>
 		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="{Binding Path=LabelWidth, ElementName=Self}"/>
+			<ColumnDefinition Width="{Binding Path=LabelWidth, ElementName=Self, TargetNullValue=100}"/>
 			<ColumnDefinition/>
 		</Grid.ColumnDefinitions>
 		<Label Grid.Column="0" Content="{Binding Label, ElementName=Self}"/>

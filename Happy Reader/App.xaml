@@ -20,6 +20,7 @@
 		<view:UserVnToBackgroundConverter x:Key="UserVnToBackgroundConverter" />
 		<view:UserVnToForegroundConverter x:Key="UserVnToForegroundConverter" />
 		<view:VnToProducerForegroundConverter x:Key="VnToProducerForegroundConverter" />
+		<view:StringToNullableIntConverter x:Key="StringToNullableIntConverter" />
 		<system:Boolean x:Key="True">True</system:Boolean>
 		<system:Boolean x:Key="False">False</system:Boolean>
 		<Style x:Key="NoBorderTextBox" TargetType="TextBox">

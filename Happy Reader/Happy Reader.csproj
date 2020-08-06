@@ -169,7 +169,6 @@
       <DependentUpon>MergeWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\RadioButtonCheckedConverter.cs" />
-    <Compile Include="View\SampleData\SampleListedVN.cs" />
     <Compile Include="View\Tabs\ApiLogTab.xaml.cs">
       <DependentUpon>ApiLogTab.xaml</DependentUpon>
     </Compile>

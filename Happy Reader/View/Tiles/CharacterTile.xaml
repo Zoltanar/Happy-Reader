@@ -25,18 +25,8 @@
 			<Label Grid.Column="0" Content="{Binding Original}" VerticalAlignment="Bottom" Margin="0,0,0,63" Padding="5,0"/>
 			<Label Grid.Column="0" Margin="0,0,10,31" VerticalAlignment="Bottom" Content="{Binding VisualNovelName}" 
 			       Background="{Binding VisualNovel.UserVN, Converter={StaticResource UserVnToBackgroundConverter}, ConverterParameter=1}" Foreground="{Binding VisualNovel.UserVN, Converter={StaticResource UserVnToForegroundConverter}}" Padding="5,0"/>
-			<Label Grid.Column="0" Margin="0,0,90,47" VerticalAlignment="Bottom" Padding="5,0">
-				<TextBlock>
-					<TextBlock.Text>
-						<MultiBinding StringFormat="{}{0} {1}">
-							<Binding Path="GenderSymbol"/>
-							<Binding Path="BloodT"/>
-						</MultiBinding>
-					</TextBlock.Text>
-				</TextBlock>
-			</Label>
+			<Label Grid.Column="0" Margin="0,0,90,47" VerticalAlignment="Bottom" Padding="5,0" Content="{Binding GenderSymbol}"/>
 			<Label Grid.Column="0" Content="{Binding VisualNovelReleaseDate}" Margin="0,0,90,10" VerticalAlignment="Bottom" Padding="5,0" Height="16"/>
-			<Label Grid.Column="0" Content="{Binding BirthDate, StringFormat={}{0:dd}}" Margin="0,0,0,47" VerticalAlignment="Bottom" Padding="5,0" Height="16" HorizontalAlignment="Right" Width="85"/>
 			<Image Grid.Column="0" Margin="10,41,12,84" x:Name="ImageBox"/>
 			<Label Grid.Column="0" Margin="0,-1,2,0" VerticalAlignment="Top" Foreground="#FF9C9C9C" FontSize="9" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="34">
 				<Hyperlink Click="ID_OnClick">
