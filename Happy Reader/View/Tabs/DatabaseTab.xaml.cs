@@ -9,15 +9,13 @@ using Happy_Reader.ViewModel;
 
 namespace Happy_Reader.View.Tabs
 {
-	/// <summary>
-	/// Interaction logic for VNTab.xaml
-	/// </summary>
 	public partial class DatabaseTab : UserControl
 	{
 		public VNTabViewModel ViewModel { get; private set; }
 		private MainWindow _mainWindow;
 		private bool _userInteractionHistory;
 		private bool _loaded;
+
 		public DatabaseTab() => InitializeComponent();
 
 		private void ScrollViewer_OnScrollChanged(object sender, ScrollChangedEventArgs e)
@@ -45,7 +43,6 @@ namespace Happy_Reader.View.Tabs
 			if (DesignerProperties.GetIsInDesignMode(this)) return;
 			ViewModel = (VNTabViewModel)DataContext;
 			_mainWindow = (MainWindow)Window.GetWindow(this);
-			ViewModel.OnPropertyChanged(nameof(ViewModel.ProducerList));
 			_loaded = true;
 		}
 
@@ -87,20 +84,32 @@ namespace Happy_Reader.View.Tabs
 			if (ViewModel != null) await ViewModel.SortByTitle();
 		}
 
-		private bool ProducerBoxFilter(string search, object value)
+		private bool ProducerBoxFilter(string input, object item)
 		{
-			var lowerSearch = search.ToLower();
-			var producer = (ListedProducer)value;
-			return producer.Name.ToLower().Contains(lowerSearch);
+			//Short input is not filtered to prevent excessive loading times
+			if (input.Length <= 2) return false;
+			var producer = (ListedProducer)item;
+			return producer.Name.ToLowerInvariant().Contains(input.ToLowerInvariant());
 		}
 
-		private async void SelectProducer(object sender, SelectionChangedEventArgs e)
+		private void SelectProducerOnKey(object sender, KeyEventArgs e)
 		{
-			if (e.AddedItems.Count == 0) return;
-			if (!(e.AddedItems[0] is ListedProducer producer)) return;
-			await ViewModel.ShowForProducer(producer);
+			if (e.Key != Key.Enter) return;
+			ProducerItemSelected((AutoCompleteBox)sender);
 		}
 
+		private void ProducerItemClicked(object sender, MouseButtonEventArgs e)
+		{
+			if (e.ChangedButton != MouseButton.Left) return;
+			ProducerItemSelected((AutoCompleteBox)sender);
+		}
+
+		private async void ProducerItemSelected(AutoCompleteBox textBox)
+		{
+			if (textBox.SelectedItem is ListedProducer producer) await ViewModel.ShowForProducer(producer);
+			else if (!string.IsNullOrWhiteSpace(textBox.Text)) await ViewModel.ShowForProducer(textBox.Text);
+		}
+		
 		private async void BrowseHistory(object sender, SelectionChangedEventArgs e)
 		{
 			if (!_userInteractionHistory || e.AddedItems.Count == 0) return;

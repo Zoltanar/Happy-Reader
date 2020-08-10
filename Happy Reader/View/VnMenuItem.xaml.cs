@@ -140,6 +140,7 @@ namespace Happy_Reader.View
 		{
 			var menuItem = (MenuItem)sender;
 			await ViewModel(menuItem).ShowForProducer(VN.Producer);
+			MainWindow(menuItem).SelectTab(typeof(Tabs.DatabaseTab));
 		}
 
 		private void CopyTitle(object sender, RoutedEventArgs e) => Clipboard.SetText(VN.Title);

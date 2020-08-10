@@ -33,7 +33,7 @@ namespace Happy_Reader.ViewModel
         public ListedVN Game { get; set; }
         public string[] UserGameNames => StaticMethods.Data.UserGames.Local.Select(x => x.DisplayName).ToArray();
 
-        public event PropertyChangedEventHandler PropertyChanged;
+    public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)

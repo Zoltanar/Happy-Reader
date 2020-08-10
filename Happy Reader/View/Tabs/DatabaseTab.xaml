@@ -59,7 +59,7 @@
 			<ComboBoxItem Content="Sort by Title" Selected="SortByTitle"/>
 		</ComboBox>
 		<Button Content="Reset" HorizontalAlignment="Right" Margin="0,0,0,1" Width="39" Click="ShowAll" Grid.Row="1" Height="30" VerticalAlignment="Stretch"/>
-		<controls:AutoCompleteBox  Height="30" Grid.Row="2" ItemsSource="{Binding ProducerList}" ItemFilter="ProducerBoxFilter" SelectionChanged="SelectProducer" Margin="214,0,321,0"/>
+		<controls:AutoCompleteBox Height="30" Grid.Row="2" FilterMode="Custom" ItemsSource="{Binding ProducerList}" ValueMemberPath="Name" ItemFilter="ProducerBoxFilter" KeyUp="SelectProducerOnKey" MouseUp="ProducerItemClicked" Margin="214,0,321,0"/>
 		<Button Content="Show Suggested" Click="ShowSuggested" Height="30" Grid.Row="2" HorizontalAlignment="Right" Width="120"/>
 		<ComboBox ItemsSource="{Binding VnFilters}" SelectedItem="{Binding SelectedFilter}" Height="30" Grid.Row="2" VerticalAlignment="Stretch" Margin="0,0,125,0" HorizontalAlignment="Right" Width="191" MaxDropDownHeight="720">
 			<ComboBox.ItemContainerStyle>

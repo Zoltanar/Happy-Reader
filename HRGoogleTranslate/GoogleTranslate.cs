@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Google;
 using Google.Cloud.Translation.V2;
+using HtmlAgilityPack;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -16,7 +19,8 @@ namespace HRGoogleTranslate
 {
 	public static class GoogleTranslate
 	{
-		private const string GoogleDetectedString = "Our systems have detected unusual traffic from your computer network.  This page checks to see if it&#39;s really you sending the requests, and not a robot.";
+		private const string GoogleDetectedString = @"Our systems have detected unusual traffic from your computer network.  This page checks to see if it&#39;s really you sending the requests, and not a robot.";
+		private const string GoogleDetectedString2 = @"This page appears when Google automatically detects requests coming from your computer network";
 		//todo make this an external string?
 		private const string TranslateFreeUrl = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=en&dt=t&q=";
 		private static Dictionary<string, GoogleTranslation> _cache = new Dictionary<string, GoogleTranslation>();
@@ -72,9 +76,10 @@ namespace HRGoogleTranslate
 			try
 			{
 				var jsonString = GetPostResultAsString(FreeClient, TranslateFreeUrl + Uri.EscapeDataString(input));
-				if (jsonString.Contains(GoogleDetectedString))
+				if (jsonString.Contains(GoogleDetectedString) || jsonString.Contains(GoogleDetectedString2))
 				{
-					text.Append("Failed to translate, detected by Google.");
+					var extracted = ExtractText(jsonString);
+					text.Append($"Failed to translate, detected by Google: {extracted}");
 					return;
 				}
 				if (!TryDeserializeJsonResponse(text, jsonString, out translated)) return;
@@ -88,6 +93,49 @@ namespace HRGoogleTranslate
 			}
 			if (string.IsNullOrWhiteSpace(translated)) return;
 			SetTranslationAndSaveToCache(text, translated, input);
+		}
+
+		private static readonly Regex CombineEmptyLinesRegex = new Regex(@"^(\s*\n){2,}");
+
+		public static string ExtractText(string html)
+		{
+			// Where m_whitespaceRegex is a Regex with [\s].
+			// Where sampleHtmlText is a raw HTML string.
+
+			var extractedSampleText = new StringBuilder();
+			HtmlDocument doc = new HtmlDocument();
+			doc.LoadHtml(html);
+
+			if (doc.DocumentNode == null) return string.Empty;
+			foreach (var node in doc.DocumentNode.Descendants("script")
+				.Concat(doc.DocumentNode.Descendants("style"))
+				.Concat(doc.DocumentNode.Descendants("head")).ToArray())
+			{
+				node.Remove();
+			}
+			var allTextNodes = doc.DocumentNode.SelectNodes("//text()");
+			if (allTextNodes != null && allTextNodes.Count > 0)
+			{
+				foreach (var node in allTextNodes)
+				{
+					if (string.IsNullOrWhiteSpace(node.InnerText) || AnyParentHasAttribute(node, "style", v => v.Contains("display:none"))) continue;
+					extractedSampleText.Append(node.InnerText);
+				}
+			}
+			var text = extractedSampleText.ToString();
+			var finalText = CombineEmptyLinesRegex.Replace(text, "\n").Trim();
+			return finalText;
+		}
+
+		private static bool AnyParentHasAttribute(HtmlNode startNode, string name, Func<string, bool> function)
+		{
+			var node = startNode;
+			while (node.ParentNode != null)
+			{
+				if (node.ParentNode.Attributes.Any(a => a.Name == name && function(a.Value))) return true;
+				node = node.ParentNode;
+			}
+			return false;
 		}
 
 		private static void SetTranslationAndSaveToCache(StringBuilder text, string translated, string input)
@@ -105,7 +153,7 @@ namespace HRGoogleTranslate
 			{
 				var jArray = JsonConvert.DeserializeObject<JArray>(jsonString);
 				var translatedObject = jArray[0][0];
-				translated = translatedObject[0].Value<string>();
+				translated = (translatedObject[0] ?? throw new InvalidOperationException("Json object was not o expected format.")).Value<string>();
 				return true;
 			}
 			catch (Exception ex)

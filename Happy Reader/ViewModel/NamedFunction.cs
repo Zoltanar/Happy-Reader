@@ -29,7 +29,7 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 		
-		public NamedFunction(Func<VisualNovelDatabase, IEnumerable<ListedVN>> function, string name,bool alwaysIncludeBlacklisted = false)
+		public NamedFunction(Func<VisualNovelDatabase, IEnumerable<ListedVN>> function, string name,bool alwaysIncludeBlacklisted)
 		{
 			Function = function;
 			Name = name;

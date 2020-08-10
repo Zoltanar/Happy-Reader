@@ -34,8 +34,7 @@
         <TextBox Margin="10,45,10,58" Text="{Binding OriginalText}" IsReadOnly="False" AcceptsReturn="True" AcceptsTab="True" Grid.Row="0" Grid.Column="0" >
         </TextBox>
         <Label Grid.Row="0" Grid.Column="0" Content="Game" HorizontalAlignment="Left" Margin="10,0,0,35" VerticalAlignment="Bottom" Height="18" VerticalContentAlignment="Center" Padding="0"/>
-        <controls:AutoCompleteBox Grid.Row="0" Grid.Column="0" Margin="46,0,31,35"  Text="None" VerticalContentAlignment="Center" Padding="0" Height="18" VerticalAlignment="Bottom"  
-                                              FilterMode="Contains" ItemsSource="{Binding UserGameNames}" KeyUp="EnterOnTester"/>
+				<controls:AutoCompleteBox Grid.Row="0" Grid.Column="0" Margin="46,0,31,35"  Text="None" VerticalContentAlignment="Center" Padding="0" Height="18" VerticalAlignment="Bottom" FilterMode="Contains" ItemsSource="{Binding UserGameNames}" KeyUp="EnterOnTester"/>
         <Button Content="Test" Margin="10,0,10,10" VerticalAlignment="Bottom" Click="TestTranslationClick" Grid.Row="0" Grid.Column="0" />
         <Label Content="Stage 1 (Game)" Grid.Row="0" Grid.Column="1" />
         <Label Content="Stage 2 (Input)" Grid.Row="0" Grid.Column="2" />

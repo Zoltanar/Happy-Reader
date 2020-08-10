@@ -26,18 +26,14 @@ namespace Happy_Reader.ViewModel
 
 		private int _listedVnPage;
 		private bool _finalPage;
-#if DEBUG
 		private const int PageSize = 50;
-#else
-		private const int PageSize = 100;
-#endif
 		private string _replyText;
 		private Brush _replyColor;
 		private Brush _vndbConnectionBackground;
 		private Brush _vndbConnectionForeground;
 		private string _vndbConnectionStatus;
 		private readonly MainWindowViewModel _mainViewModel;
-		private NamedFunction _dbFunction = new NamedFunction(x => x.VisualNovels, "All");
+		private NamedFunction _dbFunction = new NamedFunction(x => x.VisualNovels, "All", false);
 		private Func<IEnumerable<ListedVN>, IEnumerable<ListedVN>> _ordering = lvn => lvn.OrderByDescending(x => x.ReleaseDate);
 		private CustomVnFilter _selectedFilter;
 		private bool _isBlacklisted;
@@ -95,6 +91,8 @@ namespace Happy_Reader.ViewModel
 			set { _vndbConnectionStatus = value; OnPropertyChanged(); }
 		}
 
+		public View.MainWindow MainWindow(DependencyObject element) => (View.MainWindow) Window.GetWindow(element);
+
 		public VNTabViewModel(MainWindowViewModel mainWindowViewModel, ObservableCollection<CustomVnFilter> vnFilters, CustomVnFilter permanentFilter)
 		{
 			_mainViewModel = mainWindowViewModel;
@@ -106,6 +104,7 @@ namespace Happy_Reader.ViewModel
 		{
 			_mainViewModel.StatusText = "Loading VN Database...";
 			await Task.Run(() => LocalDatabase = new VisualNovelDatabase(true));
+			OnPropertyChanged(nameof(ProducerList));
 			_mainViewModel.SetUser(CSettings.UserID);
 			_mainViewModel.StatusText = "Opening VNDB Connection...";
 			await Task.Run(() =>
@@ -229,7 +228,7 @@ namespace Happy_Reader.ViewModel
 
 		private void RefreshListedVnsOnAdded(List<int> titlesAdded)
 		{
-			_dbFunction = new NamedFunction(db => db.VisualNovels.Where(vn => titlesAdded.Contains(vn.VNID)), "Titles Added");
+			_dbFunction = new NamedFunction(db => db.VisualNovels.Where(vn => titlesAdded.Contains(vn.VNID)), "Titles Added", true);
 			Dispatcher.CurrentDispatcher.InvokeAsync(RefreshListedVns);
 		}
 
@@ -281,14 +280,14 @@ namespace Happy_Reader.ViewModel
 			var watch = Stopwatch.StartNew();
 			_dbFunction = new NamedFunction(
 				db => db.VisualNovels.WithKeyIn(db.Tags.Where(t => tag.AllIDs.Contains(t.TagId)).Select(x => x.ListedVN_VNID).Distinct().ToArray()),
-				$"Tag {tag.Name}");
+				$"Tag {tag.Name}", false);
 			await RefreshListedVns();
 			Debug.WriteLine($@"{nameof(ShowTagged)}: {watch.ElapsedMilliseconds}ms");
 		}
 
 		public async Task ChangeFilter(CustomVnFilter item)
 		{
-			_dbFunction = new NamedFunction(db => db.VisualNovels.Where(item.GetFunction()), item.Name);
+			_dbFunction = new NamedFunction(db => db.VisualNovels.Where(item.GetFunction()), item.Name, false);
 			await RefreshListedVns();
 		}
 
@@ -307,11 +306,18 @@ namespace Happy_Reader.ViewModel
 			return await Conn.UpdateVN(vn);
 		}
 
-		public async Task ShowForProducer(ListedProducer vnProducer)
+		public async Task ShowForProducer(string producerName)
 		{
-			_dbFunction = new NamedFunction(db => db.VisualNovels.Where(vn => vn.Producer == vnProducer),
-				$"Producer {vnProducer.Name}",
-				true);
+			var lowerName = producerName.ToLowerInvariant();
+			_dbFunction = new NamedFunction(db => db.VisualNovels.Where(vn => vn.Producer?.Name.ToLowerInvariant() == lowerName),
+				$"Producer {producerName}", true);
+			await RefreshListedVns();
+		}
+
+		public async Task ShowForProducer(ListedProducer producer)
+		{
+			_dbFunction = new NamedFunction(db => db.VisualNovels.Where(vn => vn.Producer == producer),
+				$"Producer {producer.Name}", true);
 			await RefreshListedVns();
 		}
 
@@ -319,15 +325,14 @@ namespace Happy_Reader.ViewModel
 		{
 			_dbFunction = new NamedFunction(
 				db => db.VisualNovels.WithKeyIn(db.Characters[character.ID].VisualNovels.Select(cvn => cvn.VNId).ToArray()),
-				$"Character {character.Name}",
-				true);
+				$"Character {character.Name}", true);
 			await RefreshListedVns();
 		}
 
 		public async Task ShowSuggested()
 		{
 			var scoredKeys = LocalDatabase.VisualNovels.Select(v => v.VNID).ToArray();
-			_dbFunction = new NamedFunction(db => db.VisualNovels.WithKeyIn(scoredKeys), "Suggested");
+			_dbFunction = new NamedFunction(db => db.VisualNovels.WithKeyIn(scoredKeys), "Suggested", false);
 			_ordering = lvn => lvn.OrderByDescending(vn => vn.Suggestion.Score);
 			await RefreshListedVns();
 		}
@@ -346,7 +351,7 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 
-		public IEnumerable<ListedProducer> ProducerList => LocalDatabase?.Producers?.AsEnumerable();
+		public ListedProducer[] ProducerList => LocalDatabase?.Producers?.ToArray();
 
 		public bool BackEnabled => History.ToList().FindIndex(i => i.Selected) > 0;
 
@@ -389,7 +394,7 @@ namespace Happy_Reader.ViewModel
 
 		public async Task ShowAll()
 		{
-			_dbFunction = new NamedFunction(db => db.VisualNovels, "All");
+			_dbFunction = new NamedFunction(db => db.VisualNovels, "All", false);
 			await RefreshListedVns();
 		}
 
