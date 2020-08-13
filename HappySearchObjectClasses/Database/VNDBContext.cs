@@ -21,13 +21,16 @@ namespace Happy_Apps_Core.Database
 		public DACollection<int, ListedProducer> Producers { get; }
 		public DACollection<(int, int), UserVN> UserVisualNovels { get; }
 		public DACollection<(int, int), UserListedProducer> UserProducers { get; }
-		public DACollection<int, CharacterItem> Characters { get; set; }
-		public DACollection<(int, int), CharacterVN> CharacterVNs { get; set; }
-		public DACollection<int, CharacterStaff> CharacterStaffs { get; set; }
-		public DACollection<int, User> Users { get; set; }
-		public DACollection<string, TableDetail> TableDetails { get; set; }
-		public DACollection<(int, int), DbTag> Tags { get; set; }
-		public DACollection<(int, int), DbTrait> Traits { get; set; }
+		public DACollection<int, CharacterItem> Characters { get; }
+		public DACollection<(int, int), CharacterVN> CharacterVNs { get; }
+		public DACollection<int, User> Users { get; }
+		public DACollection<string, TableDetail> TableDetails { get; }
+		public DACollection<(int, int), DbTag> Tags { get; }
+		public DACollection<(int, int), DbTrait> Traits { get; }
+		public DACollection<int, StaffItem> StaffItems { get; }
+		public DACollection<int, StaffAlias> StaffAliases { get; }
+		public DACollection<(int, int, string), VnStaff> VnStaffs { get; }
+		public DACollection<(int, int, int), VnSeiyuu> VnSeiyuus { get; }
 
 		public VisualNovelDatabase(bool loadAllTables) : this(StaticHelpers.DatabaseFile, loadAllTables)
 		{ }
@@ -43,9 +46,12 @@ namespace Happy_Apps_Core.Database
 			TableDetails = new DACollection<string, TableDetail>(Connection);
 			CharacterVNs = new DACollection<(int, int), CharacterVN>(Connection);
 			Characters = new DACollection<int, CharacterItem>(Connection);
-			CharacterStaffs = new DACollection<int, CharacterStaff>(Connection);
 			Traits = new DACollection<(int, int), DbTrait>(Connection);
 			Tags = new DACollection<(int, int), DbTag>(Connection);
+			StaffItems = new DACollection<int, StaffItem>(Connection);
+			StaffAliases = new DACollection<int, StaffAlias>(Connection);
+			VnStaffs = new DACollection<(int, int, string), VnStaff>(Connection);
+			VnSeiyuus = new DACollection<(int, int, int), VnSeiyuu>(Connection);
 			if (!File.Exists(dbFile)) Seed();
 			if (!loadAllTables) return;
 			LoadAllTables();
@@ -64,9 +70,12 @@ namespace Happy_Apps_Core.Database
 				TableDetails.Load(false);
 				CharacterVNs.Load(false);
 				Characters.Load(false);
-				CharacterStaffs.Load(false);
 				Traits.Load(false);
 				Tags.Load(false);
+				StaffItems.Load(false);
+				StaffAliases.Load(false);
+				VnStaffs.Load(false);
+				VnSeiyuus.Load(false);
 			}
 			catch (Exception ex)
 			{

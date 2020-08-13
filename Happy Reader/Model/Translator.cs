@@ -31,14 +31,18 @@ namespace Happy_Reader
 
 		public Translator(HappyReaderDatabase data) => _data = data;
 
-		public void SetCache(bool noApiTranslation) => GoogleTranslate.Initialize(
-			_data.CachedTranslations.AsNoTracking().ToDictionary(x => x.Input),
-			_data.CachedTranslations.Local,
-			Kakasi.JapaneseToRomaji,
-			StaticMethods.TSettings.GoogleCredentialPath,
-			StaticMethods.TSettings.FreeUserAgent,
-			StaticMethods.TSettings.UntouchedStrings,
-			noApiTranslation);
+		public void SetCache(bool noApiTranslation)
+		{
+			var cachedTranslations = _data.CachedTranslations.Local;
+			GoogleTranslate.Initialize(
+				cachedTranslations.ToDictionary(x => x.Input),
+				cachedTranslations,
+				Kakasi.JapaneseToRomaji,
+				StaticMethods.TSettings.GoogleCredentialPath,
+				StaticMethods.TSettings.FreeUserAgent,
+				StaticMethods.TSettings.UntouchedStrings,
+				noApiTranslation);
+		}
 
 		public Translation Translate(User user, ListedVN game, string input)
 		{

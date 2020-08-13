@@ -116,7 +116,6 @@
     <Compile Include="API Objects\SubLevel\CharacterItemSub.cs" />
     <Compile Include="DataAccess\DACollection.cs" />
     <Compile Include="DataAccess\IDataItem.cs" />
-    <Compile Include="Database\CharacterStaff.cs" />
     <Compile Include="Database\CharacterVN.cs" />
     <Compile Include="API Objects\SubLevel\ProducerItem.cs" />
     <Compile Include="API Objects\SubLevel\ReleaseItem.cs" />
@@ -138,7 +137,10 @@
     <Compile Include="Database\DbTrait.cs" />
     <Compile Include="Database\ReleaseStatusEnum.cs" />
     <Compile Include="Database\SqliteInterceptor.cs" />
+    <Compile Include="Database\StaffAlias.cs" />
     <Compile Include="Database\StaffItem.cs" />
+    <Compile Include="Database\VnSeiyuu.cs" />
+    <Compile Include="Database\VnStaff.cs" />
     <Compile Include="SuggestionScorer.cs" />
     <Compile Include="SuggestionScoreObject.cs" />
     <Compile Include="Database\User.cs" />

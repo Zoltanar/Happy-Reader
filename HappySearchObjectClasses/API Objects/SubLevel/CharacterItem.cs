@@ -54,8 +54,7 @@ namespace Happy_Apps_Core
 
 		public IEnumerable<DbTrait> DbTraits => StaticHelpers.LocalDatabase.Traits.Where(t => t.CharacterItem_Id == ID);
 
-		public IEnumerable<CharacterStaff> DbStaff =>
-			StaticHelpers.LocalDatabase.CharacterStaffs.Where(cs => cs.CharacterItem_Id == ID);
+		public IEnumerable<VnSeiyuu> Seiyuus => StaticHelpers.LocalDatabase.VnSeiyuus.Where(s => s.CharacterID == ID);
 
 		[NotMapped]
 		public Brush BackBrush

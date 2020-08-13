@@ -1,6 +1,5 @@
 vntile right click show related
 
-
 add blacklistedproducers to user
 change order of load to load dumpfiles>filters>vndb>games>proxies>entries>connection
 look at global hooks for managing infinite text, etc (https://github.com/gmamaladze/globalmousekeyhook)
@@ -20,3 +19,15 @@ allow user to choose location of google credential, currently C:\Google\hrtransl
 apply translate stage 4 to pre-romaji
 
 if response is error with id 'needlogin' show user that credentials are wrong
+
+
+
+sql for vn credits given staffid (5)
+select 
+ListedVNs.Title, ListedVNs.ReleaseDateString, VnStaffs.Role, StaffAliass.Name, VnStaffs.Note
+ from VnStaffs 
+ join ListedVNs on VnStaffs.VNID = ListedVNs.VNID 
+ join StaffAliass on VnStaffs.AID = StaffAliass.AliasID where StaffAliass.StaffId = 5
+ order by ReleaseDateString;
+
+ sql for seiyuu

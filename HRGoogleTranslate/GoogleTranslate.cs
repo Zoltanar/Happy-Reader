@@ -210,6 +210,7 @@ namespace HRGoogleTranslate
 			var character = input[0];
 			if (!character.IsHiragana() && !character.IsKatakana()) return false;
 			var output = _japaneseToRomaji(input);
+			text.Clear();
 			text.Append(output);
 			var translation = new GoogleTranslation(input, output);
 			_linkedCache.Add(translation);

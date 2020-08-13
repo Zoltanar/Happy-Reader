@@ -146,10 +146,13 @@ namespace Happy_Apps_Core.Database
 				//replace character's visual novels with new data
 				foreach (var characterVn in dbCharacter.VisualNovels) CharacterVNs.Remove(characterVn, false);
 				foreach (var characterVn in character.VNs) CharacterVNs.Add(CharacterVN.From(characterVn, character.ID), false);
+				//todo API: handle character seiyuu
+				/*
 				var staffCh = (character.Voiced?.Select(v => CharacterStaff.From(v, character.ID)) ?? Array.Empty<CharacterStaff>()).ToArray();
 				var staffToRemove = dbCharacter.DbStaff.Except(staffCh, CharacterStaff.KeyComparer).ToArray();
 				foreach (var staff in staffToRemove) CharacterStaffs.Remove(staff, false);
 				foreach (var staff in staffCh) CharacterStaffs.Upsert(staff, false);
+				*/
 				return result;
 			}
 			catch (Exception ex)
@@ -418,6 +421,10 @@ namespace Happy_Apps_Core.Database
 				DeleteTable("ListedProducers", trans);
 				DeleteTable("ListedVNs", trans);
 				DeleteTable("UserVNs", trans);
+				DeleteTable("StaffItems", trans);
+				DeleteTable("StaffAliass", trans);
+				DeleteTable("VnStaffs", trans);
+				DeleteTable("VnSeiyuus", trans);
 				trans.Commit();
 			}
 			finally

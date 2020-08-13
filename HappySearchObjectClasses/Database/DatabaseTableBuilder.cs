@@ -13,42 +13,67 @@ namespace Happy_Apps_Core.Database
 			CreateListedProducers(connection);
 			CreateListedVNs(connection);
 			CreateTableDetails(connection);
+			CreateStaffTables(connection);
+		}
+
+		private static void CreateStaffTables(SQLiteConnection connection)
+		{
+			ExecuteSql(connection, @"CREATE TABLE ""StaffItems"" (
+	""ID""	INTEGER,
+	""AID""	INTEGER,
+	""Gender""	TEXT,
+	""Lang""	TEXT,
+	""Desc""	TEXT,
+	PRIMARY KEY(""ID"")
+)");
+			ExecuteSql(connection, @"CREATE TABLE ""StaffAliass"" (
+	""StaffID""	INTEGER,
+	""AliasID""	INTEGER,
+	""Name""	TEXT,
+	""Original""	TEXT,
+	PRIMARY KEY(""StaffID"",""AliasID"")
+)");
+			ExecuteSql(connection, @"CREATE TABLE ""VnStaffs"" (
+	""VNID""	INTEGER,
+	""AID""	INTEGER,
+	""Role""	TEXT,
+	""Note""	TEXT,
+	PRIMARY KEY(""VNID"",""AID"",""Role"")
+)");
+			ExecuteSql(connection, @"CREATE TABLE ""VnSeiyuus"" (
+	""VNID""	INTEGER,
+	""AID""	INTEGER,
+	""CID""	INTEGER,
+	""Note""	TEXT,
+	PRIMARY KEY(""VNID"",""AID"",""CID"")
+)");
 		}
 
 		private static void CreateDbTraits(SQLiteConnection connection)
 		{
-			var command = connection.CreateCommand();
-			var sql = @"CREATE TABLE ""DbTraits"" (
+			ExecuteSql(connection, @"CREATE TABLE ""DbTraits"" (
 	""TraitId""	INTEGER NOT NULL,
 	""Spoiler""	INTEGER,
 	""CharacterItem_ID""	INTEGER NOT NULL,
 	PRIMARY KEY(""CharacterItem_ID"",""TraitId"")
-)";
-			command.CommandText = sql;
-			command.ExecuteNonQuery();
-			command.Dispose();
+)");
 		}
 
 		private static void CreateCharacterVns(SQLiteConnection connection)
 		{
-			var command = connection.CreateCommand();
-			var sql = @"CREATE TABLE ""CharacterVNs"" (
+			ExecuteSql(connection, @"CREATE TABLE ""CharacterVNs"" (
 	""CharacterId""	INTEGER,
 	""VNID""	INTEGER,
 	""RId""	INTEGER,
 	""Spoiler""	INTEGER,
 	""Role""	TEXT,
 	PRIMARY KEY(""CharacterId"",""VNID"")
-)";
-			command.CommandText = sql;
-			command.ExecuteNonQuery();
-			command.Dispose();
+)");
 		}
 
 		private static void CreateCharacterItems(SQLiteConnection connection)
 		{
-			var command = connection.CreateCommand();
-			var sql = @"CREATE TABLE ""CharacterItems"" (
+			ExecuteSql(connection, @"CREATE TABLE ""CharacterItems"" (
 	""ID""	INTEGER NOT NULL UNIQUE,
 	""Name""	TEXT,
 	""Original""	TEXT,
@@ -57,59 +82,43 @@ namespace Happy_Apps_Core.Database
 	""Description""	TEXT,
 	""Image""	TEXT,
 	PRIMARY KEY(""ID"")
-);";
-			command.CommandText = sql;
-			command.ExecuteNonQuery();
-			command.Dispose();
+);");
 		}
 
 		private static void CreateDbTags(SQLiteConnection connection)
 		{
-			var command = connection.CreateCommand();
-			var sql = @"CREATE TABLE ""DbTags"" (
+			ExecuteSql(connection, @"CREATE TABLE ""DbTags"" (
 	""ListedVN_VNID""	INTEGER NOT NULL,
 	""TagId""	INTEGER NOT NULL,
 	""Score""	REAL,
 	""Spoiler""	INTEGER,
 	""Category""	INTEGER,
 	PRIMARY KEY(""ListedVN_VNID"",""TagId"")
-)";
-			command.CommandText = sql;
-			command.ExecuteNonQuery();
-			command.Dispose();
+)");
 		}
 
 		private static void CreateListedProducers(SQLiteConnection connection)
 		{
-			var command = connection.CreateCommand();
-			var sql = @"CREATE TABLE ""ListedProducers"" (
+			ExecuteSql(connection, @"CREATE TABLE ""ListedProducers"" (
 	""ProducerID""	INTEGER NOT NULL,
 	""Name""	TEXT,
 	""Language""	TEXT,
 	PRIMARY KEY(""ProducerID"")
-)";
-			command.CommandText = sql;
-			command.ExecuteNonQuery();
-			command.Dispose();
+)");
 		}
 
 		private static void CreateTableDetails(SQLiteConnection connection)
 		{
-			var command = connection.CreateCommand();
-			var sql = @"CREATE TABLE `tabledetails` (
+			ExecuteSql(connection, @"CREATE TABLE `tabledetails` (
 	`Key`	TEXT NOT NULL,
 	`Value`	TEXT,
 	PRIMARY KEY(`Key`)
-)";
-			command.CommandText = sql;
-			command.ExecuteNonQuery();
-			command.Dispose();
+)");
 		}
 
 		private static void CreateListedVNs(SQLiteConnection connection)
 		{
-			var command = connection.CreateCommand();
-			var sql = @"CREATE TABLE ""ListedVNs"" (
+			ExecuteSql(connection, @"CREATE TABLE ""ListedVNs"" (
 	""VNID""	INTEGER NOT NULL UNIQUE,
 	""Title""	TEXT,
 	""KanjiTitle""	TEXT,
@@ -133,10 +142,14 @@ namespace Happy_Apps_Core.Database
 	""TagScore""	REAL,
 	""TraitScore""	REAL,
 	PRIMARY KEY(""VNID"")
-);";
+);");
+		}
+
+		private static void ExecuteSql(SQLiteConnection connection, string sql)
+		{
+			using var command = connection.CreateCommand(); ;
 			command.CommandText = sql;
 			command.ExecuteNonQuery();
-			command.Dispose();
 		}
 	}
 }

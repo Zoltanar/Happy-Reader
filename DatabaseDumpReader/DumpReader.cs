@@ -65,11 +65,8 @@ namespace DatabaseDumpReader
 			var votesFilePath = FindVotesFile();
 			Load<ListedProducer>((i, t) => Database.Producers.Add(i, false, true, t), "db\\producers");
 			LoadReleases();
-			LoadAndResolveTags();/*    
-			Load<StaffItem>((i, t) =>
-			{
-				Staff[i.Id] = i;
-			}, "db\\staff");*/
+			LoadAndResolveTags();
+			LoadStaff();
 			LoadCharacters();
 			var votesUngrouped = new List<DumpVote>();
 			Load<DumpVote>((i, t) => votesUngrouped.Add(i), votesFilePath, false);
@@ -85,6 +82,26 @@ namespace DatabaseDumpReader
 			SaveLatestDumpUpdate(dumpDate);
 			Console.ResetColor();
 			StaticHelpers.Logger.ToFile("Completed.");
+		}
+
+		private void LoadStaff()
+		{   
+			Load<StaffItem>((i, t) =>
+			{
+				Database.StaffItems.Add(i, false, true, t);
+			}, "db\\staff");
+			Load<StaffAlias>((i, t) =>
+			{
+				Database.StaffAliases.Add(i, false, true, t);
+			}, "db\\staff_alias");
+			Load<VnStaff>((i, t) =>
+			{
+				Database.VnStaffs.Add(i, false, true, t);
+			}, "db\\vn_staff");
+			Load<VnSeiyuu>((i, t) =>
+			{
+				Database.VnSeiyuus.Add(i, false, true, t);
+			}, "db\\vn_seiyuu");
 		}
 
 		private void LoadAnimeScreensRelations()
