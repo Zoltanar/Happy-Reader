@@ -550,6 +550,8 @@ namespace Happy_Apps_Core.Database
 
 		int IDataItem<int>.Key => VNID;
 
+		public IEnumerable<VnStaff> Staff => StaticHelpers.LocalDatabase.VnStaffs.Where(s => s.VNID == VNID);
+
 		DbCommand IDataItem<int>.UpsertCommand(DbConnection connection, bool insertOnly)
 		{
 			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO ListedVNs" +

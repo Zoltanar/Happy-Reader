@@ -195,7 +195,7 @@ namespace Happy_Apps_Core
 		private void Query(string command)
 		{
 			if (Status == APIStatus.Error) return;
-			_advancedAction?.Invoke(command, true);
+			LogQueryRequest(command);
 			Status = APIStatus.Busy;
 			byte[] encoded = Encoding.UTF8.GetBytes(command);
 			var requestBuffer = new byte[encoded.Length + 1];
@@ -218,6 +218,28 @@ namespace Happy_Apps_Core
 			LastResponse = Parse(responseBuffer, totalRead);
 			_advancedAction?.Invoke(LastResponse.JsonPayload, false);
 			SetStatusFromLastResponseType();
+		}
+
+		private void LogQueryRequest(string command)
+		{
+			if (_advancedAction == null) return;
+			if (command.StartsWith("login") && command.Contains("password"))
+			{
+				try
+				{
+					var jsonString = command.Substring("login".Length).Trim().Replace("\\\"", "\"");
+					var jObject = (Newtonsoft.Json.Linq.JObject) JsonConvert.DeserializeObject(jsonString);
+					jObject["password"] = "***";
+					jsonString = JsonConvert.SerializeObject(jObject).Replace("\"", "\\\"");
+					_advancedAction.Invoke($"login {jsonString}", true);
+					return;
+				}
+				catch (Exception ex)
+				{
+					StaticHelpers.Logger.ToFile(ex.Message, "Failed to hide password in login request.");
+				}
+			}
+			_advancedAction.Invoke(command, true);
 		}
 
 		private async Task QueryAsync(string query)

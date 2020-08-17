@@ -63,5 +63,11 @@ namespace Happy_Apps_Core.Database
 		}
 
 		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
+
+		public override string ToString()
+		{
+			var original = string.IsNullOrWhiteSpace(Original) ? "" : $" ({Original})";
+			return $"{Name}{original}";
+		}
 	}
 }

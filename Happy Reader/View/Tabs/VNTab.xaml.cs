@@ -34,8 +34,8 @@ namespace Happy_Reader.View.Tabs
 				allInlines.Add(new Run($"{@group.Key}: "));
 				foreach (var tag in @group.OrderBy(x => x.Print()))
 				{
-					var link = new Hyperlink(new Run(tag.Print())) {Tag = tag};
-					if (_mainWindow.ViewModel.DatabaseViewModel.SuggestionScorer?.IdTags?.Contains(tag.TagId ) ?? false) link.FontWeight = FontWeights.Bold;
+					var link = new Hyperlink(new Run(tag.Print())) { Tag = tag };
+					if (_mainWindow.ViewModel.DatabaseViewModel.SuggestionScorer?.IdTags?.Contains(tag.TagId) ?? false) link.FontWeight = FontWeights.Bold;
 					link.PreviewMouseLeftButtonDown += OnTagClick;
 					allInlines.Add(link);
 				}
@@ -74,16 +74,32 @@ namespace Happy_Reader.View.Tabs
 
 		private void ScrollViewer_OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
 		{
-			ScrollViewer scrollviewer = (ScrollViewer)sender;
-			scrollviewer.CanContentScroll = true;
-			if (e.Delta > 0) scrollviewer.LineLeft();
-			else scrollviewer.LineRight();
+			ScrollViewer scrollViewer = (ScrollViewer)sender;
+			scrollViewer.CanContentScroll = true;
+			if (e.Delta > 0) scrollViewer.LineLeft();
+			else scrollViewer.LineRight();
 			e.Handled = true;
 		}
 
 		private void ID_OnClick(object sender, RoutedEventArgs e)
 		{
 			System.Diagnostics.Process.Start($"https://vndb.org/v{_viewModel.VNID}");
+		}
+		
+		private async void ShowVNsForStaff(object sender, RoutedEventArgs e)
+		{
+			var element = sender as FrameworkElement;
+			if (!(element?.DataContext is VnStaff vnStaff)) return;
+			await _mainWindow.ViewModel.DatabaseViewModel.ShowForStaffWithAlias(vnStaff.AliasID);
+			_mainWindow.SelectTab(typeof(DatabaseTab));
+		}
+
+		private async void ShowCharactersForStaff(object sender, RoutedEventArgs e)
+		{
+			var element = sender as FrameworkElement;
+			if (!(element?.DataContext is VnStaff vnStaff)) return;
+			await _mainWindow.ViewModel.CharactersViewModel.ShowForStaffWithAlias(vnStaff.AliasID);
+			_mainWindow.SelectTab(typeof(CharactersTab));
 		}
 	}
 }

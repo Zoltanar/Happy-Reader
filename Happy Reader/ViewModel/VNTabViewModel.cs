@@ -404,5 +404,33 @@ namespace Happy_Reader.ViewModel
 			_dbFunction = item;
 			await RefreshListedVns();
 		}
+
+		public async Task ShowForStaffWithAlias(int aliasId)
+		{
+			var staff = LocalDatabase.StaffAliases[aliasId];
+			_dbFunction = new NamedFunction(
+				db =>
+				{
+					var aliasIds = db.StaffAliases.Where(c => c.StaffID == staff.StaffID).Select(sa=>sa.AliasID).ToArray();
+					var vns = db.VnStaffs.Where(vnStaff => aliasIds.Contains(vnStaff.AliasID)).Select(vnStaff => vnStaff.VNID).ToArray();
+					return db.VisualNovels.WithKeyIn(vns);
+				},
+				$"Staff {staff}", true);
+			await RefreshListedVns();
+		}
+
+		public async Task ShowForSeiyuu(VnSeiyuu seiyuu)
+		{
+			var staff = LocalDatabase.StaffAliases[seiyuu.AliasID];
+			_dbFunction = new NamedFunction(
+				db =>
+				{
+					var aliasIds = db.StaffAliases.Where(c => c.StaffID == staff.StaffID).Select(sa => sa.AliasID).ToArray();
+					var vns = db.VnSeiyuus.Where(vnSeiyuu => aliasIds.Contains(vnSeiyuu.AliasID)).Select(vnSeiyuu => vnSeiyuu.VNID).ToArray();
+					return db.VisualNovels.WithKeyIn(vns);
+				},
+				$"Seiyuu {staff}", true);
+			await RefreshListedVns();
+		}
 	}
 }

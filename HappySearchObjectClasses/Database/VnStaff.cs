@@ -63,5 +63,42 @@ namespace Happy_Apps_Core.Database
 		}
 
 		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
+
+		public string Detail
+		{
+			get
+			{
+				var alias = StaticHelpers.LocalDatabase.StaffAliases[AliasID];
+				var original = string.IsNullOrWhiteSpace(alias.Original) ? "" : $" ({alias.Original})";
+				var note = string.IsNullOrWhiteSpace(Note) ? "" : $" - {Note}";
+				return $"{alias.Name}{original}{note}";
+			}
+		}
+
+		public override string ToString()
+		{
+			var alias = StaticHelpers.LocalDatabase.StaffAliases[AliasID];
+			var original = string.IsNullOrWhiteSpace(alias.Original) ? "" : $" ({alias.Original})";
+			return $"{alias.Name}{original} - {RoleDetail} - {Note}";
+		}
+
+		public string RoleDetail
+		{
+			get
+			{
+				return Role switch
+				{
+					"empty" => "Empty",
+					"art" => "Art",
+					"chardesign" => "Character Design",
+					"scenario" => "Scenario",
+					"music" => "Music",
+					"director" => "Director",
+					"staff" => "Staff",
+					"songs" => "Vocals",
+					_ => Role
+				};
+			}
+		}
 	}
 }

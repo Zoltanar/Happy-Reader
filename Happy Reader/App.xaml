@@ -10,6 +10,8 @@
 		<happyReader:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
 		<happyReader:RadioButtonCheckedConverter x:Key="RadioButtonCheckedConverter" />
 		<view:NullableToOpacityConverter x:Key="NullableToOpacityConverter" />
+		<view:NullableToVisibilityConverter x:Key="NullableToVisibilityConverter" />
+		<view:NullableToBooleanConverter x:Key="NullableToBooleanConverter" />
 		<view:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 		<view:VnToSpecialFlagVisibilityConverter x:Key="VnToSpecialFlagVisibilityConverter" />
 		<view:OwnedStatusToVisibilityConverter x:Key="OwnedStatusToVisibilityConverter" />

@@ -131,7 +131,31 @@ namespace Happy_Reader.ViewModel
 			filter.AndFilters.Add(new VnFilter(VnFilterType.Label, UserVN.LabelKind.Playing, true));
 			filter.AndFilters.Add(new VnFilter(VnFilterType.ReleaseStatus, ReleaseStatusEnum.Released));
 			var function = filter.GetFunction();
-			_dbFunction = db => db.GetCharactersWithTrait(trait.ID).Where(c => c.HasVisualNovel && function(c.VisualNovel));
+			_dbFunction = db => db.GetCharactersWithTrait(trait.ID).Where(c => c.VisualNovel != null && function(c.VisualNovel));
+			await RefreshCharacterTiles();
+		}
+		
+		public async Task ShowForStaffWithAlias(int aliasId)
+		{
+			_dbFunction = db =>
+			{
+				var staff = db.StaffAliases[aliasId];
+				var aliasIds = db.StaffAliases.Where(c => c.StaffID == staff.StaffID).Select(sa => sa.AliasID).ToArray();
+				var keys = db.VnStaffs.Where(s => aliasIds.Contains(s.AliasID)).Select(s => s.VNID).Distinct().ToArray();
+				var characters = db.CharacterVNs.Where(cvn => keys.Contains(cvn.VNId)).Select(cvn => cvn.CharacterId).ToArray();
+				return db.Characters.WithKeyIn(characters);
+			};
+			await RefreshCharacterTiles();
+		}
+		public async Task ShowForSeiyuuWithAlias(int aliasId)
+		{
+			_dbFunction = db =>
+			{
+				var staff = db.StaffAliases[aliasId];
+				var aliasIds = db.StaffAliases.Where(c => c.StaffID == staff.StaffID).Select(sa => sa.AliasID).ToArray();
+				var keys = db.VnSeiyuus.Where(s => aliasIds.Contains(s.AliasID)).Select(s => s.CharacterID).Distinct().ToArray();
+				return db.Characters.WithKeyIn(keys);
+			};
 			await RefreshCharacterTiles();
 		}
 

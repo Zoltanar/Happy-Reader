@@ -120,6 +120,7 @@ namespace Happy_Reader.View
 		{
 			if (e.ChangedButton != MouseButton.Middle) return;
 			var tabItem = (TabItem)sender;
+			tabItem.Template = null;
 			MainTabControl.Items.Remove(tabItem);
 		}
 

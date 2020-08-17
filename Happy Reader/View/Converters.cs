@@ -71,13 +71,23 @@ namespace Happy_Reader.View
 
 	public class NullableToOpacityConverter : IValueConverter
 	{
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			return value == null ? 0 : 1;
-		}
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => value == null ? 0 : 1;
 
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
-			new NotSupportedException();
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => new NotSupportedException();
+	}
+
+	public class NullableToVisibilityConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => value == null ? Visibility.Collapsed : Visibility.Visible;
+
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => new NotSupportedException();
+	}
+
+	public class NullableToBooleanConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => value != null;
+
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => new NotSupportedException();
 	}
 
 	public class BooleanToVisibilityConverter : IValueConverter
@@ -227,5 +237,4 @@ namespace Happy_Reader.View
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 	}
-
 }

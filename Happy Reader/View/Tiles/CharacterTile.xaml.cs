@@ -69,7 +69,7 @@ namespace Happy_Reader.View.Tiles
 				{
 					Inline content = new Run(trait?.Name ?? "Not Found");
 					if (trait != null && StaticHelpers.CSettings.AlertTraitIDs.Contains(trait.ID)) content = new Bold(content);
-					var link = new Hyperlink(content) {Tag = trait};
+					var link = new Hyperlink(content) { Tag = trait };
 					linkList.Add(link);
 				}
 			}
@@ -120,5 +120,18 @@ namespace Happy_Reader.View.Tiles
 			await MainViewModel.DatabaseViewModel.ShowForCharacter(_viewModel);
 		}
 
+		private async void ShowVisualNovelsForSeiyuu(object sender, RoutedEventArgs e)
+		{
+			if (_viewModel.Seiyuu == null) throw new InvalidOperationException("Character does not have a Seiyuu.");
+			MainWindow.SelectTab(typeof(DatabaseTab));
+			await MainViewModel.DatabaseViewModel.ShowForSeiyuu(_viewModel.Seiyuu);
+		}
+
+		private async void ShowCharactersForSeiyuu(object sender, RoutedEventArgs e)
+		{
+			if (_viewModel.Seiyuu == null) throw new InvalidOperationException("Character does not have a Seiyuu.");
+			MainWindow.SelectTab(typeof(CharactersTab));
+			await TabViewModel.ShowForSeiyuuWithAlias(_viewModel.Seiyuu.AliasID);
+		}
 	}
 }

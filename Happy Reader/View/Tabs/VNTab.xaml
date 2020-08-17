@@ -9,33 +9,38 @@
              d:DesignHeight="600" d:DesignWidth="800" 
              d:DataContext="{d:DesignInstance database:ListedVN}"
              Loaded="VNPanel_OnLoaded">
-    <UserControl.Resources>
-        <Style TargetType="TextBox"  BasedOn="{StaticResource NoBorderTextBox}">
-            <Setter Property="Margin" Value="0" />
-            <Setter Property="Padding" Value="0" />
-        </Style>
-        <Style x:Key="RightLabel" TargetType="Label" >
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="HorizontalContentAlignment" Value="Right"/>
-            <Setter Property="Margin" Value="0,0,5,0" />
-            <Setter Property="Padding" Value="0" />
-        </Style>
-    </UserControl.Resources>
-    <Grid ScrollViewer.VerticalScrollBarVisibility="Auto">
-	    <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="320"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-	    <Grid Grid.Row="0" Grid.Column="0" Name="InfoTopLeft">
+	<UserControl.Resources>
+		<Style TargetType="TextBox"  BasedOn="{StaticResource NoBorderTextBox}">
+			<Setter Property="Margin" Value="0" />
+			<Setter Property="Padding" Value="0" />
+		</Style>
+		<Style x:Key="RightLabel" TargetType="Label" >
+			<Setter Property="VerticalContentAlignment" Value="Center"/>
+			<Setter Property="HorizontalContentAlignment" Value="Right"/>
+			<Setter Property="Margin" Value="0,0,5,0" />
+			<Setter Property="Padding" Value="0" />
+		</Style>
+		<CollectionViewSource x:Key="StaffBoxItems" Source="{Binding Path=Staff}">
+			<CollectionViewSource.GroupDescriptions>
+				<PropertyGroupDescription PropertyName="RoleDetail" />
+			</CollectionViewSource.GroupDescriptions>
+		</CollectionViewSource>
+	</UserControl.Resources>
+	<Grid ScrollViewer.VerticalScrollBarVisibility="Auto">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="*"/>
+			<ColumnDefinition Width="320"/>
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="*"/>
+		</Grid.RowDefinitions>
+		<Grid Grid.Row="0" Grid.Column="0" Name="InfoTopLeft">
 			<Grid.RowDefinitions>
 				<RowDefinition/>
 				<RowDefinition Height="Auto"/>
 			</Grid.RowDefinitions>
-		    <Grid Grid.Row="0" Name="InfoGrid">
+			<Grid Grid.Row="0" Name="InfoGrid">
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="65"/>
 					<ColumnDefinition Width="*"/>
@@ -115,9 +120,9 @@
 					</Grid>
 				</Grid>
 			</Grid>
-		    <TextBox Grid.Row="1" Text="{Binding Description}" TextWrapping="Wrap" Margin="0" Padding="5" Background="LightGray" Name="DescBox"/>
-	    </Grid>
-	    <Image x:Name="ImageBox" Grid.Row="0" Source="{Binding CoverSource}" Margin="5" Grid.Column="1"/>
+			<TextBox Grid.Row="1" Text="{Binding Description}" TextWrapping="Wrap" Margin="0" Padding="5" Background="LightGray" Name="DescBox"/>
+		</Grid>
+		<Image x:Name="ImageBox" Grid.Row="0" Source="{Binding CoverSource}" Margin="5" Grid.Column="1"/>
 		<Border Grid.Row="0" Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Right" Padding="5" Background="Black" CornerRadius="5" Margin="5">
 			<Label VerticalContentAlignment="Top" HorizontalContentAlignment="Right"  VerticalAlignment="Top" HorizontalAlignment="Right" Padding="0" Background="Black">
 				<Hyperlink Click="ID_OnClick">
@@ -125,43 +130,101 @@
 				</Hyperlink>
 			</Label>
 		</Border>
-        <Grid Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="0" Name="ScreensAndCharactersGrid">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-            <view:AspectRatioLayoutDecorator x:Name="ScreensBox" Grid.Column="0" Margin="5">
-                <ItemsControl ItemsSource="{Binding DisplayScreenshots}" >
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.Template>
-                        <ControlTemplate>
-                            <ScrollViewer x:Name="ScrollViewer" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Disabled" 
-                                          CanContentScroll="True" PreviewMouseWheel="ScrollViewer_OnPreviewMouseWheel">
-                                <ItemsPresenter />
-                            </ScrollViewer>
-                        </ControlTemplate>
-                    </ItemsControl.Template>
-                </ItemsControl>
-            </view:AspectRatioLayoutDecorator>
-            <ItemsControl x:Name="CharacterTiles"  Grid.Column="1" Margin="5" Background="MediumPurple">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Orientation="Horizontal"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.Template>
-                    <ControlTemplate>
-                        <ScrollViewer x:Name="ScrollViewer" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Disabled" 
-                                      CanContentScroll="True" PreviewMouseWheel="ScrollViewer_OnPreviewMouseWheel">
-                            <ItemsPresenter />
-                        </ScrollViewer>
-                    </ControlTemplate>
-                </ItemsControl.Template>
-            </ItemsControl>
-        </Grid>
-    </Grid>
+		<TabControl Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="0">
+			<TabItem Header="Screenshots">
+				<view:AspectRatioLayoutDecorator x:Name="ScreensBox" Margin="5">
+					<ItemsControl ItemsSource="{Binding DisplayScreenshots}" >
+						<ItemsControl.ItemsPanel>
+							<ItemsPanelTemplate>
+								<StackPanel Orientation="Horizontal"/>
+							</ItemsPanelTemplate>
+						</ItemsControl.ItemsPanel>
+						<ItemsControl.Template>
+							<ControlTemplate>
+								<ScrollViewer x:Name="ScrollViewer" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Disabled" 
+								              CanContentScroll="True" PreviewMouseWheel="ScrollViewer_OnPreviewMouseWheel">
+									<ItemsPresenter />
+								</ScrollViewer>
+							</ControlTemplate>
+						</ItemsControl.Template>
+					</ItemsControl>
+				</view:AspectRatioLayoutDecorator>
+			</TabItem>
+			<TabItem Header="Characters">
+				<ItemsControl x:Name="CharacterTiles"  Margin="5" Background="MediumPurple">
+					<ItemsControl.ItemsPanel>
+						<ItemsPanelTemplate>
+							<StackPanel Orientation="Horizontal"/>
+						</ItemsPanelTemplate>
+					</ItemsControl.ItemsPanel>
+					<ItemsControl.Template>
+						<ControlTemplate>
+							<ScrollViewer x:Name="ScrollViewer" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Disabled" 
+							              CanContentScroll="True" PreviewMouseWheel="ScrollViewer_OnPreviewMouseWheel">
+								<ItemsPresenter />
+							</ScrollViewer>
+						</ControlTemplate>
+					</ItemsControl.Template>
+				</ItemsControl>
+			</TabItem>
+				<TabItem Header="Staff">
+				<ListBox ItemsSource="{Binding Source={StaticResource StaffBoxItems}}">
+					<ListBox.GroupStyle>
+						<GroupStyle>
+							<GroupStyle.Panel>
+								<ItemsPanelTemplate>
+									<VirtualizingStackPanel Orientation="Vertical" />
+								</ItemsPanelTemplate>
+							</GroupStyle.Panel>
+							<GroupStyle.ContainerStyle>
+								<Style TargetType="{x:Type GroupItem}">
+									<Setter Property="Template">
+										<Setter.Value>
+											<ControlTemplate>
+												<Expander
+                                        Padding="0"                                           
+                                        BorderThickness="0"
+                                        IsExpanded="True"
+                                        >
+													<Expander.Header>
+														<TextBlock FontWeight="Bold" Text="{Binding Name}"/>
+													</Expander.Header>
+													<ItemsPresenter/>
+												</Expander>
+											</ControlTemplate>
+										</Setter.Value>
+									</Setter>
+								</Style>
+							</GroupStyle.ContainerStyle>
+						</GroupStyle>
+					</ListBox.GroupStyle>
+					<ListBox.ItemTemplate>
+						<DataTemplate>
+							<Border BorderThickness="0">
+								<Grid>
+									<StackPanel Orientation="Horizontal">
+										<TextBlock Text="{Binding Detail}">
+											<TextBlock.ContextMenu>
+												<ContextMenu>
+													<MenuItem Header="Show titles with staff" Click="ShowVNsForStaff"/>
+													<Separator/>
+													<MenuItem Header="Show characters from titles with staff" Click="ShowCharactersForStaff"/>
+												</ContextMenu>
+											</TextBlock.ContextMenu>
+										</TextBlock>
+									</StackPanel>
+								</Grid>
+							</Border>
+						</DataTemplate>
+					</ListBox.ItemTemplate>
+					<ListBox.ItemContainerStyle>
+						<Style TargetType="{x:Type ListBoxItem}">
+							<Setter Property="Padding" Value="0" />
+							<Setter Property="Margin" Value="0" />
+						</Style>
+					</ListBox.ItemContainerStyle>
+				</ListBox>
+			</TabItem>
+		</TabControl>
+	</Grid>
 </UserControl>

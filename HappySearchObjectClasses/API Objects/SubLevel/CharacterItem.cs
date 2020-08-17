@@ -56,6 +56,8 @@ namespace Happy_Apps_Core
 
 		public IEnumerable<VnSeiyuu> Seiyuus => StaticHelpers.LocalDatabase.VnSeiyuus.Where(s => s.CharacterID == ID);
 
+		public VnSeiyuu Seiyuu => Seiyuus.FirstOrDefault();
+
 		[NotMapped]
 		public Brush BackBrush
 		{
@@ -128,10 +130,6 @@ namespace Happy_Apps_Core
 				return _imageSource;
 			}
 		}
-
-		public bool HasProducer => Producer != null;
-
-		public bool HasVisualNovel => CharacterVN != null;
 
 		public bool ContainsTraits(IEnumerable<DumpFiles.WrittenTrait> traitFilters)
 		{
