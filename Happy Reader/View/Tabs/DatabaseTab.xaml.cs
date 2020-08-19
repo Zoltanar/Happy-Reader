@@ -51,7 +51,7 @@ namespace Happy_Reader.View.Tabs
 			var item = VisualNovelItems.SelectedItem as Tiles.VNTile;
 			var vn = (ListedVN)item?.DataContext;
 			if (vn == null) return;
-			_mainWindow.OpenVNPanel(vn);
+			_mainWindow.OpenVNPanel(vn,false);
 		}
 
 		private async void ShowSuggested(object sender, RoutedEventArgs e)

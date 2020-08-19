@@ -6,6 +6,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
+using Happy_Reader.Database;
 using Happy_Reader.View.Tiles;
 using Happy_Reader.ViewModel;
 
@@ -15,13 +16,23 @@ namespace Happy_Reader.View.Tabs
 	{
 		private MainWindow _mainWindow;
 		private readonly ListedVN _viewModel;
-		public VNTab(ListedVN vn)
+		public VNTab(ListedVN vn, UserGame userGame, bool openOnUserGame)
 		{
 			InitializeComponent();
 			_viewModel = vn;
 			DataContext = vn;
 			var cvnItems = StaticHelpers.LocalDatabase.CharacterVNs.Where(cvn => cvn.VNId == vn.VNID);
 			CharacterTiles.ItemsSource = cvnItems.Select(CharacterTile.FromCharacterVN).ToArray();
+			if (userGame == null) return;
+			var tabItem = new TabItem
+			{
+				Header = "User Game",
+				Name = nameof(UserGameTab),
+				Content = new UserGameTab(userGame, true),
+				Tag = userGame
+			};
+			TabControl.Items.Add(tabItem);
+			if (openOnUserGame) TabControl.SelectedItem = tabItem;
 		}
 
 		private void LoadTags(ListedVN vn)

@@ -63,7 +63,6 @@
 			<MenuItem Header="Merge games to this" Click="MergeGamesToThis"/>
 			<MenuItem Header="Reset Time Played" Click="ResetTimePlayed"/>
 			<MenuItem Header="Launch with LE (Japan)" Click="LaunchWithLeJapan" />
-			<MenuItem Header="Open VN Details" Click="OpenVNDetails" IsEnabled="{Binding HasVN}"/>
 			<MenuItem IsEnabled="{Binding HasVN}" Header="VNDB" SubmenuOpened="OpenVnSubmenu" x:Name="VnMenuParent" />
 		</ContextMenu>
 	</UserControl.ContextMenu>

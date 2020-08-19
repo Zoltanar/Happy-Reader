@@ -236,7 +236,7 @@ namespace Happy_Apps_Core
 				}
 				catch (Exception ex)
 				{
-					StaticHelpers.Logger.ToFile(ex.Message, "Failed to hide password in login request.");
+					Logger.ToFile(ex.Message, "Failed to hide password in login request.");
 				}
 			}
 			_advancedAction.Invoke(command, true);

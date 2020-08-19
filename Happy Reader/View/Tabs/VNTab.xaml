@@ -130,7 +130,7 @@
 				</Hyperlink>
 			</Label>
 		</Border>
-		<TabControl Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="0">
+		<TabControl Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="0" x:Name="TabControl">
 			<TabItem Header="Screenshots">
 				<view:AspectRatioLayoutDecorator x:Name="ScreensBox" Margin="5">
 					<ItemsControl ItemsSource="{Binding DisplayScreenshots}" >
@@ -167,7 +167,7 @@
 					</ItemsControl.Template>
 				</ItemsControl>
 			</TabItem>
-				<TabItem Header="Staff">
+			<TabItem Header="Staff">
 				<ListBox ItemsSource="{Binding Source={StaticResource StaffBoxItems}}">
 					<ListBox.GroupStyle>
 						<GroupStyle>

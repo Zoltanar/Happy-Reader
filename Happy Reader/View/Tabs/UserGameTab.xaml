@@ -4,7 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:database="clr-namespace:Happy_Reader.Database"
-             mc:Ignorable="d" d:DesignWidth="461.939" Height="339.704">
+             mc:Ignorable="d" d:DesignWidth="462" d:DesignHeight="340"
+             Loaded="UserGameTab_OnLoaded">
     <UserControl.DataContext>
         <database:UserGame/>
     </UserControl.DataContext>
@@ -52,7 +53,7 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="150"/>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="Auto" MinWidth="150"/>
+            <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <UniformGrid Grid.Column="0" Rows="13" Columns="1">
             <Label Style="{StaticResource Row0Label}" Content="Title" />
@@ -84,7 +85,7 @@
             <TextBox Style="{StaticResource Row1TextBox}" x:Name="LaunchPathBox" Text="{Binding LaunchPath}" KeyUp="SaveLaunchPath" />
             <CheckBox Style="{StaticResource UniformCheckbox}" Content="Merge By Hook Code" IsChecked="{Binding MergeByHookCode}"/>
         </UniformGrid>
-        <Border BorderBrush="Black" BorderThickness="4" Grid.Column="2" Background="#FF3EAE8F"/>
-        <Image Grid.Column="2" Source="{Binding Image, Mode=OneWay}" Margin="10"/>
+		<Border x:Name="ImageBorder" BorderBrush="Black" BorderThickness="4" Grid.Column="2" Background="#FF3EAE8F" />
+		<Image x:Name="Image" Grid.Column="2" Source="{Binding Image, Mode=OneWay}" Margin="10" />
     </Grid>
 </UserControl>

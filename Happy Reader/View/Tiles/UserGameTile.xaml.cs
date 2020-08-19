@@ -33,7 +33,9 @@ namespace Happy_Reader.View.Tiles
 		{
 			var mainWindow = (MainWindow)(sender is MainWindow ? sender : Window.GetWindow(this));
 			Trace.Assert(mainWindow != null, nameof(mainWindow) + " != null");
-			mainWindow.OpenUserGamePanel(UserGame);
+			if (UserGame.HasVN) mainWindow.OpenVNPanel(UserGame.VN, true);
+			else mainWindow.OpenUserGamePanel(UserGame);
+
 		}
 
 		public void BrowseToLocation(object sender, RoutedEventArgs e)
@@ -75,26 +77,17 @@ namespace Happy_Reader.View.Tiles
 			}
 		}
 
-		private void OpenVNDetails(object sender, RoutedEventArgs e)
-		{
-			if (!UserGame.VNID.HasValue) throw new InvalidOperationException("UserGame does not have attached VN.");
-			var mainWindow = (MainWindow)(sender is MainWindow ? sender : Window.GetWindow(this));
-			Trace.Assert(mainWindow != null, nameof(mainWindow) + " != null");
-			mainWindow.OpenVNPanel(UserGame.VN);
-		}
-
 		private void LaunchWithLeJapan(object sender, RoutedEventArgs e)
 		{
 			var mainWindow = (MainWindow)(sender is MainWindow ? sender : Window.GetWindow(this));
 			Trace.Assert(mainWindow != null, nameof(mainWindow) + " != null");
 			var viewModel = (MainWindowViewModel)mainWindow.DataContext;
-			viewModel.HookUserGame(UserGame, null,true);
+			viewModel.HookUserGame(UserGame, null, true);
 		}
 
 		private void ResetTimePlayed(object sender, RoutedEventArgs e)
 		{
-			var result = MessageBox.Show("Confirm that you wish to reset time played.", "Confirmation Required",
-				MessageBoxButton.OKCancel);
+			var result = MessageBox.Show("Confirm that you wish to reset time played.", "Confirmation Required", MessageBoxButton.OKCancel);
 			if (result != MessageBoxResult.OK) return;
 			UserGame.ResetTimePlayed();
 		}
