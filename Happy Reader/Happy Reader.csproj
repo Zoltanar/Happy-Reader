@@ -237,6 +237,7 @@
     <Compile Include="View\VnMenuItem.xaml.cs">
       <DependentUpon>VnMenuItem.xaml</DependentUpon>
     </Compile>
+    <Compile Include="WinAPI.cs" />
     <Page Include="View\InputWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

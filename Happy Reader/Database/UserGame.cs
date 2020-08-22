@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using Happy_Apps_Core.Database;
 using IthVnrSharpLib;
 using JetBrains.Annotations;
-using StaticHelpers = Happy_Apps_Core.StaticHelpers;
+using static Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Reader.Database
 {
@@ -52,7 +52,7 @@ namespace Happy_Reader.Database
 
 		public bool HasVN => VNID.HasValue;
 		public bool FileExists => File.Exists(FilePath);
-		
+
 		/// <summary>
 		/// Store output window location and dimensions as a string in the 'form x,y,width,height' 
 		/// </summary>
@@ -88,7 +88,7 @@ namespace Happy_Reader.Database
 				if (Id == 0) return _vn;
 				if (!_vnGot)
 				{
-					if (VNID != null) _vn = StaticHelpers.LocalDatabase.VisualNovels[VNID.Value];
+					if (VNID != null) _vn = LocalDatabase.VisualNovels[VNID.Value];
 					_vnGot = true;
 				}
 				return _vn;
@@ -117,6 +117,9 @@ namespace Happy_Reader.Database
 				_process.EnableRaisingEvents = true;
 			}
 		}
+
+		private WinAPI.WindowHook _windowHook;
+
 		[NotMapped]
 		public string DisplayName =>
 			UserDefinedName ?? StaticMethods.TruncateStringFunction30(VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath));
@@ -239,19 +242,24 @@ namespace Happy_Reader.Database
 			OnPropertyChanged(nameof(TimeOpen));
 		}
 
-		private void ProcessExited(object sender, EventArgs e) => SaveTimePlayed(true);
+		private void ProcessExited(object sender, EventArgs e)
+		{
+			SaveTimePlayed(true);
+			_windowHook?.Dispose();
+			_windowHook = null;
+		}
 
 		[NotifyPropertyChangedInvocator]
 		protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-		public void SaveUserDefinedName([NotNull]string text)
+		public void SaveUserDefinedName([NotNull] string text)
 		{
 			UserDefinedName = string.IsNullOrWhiteSpace(text) ? null : text.Trim();
 			StaticMethods.Data.SaveChanges();
 			OnPropertyChanged(nameof(DisplayName));
 		}
-		
-		public void SaveTag([NotNull]string text)
+
+		public void SaveTag([NotNull] string text)
 		{
 			Tag = string.IsNullOrWhiteSpace(text) ? null : text.Trim();
 			StaticMethods.Data.SaveChanges();
@@ -262,7 +270,7 @@ namespace Happy_Reader.Database
 		{
 			VNID = vnid;
 			StaticMethods.Data.SaveChanges();
-			VN = vnid == null ? null : StaticHelpers.LocalDatabase.VisualNovels[vnid.Value];
+			VN = vnid == null ? null : LocalDatabase.VisualNovels[vnid.Value];
 			OnPropertyChanged(nameof(DisplayName));
 			OnPropertyChanged(nameof(Image));
 			OnPropertyChanged(nameof(VN));
@@ -284,7 +292,7 @@ namespace Happy_Reader.Database
 			OnPropertyChanged(nameof(Image));
 		}
 
-		public void SaveLaunchPath([NotNull]string text)
+		public void SaveLaunchPath([NotNull] string text)
 		{
 			LaunchPath = string.IsNullOrWhiteSpace(text) ? null : text.Trim();
 			StaticMethods.Data.SaveChanges();
@@ -297,7 +305,24 @@ namespace Happy_Reader.Database
 		{
 			Process = process;
 			Process.EnableRaisingEvents = true;
+			_windowHook = new WinAPI.WindowHook(process);
+			_windowHook.OnWindowMinimizeStart += WindowIsMinimised;
+			_windowHook.OnWindowMinimizeEnd += WindowsIsRestored;
+			//todo hook move events to move output window with it (change eventMin)
 			Process.Exited += hookedProcessOnExited;
+			if (WinAPI.IsIconic(process.MainWindowHandle)) WindowIsMinimised(process.MainWindowHandle);
+		}
+
+		private void WindowsIsRestored(IntPtr windowPointer)
+		{
+			Logger.ToDebug($"Restored {DisplayName}, starting running time at {_runningTime.Elapsed}");
+			_runningTime.Start();
+		}
+
+		private void WindowIsMinimised(IntPtr windowPointer)
+		{
+			_runningTime.Stop();
+			Logger.ToDebug($"Minimized {DisplayName}, stopped running time at {_runningTime.Elapsed}");
 		}
 
 		public enum EncodingEnum

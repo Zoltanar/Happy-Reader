@@ -264,11 +264,18 @@ namespace Happy_Reader.ViewModel
 				StatusText = "Initializing ITHVNR...";
 				IthViewModel.Initialize(RunTranslation, GetPreferredHookCode);
 			}
-			_monitor = new Thread(MonitorStart) { IsBackground = true };
-			_monitor.Start();
+			_monitor = GetAndStartMonitorThread();
 			_loadingComplete = true;
 			StatusText = "Loading complete.";
 			NotificationEvent(this, $"Took {watch.Elapsed.ToSeconds()}.", "Loading Complete");
+		}
+
+		private Thread GetAndStartMonitorThread()
+		{
+			var monitor = new Thread(MonitorStart) { IsBackground = true };
+			monitor.SetApartmentState(ApartmentState.STA);
+			monitor.Start();
+			return monitor;
 		}
 
 		private void InitializeEntries(bool initialiseEntries, bool noApiTranslation)
@@ -425,7 +432,7 @@ namespace Happy_Reader.ViewModel
 						if (UserGame?.Process != null) return true;
 						if (gameProcess.HasExited) continue;
 						if (!userGame.FilePath.Equals(processFileName, StringComparison.InvariantCultureIgnoreCase)) continue;
-						HookUserGame(userGame, gameProcess, false);
+						DispatchIfRequired(()=>HookUserGame(userGame, gameProcess, false),TimeSpan.FromSeconds(10));
 						return true;
 					}
 				}
@@ -607,8 +614,7 @@ namespace Happy_Reader.ViewModel
 			UserGame = null;
 			//restart monitor
 			if (_monitor != null && _monitor.IsAlive) return;
-			_monitor = new Thread(MonitorStart) { IsBackground = true };
-			_monitor.Start();
+			_monitor = GetAndStartMonitorThread();
 		}
 
 		// ReSharper disable UnusedTupleComponentInReturnValue
