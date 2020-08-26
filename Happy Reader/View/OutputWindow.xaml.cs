@@ -121,5 +121,16 @@ namespace Happy_Reader.View
 			_isResizing = false;
 			Mouse.Capture(null);
 		}
+
+		public void MoveByDifference(NativeMethods.RECT rect)
+		{
+			Application.Current.Dispatcher.Invoke(() =>
+			{
+				Left += rect.Left;
+				Top += rect.Top;
+				Width = Math.Max(100, Width + rect.Width);
+				Height = Math.Max(30, Height + rect.Height);
+			});
+		}
 	}
 }

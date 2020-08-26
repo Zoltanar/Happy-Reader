@@ -503,7 +503,7 @@ namespace Happy_Reader.ViewModel
 				if (UserGame.Process == null) return false;
 				if ((sender as TextThread)?.IsConsole ?? false) return false;
 				var rect = StaticMethods.GetWindowDimensions(UserGame.Process);
-				if (rect.ZeroSized) return false; //todo show it somehow or show error.
+				if (rect.IsEmpty) return false; //todo show it somehow or show error.
 				Translation translation;
 				if (false && e.FromClipboard) //todo fix this
 				{
@@ -581,6 +581,7 @@ namespace Happy_Reader.ViewModel
 					}
 					UserGame.SetActiveProcess(process, HookedProcessOnExited);
 					TestViewModel.Game = UserGame.VN;
+					UserGame.MoveOutputWindow = (r) => OutputWindow.MoveByDifference(r);
 					if (!UserGame.HookProcess) return;
 					while (!_loadingComplete) Thread.Sleep(25);
 					OutputWindow.SetLocation(UserGame.OutputRectangle);

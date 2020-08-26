@@ -72,7 +72,7 @@ namespace Happy_Reader
 			{
 				_mainWindowHandle = process.MainWindowHandle;
 				_handleEvent = WinEvent;
-				_hookPointer = SetWinEventHook((uint)SystemEvents.EVENT_SYSTEM_MINIMIZESTART,
+				_hookPointer = SetWinEventHook((uint)SystemEvents.EVENT_SYSTEM_MOVESIZESTART,
 																(uint)SystemEvents.EVENT_SYSTEM_MINIMIZEEND,
 																_mainWindowHandle,
 																_handleEvent,
@@ -100,8 +100,10 @@ namespace Happy_Reader
 						OnWindowMinimizeEnd?.Invoke(hWnd);
 						break;
 					case SystemEvents.EVENT_SYSTEM_MOVESIZESTART:
+						OnWindowMoveSizeStart?.Invoke(hWnd);
 						break;
 					case SystemEvents.EVENT_SYSTEM_MOVESIZEEND:
+						OnWindowMoveSizeEnd?.Invoke(hWnd);
 						break;
 				}
 			}

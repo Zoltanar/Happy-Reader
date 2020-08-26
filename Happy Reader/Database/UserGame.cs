@@ -212,6 +212,12 @@ namespace Happy_Reader.Database
 
 		[NotMapped]
 		public bool IsRunning => _process != null;
+
+		[NotMapped]
+		public Action<NativeMethods.RECT> MoveOutputWindow { get; set; }
+
+		private NativeMethods.RECT? _locationOnMoveStart;
+
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		public void SaveTimePlayed(bool notify)
@@ -308,9 +314,28 @@ namespace Happy_Reader.Database
 			_windowHook = new WinAPI.WindowHook(process);
 			_windowHook.OnWindowMinimizeStart += WindowIsMinimised;
 			_windowHook.OnWindowMinimizeEnd += WindowsIsRestored;
-			//todo hook move events to move output window with it (change eventMin)
+			_windowHook.OnWindowMoveSizeStart += WindowMoveStarts;
+			_windowHook.OnWindowMoveSizeEnd += WindowMoveEnds;
 			Process.Exited += hookedProcessOnExited;
 			if (WinAPI.IsIconic(process.MainWindowHandle)) WindowIsMinimised(process.MainWindowHandle);
+		}
+
+
+		private void WindowMoveStarts(IntPtr windowPointer)
+		{
+			if (MoveOutputWindow == null) return;
+			var success = NativeMethods.GetWindowRect(windowPointer, out var location);
+			if (success) _locationOnMoveStart = location;
+		}
+
+		private void WindowMoveEnds(IntPtr windowPointer)
+		{
+			if (MoveOutputWindow == null) return;
+			var success = NativeMethods.GetWindowRect(windowPointer, out var newLocation);
+			if (!success || !_locationOnMoveStart.HasValue) return;
+			var diff = newLocation - _locationOnMoveStart.Value;
+			MoveOutputWindow?.Invoke(diff);
+			_locationOnMoveStart = null;
 		}
 
 		private void WindowsIsRestored(IntPtr windowPointer)
