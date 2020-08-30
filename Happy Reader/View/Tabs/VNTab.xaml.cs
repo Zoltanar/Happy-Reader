@@ -61,11 +61,10 @@ namespace Happy_Reader.View.Tabs
 			await ((MainWindowViewModel)_mainWindow.DataContext).DatabaseViewModel.ShowTagged(DumpFiles.GetTag(tag.TagId));
 		}
 
-		private async void VNPanel_OnLoaded(object sender, RoutedEventArgs e)
+		private void VNPanel_OnLoaded(object sender, RoutedEventArgs e)
 		{
 			_mainWindow = (MainWindow)Window.GetWindow(this);
 			if (_viewModel.Tags.Any()) LoadTags(_viewModel);
-			await _viewModel.GetRelationsAnimeScreens();
 			ScreensBox.AspectRatio = _viewModel.ScreensObject.Any() ? _viewModel.ScreensObject.Max(x => (double)x.Width / x.Height) : 1;
 			ImageBox.MaxHeight = ImageBox.Source.Height;
 			if (!_viewModel.RelationsObject.Any())

@@ -129,13 +129,6 @@ namespace Happy_Reader.View
 			}
 		}
 
-		private async void UpdateVN(object sender, RoutedEventArgs e)
-		{
-			var menuItem = (MenuItem)sender;
-			var success = await ViewModel(menuItem).UpdateVN(VN);
-			if (success) VN.OnPropertyChanged(null);
-		}
-
 		private async void ShowTitlesByProducer(object sender, RoutedEventArgs e)
 		{
 			var menuItem = (MenuItem)sender;

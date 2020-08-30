@@ -456,25 +456,6 @@ namespace Happy_Apps_Core.Database
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 
-		public async Task GetRelationsAnimeScreens()
-		{
-			if (string.IsNullOrWhiteSpace(Relations))
-			{
-				await StaticHelpers.Conn.GetAndSetRelationsForVN(this);
-			}
-			OnPropertyChanged(nameof(DisplayRelations));
-			if (string.IsNullOrWhiteSpace(Anime))
-			{
-				await StaticHelpers.Conn.GetAndSetAnimeForVN(this);
-			}
-			OnPropertyChanged(nameof(DisplayAnime));
-			if (string.IsNullOrWhiteSpace(Screens))
-			{
-				await StaticHelpers.Conn.GetAndSetScreensForVN(this);
-			}
-			OnPropertyChanged(nameof(DisplayScreenshots));
-		}
-
 		public void SetRelations(string relationsString, VNItem.RelationsItem[] relationsObject)
 		{
 			Relations = relationsString;

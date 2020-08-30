@@ -256,13 +256,7 @@ namespace Happy_Reader.ViewModel
 			OnPropertyChanged(nameof(ListedVNs));
 			OnPropertyChanged(nameof(AllVNResults));
 		}
-
-		public async Task UpdateURT()
-		{
-			var changes = await Conn.UpdateURT();
-			if (changes > 0) await RefreshListedVns();
-		}
-
+		
 		public async Task SearchForVN(string text)
 		{
 			var vns = LocalDatabase.VisualNovels.Where(VisualNovelDatabase.SearchForVN(text)).ToList();
@@ -291,20 +285,9 @@ namespace Happy_Reader.ViewModel
 			await RefreshListedVns();
 		}
 
-		public async Task<bool> ChangeVNStatus(ListedVN vn, HashSet<UserVN.LabelKind> labels)
-		{
-			return await Conn.ChangeVNStatus(vn, labels);
-		}
+		public async Task<bool> ChangeVNStatus(ListedVN vn, HashSet<UserVN.LabelKind> labels) => await Conn.ChangeVNStatus(vn, labels);
 
-		public async Task<bool> ChangeVote(ListedVN vn, int? vote)
-		{
-			return await Conn.ChangeVote(vn, vote);
-		}
-
-		public async Task<bool> UpdateVN(ListedVN vn)
-		{
-			return await Conn.UpdateVN(vn);
-		}
+		public async Task<bool> ChangeVote(ListedVN vn, int? vote) => await Conn.ChangeVote(vn, vote);
 
 		public async Task ShowForProducer(string producerName)
 		{
