@@ -17,17 +17,14 @@
 			<RowDefinition Height="30"/>
 		</Grid.RowDefinitions>
 		<ListBox Grid.Row="0" x:Name="CharacterItems" ItemsSource="{Binding CharacterTiles}" 
-                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
-                 ScrollViewer.ScrollChanged="ScrollViewer_OnScrollChanged"
-                 VirtualizingStackPanel.VirtualizationMode="Recycling" 
-                 MouseDoubleClick="TileDoubleClicked">
+			         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+			         ScrollViewer.ScrollChanged="ScrollViewer_OnScrollChanged"
+			         VirtualizingStackPanel.VirtualizationMode="Recycling" 
+			         MouseDoubleClick="TileDoubleClicked">
 			<ListBox.Resources>
 				<Style TargetType="ListBoxItem">
 					<Setter Property="HorizontalContentAlignment" Value="Left" />
 					<Setter Property="VerticalContentAlignment" Value="Top" />
-				</Style>
-				<Style TargetType="Button">
-					<Setter Property="Padding" Value="0,5" />
 				</Style>
 			</ListBox.Resources>
 			<ListBox.ItemContainerStyle>

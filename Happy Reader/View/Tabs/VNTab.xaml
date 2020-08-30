@@ -88,7 +88,7 @@
 							<ColumnDefinition Width="*"/>
 							<ColumnDefinition Width="100"/>
 						</Grid.ColumnDefinitions>
-						<Image  Source="{Binding Producer.FlagSource}" Grid.Column="0"/>
+						<Image Source="{Binding Producer.FlagSource}" Grid.Column="0"/>
 						<TextBox Text="{Binding Producer.Name}" Grid.Column="1"/>
 						<TextBox Text="{Binding LengthTime, Converter={StaticResource EnumDescriptionConverter}}" HorizontalContentAlignment="Right" Grid.Column="2"/>
 					</Grid>

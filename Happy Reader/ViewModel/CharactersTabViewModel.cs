@@ -40,6 +40,7 @@ namespace Happy_Reader.ViewModel
 		public IEnumerable<ListedProducer> ProducerList => LocalDatabase?.Producers?.AsEnumerable();
 
 		public bool HideTraits { get; set; } = true;
+		public Action ScrollToTop { get; set; }
 
 		public async Task Initialize(MainWindowViewModel mainViewModel)
 		{
@@ -54,7 +55,8 @@ namespace Happy_Reader.ViewModel
 		{
 			var watch = Stopwatch.StartNew();
 			if (resetOrder) ResetOrdering();
-			await Task.Run(() =>
+			ScrollToTop();
+			 await Task.Run(() =>
 			{
 				_finalPage = false;
 				if (showAll) _dbFunction = x => x.Characters;

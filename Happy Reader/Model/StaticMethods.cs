@@ -74,15 +74,15 @@ namespace Happy_Reader
 			string args;
 			if (firstQuote > -1)
 			{
-				var secondQuote = userGame.LaunchPath.IndexOf('"', firstQuote+1);
-				proxyPath = userGame.LaunchPath.Substring(firstQuote+1, secondQuote - 1);
-				args = userGame.LaunchPath.Substring(secondQuote+1).Trim();
+				var secondQuote = userGame.LaunchPath.IndexOf('"', firstQuote + 1);
+				proxyPath = userGame.LaunchPath.Substring(firstQuote + 1, secondQuote - 1);
+				args = userGame.LaunchPath.Substring(secondQuote + 1).Trim();
 			}
 			else
 			{
 				var firstSpace = userGame.LaunchPath.IndexOf(' ');
-				proxyPath = userGame.LaunchPath.Substring(0,firstSpace);
-				args = userGame.LaunchPath.Substring(firstSpace+1).Trim();
+				proxyPath = userGame.LaunchPath.Substring(0, firstSpace);
+				args = userGame.LaunchPath.Substring(firstSpace + 1).Trim();
 			}
 			var processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(userGame.FilePath));
 			Process existing = processes.FirstOrDefault();
@@ -163,6 +163,24 @@ namespace Happy_Reader
 			{
 				GetVisualChildren(VisualTreeHelper.GetChild(current, i), children);
 			}
+		}
+
+		public static T GetDescendantByType<T>(this Visual element) where T : Visual
+		{
+			switch (element)
+			{
+				case null: return null;
+				case T typedElement: return typedElement;
+			}
+			Visual foundElement = null;
+			if (element is FrameworkElement frameworkElement) frameworkElement.ApplyTemplate();
+			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(element); i++)
+			{
+				var visual = VisualTreeHelper.GetChild(element, i) as Visual;
+				foundElement = GetDescendantByType<T>(visual);
+				if (foundElement != null) break;
+			}
+			return (T)foundElement;
 		}
 
 		public static TValue GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue value)
@@ -298,9 +316,9 @@ namespace Happy_Reader
 			var result = Enum.GetValues(enumType);
 			return result.Length == 0 ? new ComboBoxItem[0] : result.Cast<Enum>().Select(x => new ComboBoxItem
 			{
-				Content = x.GetDescription(), 
-				Tag = x, 
-				HorizontalContentAlignment = HorizontalAlignment.Left, 
+				Content = x.GetDescription(),
+				Tag = x,
+				HorizontalContentAlignment = HorizontalAlignment.Left,
 				VerticalContentAlignment = VerticalAlignment.Center
 			}).ToArray();
 		}
@@ -407,7 +425,7 @@ namespace Happy_Reader
 			}
 		}
 
-		public static Dictionary<string, FontFamily> FontsInstalled = 
+		public static Dictionary<string, FontFamily> FontsInstalled =
 			//select all font families
 			Fonts.SystemFontFamilies
 				//for each font family
@@ -415,7 +433,7 @@ namespace Happy_Reader
 						//select unique font names
 						ff.FamilyNames.GroupBy(fn => fn.Value).Select(fng => fng.First())
 						//create map of font name to font family (for this font family)
-						.Select(f => new KeyValuePair<string, FontFamily>(f.Value, ff))) 
+						.Select(f => new KeyValuePair<string, FontFamily>(f.Value, ff)))
 			//create dictionary of unique font name to font family
 			.ToDictionary(f => f.Key, f => f.Value);
 

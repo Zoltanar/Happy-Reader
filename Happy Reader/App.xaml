@@ -12,8 +12,9 @@
 		<view:NullableToOpacityConverter x:Key="NullableToOpacityConverter" />
 		<view:NullableToVisibilityConverter x:Key="NullableToVisibilityConverter" />
 		<view:NullableToBooleanConverter x:Key="NullableToBooleanConverter" />
+		<view:CharacterToBackBrushConverter x:Key="CharacterToBackBrushConverter" />
 		<view:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-		<view:VnToSpecialFlagVisibilityConverter x:Key="VnToSpecialFlagVisibilityConverter" />
+		<view:VnOrCharacterToAlertFlagVisibilityConverter x:Key="VnOrCharacterToAlertFlagVisibilityConverter" />
 		<view:OwnedStatusToVisibilityConverter x:Key="OwnedStatusToVisibilityConverter" />
 		<view:OwnedStatusToColorConverter x:Key="OwnedStatusToColorConverter" />
 		<view:OwnedStatusToTextConverter x:Key="OwnedStatusToTextConverter" />
@@ -55,6 +56,16 @@
 					</ControlTemplate>
 				</Setter.Value>
 			</Setter>
+		</Style>
+		<Style TargetType="Border" x:Key="AlertFlagStyle">
+			<Setter Property="Width" Value="20"/>
+			<Setter Property="Height" Value="20"/>
+			<Setter Property="HorizontalAlignment" Value="Right"/>
+			<Setter Property="VerticalAlignment" Value="Top"/>
+			<Setter Property="BorderBrush" Value="Purple"/>
+			<Setter Property="BorderThickness" Value="2"/>
+			<Setter Property="CornerRadius" Value="10"/>
+			<Setter Property="Background" Value="MediumPurple"/>
 		</Style>
 	</Application.Resources>
 

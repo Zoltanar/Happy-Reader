@@ -114,8 +114,10 @@ namespace DatabaseDumpReader.DumpItems
 			Id = id == "\\N" ? null : id;
 			Width = Convert.ToInt32(GetPart(parts, "width"));
 			Height = Convert.ToInt32(GetPart(parts, "height"));
-			Sexual = Convert.ToDouble(GetPart(parts, "c_sexual_avg"));
-			Violence = Convert.ToDouble(GetPart(parts, "c_violence_avg"));
+			var sexualAvg = GetPart(parts, "c_sexual_avg");
+			Sexual = sexualAvg == "\\N" ? 0 : Convert.ToDouble(sexualAvg);
+			var violenceAvg = GetPart(parts, "c_violence_avg");
+			Violence = violenceAvg == "\\N" ? 0 : Convert.ToDouble(violenceAvg);
 		}
 
 		public int Height { get; set; }

@@ -5,7 +5,6 @@ using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
-using System.Windows.Media;
 using Happy_Apps_Core.DataAccess;
 using Happy_Apps_Core.Database;
 using JetBrains.Annotations;
@@ -37,6 +36,8 @@ namespace Happy_Apps_Core
 		public string ImageId { get; set; }
 		#endregion
 
+		public double? TraitScore { get; set; }
+
 		/// <summary>
 		/// Only used in json convert from vndb
 		/// </summary>
@@ -57,24 +58,7 @@ namespace Happy_Apps_Core
 		public IEnumerable<VnSeiyuu> Seiyuus => StaticHelpers.LocalDatabase.VnSeiyuus.Where(s => s.CharacterID == ID);
 
 		public VnSeiyuu Seiyuu => Seiyuus.FirstOrDefault();
-
-		[NotMapped]
-		public Brush BackBrush
-		{
-			get
-			{
-				return CharacterVN?.Role switch
-				{
-					"main" => Brushes.Gold,
-					"primary" => Brushes.Orchid,
-					"side" => Brushes.GreenYellow,
-					"appears" => Brushes.LightBlue,
-					null => Brushes.Gray,
-					_ => Brushes.White
-				};
-			}
-		}
-
+		
 		public string GenderSymbol
 		{
 			get
@@ -145,8 +129,8 @@ namespace Happy_Apps_Core
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
 		{
 			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO CharacterItems" +
-									 "(ID,Name,Original,Gender,Aliases,Description,Image) VALUES " +
-									 "(@ID,@Name,@Original,@Gender,@Aliases,@Description,@Image)";
+									 "(ID,Name,Original,Gender,Aliases,Description,Image,TraitScore) VALUES " +
+									 "(@ID,@Name,@Original,@Gender,@Aliases,@Description,@Image,@TraitScore)";
 			var command = connection.CreateCommand();
 			command.CommandText = sql;
 			command.AddParameter("@ID", ID);
@@ -156,6 +140,7 @@ namespace Happy_Apps_Core
 			command.AddParameter("@Aliases", Aliases);
 			command.AddParameter("@Description", Description);
 			command.AddParameter("@Image", ImageId);
+			command.AddParameter("@TraitScore", TraitScore);
 			return command;
 		}
 
@@ -171,6 +156,7 @@ namespace Happy_Apps_Core
 				Description = Convert.ToString(reader["Description"]);
 				var imageIdObject = reader["Image"];
 				if (!imageIdObject.Equals(DBNull.Value)) ImageId = Convert.ToString(imageIdObject);
+				TraitScore = StaticHelpers.GetNullableDouble(reader["TraitScore"]);
 			}
 			catch (Exception ex)
 			{
@@ -218,6 +204,29 @@ namespace Happy_Apps_Core
 			clone.Traits = Traits;
 			clone.Voiced = Voiced;
 			return clone;
+		}
+
+		private bool? _alertFlag;
+
+		public bool GetAlertFlag(IEnumerable<int> alertTraitIDs)
+		{
+			if (_alertFlag.HasValue) return _alertFlag.Value;
+			if (TraitScore.HasValue) _alertFlag = TraitScore > 0;
+			else
+			{
+				var alert = false;
+				foreach (var traitId in alertTraitIDs)
+				{
+					var trait = DumpFiles.GetTrait(traitId);
+					if (trait == null) continue;
+					var found = DbTraits.Any(t => trait.AllIDs.Contains(t.TraitId));
+					if (!found) continue;
+					alert = true;
+					break;
+				}
+				_alertFlag = alert;
+			}
+			return _alertFlag.Value;
 		}
 	}
 }

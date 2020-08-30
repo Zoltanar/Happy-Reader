@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
@@ -27,22 +30,36 @@ namespace Happy_Reader.View.Tiles
 																									 ?? MainViewModel.CharactersViewModel;
 
 		private readonly bool _hideTraits;
+		private readonly bool _forVnTab;
 
-		public CharacterTile(CharacterItem character, bool hideTraits)
+		public CharacterTile(CharacterItem character, bool hideTraits, bool forVnTab)
 		{
 			InitializeComponent();
 			_viewModel = character;
 			DataContext = _viewModel;
 			DescriptionBox.Visibility = hideTraits ? Visibility.Collapsed : Visibility.Visible;
 			_hideTraits = hideTraits;
+			_forVnTab = forVnTab;
 		}
 
 		private bool _loaded;
+
+		private static readonly IValueConverter StaticUserVnToBackgroundConverter = new UserVnToBackgroundConverter();
 
 		private void CharacterTile_OnLoaded(object sender, RoutedEventArgs e)
 		{
 			if (_loaded) return;
 			if (_viewModel.ImageSource != DependencyProperty.UnsetValue) ImageBox.Source = new BitmapImage(new Uri((string)_viewModel.ImageSource));
+			if (_forVnTab)
+			{
+				VisualNovelNameBox.Visibility = Visibility.Collapsed;
+				VisualNovelReleaseBox.Visibility = Visibility.Collapsed;
+			}
+			else
+			{
+				//if not for VN tab, we set the background based on user vn status.
+				BorderElement.Background = (Brush)StaticUserVnToBackgroundConverter.Convert(_viewModel.VisualNovel?.UserVN, typeof(Brush), "1", CultureInfo.CurrentCulture);
+			}
 			if (_hideTraits) return;
 			var linkList = new List<Inline>();
 			if (_viewModel.ID != 0)
@@ -79,12 +96,12 @@ namespace Happy_Reader.View.Tiles
 		{
 			var character = StaticHelpers.LocalDatabase.Characters.First(c => c.ID == cvn.CharacterId).Clone();
 			character.CharacterVN = cvn;
-			return new CharacterTile(character, false);
+			return new CharacterTile(character, false, true);
 		}
 
 		public static CharacterTile FromCharacter(CharacterItem character, bool hideTraits)
 		{
-			return new CharacterTile(character, hideTraits);
+			return new CharacterTile(character, hideTraits, false);
 		}
 
 		private void ID_OnClick(object sender, RoutedEventArgs e)

@@ -51,11 +51,11 @@ namespace Happy_Reader.View
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if (!(value is string text)) throw new NotSupportedException("Input must be a string.");
-			if (string.IsNullOrWhiteSpace(text)) return (int?) null;
+			if (string.IsNullOrWhiteSpace(text)) return null;
 			return int.Parse(text);
 		}
 
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => 
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
 			new NotSupportedException($"From {nameof(StringToNullableIntConverter)}");
 	}
 
@@ -78,7 +78,8 @@ namespace Happy_Reader.View
 
 	public class NullableToVisibilityConverter : IValueConverter
 	{
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => value == null ? Visibility.Collapsed : Visibility.Visible;
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture) 
+			=> value == null  || value is string sValue && string.IsNullOrWhiteSpace(sValue)? Visibility.Collapsed : Visibility.Visible;
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => new NotSupportedException();
 	}
@@ -102,13 +103,17 @@ namespace Happy_Reader.View
 			throw new NotSupportedException();
 	}//✔️ //
 
-	public class VnToSpecialFlagVisibilityConverter : IValueConverter
+	public class VnOrCharacterToAlertFlagVisibilityConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (!(value is ListedVN vn)) throw new NotSupportedException($"Value was type {value.GetType()}");
-			var alert = vn.GetAlertFlag(StaticHelpers.CSettings.AlertTagIDs, StaticHelpers.CSettings.AlertTraitIDs);
-			return alert ? Visibility.Visible : Visibility.Hidden;
+			bool alertFlag = value switch
+			{
+				ListedVN vn => vn.GetAlertFlag(StaticHelpers.CSettings.AlertTagIDs, StaticHelpers.CSettings.AlertTraitIDs),
+				CharacterItem ch => ch.GetAlertFlag(StaticHelpers.CSettings.AlertTraitIDs),
+				_ => throw new NotSupportedException($"Object {value} is of unsupported type {value?.GetType()}")
+			};
+			return alertFlag ? Visibility.Visible : Visibility.Hidden;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
@@ -187,12 +192,9 @@ namespace Happy_Reader.View
 
 	public class UserVnToBackgroundConverter : IValueConverter
 	{
-		/// <summary>
-		/// If parameter is 1, the fallback brush is transparent, else it will be the default tile brush.
-		/// </summary>
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is null) return parameter is string sP && sP == "1" ? Brushes.Transparent : Theme.DefaultTileBrush;
+			if (value is null) return Theme.DefaultTileBrush;
 			if (!(value is UserVN userVN)) throw new NotSupportedException();
 			var excludedLabels = new List<UserVN.LabelKind> { UserVN.LabelKind.Wishlist, UserVN.LabelKind.Voted };
 			var label = userVN.Labels.FirstOrDefault(i => !excludedLabels.Contains(i));
@@ -207,7 +209,7 @@ namespace Happy_Reader.View
 				UserVN.LabelKind.WishlistMedium => Theme.WLMediumBrush,
 				UserVN.LabelKind.WishlistLow => Theme.WLLowBrush,
 				UserVN.LabelKind.Blacklist => Theme.WLBlacklistBrush,
-				_ => parameter is string sP2 && sP2 == "1" ? Brushes.Transparent : Theme.DefaultTileBrush
+				_ => Theme.DefaultTileBrush
 			};
 		}
 
@@ -233,6 +235,26 @@ namespace Happy_Reader.View
 			if (value is null) return Brushes.White;
 			if (!(value is ListedVN vn)) throw new NotSupportedException();
 			return StaticHelpers.VNIsByFavoriteProducer(vn) ? Theme.FavoriteProducerBrush : (vn.UserVN?.Blacklisted ?? false) ? Brushes.White : Brushes.Black;
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
+	}
+
+	public class CharacterToBackBrushConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			if (value is null) return Theme.DefaultTileBrush;
+			if (!(value is CharacterItem character)) throw new NotSupportedException();
+			return character.CharacterVN?.Role switch
+			{
+				"main" => Brushes.Gold,
+				"primary" => Brushes.Orchid,
+				"side" => Brushes.GreenYellow,
+				"appears" => Brushes.LightBlue,
+				null => Brushes.Gray,
+				_ => Brushes.White
+			};
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();

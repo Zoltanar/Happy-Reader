@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Reader.ViewModel;
@@ -14,12 +14,12 @@ namespace Happy_Reader.View
 {
 	public partial class VnMenuItem : ItemsControl
 	{
+		private static readonly Regex MinusRegex = new Regex(@"[-－ー]");
+
 		[NotNull]
 		private MainWindow MainWindow(FrameworkElement sender) => (MainWindow)Window.GetWindow(sender) ?? throw new ArgumentNullException(nameof(MainWindow));
-
 		private MainWindowViewModel MainViewModel(FrameworkElement sender) => MainWindow(sender).ViewModel;
 		private VNTabViewModel ViewModel(FrameworkElement sender) => MainViewModel(sender).DatabaseViewModel;
-
 		private ListedVN VN => (ListedVN)DataContext;
 
 		public VnMenuItem(ListedVN vn)
@@ -35,12 +35,12 @@ namespace Happy_Reader.View
 			if (!Uri.IsWellFormedUriString(VN.ReleaseLink, UriKind.Absolute)) throw new InvalidOperationException($"'{VN.ReleaseLink}' is not a well formed URI.");
 			Process.Start(VN.ReleaseLink);
 		}
-
+		
 		private void BrowseToExtraPage(object sender, RoutedEventArgs e)
 		{
 			var title = string.IsNullOrWhiteSpace(VN.KanjiTitle) ? VN.Title : VN.KanjiTitle;
 			//remove minus so search includes term
-			var titleFixed = title.Replace("-", "").Replace("ー", "");
+			var titleFixed = MinusRegex.Replace(title, string.Empty);
 			Process.Start(StaticMethods.GSettings.ExtraPageLink.Replace("%s", titleFixed));
 		}
 

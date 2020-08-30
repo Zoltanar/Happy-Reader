@@ -20,7 +20,7 @@
 			<MenuItem Header="Show Characters For Seiyuu" Click="ShowCharactersForSeiyuu" IsEnabled="{Binding Seiyuu, Converter={StaticResource NullableToBooleanConverter}}"/>
 		</ContextMenu>
 	</UserControl.ContextMenu>
-	<Border BorderBrush="Black" BorderThickness="1" CornerRadius="10" Background="{Binding BackBrush}">
+	<Border x:Name="BorderElement" BorderBrush="Black" BorderThickness="1" CornerRadius="10" Background="{Binding ., Converter={StaticResource CharacterToBackBrushConverter}}">
 		<Grid>
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="230"/>
@@ -34,18 +34,21 @@
 				</Grid.RowDefinitions>
 				<TextBox Grid.Row="0" VerticalAlignment="Top" Height="26" Margin="0,10,0,0">
 					<TextBox.Text>
-						<MultiBinding StringFormat="{}{0} ({1})">
+						<MultiBinding StringFormat="{}{0} {1}">
 							<Binding Path="Name" Mode="OneWay"/>
 							<Binding Path="GenderSymbol" Mode="OneWay"/>
 						</MultiBinding>
 					</TextBox.Text>
 				</TextBox>
-				<Image Grid.Row="1" x:Name="ImageBox"/>
+				<Border Grid.Row="0" Margin="0,10,0,0" Style="{StaticResource AlertFlagStyle}" Visibility="{Binding Path=., Converter={StaticResource VnOrCharacterToAlertFlagVisibilityConverter}}">
+					<TextBlock Foreground="White" TextAlignment="Center" Text="S" />
+				</Border>
+				<Image Grid.Row="1" x:Name="ImageBox" MaxHeight="300" MaxWidth="250"/>
 				<StackPanel Grid.Row="2">
-					<TextBox Text="{Binding Original, Mode=OneWay}" Padding="5,0,0,0" />
-					<TextBox Text="{Binding Seiyuu, Mode=OneWay}" Padding="5,0,0,0"/>
-					<TextBox Text="{Binding VisualNovelName, Mode=OneWay}" Padding="5,0,0,0" Background="{Binding VisualNovel.UserVN, Converter={StaticResource UserVnToBackgroundConverter}, ConverterParameter=1}" Foreground="{Binding VisualNovel.UserVN, Converter={StaticResource UserVnToForegroundConverter}}"/>
-					<TextBox Text="{Binding VisualNovelReleaseDate, Mode=OneWay}" Padding="5,0,0,0"/>
+					<TextBox Text="{Binding Original, Mode=OneWay}" Visibility="{Binding Original, Converter={StaticResource NullableToVisibilityConverter}}" Padding="5,0,0,0" />
+					<TextBox Text="{Binding Seiyuu, Mode=OneWay}" Visibility="{Binding Seiyuu, Mode=OneWay, Converter={StaticResource NullableToVisibilityConverter}}" Padding="5,0,0,0"/>
+					<TextBox x:Name="VisualNovelNameBox" Text="{Binding VisualNovelName, Mode=OneWay}" Padding="5,0,0,0" />
+					<TextBox x:Name="VisualNovelReleaseBox" Text="{Binding VisualNovelReleaseDate, Mode=OneWay}" Padding="5,0,0,0"/>
 				</StackPanel>
 			</Grid>
 			<Label Grid.Column="0" Margin="0,-1,2,0" VerticalAlignment="Top" Foreground="#FF9C9C9C" FontSize="9" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="34">

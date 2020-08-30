@@ -48,12 +48,24 @@ namespace Happy_Apps_Core
 			_database = database;
 		}
 
-		public double GetScore(ListedVN vn, bool useNewConnection)
+		public void SetScore(ListedVN vn, bool useNewConnection)
 		{
 			var tagScore = Tags.Sum(sTag => vn.Tags.Where(vnTag => sTag.Key.AllIDs.Contains(vnTag.TagId)).Sum(vnTag => sTag.Value * vnTag.Score));
 			var traitScore = _database.GetTraitScoreForVn(vn.VNID, IdTraits, useNewConnection);
 			vn.Suggestion = new SuggestionScoreObject(tagScore/ MaxTagScore, traitScore / MaxTraitScore);
-			return vn.Suggestion.Score;
+		}
+		
+		public void SetScore(CharacterItem character, IEnumerable<int> traitIds)
+		{
+			var score = 0d;
+			if (traitIds != null)
+			{
+				foreach (var traitId in traitIds)
+				{
+					if (IdTraits.TryGetValue(traitId, out var value)) score += value;
+				}
+			}
+			character.TraitScore = score;
 		}
 	}
 }

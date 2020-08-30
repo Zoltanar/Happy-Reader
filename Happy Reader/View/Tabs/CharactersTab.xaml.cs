@@ -40,6 +40,8 @@ namespace Happy_Reader.View.Tabs
 			if (DesignerProperties.GetIsInDesignMode(this)) return;
 			ViewModel = (CharactersTabViewModel)DataContext;
 			_mainWindow = (MainWindow)Window.GetWindow(this);
+			var scrollViewer = this.GetDescendantByType<ScrollViewer>();
+			ViewModel.ScrollToTop = () => scrollViewer.ScrollToTop();
 			ViewModel.OnPropertyChanged(nameof(ViewModel.ProducerList));
 		}
 
