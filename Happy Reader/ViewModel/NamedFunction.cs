@@ -43,11 +43,11 @@ namespace Happy_Reader.ViewModel
 			return Function(localDatabase);
 		}
 
-		public override string ToString() => (Selected ? $"[✔] " : "") + Name;
+		public override string ToString() => (Selected ? "[✔] " : "") + Name;
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		[NotifyPropertyChangedInvocator]
-		protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+		protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}

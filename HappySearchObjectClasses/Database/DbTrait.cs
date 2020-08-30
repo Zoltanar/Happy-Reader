@@ -12,25 +12,12 @@ namespace Happy_Apps_Core.Database
 	/// </summary>
 	public sealed class DbTrait : IDataItem<(int, int)>, IDataListItem<int>, IDumpItem
 	{
-
 		public int CharacterItem_Id { get; set; }
 
 		public int TraitId { get; set; }
 
 		public int Spoiler { get; set; }
-
-		public static DbTrait From(CharacterItem.TraitItem trait, int cid)
-		{
-			var result = new DbTrait
-			{
-				CharacterItem_Id = cid,
-				TraitId = trait.ID,
-				Spoiler = trait.Spoiler
-			};
-			return result;
-		}
-
-
+		
 		#region IDataItem Implementation
 
 		public string KeyField { get; } = "(CharacterItem_Id, TraitId)";
@@ -65,28 +52,6 @@ namespace Happy_Apps_Core.Database
 		}
 		#endregion
 		
-		public static EqualityComparer ValueComparer { get; } = new EqualityComparer();
-
-		public class EqualityComparer : IEqualityComparer<DbTrait>
-		{
-			public bool Equals(DbTrait x, DbTrait y)
-			{
-				if (x is null && y is null) return true;
-				if (x == null ^ y == null) return false;
-				if (x.CharacterItem_Id != y.CharacterItem_Id) return false;
-				if (x.TraitId != y.TraitId) return false;
-				return true;
-			}
-
-			public int GetHashCode(DbTrait obj)
-			{
-				unchecked
-				{
-					return (obj.CharacterItem_Id * 397) ^ obj.TraitId;
-				}
-			}
-		}
-
 		public void LoadFromStringParts(string[] parts)
 		{
 			CharacterItem_Id = Convert.ToInt32(GetPart(parts,"id"));

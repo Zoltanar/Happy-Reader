@@ -11,7 +11,8 @@ namespace Happy_Reader
 		{
 			DispatcherUnhandledException += App_DispatcherUnhandledException;
 		}
-		void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+
+		private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
 		{
 			if (_showingError)
 			{

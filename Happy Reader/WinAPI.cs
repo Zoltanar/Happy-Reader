@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace Happy_Reader
 {
-	public class WinAPI
+	public static class WinAPI
 	{
 		public delegate void WinEventDelegate(
 			IntPtr hWinEventHook,

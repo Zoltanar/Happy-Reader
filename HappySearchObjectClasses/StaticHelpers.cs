@@ -28,23 +28,17 @@ namespace Happy_Apps_Core
 		public const string TagsURL = "http://vndb.org/api/tags.json.gz";
 		public const string TraitsURL = "http://vndb.org/api/traits.json.gz";
 		public const string ProjectURL = "https://github.com/Zoltanar/Happy-Reader";
+		public const string ProgramDataFolder = "Program Data";
 		public static readonly string AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Happy Reader");
 		public static readonly string StoredDataFolder = Path.Combine(AppDataFolder, "Stored Data");
 		public static readonly string LogsFolder = Path.Combine(AppDataFolder, "Logs");
-		public static readonly string ProgramDataFolder = "Program Data";
 
-		public static readonly string DefaultTraitsJson = Path.Combine(ProgramDataFolder,"Default Files\\traits.json");
+		public static readonly string DefaultTraitsJson = Path.Combine(ProgramDataFolder, "Default Files\\traits.json");
 		public static readonly string DefaultTagsJson = Path.Combine(ProgramDataFolder, "Default Files\\tags.json");
 		public static readonly string NsfwImageFile = Path.Combine(ProgramDataFolder, "Default Files\\nsfw-image.png");
-		public static readonly string NoImageFile =  Path.Combine(ProgramDataFolder, "Default Files\\no-image.png");
+		public static readonly string NoImageFile = Path.Combine(ProgramDataFolder, "Default Files\\no-image.png");
 		public static readonly string FlagsFolder = Path.Combine(ProgramDataFolder, "Flags\\");
-
-		public static readonly string ImagesFolder = Path.Combine(StoredDataFolder, "vndb-img\\");/*
-		public static readonly string CoverImagesFolder = Path.Combine(StoredDataFolder, "vndb-img\\cv\\");
-		public static readonly string VNScreensFolder = Path.Combine(StoredDataFolder, "vndb-img\\sf\\");
-		public static readonly string CharacterImagesFolder = Path.Combine(StoredDataFolder, "vndb-img\\ch\\");*/
-		public static readonly string DBStatsJson = Path.Combine(StoredDataFolder, "dbs.json");
-		public static readonly string SettingsJson = Path.Combine(StoredDataFolder, "settings.json");
+		public static readonly string ImagesFolder = Path.Combine(StoredDataFolder, "vndb-img\\");
 		public static readonly string CoreSettingsJson = Path.Combine(StoredDataFolder, "coresettings.json");
 		public static readonly string DatabaseFile = Path.Combine(StoredDataFolder, "Happy-Apps.sqlite");
 #pragma warning restore 1591
@@ -52,11 +46,9 @@ namespace Happy_Apps_Core
 
 #pragma warning disable 1591
 		public const string ClientName = "Happy Reader";
-		public const string ClientVersion = "2.0.0";
-		public const string APIVersion = "2.25";
-		public const int APIMaxResults = 25;
-		public static readonly string MaxResultsString = "\"results\":" + APIMaxResults;
-		
+		public const string ClientVersion = "2.1.0";
+		public const string APIVersion = "2020-07-09";
+
 		/// <summary>
 		/// Categories of VN Tags
 		/// </summary>
@@ -278,7 +270,7 @@ namespace Happy_Apps_Core
 		public static int? ToUnixTimestamp(this DateTime? dateTime)
 		{
 			if (!dateTime.HasValue) return null;
-			return (int) ToUnixTimestamp(dateTime.Value);
+			return (int)ToUnixTimestamp(dateTime.Value);
 		}
 
 		/// <summary>
@@ -308,8 +300,8 @@ namespace Happy_Apps_Core
 			byte[] cipherText = ProtectedData.Protect(stringBytes, entropy, DataProtectionScope.CurrentUser);
 			//store data
 			var key = Registry.CurrentUser.OpenSubKey(PasswordRegistryKey, true) ??
-			          Registry.CurrentUser.CreateSubKey(PasswordRegistryKey, true) ??
-				throw new ArgumentNullException(@"key",$"Registry key not found/created: {PasswordRegistryKey}");
+								Registry.CurrentUser.CreateSubKey(PasswordRegistryKey, true);
+			if (key == null) throw new ArgumentNullException(nameof(key), $"Registry key not found/created: {PasswordRegistryKey}");
 			key.SetValue(PasswordRegistryCipherValueName, cipherText);
 			key.SetValue(PasswordRegistryEntropyValueName, entropy);
 			key.Close();
@@ -343,12 +335,12 @@ namespace Happy_Apps_Core
 
 		public static DateTime? GetNullableDate(object dbObject)
 		{
-			return dbObject == DBNull.Value ? (DateTime?) null : Convert.ToDateTime(dbObject);
+			return dbObject == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(dbObject);
 		}
 
 		public static int? GetNullableInt(object dbObject)
 		{
-			return dbObject == DBNull.Value ? (int?) null : Convert.ToInt32(dbObject);
+			return dbObject == DBNull.Value ? (int?)null : Convert.ToInt32(dbObject);
 		}
 
 		public static double? GetNullableDouble(object dbObject)
@@ -390,7 +382,7 @@ namespace Happy_Apps_Core
 				return true;
 			}
 			catch (Exception ex) when (ex is NotSupportedException || ex is ArgumentNullException ||
-			                           ex is SecurityException || ex is UriFormatException || ex is ExternalException)
+																 ex is SecurityException || ex is UriFormatException || ex is ExternalException)
 			{
 				Logger.ToFile(ex);
 				return false;
@@ -409,7 +401,7 @@ namespace Happy_Apps_Core
 				}
 				catch (Exception ex)
 				{
-					if (!exceptionValid(ex) || attempts == maxAtempts-1) throw;
+					if (!exceptionValid(ex) || attempts == maxAtempts - 1) throw;
 					onFailure?.Invoke();
 					attempts++;
 				}

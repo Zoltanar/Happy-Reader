@@ -6,7 +6,7 @@ namespace Happy_Apps_Core
 	public class CoreSettings : SettingsJsonFile
 	{
 		private string _username = "guest";
-		private int _userID = 0;
+		private int _userID;
 		private DateTime _dumpfileDate = DateTime.MinValue;
 
 		/// <summary>

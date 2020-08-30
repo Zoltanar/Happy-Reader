@@ -25,7 +25,7 @@ namespace Happy_Reader.Database
 		public string Data { get; set; }
 
 		[NotMapped]
-		public Paragraph Description => _paragraph ?? (_paragraph = GetParagraph());
+		public Paragraph Description => _paragraph ??= GetParagraph();
 
 		[NotMapped]
 		public object ParsedData

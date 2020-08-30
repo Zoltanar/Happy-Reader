@@ -58,27 +58,6 @@ namespace Happy_Reader.ViewModel
 			await RefreshListedProducers();
 		}
 
-		public void VndbConnectionText(string text, VndbConnection.MessageSeverity severity)
-		{
-			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
-			Application.Current.Dispatcher.Invoke(() =>
-			{
-				VndbConnectionReply = text;
-				switch (severity)
-				{
-					case VndbConnection.MessageSeverity.Normal:
-						VndbConnectionColor = new SolidColorBrush(Colors.Black);
-						return;
-					case VndbConnection.MessageSeverity.Warning:
-						VndbConnectionColor = new SolidColorBrush(Colors.Yellow);
-						return;
-					case VndbConnection.MessageSeverity.Error:
-						VndbConnectionColor = new SolidColorBrush(Colors.Red);
-						return;
-				}
-			});
-		}
-
 		public async Task RefreshListedProducers(bool showAll = false)
 		{
 			await Task.Run(RefreshListedProducersTask(showAll));

@@ -169,7 +169,6 @@
     <Compile Include="View\Tabs\FiltersTab.xaml.cs">
       <DependentUpon>FiltersTab.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View\IdFromProducerConverter.cs" />
     <Compile Include="View\Tabs\IthVnrTab.xaml.cs">
       <DependentUpon>IthVnrTab.xaml</DependentUpon>
     </Compile>

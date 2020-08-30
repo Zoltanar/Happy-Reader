@@ -15,19 +15,6 @@ namespace Happy_Apps_Core.Database
 		public string Role { get; set; }
 		public int VNId { get; set; }
 
-		public static CharacterVN From(CharacterItem.VNItem cvn,int characterId)
-		{
-			var result = new CharacterVN
-			{
-				CharacterId = characterId,
-				VNId = cvn.ID,
-				RId = cvn.RID,
-				Spoiler = cvn.Spoiler,
-				Role = cvn.Role
-			};
-			return result;
-		}
-
 		public override string ToString() => $"[CID: {CharacterId}, VNID: {VNId}]";
 
 		public static Dictionary<string, int> Headers = new Dictionary<string, int>();

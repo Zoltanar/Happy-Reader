@@ -35,9 +35,9 @@ namespace DatabaseDumpReader.DumpItems
 			Headers = parts.ToDictionary(c => c, c => colIndex++);
 		}
 
-		public VNItem.RelationsItem ToRelationItem()
+		public RelationsItem ToRelationItem()
 		{
-			return new VNItem.RelationsItem
+			return new RelationsItem
 			{
 				ID = VnId,
 				Relation = Relation,
@@ -93,15 +93,15 @@ namespace DatabaseDumpReader.DumpItems
 			Headers = parts.ToDictionary(c => c, c => colIndex++);
 		}
 
-		public VNItem.AnimeItem ToAnimeItem(Dictionary<int, DumpAnime> animeDict)
+		public AnimeItem ToAnimeItem(Dictionary<int, DumpAnime> animeDict)
 		{
 			var anime = animeDict[AnimeId];
-			return new VNItem.AnimeItem
+			return new AnimeItem
 			{
 				ID = AnimeId,
 				Year = anime.Year,
-				Title_Romaji = anime.Title_Romaji,
-				Title_Kanji = anime.Title_Kanji
+				RomajiTitle = anime.Title_Romaji,
+				OriginalTitle = anime.Title_Kanji
 			};
 		}
 	}
@@ -169,10 +169,10 @@ namespace DatabaseDumpReader.DumpItems
 			Headers = parts.ToDictionary(c => c, c => colIndex++);
 		}
 
-		public VNItem.ScreenItem ToScreenItem(Dictionary<string, DumpScreen> imageDictionary)
+		public ScreenItem ToScreenItem(Dictionary<string, DumpScreen> imageDictionary)
 		{
 			if (!imageDictionary.TryGetValue(ImageId, out var image)) return null;
-			return new VNItem.ScreenItem
+			return new ScreenItem
 			{
 				ImageId = ImageId,
 				Nsfw = image.Nsfw,

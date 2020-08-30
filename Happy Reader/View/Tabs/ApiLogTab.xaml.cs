@@ -1,32 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
+﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using Happy_Apps_Core;
-using Happy_Reader.ViewModel;
 using Newtonsoft.Json;
 
 namespace Happy_Reader.View.Tabs
 {
 	public partial class ApiLogTab : UserControl
 	{
-		public ApiLogTab()
-		{
-			InitializeComponent();
-		}
+		public ApiLogTab() => InitializeComponent();
 
-		private void SendQueryButton(object sender, RoutedEventArgs e)
-		{
-			StaticHelpers.Conn.SendQuery(QueryTextBox.Text);
-		}
+		private void SendQueryButton(object sender, RoutedEventArgs e) => StaticHelpers.Conn.SendQuery(QueryTextBox.Text);
 
-		private void ClearQueryButton(object sender, RoutedEventArgs e)
-		{
-			QueryTextBox.Clear();
-		}
+		private void ClearQueryButton(object sender, RoutedEventArgs e) => QueryTextBox.Clear();
 	}
 
 	public class ApiLogViewModel

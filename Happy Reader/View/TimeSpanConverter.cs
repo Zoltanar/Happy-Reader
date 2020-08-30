@@ -10,8 +10,7 @@ namespace Happy_Reader.View
 		{
 			if(!(value is TimeSpan ts) || targetType != typeof(string)) throw new NotImplementedException();
 			if (ts.TotalMinutes < 1) return $"{ts.Seconds:00} s";
-			if (ts.TotalHours < 1) return $"{ts.Minutes:00} m";
-			return $"{(int) ts.TotalHours}:{ts.Minutes:00}";
+			return ts.TotalHours < 1 ? $"{ts.Minutes:00} m" : $"{(int) ts.TotalHours}:{ts.Minutes:00}";
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

@@ -20,7 +20,7 @@ namespace Happy_Reader.View.Tabs
 
 		private void PasswordChanged(object sender, KeyEventArgs e)
 		{
-			if ((e as KeyEventArgs).Key != Key.Enter) return;
+			if (e.Key != Key.Enter) return;
 			var pwBox = (PasswordBox)sender;
 			StaticHelpers.SavePassword(pwBox.Password.ToCharArray());
 			LoginResponseBlock.Text = "Saved new password.";

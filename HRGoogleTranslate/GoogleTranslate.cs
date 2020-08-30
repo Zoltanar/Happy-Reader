@@ -153,6 +153,7 @@ namespace HRGoogleTranslate
 			{
 				var jArray = JsonConvert.DeserializeObject<JArray>(jsonString);
 				var translatedObject = jArray[0][0];
+				Debug.Assert(translatedObject != null, nameof(translatedObject) + " != null");
 				translated = (translatedObject[0] ?? throw new InvalidOperationException("Json object was not o expected format.")).Value<string>();
 				return true;
 			}

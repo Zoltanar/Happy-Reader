@@ -374,9 +374,11 @@ namespace Happy_Reader.ViewModel
 			// ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
 			foreach (JObject item in array)
 			{
+				// ReSharper disable PossibleNullReferenceException
 				var r = item["role"].ToString();
 				var i = item["input"].ToString();
 				var o = item["output"].ToString();
+				// ReSharper restore PossibleNullReferenceException
 				var proxy = StaticMethods.Data.Entries.SingleOrDefault(x => x.RoleString.Equals(r) && x.Input.Equals(i));
 				if (proxy == null)
 				{
@@ -505,7 +507,7 @@ namespace Happy_Reader.ViewModel
 				var rect = StaticMethods.GetWindowDimensions(UserGame.Process);
 				if (rect.IsEmpty) return false; //todo show it somehow or show error.
 				Translation translation;
-				if (false && e.FromClipboard) //todo fix this
+				if (false /*e.FromClipboard todo fix this*/)
 				{
 					translation = new Translation(e.Text, true);
 				}

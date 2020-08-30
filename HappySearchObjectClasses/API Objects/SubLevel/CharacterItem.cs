@@ -17,48 +17,23 @@ using JetBrains.Annotations;
 
 namespace Happy_Apps_Core
 {
-	/// <summary>
-	/// From get character commands
-	/// </summary>
-	public partial class CharacterItem : IDataItem<int>, IDumpItem, ICloneable
+	public class CharacterItem : IDataItem<int>, IDumpItem, ICloneable
 	{
-		public int ID { get; set; }
+		private string _imageSource;
+		private bool? _alertFlag;
 
-		#region Basic Flag
+		public int ID { get; set; }
 		public string Name { get; set; }
 		public string Original { get; set; }
 		public string Gender { get; set; }
-		#endregion
-
-		#region Details Flag
 		public string Aliases { get; set; }
 		public string Description { get; set; }
 		public string ImageId { get; set; }
-		#endregion
-
 		public double? TraitScore { get; set; }
 
-		/// <summary>
-		/// Only used in json convert from vndb
-		/// </summary>
-		[NotMapped]
-		public TraitItem[] Traits { get; [UsedImplicitly] set; }
-
-		/// <summary>
-		/// Only used in json convert from vndb
-		/// </summary>
-		[NotMapped]
-		public VNItem[] VNs { get; [UsedImplicitly] set; }
-
-		[NotMapped]
-		public StaffItem[] Voiced { get; [UsedImplicitly] set; }
-
 		public IEnumerable<DbTrait> DbTraits => StaticHelpers.LocalDatabase.Traits[ID];
-
 		public IEnumerable<VnSeiyuu> Seiyuus => StaticHelpers.LocalDatabase.VnSeiyuus.Where(s => s.CharacterID == ID);
-
 		public VnSeiyuu Seiyuu => Seiyuus.FirstOrDefault();
-		
 		public string GenderSymbol
 		{
 			get
@@ -72,9 +47,7 @@ namespace Happy_Apps_Core
 				};
 			}
 		}
-
-		[NotMapped, NotNull]
-		public IEnumerable<string> DisplayTraits
+		[NotNull] public IEnumerable<string> DisplayTraits
 		{
 			get
 			{
@@ -86,8 +59,6 @@ namespace Happy_Apps_Core
 				return stringList;
 			}
 		}
-
-		[NotMapped]
 		public CharacterVN CharacterVN { get; set; }
 		public ListedVN VisualNovel => CharacterVN == null ? null : StaticHelpers.LocalDatabase.VisualNovels[CharacterVN.VNId];
 		public string VisualNovelName => VisualNovel?.Title;
@@ -95,12 +66,8 @@ namespace Happy_Apps_Core
 		public DateTime? VisualNovelSortingDate => VisualNovel?.ReleaseDate;
 		public ListedProducer Producer => VisualNovel?.Producer;
 		public bool HasFullReleaseDate => VisualNovel?.HasFullDate ?? false;
-
 		public IEnumerable<CharacterVN> VisualNovels => StaticHelpers.LocalDatabase.CharacterVNs.Where(cvn => cvn.CharacterId == ID);
-
-		private object _imageSource;
-
-		public object ImageSource
+		public string ImageSource
 		{
 			get
 			{
@@ -121,8 +88,8 @@ namespace Happy_Apps_Core
 			int[] traits = DbTraits.Select(x => x.TraitId).ToArray();
 			return traitFilters.All(writtenTrait => traits.Any(characterTrait => writtenTrait.AllIDs.Contains(characterTrait)));
 		}
-		#region IDataItem Implementation
 
+		#region IDataItem Implementation
 		public string KeyField => "ID";
 		public int Key => ID;
 
@@ -171,7 +138,6 @@ namespace Happy_Apps_Core
 			character.LoadFromReader(reader);
 			return character;
 		}
-
 		#endregion
 
 		public static Dictionary<string, int> Headers = new Dictionary<string, int>();
@@ -201,12 +167,8 @@ namespace Happy_Apps_Core
 		object ICloneable.Clone()
 		{
 			var clone = (CharacterItem)this.MemberwiseClone();
-			clone.Traits = Traits;
-			clone.Voiced = Voiced;
 			return clone;
 		}
-
-		private bool? _alertFlag;
 
 		public bool GetAlertFlag(IEnumerable<int> alertTraitIDs)
 		{

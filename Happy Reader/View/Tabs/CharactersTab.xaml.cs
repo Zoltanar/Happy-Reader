@@ -81,8 +81,7 @@ namespace Happy_Reader.View.Tabs
 		private async void SelectProducer(object sender, SelectionChangedEventArgs e)
 		{
 			if (e.AddedItems.Count == 0) return;
-			var producer = e.AddedItems[0] as ListedProducer;
-			if (producer == null) return;
+			if (!(e.AddedItems[0] is ListedProducer producer)) return;
 			await ViewModel.ShowForProducer(producer);
 		}
 

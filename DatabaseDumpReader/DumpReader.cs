@@ -307,21 +307,21 @@ namespace DatabaseDumpReader
 				if (!string.IsNullOrWhiteSpace(vn.ImageId) && Images.TryGetValue(vn.ImageId, out var cover)) vn.ImageNSFW = cover.Nsfw;
 				var screensObject = VnScreens.TryGetValue(vn.VNID, out var screens)
 					? screens.Select(r => r.ToScreenItem(Images)).Where(i => i != null).ToArray()
-					: Array.Empty<VNItem.ScreenItem>();
+					: Array.Empty<ScreenItem>();
 				vn.SetScreens(JsonConvert.SerializeObject(screensObject), screensObject);
 			}
 			void ResolveAnime()
 			{
 				var animeObject = VnAnimes.TryGetValue(vn.VNID, out var animes)
 					? animes.Select(r => r.ToAnimeItem(Animes)).ToArray()
-					: Array.Empty<VNItem.AnimeItem>();
+					: Array.Empty<AnimeItem>();
 				vn.SetAnime(JsonConvert.SerializeObject(animeObject), animeObject);
 			}
 			void ResolveRelations()
 			{
 				var relationsObject = VnRelations.TryGetValue(vn.VNID, out var relations)
 					? relations.Select(r => r.ToRelationItem()).ToArray()
-					: Array.Empty<VNItem.RelationsItem>();
+					: Array.Empty<RelationsItem>();
 				vn.SetRelations(JsonConvert.SerializeObject(relationsObject), relationsObject);
 			}
 			void ResolveRelease()
@@ -348,12 +348,11 @@ namespace DatabaseDumpReader
 			var year = released.Substring(0, 4);
 			if (year == "9999") return "";
 			if (month == "99") return year;
-			if (day == "99") return $"{year}-{month}";
-			return $"{year}-{month}-{day}";
+			return day == "99" ? $"{year}-{month}" : $"{year}-{month}-{day}";
 		}
 
-		public static readonly string LatestDumpUpdateKey = @"LatestDumpUpdate";
-		public static readonly string DateFormat = @"yyyy-MM-dd";
+		public const string LatestDumpUpdateKey = @"LatestDumpUpdate";
+		public const string DateFormat = @"yyyy-MM-dd";
 
 		public static DateTime? GetLatestDumpUpdate(string databaseFile)
 		{

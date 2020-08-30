@@ -147,7 +147,7 @@ namespace Happy_Apps_Core.Database
 
 		private static void ExecuteSql(SQLiteConnection connection, string sql)
 		{
-			using var command = connection.CreateCommand(); ;
+			using var command = connection.CreateCommand();
 			command.CommandText = sql;
 			command.ExecuteNonQuery();
 		}

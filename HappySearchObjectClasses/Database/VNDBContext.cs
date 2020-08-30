@@ -6,7 +6,6 @@ using System.Data;
 using System.Data.Common;
 using System.Data.SQLite;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using Happy_Apps_Core.DataAccess;
 
@@ -15,7 +14,7 @@ using Happy_Apps_Core.DataAccess;
 namespace Happy_Apps_Core.Database
 {
 	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
-	public partial class VisualNovelDatabase
+	public class VisualNovelDatabase
 	{
 		public DACollection<int, ListedVN> VisualNovels { get; }
 		public DACollection<int, ListedProducer> Producers { get; }
@@ -31,9 +30,6 @@ namespace Happy_Apps_Core.Database
 		public DACollection<int, StaffAlias> StaffAliases { get; }
 		public DACollection<(int, int, string), VnStaff> VnStaffs { get; }
 		public DACollection<(int, int, int), VnSeiyuu> VnSeiyuus { get; }
-
-		public VisualNovelDatabase(bool loadAllTables) : this(StaticHelpers.DatabaseFile, loadAllTables)
-		{ }
 
 		public VisualNovelDatabase(string dbFile, bool loadAllTables)
 		{
@@ -90,7 +86,6 @@ namespace Happy_Apps_Core.Database
 
 		public SQLiteConnection Connection { get; }
 
-		public IEnumerable<ListedVN> URTVisualNovels => VisualNovels.Where(x => x.UserVN != null);
 		public User CurrentUser { get; set; }
 
 		public int ExecuteSqlCommand(string query, bool openNewConnection)
@@ -106,31 +101,6 @@ namespace Happy_Apps_Core.Database
 			finally
 			{
 				if (openNewConnection) Connection.Close();
-			}
-		}
-
-		public List<CharacterItem> GetCharactersForVn(int vnid)
-		{
-			var items = new List<CharacterItem>();
-			Connection.Open();
-			try
-			{
-				using var command = Connection.CreateCommand();
-				command.CommandText =
-					@"select CharacterItems.* from CharacterItems join CharacterVNs on CharacterItems.ID = CharacterVNs.CharacterId where VNID = @vnid;";
-				command.AddParameter("@vnid", vnid);
-				using var reader = command.ExecuteReader();
-				while (reader.Read())
-				{
-					var item = new CharacterItem();
-					item.LoadFromReader(reader);
-					items.Add(item);
-				}
-				return items;
-			}
-			finally
-			{
-				Connection.Close();
 			}
 		}
 
@@ -276,6 +246,56 @@ where TraitId = @TraitId";
 				Connection.Close();
 			}
 		}
+
+		public static Func<ListedVN, bool> SearchForVN(string searchString)
+		{
+			var lowerSearchString = searchString.ToLower();
+			return vn => vn.Title.ToLower().Contains(lowerSearchString) ||
+			             vn.KanjiTitle != null && vn.KanjiTitle.ToLower().Contains(lowerSearchString) ||
+			             vn.Aliases != null && vn.Aliases.ToLower().Contains(lowerSearchString);
+		}
+
+		public static Func<CharacterItem, bool> SearchForCharacter(string searchString)
+		{
+			var lowerSearchString = searchString.ToLower();
+			return ch => ch.Name.ToLower().Contains(lowerSearchString) ||
+			             ch.Original != null && ch.Original.ToLower().Contains(lowerSearchString) ||
+			             ch.Aliases != null && ch.Aliases.ToLower().Contains(lowerSearchString);
+		}
+
+		public void DeleteForDump()
+		{
+			Connection.Open();
+			try
+			{
+				var trans = Connection.BeginTransaction();
+				DeleteTable("CharacterItems", trans);
+				DeleteTable("CharacterVNs", trans);
+				DeleteTable("DbTags", trans);
+				DeleteTable("DbTraits", trans);
+				DeleteTable("ListedProducers", trans);
+				DeleteTable("ListedVNs", trans);
+				DeleteTable("UserVNs", trans);
+				DeleteTable("StaffItems", trans);
+				DeleteTable("StaffAliass", trans);
+				DeleteTable("VnStaffs", trans);
+				DeleteTable("VnSeiyuus", trans);
+				trans.Commit();
+			}
+			finally
+			{
+				Connection.Close();
+			}
+		}
+
+		private void DeleteTable(string tableName, SQLiteTransaction trans)
+		{
+			var command = Connection.CreateCommand();
+			command.CommandText = $@"DELETE FROM {tableName}";
+			command.Transaction = trans;
+			command.ExecuteNonQuery();
+			command.Dispose();
+		}
 	}
 
 	public class TableDetail : IDataItem<string>
@@ -287,7 +307,6 @@ where TraitId = @TraitId";
 		public string Value { get; set; }
 
 		#region IDataItem implementation
-
 		public string KeyField { get; } = "Key";
 
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
@@ -308,6 +327,5 @@ where TraitId = @TraitId";
 			Value = Convert.ToString(reader["Value"]);
 		}
 		#endregion
-
 	}
 }

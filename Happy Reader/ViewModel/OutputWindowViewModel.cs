@@ -14,7 +14,7 @@ namespace Happy_Reader.ViewModel
 {
 	public class OutputWindowViewModel : INotifyPropertyChanged
 	{
-		private bool _originalOn = false;
+		private bool _originalOn;
 		private bool _romajiOn = true;
 		private int _translationCounter;
 		private DateTime _lastTranslated;

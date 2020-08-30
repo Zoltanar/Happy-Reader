@@ -23,12 +23,12 @@ namespace Happy_Reader.View.Tabs
 			_hideImage = hideImage;
 		}
 
-		private void BrowseToFolderClick(object sender, System.Windows.RoutedEventArgs e)
+		private void BrowseToFolderClick(object sender, RoutedEventArgs e)
 		{
 			Process.Start("explorer", Path.GetDirectoryName(_viewModel.FilePath));
 		}
 
-		private void ChangeFileLocationClick(object sender, System.Windows.RoutedEventArgs e)
+		private void ChangeFileLocationClick(object sender, RoutedEventArgs e)
 		{
 			var dialog = new OpenFileDialog();
 			string directory = Path.GetDirectoryName(_viewModel.FilePath);

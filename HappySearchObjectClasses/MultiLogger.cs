@@ -78,7 +78,7 @@ namespace Happy_Apps_Core
 				if (_previousLogTime.HasValue)
 				{
 					var timePassed = dt - _previousLogTime.Value;
-					var ts = timePassed.TotalSeconds < 10 ? $"{(int)timePassed.TotalMilliseconds:D0} ms" : $"{(int)timePassed.TotalSeconds:D0} s"; ;
+					var ts = timePassed.TotalSeconds < 10 ? $"{(int)timePassed.TotalMilliseconds:D0} ms" : $"{(int)timePassed.TotalSeconds:D0} s";
 					timePassedString = $" ({ts,7})";
 				}
 				_previousLogTime = dt;

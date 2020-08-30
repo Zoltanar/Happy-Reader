@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using Happy_Apps_Core.DataAccess;
@@ -41,28 +40,6 @@ namespace Happy_Apps_Core.Database
 			}
 		}
 
-		private sealed class EqualityComparer : IEqualityComparer<DbTag>
-		{
-			public bool Equals(DbTag x, DbTag y)
-			{
-				if (ReferenceEquals(x, y)) return true;
-				if (x is null) return false;
-				if (y is null) return false;
-				if (x.GetType() != y.GetType()) return false;
-				return x.TagId == y.TagId && x.ListedVN_VNID == y.ListedVN_VNID;
-			}
-
-			public int GetHashCode(DbTag obj)
-			{
-				unchecked
-				{
-					return (obj.TagId * 397) ^ obj.ListedVN_VNID;
-				}
-			}
-		}
-
-		public static IEqualityComparer<DbTag> KeyComparer { get; } = new EqualityComparer();
-
 		/// <summary>
 		/// Return string with Tag name and score, if tag isn't found in list, "Not Approved" is returned.
 		/// </summary>
@@ -72,20 +49,6 @@ namespace Happy_Apps_Core.Database
 			var name = DumpFiles.GetTag(TagId)?.Name;
 			return name != null ? $"{name} ({Score:0.00})" : "Not Approved";
 		}
-
-		public static DbTag From(VNItem.TagItem tag, int vnid)
-		{
-			var result = new DbTag
-			{
-				Score = tag.Score,
-				Spoiler = tag.Spoiler,
-				TagId = tag.ID,
-				ListedVN_VNID = vnid
-			};
-			result.SetCategory();
-			return result;
-		}
-
 		#region IDataItem Implementation
 		public string KeyField { get; } = "(TagId, ListedVN_VNID)";
 		public (int, int) Key => (TagId, ListedVN_VNID);

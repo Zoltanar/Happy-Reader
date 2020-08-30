@@ -49,7 +49,7 @@ namespace Happy_Reader.View.Tiles
 		private void CharacterTile_OnLoaded(object sender, RoutedEventArgs e)
 		{
 			if (_loaded) return;
-			if (_viewModel.ImageSource != DependencyProperty.UnsetValue) ImageBox.Source = new BitmapImage(new Uri((string)_viewModel.ImageSource));
+			ImageBox.Source = new BitmapImage(new Uri(_viewModel.ImageSource));
 			if (_forVnTab)
 			{
 				VisualNovelNameBox.Visibility = Visibility.Collapsed;
@@ -94,7 +94,7 @@ namespace Happy_Reader.View.Tiles
 
 		public static CharacterTile FromCharacterVN(CharacterVN cvn)
 		{
-			var character = StaticHelpers.LocalDatabase.Characters.First(c => c.ID == cvn.CharacterId).Clone();
+			var character = StaticHelpers.LocalDatabase.Characters[cvn.CharacterId].Clone();
 			character.CharacterVN = cvn;
 			return new CharacterTile(character, false, true);
 		}

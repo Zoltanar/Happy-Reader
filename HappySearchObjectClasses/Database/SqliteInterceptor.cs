@@ -39,12 +39,11 @@ namespace Happy_Apps_Core.Database
             bool isMatch = false;
             var text = CharIndexReplaceRegex.Replace(command.CommandText, (match) =>
             {
-                if (match.Success)
-                {
-                    string paramsKey = match.Groups[1].Value;
-                    string paramsColumnName = match.Groups[2].Value;
-                    //replaceParams
-                    /*foreach (DbParameter param in command.Parameters)
+	            if (!match.Success) return match.Value;
+	            string paramsKey = match.Groups[1].Value;
+	            string paramsColumnName = match.Groups[2].Value;
+	            //replaceParams
+	            /*foreach (DbParameter param in command.Parameters)
                     {
                         if (param.ParameterName == paramsKey.Substring(1))
                         {
@@ -52,11 +51,9 @@ namespace Happy_Apps_Core.Database
                             break;
                         }
                     }*/
-                    isMatch = true;
-                    //return string.Format("{0} LIKE {1}", paramsColumnName, paramsKey);
-                    return $"(INSTR({paramsColumnName},{paramsKey})) > 0";
-                }
-                else return match.Value;
+	            isMatch = true;
+	            //return string.Format("{0} LIKE {1}", paramsColumnName, paramsKey);
+	            return $"(INSTR({paramsColumnName},{paramsKey})) > 0";
             });
             if (isMatch)
                 command.CommandText = text;

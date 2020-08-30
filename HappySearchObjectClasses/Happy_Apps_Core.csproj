@@ -111,21 +111,16 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="API Objects\SubLevel\AnimeItem.cs" />
     <Compile Include="API Objects\SubLevel\CharacterItem.cs" />
-    <Compile Include="API Objects\SubLevel\CharacterItemSub.cs" />
+    <Compile Include="API Objects\SubLevel\RelationsItem.cs" />
+    <Compile Include="API Objects\SubLevel\ScreenItem.cs" />
     <Compile Include="DataAccess\DACollection.cs" />
     <Compile Include="DataAccess\DAListCollection.cs" />
     <Compile Include="DataAccess\IDataItem.cs" />
     <Compile Include="DataAccess\IDataListItem.cs" />
     <Compile Include="Database\CharacterVN.cs" />
-    <Compile Include="API Objects\SubLevel\ProducerItem.cs" />
-    <Compile Include="API Objects\SubLevel\ReleaseItem.cs" />
     <Compile Include="API Objects\SubLevel\UserItem.cs" />
-    <Compile Include="API Objects\SubLevel\UserListItem.cs" />
-    <Compile Include="API Objects\SubLevel\VNItem.cs" />
-    <Compile Include="API Objects\SubLevel\VoteListItem.cs" />
-    <Compile Include="API Objects\SubLevel\WishListItem.cs" />
-    <Compile Include="API Objects\Top Level\DbStats.cs" />
     <Compile Include="API Objects\Top Level\ErrorResponse.cs" />
     <Compile Include="API Objects\Top Level\ResultsRoot.cs" />
     <Compile Include="ApiQuery.cs" />
@@ -150,7 +145,6 @@
     <Compile Include="Database\VNDBContext.cs" />
     <Compile Include="Database\VNLanguages.cs" />
     <Compile Include="DumpFiles.cs" />
-    <Compile Include="Database\VisualNovelDatabase.cs" />
     <Compile Include="Database\ListedVN.cs" />
     <Compile Include="ItemWithParents.cs" />
     <Compile Include="MultiLogger.cs" />
@@ -163,7 +157,7 @@
     <Compile Include="SettingsJsonFile.cs" />
     <Compile Include="StaticHelpers.cs" />
     <Compile Include="VndbConnection.cs" />
-    <Compile Include="VndbConnectionActions.cs" />
+    <Compile Include="VndbConnectionSub.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

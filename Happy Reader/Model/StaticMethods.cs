@@ -133,14 +133,19 @@ namespace Happy_Reader
 			while (true)
 			{
 				//get parent item
-				DependencyObject parentObject = VisualTreeHelper.GetParent(child);
-
-				//we've reached the end of the tree
-				if (parentObject == null) return null;
-
-				//check if the parent matches the type we're looking for
-				if (parentObject is T parent) return parent;
-				child = parentObject;
+				var parentObject = VisualTreeHelper.GetParent(child);
+				switch (parentObject)
+				{
+					//we've reached the end of the tree
+					case null:
+						return null;
+					//check if the parent matches the type we're looking for
+					case T parent:
+						return parent;
+					default:
+						child = parentObject;
+						break;
+				}
 			}
 		}
 
@@ -411,8 +416,7 @@ namespace Happy_Reader
 				allFolders = allFolders.Where(folder =>
 				{
 					var allExes = folder.GetFiles("*.exe", SearchOption.TopDirectoryOnly).Select(f => f.FullName).ToArray();
-					if (Data.UserGames.Any(ug => allExes.Contains(ug.FilePath))) return false;
-					return true;
+					return !Data.UserGames.Any(ug => allExes.Contains(ug.FilePath));
 				}).SelectMany(f => f.GetDirectories()).ToArray();
 			}
 
@@ -425,7 +429,7 @@ namespace Happy_Reader
 			}
 		}
 
-		public static Dictionary<string, FontFamily> FontsInstalled =
+		public static readonly Dictionary<string, FontFamily> FontsInstalled =
 			//select all font families
 			Fonts.SystemFontFamilies
 				//for each font family

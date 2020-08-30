@@ -103,7 +103,7 @@ namespace Happy_Reader.ViewModel
 		public async Task Initialize()
 		{
 			_mainViewModel.StatusText = "Loading VN Database...";
-			await Task.Run(() => LocalDatabase = new VisualNovelDatabase(true));
+			await Task.Run(() => LocalDatabase = new VisualNovelDatabase(DatabaseFile, true));
 			OnPropertyChanged(nameof(ProducerList));
 			_mainViewModel.SetUser(CSettings.UserID);
 			_mainViewModel.StatusText = "Opening VNDB Connection...";

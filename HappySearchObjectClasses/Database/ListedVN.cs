@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -10,7 +9,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
@@ -206,13 +204,13 @@ namespace Happy_Apps_Core.Database
 		public string DisplayAliases => Aliases?.Replace("\n", ", ") ?? "";
 
 		[NotMapped, NotNull]
-		public VNItem.RelationsItem[] RelationsObject
+		public RelationsItem[] RelationsObject
 		{
 			get
 			{
 				if (_relationsObject != null) return _relationsObject;
-				if (string.IsNullOrWhiteSpace(Relations)) _relationsObject = Array.Empty<VNItem.RelationsItem>();
-				else _relationsObject = JsonConvert.DeserializeObject<VNItem.RelationsItem[]>(Relations) ?? Array.Empty<VNItem.RelationsItem>(); 
+				if (string.IsNullOrWhiteSpace(Relations)) _relationsObject = Array.Empty<RelationsItem>();
+				else _relationsObject = JsonConvert.DeserializeObject<RelationsItem[]>(Relations) ?? Array.Empty<RelationsItem>(); 
 				foreach (var r in _relationsObject)
 				{
 					if (string.IsNullOrWhiteSpace(r.Title))
@@ -223,32 +221,32 @@ namespace Happy_Apps_Core.Database
 		}
 
 		[NotMapped, NotNull]
-		public VNItem.AnimeItem[] AnimeObject
+		public AnimeItem[] AnimeObject
 		{
 			get
 			{
 				if (_animeObject != null) return _animeObject;
-				if (string.IsNullOrWhiteSpace(Anime)) _animeObject = Array.Empty<VNItem.AnimeItem>();
-				else _animeObject = JsonConvert.DeserializeObject<VNItem.AnimeItem[]>(Anime) ?? Array.Empty<VNItem.AnimeItem>();
+				if (string.IsNullOrWhiteSpace(Anime)) _animeObject = Array.Empty<AnimeItem>();
+				else _animeObject = JsonConvert.DeserializeObject<AnimeItem[]>(Anime) ?? Array.Empty<AnimeItem>();
 				return _animeObject;
 			}
 		}
 
 		[NotMapped, NotNull]
-		public VNItem.ScreenItem[] ScreensObject
+		public ScreenItem[] ScreensObject
 		{
 			get
 			{
 				if (_screensObject != null) return _screensObject;
-				if (string.IsNullOrWhiteSpace(Screens)) _screensObject = Array.Empty<VNItem.ScreenItem>();
-				else _screensObject = JsonConvert.DeserializeObject<VNItem.ScreenItem[]>(Screens) ?? Array.Empty<VNItem.ScreenItem>();
+				if (string.IsNullOrWhiteSpace(Screens)) _screensObject = Array.Empty<ScreenItem>();
+				else _screensObject = JsonConvert.DeserializeObject<ScreenItem[]>(Screens) ?? Array.Empty<ScreenItem>();
 				return _screensObject;
 			}
 		}
 
-		private VNItem.RelationsItem[] _relationsObject;
-		private VNItem.AnimeItem[] _animeObject;
-		private VNItem.ScreenItem[] _screensObject;
+		private RelationsItem[] _relationsObject;
+		private AnimeItem[] _animeObject;
+		private ScreenItem[] _screensObject;
 		private VNLanguages _languagesObject;
 		private ListedProducer _producer;
 		private int? _producerID;
@@ -287,10 +285,7 @@ namespace Happy_Apps_Core.Database
 		{
 			get
 			{
-				if (_ownedStatus == null)
-				{
-					_ownedStatus = VnIsOwned?.Invoke(VNID) ?? OwnedStatus.NeverOwned;
-				}
+				_ownedStatus ??= VnIsOwned?.Invoke(VNID) ?? OwnedStatus.NeverOwned;
 				return _ownedStatus.Value;
 			}
 		}
@@ -456,19 +451,19 @@ namespace Happy_Apps_Core.Database
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 
-		public void SetRelations(string relationsString, VNItem.RelationsItem[] relationsObject)
+		public void SetRelations(string relationsString, RelationsItem[] relationsObject)
 		{
 			Relations = relationsString;
 			_relationsObject = relationsObject;
 		}
 
-		public void SetAnime(string animeString, VNItem.AnimeItem[] animeObject)
+		public void SetAnime(string animeString, AnimeItem[] animeObject)
 		{
 			Anime = animeString;
 			_animeObject = animeObject;
 		}
 
-		public void SetScreens(string screensString, VNItem.ScreenItem[] screensObject)
+		public void SetScreens(string screensString, ScreenItem[] screensObject)
 		{
 			Screens = screensString;
 			_screensObject = screensObject;

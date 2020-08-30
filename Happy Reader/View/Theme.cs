@@ -2,7 +2,7 @@
 
 namespace Happy_Reader.View
 {
-	public class Theme
+	public static class Theme
 	{
 		//tile background colors
 		public static readonly Brush DefaultTileBrush = Brushes.LightBlue;

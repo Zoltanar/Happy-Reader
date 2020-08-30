@@ -35,8 +35,6 @@ namespace Happy_Reader
 	{
 		public Meta Meta { get; set; }
 		public Datum[] Data { get; set; }
-
-
 	}
 
 	public class Meta

@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
@@ -7,6 +10,9 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Happy_Apps_Core.Database;
+using Happy_Apps_Core.Properties;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using static Happy_Apps_Core.StaticHelpers;
 
@@ -21,13 +27,224 @@ namespace Happy_Apps_Core
 		private const ushort VndbPort = 19534;
 		private const ushort VndbPortTLS = 19535;
 		private const byte EndOfStreamByte = 0x04;
+		/// <summary>
+		/// string is text to be passed, bool is true if query, false if response
+		/// </summary>
+		private readonly Action<string, bool> _advancedAction;
+		private readonly Action<List<int>> _refreshListOnAddAction;
+		private readonly Action<APIStatus> _changeStatusAction;
+		[NotNull] private readonly Action<string, MessageSeverity> _textAction;
+		[NotNull] private readonly Func<bool> _askForNonSslAction;
 		private int _throttleWaitTime;
 		private Stream _stream;
 		private TcpClient _tcpClient;
-		public Response LastResponse;
-		public LogInStatus LogIn = LogInStatus.No;
-		public APIStatus Status = APIStatus.Closed;
+		private Response _lastResponse;
+		private LogInStatus _logIn = LogInStatus.No;
+		private APIStatus _status = APIStatus.Closed;
 		private LoginCredentials _loginCredentials;
+		public ApiQuery ActiveQuery { get; private set; }
+		
+		public VndbConnection(
+			[NotNull] Action<string, MessageSeverity> textAction,
+			Action<string, bool> advancedModeAction,
+			Action<List<int>> refreshListOnAddAction,
+			Func<bool> askForNonSsl,
+			Action<APIStatus> changeStatusAction = null)
+		{
+			_textAction = textAction;
+			_advancedAction = advancedModeAction;
+			_refreshListOnAddAction = refreshListOnAddAction;
+			_askForNonSslAction = askForNonSsl;
+			_changeStatusAction = changeStatusAction;
+		}
+
+		#region Public Functions
+		/// <summary>
+		/// Log into VNDB API, optionally using username/password.
+		/// </summary>
+		/// <param name="loginCredentials">Credentials to use for login command</param>
+		/// <param name="printCertificates">Logs certificates and prints to debug</param>
+		public string Login(LoginCredentials loginCredentials, bool printCertificates)
+		{
+			if (_status != APIStatus.Closed) Close();
+			_logIn = LogInStatus.No;
+			Open(printCertificates);
+			string loginBuffer = $"login {{\"protocol\":1,\"client\":\"{loginCredentials.ClientName}\",\"clientver\":\"{loginCredentials.ClientVersion}\"{loginCredentials.CredentialsString}}}";
+			Query(loginBuffer);
+			if (_lastResponse.Type == ResponseType.Ok)
+			{
+				_logIn = loginCredentials.HasCredentials ? LogInStatus.YesWithPassword : LogInStatus.Yes;
+				_status = APIStatus.Ready;
+			}
+			_loginCredentials = loginCredentials;
+			_changeStatusAction?.Invoke(_status);
+			return $"{_logIn} {_lastResponse.JsonPayload}";
+		}
+
+		/// <summary>
+		/// Change  user vote.
+		/// </summary>
+		/// <param name="vn">VN which will be changed</param>
+		/// <param name="vote">New vote value</param>
+		/// <returns>Returns whether it as successful.</returns>
+		public async Task<bool> ChangeVote(ListedVN vn, int? vote)
+		{
+			if (!StartQuery(nameof(ChangeVote), false, false)) return false;
+			try
+			{
+				bool remove = !vote.HasValue;
+				_changeStatusAction?.Invoke(APIStatus.Busy);
+				var userVn = vn.UserVN ?? new UserVN { UserId = CSettings.UserID, VNID = vn.VNID };
+				var queryString = $"set ulist {vn.VNID} {{\"vote\":{vote}}}";
+				var result = await TryQuery(queryString, Resources.cvns_query_error);
+				if (!result) return false;
+				userVn.Vote = vote;
+				if (remove) userVn.Labels.Remove(UserVN.LabelKind.Voted);
+				else userVn.Labels.Add(UserVN.LabelKind.Voted);
+				userVn.VoteAdded = DateTime.UtcNow;
+				if (userVn.Labels.Any())
+				{
+					LocalDatabase.UserVisualNovels.Upsert(userVn, true);
+				}
+				else
+				{
+					LocalDatabase.UserVisualNovels.Remove(userVn, true);
+				}
+				_changeStatusAction?.Invoke(_status);
+				return true;
+			}
+			catch (Exception ex)
+			{
+				ActiveQuery.SetException(ex);
+				return false;
+			}
+			finally
+			{
+				EndQuery();
+			}
+		}
+
+		/// <summary>
+		/// Change labels of VN.
+		/// </summary>
+		/// <param name="vn">VN which will be changed</param>
+		/// <param name="labels">New labels to set</param>
+		/// <returns>Returns whether it as successful.</returns>
+		public async Task<bool> ChangeVNStatus(ListedVN vn, HashSet<UserVN.LabelKind> labels)
+		{
+			if (!StartQuery(nameof(ChangeVNStatus), false, false)) return false;
+			try
+			{
+				_changeStatusAction?.Invoke(APIStatus.Busy);
+				var userVn = vn.UserVN ?? new UserVN { UserId = CSettings.UserID, VNID = vn.VNID };
+				var queryString = $"set ulist {vn.VNID} {{\"labels\":[{string.Join(",", labels.Cast<int>())}]}}";
+				var result = await TryQuery(queryString, Resources.cvns_query_error);
+				if (!result) return false;
+				userVn.Labels = labels.ToHashSet();
+				userVn.Added = DateTime.UtcNow;
+				if (userVn.Labels.Any())
+				{
+					LocalDatabase.UserVisualNovels.Upsert(userVn, true);
+				}
+				else
+				{
+					LocalDatabase.UserVisualNovels.Remove(userVn, true);
+				}
+				_changeStatusAction?.Invoke(_status);
+				return true;
+			}
+			catch (Exception ex)
+			{
+				ActiveQuery.SetException(ex);
+				return false;
+			}
+			finally
+			{
+				EndQuery();
+			}/**/
+		}
+
+		/// <summary>
+		/// Get username from VNDB user ID, returns empty string if error.
+		/// </summary>
+		public async Task<string> GetUsernameFromID(int userID)
+		{
+			if (!StartQuery(nameof(GetUsernameFromID), false, false)) return "";
+			try
+			{
+				var result = await TryQueryNoReply($"get user basic (id={userID})");
+				if (!result)
+				{
+					_changeStatusAction?.Invoke(_status);
+					return "";
+				}
+
+				var response = JsonConvert.DeserializeObject<ResultsRoot<UserItem>>(_lastResponse.JsonPayload);
+				return response.Items.Any() ? response.Items[0].Username : "";
+			}
+			catch (Exception ex)
+			{
+				ActiveQuery.SetException(ex);
+				return "";
+			}
+			finally
+			{
+				EndQuery();
+			}
+		}
+
+		/// <summary>
+		/// Get user ID from VNDB username, returns -1 if error.
+		/// </summary>
+		public async Task<int> GetIDFromUsername(string username)
+		{
+			if (!StartQuery(nameof(GetIDFromUsername), false, false)) return -1;
+			try
+			{
+				var result = await TryQueryNoReply($"get user basic (username=\"{username}\")");
+				if (!result)
+				{
+					_changeStatusAction?.Invoke(_status);
+					return -1;
+				}
+				var response = JsonConvert.DeserializeObject<ResultsRoot<UserItem>>(_lastResponse.JsonPayload);
+				return response.Items.Any() ? response.Items[0].ID : -1;
+			}
+			catch (Exception ex)
+			{
+				ActiveQuery.SetException(ex);
+				return -1;
+			}
+			finally
+			{
+				EndQuery();
+			}
+		}
+
+		/// <summary>
+		/// Sends a query to the API without waiting on throttle error.
+		/// </summary>
+		public void SendQuery(string text) => Query(text);
+
+		/// <summary>
+		/// Close connection with VNDB API
+		/// </summary>
+		public void Close()
+		{
+			try
+			{
+				if (_tcpClient.Connected) _tcpClient.GetStream().Close();
+				_tcpClient.Close();
+			}
+			catch (ObjectDisposedException e)
+			{
+				Logger.ToFile("Failed to close connection.");
+				Logger.ToFile(e.Message);
+				Logger.ToFile(e.StackTrace);
+			}
+			_status = APIStatus.Closed;
+		}
+		#endregion
 
 		/// <summary>
 		/// Open stream with VNDB API.
@@ -68,7 +285,7 @@ namespace Happy_Apps_Core
 			}
 			if (_stream != null && _stream.CanRead) return;
 			Logger.ToFile($"Failed to connect after {retries} tries.");
-			Status = APIStatus.Error;
+			_status = APIStatus.Error;
 			AskForNonSsl();
 		}
 
@@ -84,7 +301,7 @@ namespace Happy_Apps_Core
 				}
 				if (subject.Substring(3).Equals(VndbHost)) return true;
 				Logger.ToFile($"Certificate received isn't for {VndbHost} so connection is closed (it was for {subject.Substring(3)})");
-				Status = APIStatus.Error;
+				_status = APIStatus.Error;
 				return false;
 			}
 
@@ -109,9 +326,9 @@ namespace Happy_Apps_Core
 
 		private void AskForNonSsl()
 		{
-			if (!AskForNonSslAction()) return;
+			if (!_askForNonSslAction()) return;
 			Logger.ToFile($"Attempting to open connection to {VndbHost}:{VndbPort} without SSL");
-			Status = APIStatus.Closed;
+			_status = APIStatus.Closed;
 			var complete = false;
 			var retries = 0;
 			while (!complete && retries < 5)
@@ -143,59 +360,42 @@ namespace Happy_Apps_Core
 			}
 			if (_stream != null && _stream.CanRead) return;
 			Logger.ToFile($"Failed to connect after {retries} tries.");
-			Status = APIStatus.Error;
+			_status = APIStatus.Error;
 		}
 
 		/// <summary>
-		/// Log into VNDB API, optionally using username/password.
+		/// Check if API Connection is ready, change status accordingly and write error if it isn't ready.
 		/// </summary>
-		/// <param name="loginCredentials">Credentials to use for login command</param>
-		/// <param name="printCertificates">Logs certificates and prints to debug</param>
-		public string Login(LoginCredentials loginCredentials, bool printCertificates)
+		/// <param name="featureName">Name of feature calling the query</param>
+		/// <param name="refreshList">Refresh OLV on throttled connection</param>
+		/// <param name="additionalMessage">Print Added/Skipped message on throttled connection</param>
+		/// <returns>If connection was ready</returns>
+		private bool StartQuery(string featureName, bool refreshList, bool additionalMessage)
 		{
-			if (Status != APIStatus.Closed) Close();
-			LogIn = LogInStatus.No;
-			Open(printCertificates);
-			string loginBuffer = $"login {{\"protocol\":1,\"client\":\"{loginCredentials.ClientName}\",\"clientver\":\"{loginCredentials.ClientVersion}\"{loginCredentials.CredentialsString}}}";
-			Query(loginBuffer);
-			if (LastResponse.Type == ResponseType.Ok)
+			if (CSettings.UserID < 1) return false;
+			if (ActiveQuery != null && !ActiveQuery.Completed)
 			{
-				LogIn = loginCredentials.HasCredentials ? LogInStatus.YesWithPassword : LogInStatus.Yes;
-				Status = APIStatus.Ready;
+				_textAction($"Wait until {ActiveQuery.ActionName} is done.", MessageSeverity.Error);
+				return false;
 			}
-			_loginCredentials = loginCredentials;
-			_changeStatusAction?.Invoke(Status);
-			return $"{LogIn} {LastResponse.JsonPayload}";
+			ActiveQuery = new ApiQuery(featureName, refreshList, additionalMessage, _refreshListOnAddAction);
+			_textAction($"Running {featureName}...", MessageSeverity.Normal);
+			return true;
 		}
 
-		public readonly struct LoginCredentials
+		private void EndQuery()
 		{
-			public string ClientName { get; }
-			public string ClientVersion { get; }
-			public string Username { get; }
-			public char[] Password { get; }
-			public bool HasCredentials => !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(new string(Password));
-			public string CredentialsString => HasCredentials ? $",\"username\":\"{Username}\",\"password\":\"{new string(Password)}\"" : string.Empty;
-
-			public LoginCredentials(string clientName, string clientVersion, string username = null, char[] password = null)
-			{
-				ClientName = clientName;
-				ClientVersion = clientVersion;
-				Username = username;
-				Password = password;
-			}
+			ActiveQuery.RunActionOnAdd();
+			ActiveQuery.Completed = true;
+			_textAction(ActiveQuery.CompletedMessage, ActiveQuery.CompletedMessageSeverity);
+			_changeStatusAction?.Invoke(_status);
 		}
-
-		/// <summary>
-		/// Sends a query to the API without waiting on throttle error.
-		/// </summary>
-		public void SendQuery(string text) => Query(text);
 
 		private void Query(string command)
 		{
-			if (Status == APIStatus.Error) return;
+			if (_status == APIStatus.Error) return;
 			LogQueryRequest(command);
-			Status = APIStatus.Busy;
+			_status = APIStatus.Busy;
 			byte[] encoded = Encoding.UTF8.GetBytes(command);
 			var requestBuffer = new byte[encoded.Length + 1];
 			Buffer.BlockCopy(encoded, 0, requestBuffer, 0, encoded.Length);
@@ -214,8 +414,8 @@ namespace Happy_Apps_Core
 				Buffer.BlockCopy(responseBuffer, 0, biggerBadderBuffer, 0, responseBuffer.Length);
 				responseBuffer = biggerBadderBuffer;
 			}
-			LastResponse = Parse(responseBuffer, totalRead);
-			_advancedAction?.Invoke(LastResponse.JsonPayload, false);
+			_lastResponse = Parse(responseBuffer, totalRead);
+			_advancedAction?.Invoke(_lastResponse.JsonPayload, false);
 			SetStatusFromLastResponseType();
 		}
 
@@ -228,6 +428,7 @@ namespace Happy_Apps_Core
 				{
 					var jsonString = command.Substring("login".Length).Trim().Replace("\\\"", "\"");
 					var jObject = (Newtonsoft.Json.Linq.JObject) JsonConvert.DeserializeObject(jsonString);
+					Debug.Assert(jObject != null, nameof(jObject) + " != null");
 					jObject["password"] = "***";
 					jsonString = JsonConvert.SerializeObject(jObject).Replace("\"", "\\\"");
 					_advancedAction.Invoke($"login {jsonString}", true);
@@ -261,45 +462,26 @@ namespace Happy_Apps_Core
 				Buffer.BlockCopy(responseBuffer, 0, biggerBadderBuffer, 0, responseBuffer.Length);
 				responseBuffer = biggerBadderBuffer;
 			}
-			LastResponse = Parse(responseBuffer, totalRead);
+			_lastResponse = Parse(responseBuffer, totalRead);
 			SetStatusFromLastResponseType();
 		}
 
 		private void SetStatusFromLastResponseType()
 		{
-			switch (LastResponse.Type)
+			switch (_lastResponse.Type)
 			{
 				case ResponseType.Ok:
 				case ResponseType.Results:
 				case ResponseType.DBStats:
-					Status = APIStatus.Ready;
+					_status = APIStatus.Ready;
 					break;
 				case ResponseType.Error:
-					Status = LastResponse.Error.ID.Equals("throttled") ? APIStatus.Throttled : APIStatus.Ready;
+					_status = _lastResponse.Error.ID.Equals("throttled") ? APIStatus.Throttled : APIStatus.Ready;
 					break;
 				case ResponseType.Unknown:
-					Status = APIStatus.Error;
+					_status = APIStatus.Error;
 					break;
 			}
-		}
-
-		/// <summary>
-		/// Close connection with VNDB API
-		/// </summary>
-		public void Close()
-		{
-			try
-			{
-				if (_tcpClient.Connected) _tcpClient.GetStream().Close();
-				_tcpClient.Close();
-			}
-			catch (ObjectDisposedException e)
-			{
-				Logger.ToFile("Failed to close connection.");
-				Logger.ToFile(e.Message);
-				Logger.ToFile(e.StackTrace);
-			}
-			Status = APIStatus.Closed;
 		}
 
 		private static bool IsCompleteMessage(byte[] message, int bytesUsed)
@@ -336,19 +518,19 @@ namespace Happy_Apps_Core
 		/// <returns>Returns whether it was successful.</returns>
 		private async Task<QueryResult> TryQueryInner(string query, string errorMessage)
 		{
-			if (Status != APIStatus.Ready)
+			if (_status != APIStatus.Ready)
 			{
 				ActiveQuery.CompletedMessage = "API Connection isn't ready.";
 				ActiveQuery.CompletedMessageSeverity = MessageSeverity.Error;
 				return QueryResult.Fail;
 			}
-			Status = APIStatus.Busy;
-			_changeStatusAction?.Invoke(Status);
+			_status = APIStatus.Busy;
+			_changeStatusAction?.Invoke(_status);
 			await RunQueryWithRetriesAsync(query);
-			if (LastResponse.Type == ResponseType.Unknown) return QueryResult.Fail;
-			while (LastResponse.Type == ResponseType.Error)
+			if (_lastResponse.Type == ResponseType.Unknown) return QueryResult.Fail;
+			while (_lastResponse.Type == ResponseType.Error)
 			{
-				return LastResponse.Error.ID.Equals("throttled") ? HandleThrottledResponse() : HandleFailResponse(errorMessage);
+				return _lastResponse.Error.ID.Equals("throttled") ? HandleThrottledResponse() : HandleFailResponse(errorMessage);
 			}
 			return QueryResult.Success;
 		}
@@ -380,7 +562,7 @@ namespace Happy_Apps_Core
 
 		private QueryResult HandleFailResponse(string errorMessage)
 		{
-			Logger.ToFile($"{nameof(TryQueryInner)} error: {LastResponse.JsonPayload}");
+			Logger.ToFile($"{nameof(TryQueryInner)} error: {_lastResponse.JsonPayload}");
 			ActiveQuery.CompletedMessage = errorMessage;
 			ActiveQuery.CompletedMessageSeverity = MessageSeverity.Error;
 			return QueryResult.Fail;
@@ -388,9 +570,9 @@ namespace Happy_Apps_Core
 
 		private QueryResult HandleThrottledResponse()
 		{
-			var minWait = Math.Min(5 * 60, LastResponse.Error.Fullwait); //wait 5 minutes
+			var minWait = Math.Min(5 * 60, _lastResponse.Error.Fullwait); //wait 5 minutes
 			var throttleMessage = $"Throttled for {Math.Floor(minWait / 60)} mins." + ActiveQuery.GetAdditionalWarning();
-			TextAction(throttleMessage, MessageSeverity.Warning);
+			_textAction(throttleMessage, MessageSeverity.Warning);
 			Logger.ToFile($"Local: {DateTime.Now} - {throttleMessage}");
 			var waitMS = minWait * 1000;
 			_throttleWaitTime = Convert.ToInt32(waitMS);
@@ -413,12 +595,12 @@ namespace Happy_Apps_Core
 				{
 					await Task.Run(ActiveQuery.RunActionOnAdd);
 				}
-				_changeStatusAction?.Invoke(Status);
+				_changeStatusAction?.Invoke(_status);
 				await Task.Delay(_throttleWaitTime);
-				Status = APIStatus.Ready;
+				_status = APIStatus.Ready;
 				result = await TryQueryInner(query, errorMessage);
 			}
-			if (setStatusOnEnd) _changeStatusAction?.Invoke(Status);
+			if (setStatusOnEnd) _changeStatusAction?.Invoke(_status);
 			return result == QueryResult.Success;
 		}
 
@@ -429,7 +611,7 @@ namespace Happy_Apps_Core
 		/// <returns>Returns whether it was successful.</returns>
 		private async Task<bool> TryQueryNoReply(string query)
 		{
-			if (Status != APIStatus.Ready)
+			if (_status != APIStatus.Ready)
 			{
 				return false;
 			}
@@ -438,83 +620,8 @@ namespace Happy_Apps_Core
 				Logger.ToFile(query);
 				Query(query);
 			});
-			return LastResponse.Type != ResponseType.Unknown && LastResponse.Type != ResponseType.Error;
+			return _lastResponse.Type != ResponseType.Unknown && _lastResponse.Type != ResponseType.Error;
 		}
 
-		public enum LogInStatus
-		{
-			No,
-			Yes,
-			YesWithPassword
-		}
-
-		public enum APIStatus
-		{
-			Ready,
-			Busy,
-			Throttled,
-			Error,
-			Closed
-		}
-
-		/// <summary>
-		/// Holds API's response to commands.
-		/// </summary>
-		public class Response
-		{
-			/// <summary>
-			/// If response is of type 'error', holds ErrorResponse
-			/// </summary>
-			public readonly ErrorResponse Error;
-			/// <summary>
-			/// Response in JSON format
-			/// </summary>
-			public readonly string JsonPayload;
-			/// <summary>
-			/// Type of response
-			/// </summary>
-			public readonly ResponseType Type;
-
-			/// <summary>
-			/// Constructor for Response
-			/// </summary>
-			/// <param name="type">Type of response</param>
-			/// <param name="jsonPayload">Response in JSON format</param>
-			public Response(ResponseType type, string jsonPayload)
-			{
-				Type = type;
-				JsonPayload = jsonPayload;
-				if (type == ResponseType.Error) Error = JsonConvert.DeserializeObject<ErrorResponse>(jsonPayload);
-			}
-
-		}
-
-		/// <summary>
-		/// Type of API Response
-		/// </summary>
-		public enum ResponseType
-		{
-			/// <summary>
-			/// Returned by login command
-			/// </summary>
-			Ok,
-			/// <summary>
-			/// Returned by get commands 
-			/// </summary>
-			Results,
-			/// <summary>
-			/// Returned by dbstats command
-			/// </summary>
-			DBStats,
-			/// <summary>
-			/// Returned when there is an error
-			/// </summary>
-			Error,
-			/// <summary>
-			/// Returned in all other cases
-			/// </summary>
-			Unknown
-		}
 	}
-
 }

@@ -10,9 +10,6 @@ namespace Happy_Apps_Core
 		{
 			public int ID { get; set; }
 			public string Name { get; set; }
-			public string Description { get; set; }
-			public List<string> Aliases { get; set; }
-			public bool Meta { get; set; }
 			public List<int> Parents { get; set; }
 			public int[] Children { get; set; }
 			/// <summary>
