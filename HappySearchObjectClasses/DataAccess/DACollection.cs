@@ -8,16 +8,17 @@ using System.Linq;
 namespace Happy_Apps_Core.DataAccess
 {
 	// ReSharper disable once InconsistentNaming
-	public class DACollection<TKey,TValue> : IEnumerable<TValue> where TValue : IDataItem<TKey>, new ()
+	public class DACollection<TKey, TValue> : IEnumerable<TValue> where TValue : IDataItem<TKey>, new()
 	{
 		private readonly IDictionary<TKey, TValue> _items = new Dictionary<TKey, TValue>();
-		private IEnumerable<TValue> List => _items.Values;
 		private DbConnection Conn { get; }
 
-		public DACollection(DbConnection connection)
-		{
-			Conn = connection;
-		}
+		private IEnumerable<TValue> List => _items.Values;
+		IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator() => List.GetEnumerator();
+		IEnumerator IEnumerable.GetEnumerator() => List.GetEnumerator();
+		public int Count => _items.Count;
+
+		public DACollection(DbConnection connection) => Conn = connection;
 
 		public void Load(bool openAndCloseConnection)
 		{
@@ -46,7 +47,7 @@ namespace Happy_Apps_Core.DataAccess
 			}
 		}
 
-		public void Upsert(TValue item, bool openNewConnection, bool insertOnly = false,SQLiteTransaction transaction = null)
+		public void Upsert(TValue item, bool openNewConnection, bool insertOnly = false, SQLiteTransaction transaction = null)
 		{
 			if (openNewConnection) Conn.Open();
 			try
@@ -60,7 +61,7 @@ namespace Happy_Apps_Core.DataAccess
 			}
 			finally
 			{
-				if(openNewConnection) Conn.Close();
+				if (openNewConnection) Conn.Close();
 			}
 		}
 
@@ -88,26 +89,9 @@ namespace Happy_Apps_Core.DataAccess
 			return result;
 		}
 
-		IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
-		{
-			return List.GetEnumerator();
-		}
 
-		public IEnumerator<TValue> GetEnumerator()
-		{
-			return _items.Values.GetEnumerator();
-		}
-
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return _items.Values.GetEnumerator();
-		}
 		public void Add(TValue item, bool openNewConnection, bool insertOnly = false, SQLiteTransaction transaction = null)
-		{
-			Upsert(item, openNewConnection, insertOnly, transaction);
-		}
-
-		public int Count => _items.Count;
+		=> Upsert(item, openNewConnection, insertOnly, transaction);
 
 		/// <summary>
 		/// Returns default if item does not exist.

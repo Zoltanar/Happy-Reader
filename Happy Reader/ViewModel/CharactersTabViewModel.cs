@@ -142,9 +142,9 @@ namespace Happy_Reader.ViewModel
 			_dbFunction = db =>
 			{
 				var staff = db.StaffAliases[aliasId];
-				var aliasIds = db.StaffAliases.Where(c => c.StaffID == staff.StaffID).Select(sa => sa.AliasID).ToArray();
-				var keys = db.VnStaffs.Where(s => aliasIds.Contains(s.AliasID)).Select(s => s.VNID).Distinct().ToArray();
-				var characters = db.CharacterVNs.Where(cvn => keys.Contains(cvn.VNId)).Select(cvn => cvn.CharacterId).ToArray();
+				var aliasIds = db.StaffAliases.Where(c => c.StaffID == staff.StaffID).Select(sa => sa.AliasID).ToList();
+				var keys = db.VnStaffs.Where(s => aliasIds.Contains(s.AliasID)).Select(s => s.VNID).Distinct().ToList();
+				var characters = db.CharacterVNs.WithKeyIn(keys).Select(cvn => cvn.CharacterId).ToArray();
 				return db.Characters.WithKeyIn(characters);
 			};
 			await RefreshCharacterTiles();

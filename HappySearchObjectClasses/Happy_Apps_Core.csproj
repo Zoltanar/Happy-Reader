@@ -114,7 +114,9 @@
     <Compile Include="API Objects\SubLevel\CharacterItem.cs" />
     <Compile Include="API Objects\SubLevel\CharacterItemSub.cs" />
     <Compile Include="DataAccess\DACollection.cs" />
+    <Compile Include="DataAccess\DAListCollection.cs" />
     <Compile Include="DataAccess\IDataItem.cs" />
+    <Compile Include="DataAccess\IDataListItem.cs" />
     <Compile Include="Database\CharacterVN.cs" />
     <Compile Include="API Objects\SubLevel\ProducerItem.cs" />
     <Compile Include="API Objects\SubLevel\ReleaseItem.cs" />

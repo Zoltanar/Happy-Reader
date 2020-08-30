@@ -26,8 +26,7 @@ namespace Happy_Apps_Core.Database
 	public class ListedVN : INotifyPropertyChanged, IDataItem<int>, IDumpItem
 	{
 		public static Func<bool> ShowNSFWImages { get; set; } = () => true;
-
-
+		
 		#region Columns
 		/// <summary>
 		/// VN's ID
@@ -135,18 +134,7 @@ namespace Happy_Apps_Core.Database
 
 		public DateTime ReleaseDate { get; set; }
 
-		public ReadOnlyCollection<DbTag> Tags
-		{
-			get
-			{
-				if (!_dbTagsSet)
-				{
-					_dbTags = StaticHelpers.LocalDatabase.GetTagsForVn(VNID);
-					_dbTagsSet = true;
-				}
-				return _dbTags.AsReadOnly();
-			}
-		}
+		public IEnumerable<DbTag> Tags => StaticHelpers.LocalDatabase.Tags[VNID];
 
 		public string ReleaseLink { get; set; }
 
@@ -264,8 +252,6 @@ namespace Happy_Apps_Core.Database
 		private VNLanguages _languagesObject;
 		private ListedProducer _producer;
 		private int? _producerID;
-		private bool _dbTagsSet;
-		private List<DbTag> _dbTags;
 
 		[NotMapped]
 		public SuggestionScoreObject Suggestion { get; set; }
@@ -622,11 +608,6 @@ namespace Happy_Apps_Core.Database
 			}
 		}
 		#endregion
-
-		public void ResetTags()
-		{
-			_dbTagsSet = false;
-		}
 	}
 
 	public enum OwnedStatus

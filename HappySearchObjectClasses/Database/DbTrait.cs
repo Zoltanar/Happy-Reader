@@ -10,7 +10,7 @@ namespace Happy_Apps_Core.Database
 	/// <summary>
 	/// Key is (CharacterItemId, TraitId)
 	/// </summary>
-	public sealed class DbTrait : IDataItem<(int, int)>, IDumpItem
+	public sealed class DbTrait : IDataItem<(int, int)>, IDataListItem<int>, IDumpItem
 	{
 
 		public int CharacterItem_Id { get; set; }
@@ -35,6 +35,7 @@ namespace Happy_Apps_Core.Database
 
 		public string KeyField { get; } = "(CharacterItem_Id, TraitId)";
 		public (int, int) Key => (CharacterItem_Id, TraitId);
+		public int ListKey => CharacterItem_Id;
 
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
 		{

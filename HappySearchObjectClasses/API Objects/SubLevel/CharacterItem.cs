@@ -53,7 +53,7 @@ namespace Happy_Apps_Core
 		[NotMapped]
 		public StaffItem[] Voiced { get; [UsedImplicitly] set; }
 
-		public IEnumerable<DbTrait> DbTraits => StaticHelpers.LocalDatabase.Traits.Where(t => t.CharacterItem_Id == ID);
+		public IEnumerable<DbTrait> DbTraits => StaticHelpers.LocalDatabase.Traits[ID];
 
 		public IEnumerable<VnSeiyuu> Seiyuus => StaticHelpers.LocalDatabase.VnSeiyuus.Where(s => s.CharacterID == ID);
 

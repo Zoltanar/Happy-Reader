@@ -21,7 +21,7 @@ namespace Happy_Reader.View.Tabs
 			InitializeComponent();
 			_viewModel = vn;
 			DataContext = vn;
-			var cvnItems = StaticHelpers.LocalDatabase.CharacterVNs.Where(cvn => cvn.VNId == vn.VNID);
+			var cvnItems = StaticHelpers.LocalDatabase.CharacterVNs[vn.VNID];
 			CharacterTiles.ItemsSource = cvnItems.Select(CharacterTile.FromCharacterVN).ToArray();
 			if (userGame == null) return;
 			var tabItem = new TabItem
@@ -64,7 +64,7 @@ namespace Happy_Reader.View.Tabs
 		private async void VNPanel_OnLoaded(object sender, RoutedEventArgs e)
 		{
 			_mainWindow = (MainWindow)Window.GetWindow(this);
-			if (_viewModel.Tags?.Count > 0) LoadTags(_viewModel);
+			if (_viewModel.Tags.Any()) LoadTags(_viewModel);
 			await _viewModel.GetRelationsAnimeScreens();
 			ScreensBox.AspectRatio = _viewModel.ScreensObject.Any() ? _viewModel.ScreensObject.Max(x => (double)x.Width / x.Height) : 1;
 			ImageBox.MaxHeight = ImageBox.Source.Height;

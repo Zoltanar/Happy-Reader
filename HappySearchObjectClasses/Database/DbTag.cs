@@ -9,7 +9,7 @@ namespace Happy_Apps_Core.Database
 	/// <summary>
 	/// Key is (TagId, ListedVN_VNID)
 	/// </summary>
-	public sealed class DbTag : IDataItem<(int, int)>
+	public sealed class DbTag : IDataItem<(int, int)>, IDataListItem<int>
 	{
 		public int TagId { get; set; }
 
@@ -89,6 +89,7 @@ namespace Happy_Apps_Core.Database
 		#region IDataItem Implementation
 		public string KeyField { get; } = "(TagId, ListedVN_VNID)";
 		public (int, int) Key => (TagId, ListedVN_VNID);
+		public int ListKey => ListedVN_VNID;
 
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
 		{

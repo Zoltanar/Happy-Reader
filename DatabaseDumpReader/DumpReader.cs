@@ -29,7 +29,6 @@ namespace DatabaseDumpReader
 		public Dictionary<string, DumpScreen> Images { get; } = new Dictionary<string, DumpScreen>();
 		public Dictionary<int, List<DumpVnScreen>> VnScreens { get; } = new Dictionary<int, List<DumpVnScreen>>();
 		public Dictionary<int, List<DumpRelation>> VnRelations { get; } = new Dictionary<int, List<DumpRelation>>();
-		public Dictionary<int, List<int>> CharacterTraits { get; } = new Dictionary<int, List<int>>();
 		public Dictionary<int, UserVN.LabelKind> UserLabels { get; } = new Dictionary<int, UserVN.LabelKind>();
 		public Dictionary<int, UserVn> UserVns { get; } = new Dictionary<int, UserVn>();
 		public List<VnTag> VnTags { get; } = new List<VnTag>();
@@ -130,19 +129,16 @@ namespace DatabaseDumpReader
 		{
 			Load<CharacterVN>((i, t) =>
 			{
-				if (Database.CharacterVNs[i.Key] != null) return;
+				if (Database.CharacterVNs.ByKey(i.ListKey,i.Key) != null) return;
 				Database.CharacterVNs.Add(i, false, true, t);
 			}, "db\\chars_vns");
 			Load<DbTrait>((i, t) =>
 			{
-				if (!CharacterTraits.ContainsKey(i.CharacterItem_Id)) CharacterTraits[i.CharacterItem_Id] = new List<int>();
-				CharacterTraits[i.CharacterItem_Id].Add(i.TraitId);
 				Database.Traits.Add(i, false, true, t);
 			}, "db\\chars_traits");
 			Load<CharacterItem>((i, t) =>
 			{
-				CharacterTraits.TryGetValue(i.ID, out var traits);
-				SuggestionScorer.SetScore(i, traits);
+				SuggestionScorer.SetScore(i, Database.Traits[i.ID].Select(trait=> trait.TraitId));
 				Database.Characters.Add(i, false, true, t);
 			}, "db\\chars");
 		}

@@ -7,7 +7,7 @@ using Happy_Apps_Core.DataAccess;
 
 namespace Happy_Apps_Core.Database
 {
-	public sealed class CharacterVN : IDataItem<(int, int)>, IDumpItem
+	public sealed class CharacterVN : IDataItem<(int, int)>, IDataListItem<int>, IDumpItem
 	{
 		public int CharacterId { get; set; }
 		public int RId { get; set; }
@@ -53,6 +53,7 @@ namespace Happy_Apps_Core.Database
 
 		public string KeyField => "(CharacterId,VNID)";
 		public (int, int) Key => (CharacterId, VNId);
+		public int ListKey => VNId;
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
 		{
 			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO CharacterVNs" +

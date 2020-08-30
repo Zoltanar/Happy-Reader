@@ -194,7 +194,6 @@ namespace Happy_Apps_Core.Database
 			var tagsToRemove = vn.Tags.Except(tagsToUpdate, DbTag.KeyComparer);
 			foreach (var tag in tagsToRemove) Tags.Remove(tag, false);
 			foreach (var tag in tagsToUpdate) Tags.Upsert(tag, false);
-			vn.ResetTags();
 			if (saveChanges) Connection.Close();
 		}
 

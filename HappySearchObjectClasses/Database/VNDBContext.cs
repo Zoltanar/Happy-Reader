@@ -22,11 +22,11 @@ namespace Happy_Apps_Core.Database
 		public DACollection<(int, int), UserVN> UserVisualNovels { get; }
 		public DACollection<(int, int), UserListedProducer> UserProducers { get; }
 		public DACollection<int, CharacterItem> Characters { get; }
-		public DACollection<(int, int), CharacterVN> CharacterVNs { get; }
+		public DAListCollection<int, (int, int), CharacterVN> CharacterVNs { get; }
 		public DACollection<int, User> Users { get; }
 		public DACollection<string, TableDetail> TableDetails { get; }
-		public DACollection<(int, int), DbTag> Tags { get; }
-		public DACollection<(int, int), DbTrait> Traits { get; }
+		public DAListCollection<int, (int, int), DbTag> Tags { get; }
+		public DAListCollection<int, (int, int), DbTrait> Traits { get; }
 		public DACollection<int, StaffItem> StaffItems { get; }
 		public DACollection<int, StaffAlias> StaffAliases { get; }
 		public DACollection<(int, int, string), VnStaff> VnStaffs { get; }
@@ -44,10 +44,10 @@ namespace Happy_Apps_Core.Database
 			UserProducers = new DACollection<(int, int), UserListedProducer>(Connection);
 			Users = new DACollection<int, User>(Connection);
 			TableDetails = new DACollection<string, TableDetail>(Connection);
-			CharacterVNs = new DACollection<(int, int), CharacterVN>(Connection);
+			CharacterVNs = new DAListCollection<int, (int, int), CharacterVN>(Connection);
 			Characters = new DACollection<int, CharacterItem>(Connection);
-			Traits = new DACollection<(int, int), DbTrait>(Connection);
-			Tags = new DACollection<(int, int), DbTag>(Connection);
+			Traits = new DAListCollection<int, (int, int), DbTrait>(Connection);
+			Tags = new DAListCollection<int, (int, int), DbTag>(Connection);
 			StaffItems = new DACollection<int, StaffItem>(Connection);
 			StaffAliases = new DACollection<int, StaffAlias>(Connection);
 			VnStaffs = new DACollection<(int, int, string), VnStaff>(Connection);
@@ -153,42 +153,13 @@ order by ListedVNs.ReleaseDate desc;";
 					var character = Characters[Convert.ToInt32(reader["ID"])];
 					var vnidObject = reader["VNID"];
 					if (vnidObject == DBNull.Value) continue;
-					character.CharacterVN = CharacterVNs[(character.ID, Convert.ToInt32(vnidObject))];
+					var vnid = Convert.ToInt32(vnidObject);
+					character.CharacterVN = CharacterVNs.ByKey(vnid, (character.ID, vnid));
 				}
 			}
 			finally
 			{
 				Connection.Close();
-			}
-		}
-
-		public List<DbTag> GetTagsForVn(int vnid)
-		{
-			lock (Connection)
-			{
-				var items = new List<DbTag>();
-				var newConnection = Connection.State == ConnectionState.Closed;
-				if (newConnection) Connection.Open();
-				try
-				{
-					using var command = Connection.CreateCommand();
-					command.CommandText =
-						@"select DbTags.* from DbTags where ListedVN_VNID = @vnid;";
-					command.AddParameter("@vnid", vnid);
-					using var reader = command.ExecuteReader();
-					while (reader.Read())
-					{
-						var item = new DbTag();
-						item.LoadFromReader(reader);
-						items.Add(item);
-					}
-
-					return items;
-				}
-				finally
-				{
-					if (newConnection) Connection.Close();
-				}
 			}
 		}
 
@@ -225,8 +196,8 @@ order by ListedVNs.ReleaseDate desc;";
 				}
 			}
 		}
-		
-		public double GetTraitScoreForVn(int vnid,Dictionary<int, double> idTraits, bool newConnection)
+
+		public double GetTraitScoreForVn(int vnid, Dictionary<int, double> idTraits, bool newConnection)
 		{
 			var score = 0d;
 			if (newConnection)
