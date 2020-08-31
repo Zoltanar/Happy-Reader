@@ -32,7 +32,7 @@
 					<RowDefinition Height="*"/>
 					<RowDefinition Height="Auto"/>
 				</Grid.RowDefinitions>
-				<TextBox Grid.Row="0" VerticalAlignment="Top" Height="26" Margin="0,10,0,0">
+				<TextBox Grid.Row="0" VerticalAlignment="Top" Height="26" Margin="0,10,0,0" Foreground="{Binding ., Converter={StaticResource UserVnToForegroundConverter}}">
 					<TextBox.Text>
 						<MultiBinding StringFormat="{}{0} {1}">
 							<Binding Path="Name" Mode="OneWay"/>
@@ -45,10 +45,10 @@
 				</Border>
 				<Image Grid.Row="1" x:Name="ImageBox" MaxHeight="300" MaxWidth="250"/>
 				<StackPanel Grid.Row="2">
-					<TextBox Text="{Binding Original, Mode=OneWay}" Visibility="{Binding Original, Converter={StaticResource NullableToVisibilityConverter}}" Padding="5,0,0,0" />
-					<TextBox Text="{Binding Seiyuu, Mode=OneWay}" Visibility="{Binding Seiyuu, Mode=OneWay, Converter={StaticResource NullableToVisibilityConverter}}" Padding="5,0,0,0"/>
-					<TextBox x:Name="VisualNovelNameBox" Text="{Binding VisualNovelName, Mode=OneWay}" Padding="5,0,0,0" />
-					<TextBox x:Name="VisualNovelReleaseBox" Text="{Binding VisualNovelReleaseDate, Mode=OneWay}" Padding="5,0,0,0"/>
+					<TextBox Text="{Binding Original, Mode=OneWay}" Foreground="{Binding ., Converter={StaticResource UserVnToForegroundConverter}}" Visibility="{Binding Original, Converter={StaticResource NullableToVisibilityConverter}}" Padding="5,0,0,0" />
+					<TextBox Text="{Binding Seiyuu, Mode=OneWay}" Foreground="{Binding ., Converter={StaticResource UserVnToForegroundConverter}}" Visibility="{Binding Seiyuu, Mode=OneWay, Converter={StaticResource NullableToVisibilityConverter}}" Padding="5,0,0,0"/>
+					<TextBox x:Name="VisualNovelNameBox" Text="{Binding VisualNovelName, Mode=OneWay}" Foreground="{Binding ., Converter={StaticResource UserVnToForegroundConverter}}" Padding="5,0,0,0" />
+					<TextBox x:Name="VisualNovelReleaseBox" Text="{Binding VisualNovelReleaseDate, Mode=OneWay}" Foreground="{Binding ., Converter={StaticResource UserVnToForegroundConverter}}" Padding="5,0,0,0"/>
 				</StackPanel>
 			</Grid>
 			<Label Grid.Column="0" Margin="0,-1,2,0" VerticalAlignment="Top" Foreground="#FF9C9C9C" FontSize="9" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="34">
@@ -61,7 +61,7 @@
 					<RowDefinition Height="Auto"/>
 					<RowDefinition/>
 				</Grid.RowDefinitions>
-				<TextBox x:Name="DescriptionBox" Grid.Row="0" Text="{Binding Description}" TextWrapping="Wrap" MinWidth="0" MaxWidth="230" BorderThickness="1" Margin="5" BorderBrush="Black"/>
+				<TextBox x:Name="DescriptionBox" Grid.Row="0" Text="{Binding Description}" TextWrapping="Wrap" MinWidth="0" MaxWidth="230" BorderThickness="1" Margin="5" BorderBrush="Black" Foreground="{Binding ., Converter={StaticResource UserVnToForegroundConverter}}"/>
 				<ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="5">
 					<StackPanel CanVerticallyScroll="True">
 						<ItemsControl x:Name="TraitsControl"/>

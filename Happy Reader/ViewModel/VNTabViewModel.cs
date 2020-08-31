@@ -55,7 +55,7 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 		public PausableUpdateList<VNTile> ListedVNs { get; set; } = new PausableUpdateList<VNTile>();
-		public int[] AllVNResults { get; private set; }
+		public int[] AllResults { get; private set; }
 		public string ReplyText
 		{
 			get => _replyText;
@@ -193,8 +193,8 @@ namespace Happy_Reader.ViewModel
 				if (!_dbFunction.AlwaysIncludeBlacklisted && !IsBlacklisted) vns = vns.Where(vn => !(vn.UserVN?.Blacklisted ?? false));
 				var preFilteredResults = _ordering(vns).ToArray();
 				var filterResults = LocalDatabase.VisualNovels.Where(PermanentFilter.GetFunction()).Select(x => x.VNID).ToArray();
-				AllVNResults = _ordering(preFilteredResults.Where(x => filterResults.Contains(x.VNID))).Select(x => x.VNID).ToArray();
-				var firstPage = AllVNResults.Take(PageSize).ToArray();
+				AllResults = _ordering(preFilteredResults.Where(x => filterResults.Contains(x.VNID))).Select(x => x.VNID).ToArray();
+				var firstPage = AllResults.Take(PageSize).ToArray();
 				return _ordering(LocalDatabase.VisualNovels.WithKeyIn(firstPage)).ToList();
 			});
 			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
@@ -203,7 +203,7 @@ namespace Happy_Reader.ViewModel
 				ListedVNs.SetRange(results.Select(VNTile.FromListedVN));
 				OnPropertyChanged(nameof(CSettings));
 				OnPropertyChanged(nameof(ListedVNs));
-				OnPropertyChanged(nameof(AllVNResults));
+				OnPropertyChanged(nameof(AllResults));
 			});
 			SetReplyText("", VndbConnection.MessageSeverity.Normal);
 			Logger.ToDebug($"RefreshListedVns took {watch.Elapsed.ToSeconds()}.");
@@ -242,7 +242,7 @@ namespace Happy_Reader.ViewModel
 		public void AddListedVNPage()
 		{
 			if (_finalPage) return;
-			var newPage = AllVNResults.Skip(_listedVnPage * PageSize).Take(PageSize).ToList();
+			var newPage = AllResults.Skip(_listedVnPage * PageSize).Take(PageSize).ToList();
 			_listedVnPage++;
 			if (newPage.Count < PageSize)
 			{
@@ -254,7 +254,7 @@ namespace Happy_Reader.ViewModel
 			Logger.ToDebug($"[{nameof(AddListedVNPage)}] Creating VN tiles: {watch.Elapsed.ToSeconds()}.");
 			ListedVNs.AddRange(newTiles);
 			OnPropertyChanged(nameof(ListedVNs));
-			OnPropertyChanged(nameof(AllVNResults));
+			OnPropertyChanged(nameof(AllResults));
 		}
 		
 		public async Task SearchForVN(string text)
@@ -265,7 +265,7 @@ namespace Happy_Reader.ViewModel
 				SetReplyText($"Found no results for '{text}'", VndbConnection.MessageSeverity.Normal);
 				return;
 			}
-			_dbFunction = new NamedFunction(db => db.VisualNovels.Where(VisualNovelDatabase.SearchForVN(text)), "Search For VN", true);
+			_dbFunction = new NamedFunction(db => db.VisualNovels.Where(VisualNovelDatabase.SearchForVN(text)), "Search By VN Name", true);
 			await RefreshListedVns();
 		}
 

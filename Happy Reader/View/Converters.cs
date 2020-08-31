@@ -221,8 +221,21 @@ namespace Happy_Reader.View
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if (value is null) return Brushes.Black;
-			if (!(value is UserVN userVN)) throw new NotSupportedException();
-			return /*userVN.Labels.Contains(UserVN.LabelKind.Playing) ? Theme.ULPlayingBrush :*/ userVN.Blacklisted ? Brushes.White : Brushes.Black;
+			UserVN userVN;
+			switch (value)
+			{
+				case UserVN vUserVN:
+					userVN = vUserVN;
+					break;
+				case ListedVN listedVN:
+					userVN = listedVN.UserVN;
+					break;
+				case CharacterItem character:
+					userVN = character.VisualNovel?.UserVN;
+					break;
+					default: throw new NotSupportedException();
+			}
+			return userVN?.Blacklisted ?? false ? Brushes.White : Brushes.Black;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();

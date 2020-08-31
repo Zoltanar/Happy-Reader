@@ -58,28 +58,16 @@ namespace Happy_Reader.View.Tiles
 			else
 			{
 				//if not for VN tab, we set the background based on user vn status.
-				BorderElement.Background = (Brush)StaticUserVnToBackgroundConverter.Convert(_viewModel.VisualNovel?.UserVN, typeof(Brush), "1", CultureInfo.CurrentCulture);
+				BorderElement.Background = (Brush)StaticUserVnToBackgroundConverter.Convert(_viewModel.VisualNovel?.UserVN, typeof(Brush), null, CultureInfo.CurrentCulture);
 			}
-			if (_hideTraits) return;
-			var linkList = new List<Inline>();
-			if (_viewModel.ID != 0)
-			{
-				var traits = _viewModel.DbTraits.ToList();
-				if (traits.Count > 0)
-				{
-					SetTraitsList(traits, linkList);
-				}
-			}
-			TraitsControl.ItemsSource = linkList;
+			if (_viewModel.ID != 0 && !_hideTraits) SetTraitsList();
 			_loaded = true;
 		}
 
-		private void SetTraitsList(List<DbTrait> traits, List<Inline> linkList)
+		private void SetTraitsList()
 		{
-			var rootTraits = Enum.GetValues(typeof(DumpFiles.RootTrait)).Cast<int>().ToList();
-			var groups = traits.Where(t => rootTraits.Contains(DumpFiles.GetTrait(t.TraitId).TopmostParent))
-				.Select(trait => DumpFiles.GetTrait(trait.TraitId)).GroupBy(x => x?.TopmostParentName ?? "Not Found");
-			foreach (var group in groups.OrderBy(g => g.Key))
+			var linkList = new List<Inline>();
+			foreach (var group in _viewModel.GetGroupedTraits().OrderBy(g => g.Key))
 			{
 				linkList.Add(new Run($"{@group.Key}: "));
 				foreach (var trait in @group)
@@ -90,6 +78,7 @@ namespace Happy_Reader.View.Tiles
 					linkList.Add(link);
 				}
 			}
+			TraitsControl.ItemsSource = linkList;
 		}
 
 		public static CharacterTile FromCharacterVN(CharacterVN cvn)

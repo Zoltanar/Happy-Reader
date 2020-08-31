@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:database="clr-namespace:Happy_Reader.Database"
              xmlns:view="clr-namespace:Happy_Reader.View"
-             mc:Ignorable="d" d:DesignHeight="220" d:DesignWidth="160" Loaded="UserGameTile_OnLoaded">
+             mc:Ignorable="d" d:DesignHeight="220" d:DesignWidth="160" Loaded="UserGameTile_OnLoaded" MouseDoubleClick="OnMouseDoubleClick">
 	<UserControl.DataContext>
 		<database:UserGame/>
 	</UserControl.DataContext>
@@ -57,12 +57,14 @@
 	</Border>
 	<UserControl.ContextMenu>
 		<ContextMenu>
-			<MenuItem Header="See Details" Click="GameDetails"/>
+			<MenuItem Header="Launch" Click="LaunchProcessClick"/>
+			<MenuItem Header="Launch with LE (Japan)" Click="LaunchWithLeJapan" />
+			<Separator/>
+			<MenuItem Header="See Details" Click="ViewDetails" FontWeight="Bold"/>
 			<MenuItem Header="Browse To Location" Click="BrowseToLocation"/>
 			<MenuItem Header="Remove" Click="RemoveUserGame"/>
 			<MenuItem Header="Merge games to this" Click="MergeGamesToThis"/>
 			<MenuItem Header="Reset Time Played" Click="ResetTimePlayed"/>
-			<MenuItem Header="Launch with LE (Japan)" Click="LaunchWithLeJapan" />
 			<MenuItem IsEnabled="{Binding HasVN}" Header="VNDB" SubmenuOpened="OpenVnSubmenu" x:Name="VnMenuParent" />
 		</ContextMenu>
 	</UserControl.ContextMenu>

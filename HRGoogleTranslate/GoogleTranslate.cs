@@ -33,8 +33,8 @@ namespace HRGoogleTranslate
 		private static TranslationClient _client;
 		private static readonly HttpClient FreeClient = new HttpClient();
 		private static Func<string, string> _japaneseToRomaji;
-		public static uint GotFromCacheCount { get; private set; }
-		public static uint GotFromAPICount { get; private set; }
+		private static uint GotFromCacheCount { get; set; }
+		private static uint GotFromAPICount { get; set; }
 		private static ObservableCollection<GoogleTranslation> _linkedCache = new ObservableCollection<GoogleTranslation>();
 
 		public static void Initialize(
@@ -244,5 +244,12 @@ namespace HRGoogleTranslate
 		/// Character is between points \u30a0 and \u30ff
 		/// </summary>
 		private static bool IsKatakana(this char character) => character >= 0x30a0 && character <= 0x30ff;
+
+		public static void ExitProcedures(Func<int> saveData)
+		{
+			Debug.WriteLine($"[{nameof(GoogleTranslate)}] Got from cache {GotFromCacheCount}");
+			Debug.WriteLine($"[{nameof(GoogleTranslate)}] Got from API {GotFromAPICount}");
+			saveData();
+		}
 	}
 }

@@ -190,5 +190,14 @@ namespace Happy_Apps_Core
 			}
 			return _alertFlag.Value;
 		}
+
+		public IEnumerable<IGrouping<string,DumpFiles.WrittenTrait>> GetGroupedTraits()
+		{
+			var groups = DbTraits
+				.Where(t => DumpFiles.RootTraitIds.Contains(DumpFiles.GetTrait(t.TraitId).TopmostParent))
+				.Select(trait => DumpFiles.GetTrait(trait.TraitId))
+				.GroupBy(x => x?.TopmostParentName ?? "Not Found");
+			return groups;
+		}
 	}
 }

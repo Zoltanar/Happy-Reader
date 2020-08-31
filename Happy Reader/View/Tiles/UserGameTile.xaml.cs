@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Input;
 using Happy_Reader.Database;
 using Happy_Reader.ViewModel;
 
@@ -29,7 +30,7 @@ namespace Happy_Reader.View.Tiles
 			UserGame = userGame;
 		}
 
-		public void GameDetails(object sender, EventArgs e)
+		public void ViewDetails(object sender, EventArgs e)
 		{
 			var mainWindow = (MainWindow)(sender is MainWindow ? sender : Window.GetWindow(this));
 			Trace.Assert(mainWindow != null, nameof(mainWindow) + " != null");
@@ -54,9 +55,7 @@ namespace Happy_Reader.View.Tiles
 			var result = MessageBox.Show($"Are you sure you want to remove {UserGame.DisplayName}?", "Confirm", MessageBoxButton.YesNo);
 			if (result == MessageBoxResult.Yes)
 			{
-				// ReSharper disable once PossibleNullReferenceException
-				var mainViewModel = (MainWindowViewModel)((MainWindow)Window.GetWindow(this)).DataContext;
-				mainViewModel.RemoveUserGame(this);
+				MainWindowViewModel.Instance.RemoveUserGame(this);
 			}
 		}
 
@@ -71,18 +70,18 @@ namespace Happy_Reader.View.Tiles
 			UserGame.MergeTimePlayed(additionalTimePlayed);
 			foreach (var mergeTarget in mergeWindow.MergeResults)
 			{
-				// ReSharper disable once PossibleNullReferenceException
-				var mainViewModel = (MainWindowViewModel)((MainWindow)Window.GetWindow(this)).DataContext;
-				mainViewModel.RemoveUserGame(mergeTarget.UserGame);
+				MainWindowViewModel.Instance.RemoveUserGame(mergeTarget.UserGame);
 			}
+		}
+
+		private void LaunchProcessClick(object sender, RoutedEventArgs e)
+		{
+			MainWindowViewModel.Instance.HookUserGame(UserGame, null, false);
 		}
 
 		private void LaunchWithLeJapan(object sender, RoutedEventArgs e)
 		{
-			var mainWindow = (MainWindow)(sender is MainWindow ? sender : Window.GetWindow(this));
-			Trace.Assert(mainWindow != null, nameof(mainWindow) + " != null");
-			var viewModel = (MainWindowViewModel)mainWindow.DataContext;
-			viewModel.HookUserGame(UserGame, null, true);
+			MainWindowViewModel.Instance.HookUserGame(UserGame, null, true);
 		}
 
 		private void ResetTimePlayed(object sender, RoutedEventArgs e)
@@ -102,6 +101,11 @@ namespace Happy_Reader.View.Tiles
 			if (_loaded) return;
 			VnMenu.TransferItems(VnMenuParent);
 			_loaded = true;
+		}
+
+		private void OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
+		{
+			ViewDetails(sender,e);
 		}
 	}
 }

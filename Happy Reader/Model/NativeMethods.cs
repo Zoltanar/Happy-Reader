@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
+
 // ReSharper disable All
 
 namespace Happy_Reader
@@ -81,11 +84,23 @@ namespace Happy_Reader
         [DllImport("kernel32.dll", SetLastError = true, CallingConvention = CallingConvention.Winapi)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool IsWow64Process(
-            [In] Microsoft.Win32.SafeHandles.SafeHandleZeroOrMinusOneIsInvalid hProcess, [Out, MarshalAs(UnmanagedType.Bool)] out bool wow64Process
+            [In] SafeHandleZeroOrMinusOneIsInvalid hProcess, [Out, MarshalAs(UnmanagedType.Bool)] out bool wow64Process
         );
 
         [DllImport("kernel32.dll", SetLastError = true, CallingConvention = CallingConvention.Winapi)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool IsWow64Process([In] IntPtr processHandle, [Out, MarshalAs(UnmanagedType.Bool)] out bool wow64Process);
+
+        public static NativeMethods.RECT GetWindowDimensions(Process process)
+        {
+	        var windowHandle = process.MainWindowHandle;
+	        NativeMethods.GetWindowRect(windowHandle, out var rct);
+	        if (rct.IsEmpty)
+	        {
+		        var hwnd = NativeMethods.FindWindow(null, process.MainWindowTitle);
+		        NativeMethods.GetWindowRect(hwnd, out rct);
+	        }
+	        return rct;
+        }
     }
 }

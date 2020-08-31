@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -43,7 +44,7 @@ namespace Happy_Apps_Core
 		private APIStatus _status = APIStatus.Closed;
 		private LoginCredentials _loginCredentials;
 		public ApiQuery ActiveQuery { get; private set; }
-		
+
 		public VndbConnection(
 			[NotNull] Action<string, MessageSeverity> textAction,
 			Action<string, bool> advancedModeAction,
@@ -89,39 +90,21 @@ namespace Happy_Apps_Core
 		/// <returns>Returns whether it as successful.</returns>
 		public async Task<bool> ChangeVote(ListedVN vn, int? vote)
 		{
-			if (!StartQuery(nameof(ChangeVote), false, false)) return false;
-			try
+			return await WrapQuery(async () =>
 			{
 				bool remove = !vote.HasValue;
 				_changeStatusAction?.Invoke(APIStatus.Busy);
 				var userVn = vn.UserVN ?? new UserVN { UserId = CSettings.UserID, VNID = vn.VNID };
 				var queryString = $"set ulist {vn.VNID} {{\"vote\":{vote}}}";
-				var result = await TryQuery(queryString, Resources.cvns_query_error);
-				if (!result) return false;
+				if (!await TryQuery(queryString, Resources.cvns_query_error)) return false;
 				userVn.Vote = vote;
 				if (remove) userVn.Labels.Remove(UserVN.LabelKind.Voted);
 				else userVn.Labels.Add(UserVN.LabelKind.Voted);
-				userVn.VoteAdded = DateTime.UtcNow;
-				if (userVn.Labels.Any())
-				{
-					LocalDatabase.UserVisualNovels.Upsert(userVn, true);
-				}
-				else
-				{
-					LocalDatabase.UserVisualNovels.Remove(userVn, true);
-				}
-				_changeStatusAction?.Invoke(_status);
+				userVn.VoteAdded = remove ? (DateTime?)null : DateTime.UtcNow;
+				if (userVn.Labels.Any()) LocalDatabase.UserVisualNovels.Upsert(userVn, true);
+				else LocalDatabase.UserVisualNovels.Remove(userVn, true);
 				return true;
-			}
-			catch (Exception ex)
-			{
-				ActiveQuery.SetException(ex);
-				return false;
-			}
-			finally
-			{
-				EndQuery();
-			}
+			}, false, false);
 		}
 
 		/// <summary>
@@ -132,36 +115,18 @@ namespace Happy_Apps_Core
 		/// <returns>Returns whether it as successful.</returns>
 		public async Task<bool> ChangeVNStatus(ListedVN vn, HashSet<UserVN.LabelKind> labels)
 		{
-			if (!StartQuery(nameof(ChangeVNStatus), false, false)) return false;
-			try
+			return await WrapQuery(async () =>
 			{
 				_changeStatusAction?.Invoke(APIStatus.Busy);
 				var userVn = vn.UserVN ?? new UserVN { UserId = CSettings.UserID, VNID = vn.VNID };
 				var queryString = $"set ulist {vn.VNID} {{\"labels\":[{string.Join(",", labels.Cast<int>())}]}}";
-				var result = await TryQuery(queryString, Resources.cvns_query_error);
-				if (!result) return false;
+				if (!await TryQuery(queryString, Resources.cvns_query_error)) return false;
 				userVn.Labels = labels.ToHashSet();
 				userVn.Added = DateTime.UtcNow;
-				if (userVn.Labels.Any())
-				{
-					LocalDatabase.UserVisualNovels.Upsert(userVn, true);
-				}
-				else
-				{
-					LocalDatabase.UserVisualNovels.Remove(userVn, true);
-				}
-				_changeStatusAction?.Invoke(_status);
+				if (userVn.Labels.Any()) LocalDatabase.UserVisualNovels.Upsert(userVn, true);
+				else LocalDatabase.UserVisualNovels.Remove(userVn, true);
 				return true;
-			}
-			catch (Exception ex)
-			{
-				ActiveQuery.SetException(ex);
-				return false;
-			}
-			finally
-			{
-				EndQuery();
-			}/**/
+			}, false, false);
 		}
 
 		/// <summary>
@@ -169,28 +134,12 @@ namespace Happy_Apps_Core
 		/// </summary>
 		public async Task<string> GetUsernameFromID(int userID)
 		{
-			if (!StartQuery(nameof(GetUsernameFromID), false, false)) return "";
-			try
+			return await WrapQuery(async () =>
 			{
-				var result = await TryQueryNoReply($"get user basic (id={userID})");
-				if (!result)
-				{
-					_changeStatusAction?.Invoke(_status);
-					return "";
-				}
-
+				if (!await TryQueryNoReply($"get user basic (id={userID})")) return string.Empty;
 				var response = JsonConvert.DeserializeObject<ResultsRoot<UserItem>>(_lastResponse.JsonPayload);
-				return response.Items.Any() ? response.Items[0].Username : "";
-			}
-			catch (Exception ex)
-			{
-				ActiveQuery.SetException(ex);
-				return "";
-			}
-			finally
-			{
-				EndQuery();
-			}
+				return response.Items.Any() ? response.Items[0].Username : string.Empty;
+			}, false, false, string.Empty);
 		}
 
 		/// <summary>
@@ -198,27 +147,12 @@ namespace Happy_Apps_Core
 		/// </summary>
 		public async Task<int> GetIDFromUsername(string username)
 		{
-			if (!StartQuery(nameof(GetIDFromUsername), false, false)) return -1;
-			try
+			return await WrapQuery(async () =>
 			{
-				var result = await TryQueryNoReply($"get user basic (username=\"{username}\")");
-				if (!result)
-				{
-					_changeStatusAction?.Invoke(_status);
-					return -1;
-				}
+				if (!await TryQueryNoReply($"get user basic (username=\"{username}\")")) return -1;
 				var response = JsonConvert.DeserializeObject<ResultsRoot<UserItem>>(_lastResponse.JsonPayload);
 				return response.Items.Any() ? response.Items[0].ID : -1;
-			}
-			catch (Exception ex)
-			{
-				ActiveQuery.SetException(ex);
-				return -1;
-			}
-			finally
-			{
-				EndQuery();
-			}
+			}, false, false, -1);
 		}
 
 		/// <summary>
@@ -252,10 +186,9 @@ namespace Happy_Apps_Core
 		private void Open(bool printCertificates)
 		{
 			Logger.ToFile($"Attempting to open connection to {VndbHost}:{VndbPortTLS}");
-			var complete = false;
 			var retries = 0;
 			var certs = GetCertificates(printCertificates);
-			while (!complete && retries < 5)
+			while (retries < 5)
 			{
 				try
 				{
@@ -270,17 +203,18 @@ namespace Happy_Apps_Core
 					Logger.ToFile("SSL Stream authenticated...");
 					if (!CheckRemoteCertificate(printCertificates, sslStream.RemoteCertificate)) return;
 					_stream = sslStream;
-					complete = true;
 					Logger.ToFile($"Connected after {retries} tries.");
+					break;
 				}
 				catch (SocketException e)
 				{
-					Logger.ToFile(e, "Conn Socket Error");
+					Logger.ToFile(e);
 					Thread.Sleep(1000);
 				}
-				catch (Exception ex) when (ex is ArgumentNullException || ex is InvalidOperationException || ex is IOException || ex is AuthenticationException)
+				catch (Exception ex)
 				{
-					Logger.ToFile(ex, "Conn Other Error");
+					Logger.ToFile(ex);
+					break;
 				}
 			}
 			if (_stream != null && _stream.CanRead) return;
@@ -291,21 +225,16 @@ namespace Happy_Apps_Core
 
 		private bool CheckRemoteCertificate(bool printCertificates, X509Certificate remoteCertificate)
 		{
-			if (remoteCertificate != null)
+			if (remoteCertificate == null) return true;
+			if (printCertificates)
 			{
-				var subject = remoteCertificate.Subject;
-				if (printCertificates)
-				{
-					Logger.ToFile("Remote Certificate data - subject/issuer/format/effectivedate/expirationdate",
-						$"{subject}\t-{remoteCertificate.Issuer}\t-{remoteCertificate.GetFormat()}\t-{remoteCertificate.GetEffectiveDateString()}\t-{remoteCertificate.GetExpirationDateString()}");
-				}
-				if (subject.Substring(3).Equals(VndbHost)) return true;
-				Logger.ToFile($"Certificate received isn't for {VndbHost} so connection is closed (it was for {subject.Substring(3)})");
-				_status = APIStatus.Error;
-				return false;
+				Logger.ToFile("Remote Certificate data - subject/issuer/format/effectivedate/expirationdate", GetDetails(remoteCertificate));
 			}
-
-			return true;
+			var certificateTarget = remoteCertificate.Subject.Substring(3);
+			if (certificateTarget.Equals(VndbHost)) return true;
+			Logger.ToFile($"Certificate received isn't for {VndbHost} so connection is closed (it was for {certificateTarget})");
+			_status = APIStatus.Error;
+			return false;
 		}
 
 		private static X509CertificateCollection GetCertificates(bool printCertificates)
@@ -313,16 +242,15 @@ namespace Happy_Apps_Core
 			var certs = new X509CertificateCollection();
 			var certFiles = Directory.GetFiles("Program Data\\Certificates");
 			foreach (var certFile in certFiles) certs.Add(X509Certificate.CreateFromCertFile(certFile));
-			if (printCertificates)
-			{
-				Logger.ToFile("Local Certificate data - subject/issuer/format/effectivedate/expirationdate");
-				foreach (var cert in certs)
-					Logger.ToFile(
-						$"{cert.Subject}\t{cert.Issuer}\t{cert.GetFormat()}\t{cert.GetEffectiveDateString()}\t{cert.GetExpirationDateString()}");
-			}
+			if (!printCertificates) return certs;
+			Logger.ToFile("Local Certificate data - subject/issuer/format/effectivedate/expirationdate");
+			foreach (var cert in certs) Logger.ToFile(GetDetails(cert));
 
 			return certs;
 		}
+
+		private static string GetDetails(X509Certificate cert)
+			=> $"{cert.Subject}\t{cert.Issuer}\t{cert.GetFormat()}\t{cert.GetEffectiveDateString()}\t{cert.GetExpirationDateString()}";
 
 		private void AskForNonSsl()
 		{
@@ -347,20 +275,30 @@ namespace Happy_Apps_Core
 				}
 				catch (IOException e)
 				{
-					Logger.ToFile(e, "Conn Open Error");
-				}
-				catch (Exception ex) when (ex is ArgumentNullException || ex is InvalidOperationException)
-				{
-					Logger.ToFile(ex, "Conn Other Error");
-				}
-				catch (Exception otherXException)
-				{
-					Logger.ToFile(otherXException, "Conn Other2 Error");
+					Logger.ToFile(e);
 				}
 			}
 			if (_stream != null && _stream.CanRead) return;
 			Logger.ToFile($"Failed to connect after {retries} tries.");
 			_status = APIStatus.Error;
+		}
+
+		private async Task<T> WrapQuery<T>(Func<Task<T>> task, bool refreshList, bool additionalMessage, T failValue = default, [CallerMemberName] string caller = null)
+		{
+			if (!StartQuery(caller, refreshList, additionalMessage)) return failValue;
+			try
+			{
+				return await task();
+			}
+			catch (Exception ex)
+			{
+				ActiveQuery.SetException(ex);
+				return failValue;
+			}
+			finally
+			{
+				EndQuery();
+			}
 		}
 
 		/// <summary>
@@ -427,7 +365,7 @@ namespace Happy_Apps_Core
 				try
 				{
 					var jsonString = command.Substring("login".Length).Trim().Replace("\\\"", "\"");
-					var jObject = (Newtonsoft.Json.Linq.JObject) JsonConvert.DeserializeObject(jsonString);
+					var jObject = (Newtonsoft.Json.Linq.JObject)JsonConvert.DeserializeObject(jsonString);
 					Debug.Assert(jObject != null, nameof(jObject) + " != null");
 					jObject["password"] = "***";
 					jsonString = JsonConvert.SerializeObject(jObject).Replace("\"", "\\\"");

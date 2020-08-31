@@ -87,7 +87,7 @@ namespace Happy_Reader.ViewModel
 			var output = Kakasi.JapaneseToRomaji(input);
 			if (output.Length > 0) output = char.ToUpper(output[0]) + output.Substring(1);
 			output = output.Replace(" ", "");
-			MainWindow.CreateAddEntryTab(new Entry(input, output) { SeriesSpecific = true });
+			MainWindow.CreateAddEntryTab(input, output, true);
 		}
 
 		private FlowDocument _flowDocument;

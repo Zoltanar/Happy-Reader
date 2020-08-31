@@ -20,6 +20,7 @@ using Newtonsoft.Json.Linq;
 using Happy_Reader.View;
 using Happy_Reader.View.Tabs;
 using Happy_Reader.View.Tiles;
+using HRGoogleTranslate;
 using IthVnrSharpLib;
 using static Happy_Apps_Core.StaticHelpers;
 
@@ -28,6 +29,17 @@ namespace Happy_Reader.ViewModel
 	public class MainWindowViewModel : INotifyPropertyChanged
 	{
 		private static readonly object HookLock = new object();
+		private static MainWindowViewModel _instance;
+		[NotNull] public static MainWindowViewModel Instance
+		{
+			get => _instance ?? throw new ArgumentNullException(nameof(_instance), "Should not be null");
+			set
+			{
+				if(_instance != null) throw new InvalidOperationException("Instance was already set.");
+				_instance = value;
+			}
+
+		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
 		public StaticMethods.NotificationEventHandler NotificationEvent;
@@ -106,6 +118,7 @@ namespace Happy_Reader.ViewModel
 		[NotNull] public IthViewModel IthViewModel { get; }
 		[NotNull] public SettingsViewModel SettingsViewModel { get; }
 		[NotNull] public ApiLogViewModel ApiLogViewModel { get; }
+		//todo make a new UserControl and ViewModel for entries.
 
 		public bool TranslatePaused
 		{
@@ -153,6 +166,7 @@ namespace Happy_Reader.ViewModel
 
 		public MainWindowViewModel(MainWindow mainWindow)
 		{
+			Instance = this;
 			Application.Current.Exit += ExitProcedures;
 			SettingsViewModel = new SettingsViewModel(CSettings, StaticMethods.GSettings, StaticMethods.TSettings);
 			ApiLogViewModel = new ApiLogViewModel
@@ -200,26 +214,26 @@ namespace Happy_Reader.ViewModel
 		public void ExitProcedures(object sender, ExitEventArgs args)
 		{
 			if (_finalizing) return;
+			var exitWatch = Stopwatch.StartNew();
+			Logger.ToDebug($"[{nameof(MainWindowViewModel)}] Starting exit procedures...");
 			_finalizing = true;
-			Thread ithFinalize = new Thread(() => IthViewModel.Finalize(null, null)) { IsBackground = true };
+			var ithFinalize = new Thread(() => IthViewModel.Finalize(null, null)) { IsBackground = true };
 			ithFinalize.Start();
 			bool terminated = ithFinalize.Join(5000); //false if timed out
 			if (!terminated) { }
-			var exitWatch = Stopwatch.StartNew();
-			Logger.ToDebug("(MainWindowViewModel) Starting exit procedures...");
 			try
 			{
 				_closing = true;
 				OutputWindow?.Close();
 				UserGame?.SaveTimePlayed(false);
-				StaticMethods.ExitTranslation();
+				GoogleTranslate.ExitProcedures(StaticMethods.Data.SaveChanges);
 				_monitor?.Join();
 			}
 			catch (Exception ex)
 			{
 				Logger.ToFile(ex);
 			}
-			Logger.ToDebug($"(MainWindowViewModel) Completed exit procedures, took {exitWatch.Elapsed}");
+			Logger.ToDebug($"[{nameof(MainWindowViewModel)}] Completed exit procedures, took {exitWatch.Elapsed}");
 		}
 
 		public UserGameTile AddGameFile(string file)
@@ -380,12 +394,10 @@ namespace Happy_Reader.ViewModel
 				var o = item["output"].ToString();
 				// ReSharper restore PossibleNullReferenceException
 				var proxy = StaticMethods.Data.Entries.SingleOrDefault(x => x.RoleString.Equals(r) && x.Input.Equals(i));
-				if (proxy == null)
-				{
-					proxy = new Entry { UserId = 0, Type = EntryType.Proxy, RoleString = r, Input = i, Output = o };
-					StaticMethods.Data.Entries.Add(proxy);
-					StaticMethods.Data.SaveChanges();
-				}
+				if (proxy != null) continue;
+				proxy = new Entry { UserId = 0, Type = EntryType.Proxy, RoleString = r, Input = i, Output = o };
+				StaticMethods.Data.Entries.Add(proxy);
+				StaticMethods.Data.SaveChanges();
 			}
 		}
 
@@ -504,7 +516,7 @@ namespace Happy_Reader.ViewModel
 				Logger.Verbose($"{nameof(RunTranslation)} - {e}");
 				if (UserGame.Process == null) return false;
 				if ((sender as TextThread)?.IsConsole ?? false) return false;
-				var rect = StaticMethods.GetWindowDimensions(UserGame.Process);
+				var rect = NativeMethods.GetWindowDimensions(UserGame.Process);
 				if (rect.IsEmpty) return false; //todo show it somehow or show error.
 				Translation translation;
 				if (false /*e.FromClipboard todo fix this*/)

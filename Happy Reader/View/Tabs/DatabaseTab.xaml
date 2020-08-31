@@ -87,7 +87,7 @@
 		<TextBlock Grid.Row="3" Width="120" Background="Aquamarine" HorizontalAlignment="Right" TextAlignment="Right" Padding="5">
 			<Run Text="{Binding ListedVNs.Count, Mode=OneWay}"/>
 			<Run Text="/"/>
-			<Run Text="{Binding AllVNResults.Length, Mode=OneWay}"/>
+			<Run Text="{Binding AllResults.Length, Mode=OneWay}"/>
 			<Run Text="Items."/>
 		</TextBlock>
 		<Label Content="Producer:" HorizontalAlignment="Left" VerticalContentAlignment="Center" Grid.Row="2" Margin="149,0,0,0"/>

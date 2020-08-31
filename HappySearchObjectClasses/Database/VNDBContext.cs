@@ -6,6 +6,7 @@ using System.Data;
 using System.Data.Common;
 using System.Data.SQLite;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using Happy_Apps_Core.DataAccess;
 
@@ -250,6 +251,13 @@ where TraitId = @TraitId";
 		public static Func<ListedVN, bool> SearchForVN(string searchString)
 		{
 			var lowerSearchString = searchString.ToLower();
+			if (searchString.StartsWith("\"") && searchString.EndsWith("\""))
+			{
+				var trimmedSearchString = lowerSearchString.Trim('\"');
+				return vn => HasWholeWord(vn.Title, trimmedSearchString) 
+				             || HasWholeWord(vn.KanjiTitle, trimmedSearchString) 
+				             || HasWholeWord(vn.Aliases, trimmedSearchString);
+			}
 			return vn => vn.Title.ToLower().Contains(lowerSearchString) ||
 			             vn.KanjiTitle != null && vn.KanjiTitle.ToLower().Contains(lowerSearchString) ||
 			             vn.Aliases != null && vn.Aliases.ToLower().Contains(lowerSearchString);
@@ -258,9 +266,21 @@ where TraitId = @TraitId";
 		public static Func<CharacterItem, bool> SearchForCharacter(string searchString)
 		{
 			var lowerSearchString = searchString.ToLower();
+			if (searchString.StartsWith("\"") && searchString.EndsWith("\""))
+			{
+				var trimmedSearchString = lowerSearchString.Trim('\"');
+				return ch => HasWholeWord(ch.Name, trimmedSearchString) 
+				             || HasWholeWord(ch.Original, trimmedSearchString) 
+				             || HasWholeWord(ch.Aliases, trimmedSearchString);
+			}
 			return ch => ch.Name.ToLower().Contains(lowerSearchString) ||
 			             ch.Original != null && ch.Original.ToLower().Contains(lowerSearchString) ||
 			             ch.Aliases != null && ch.Aliases.ToLower().Contains(lowerSearchString);
+		}
+
+		private static bool HasWholeWord(string input, string searchString)
+		{
+			return !string.IsNullOrWhiteSpace(input) && input.ToLower().Split(' ').Any(p => p == searchString);
 		}
 
 		public void DeleteForDump()

@@ -85,9 +85,8 @@ namespace Happy_Reader
 				}
 				for (int stage = 0; stage < 7; stage++)
 				{
-					//todo investigate
 					var stage1 = stage;
-					Results[stage] = string.Join(stage < 7 || _partResults[stage][0].Length == 1 ? string.Empty : " ", _partResults.Select(c => c[stage1]));
+					Results[stage] = string.Join(string.Empty, _partResults.Select(c => c[stage1]));
 				}
 				for (int part = 0; part < _partResults.Count; part++)
 				{

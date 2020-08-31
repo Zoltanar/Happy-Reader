@@ -106,7 +106,7 @@ namespace Happy_Reader
 
 		public static Process StartProcessThroughLocaleEmulator(UserGame userGame)
 		{
-			var proxyPath = StaticMethods.GSettings.LocaleEmulatorPath;
+			var proxyPath = GSettings.LocaleEmulatorPath;
 			var args = $"\"{userGame.FilePath}\"";
 			var processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(userGame.FilePath));
 			Process existing = processes.FirstOrDefault();
@@ -151,9 +151,7 @@ namespace Happy_Reader
 
 		public static Collection<T> GetVisualChildren<T>(DependencyObject current) where T : DependencyObject
 		{
-			if (current == null)
-				return null;
-
+			if (current == null) return null;
 			var children = new Collection<T>();
 			GetVisualChildren(current, children);
 			return children;
@@ -163,7 +161,6 @@ namespace Happy_Reader
 		{
 			if (current == null) return;
 			if (current.GetType() == typeof(T)) children.Add((T)current);
-
 			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(current); i++)
 			{
 				GetVisualChildren(VisualTreeHelper.GetChild(current, i), children);
@@ -187,25 +184,7 @@ namespace Happy_Reader
 			}
 			return (T)foundElement;
 		}
-
-		public static TValue GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue value)
-		{
-			if (!dictionary.ContainsKey(key)) dictionary.Add(key, value);
-			try
-			{
-				return dictionary[key];
-			}
-			catch
-			{
-				return default;
-			}
-		}
-
-		public static TValue GetOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, TValue defaultValue = default)
-		{
-			return dict.TryGetValue(key, out var result) ? result : defaultValue;
-		}
-
+		
 		public static bool Is64BitProcess(this Process process)
 		{
 			if (!Environment.Is64BitOperatingSystem) return false;
@@ -233,70 +212,13 @@ namespace Happy_Reader
 			NativeMethods.GetWindowThreadProcessId(handle, out uint pid);
 			return pid == 0 ? null : Process.GetProcessById((int)pid);
 		}
-
-		public static NativeMethods.RECT GetWindowDimensions(Process process)
-		{
-			var windowHandle = process.MainWindowHandle;
-			NativeMethods.GetWindowRect(windowHandle, out var rct);
-			if (rct.IsEmpty)
-			{
-				var hwnd = NativeMethods.FindWindow(null, process.MainWindowTitle);
-				NativeMethods.GetWindowRect(hwnd, out rct);
-			}
-			return rct;
-		}
-
-		public static void ExitTranslation()
-		{
-			Debug.WriteLine($"GoogleTranslate: Got from cache {GoogleTranslate.GotFromCacheCount}");
-			Debug.WriteLine($"GoogleTranslate: Got from API {GoogleTranslate.GotFromAPICount}");
-			Data.SaveChanges();
-		}
-
-		/// <summary>
-		/// NanUnion is a C++ style type union used for efficiently converting
-		/// a double into an unsigned long, whose bits can be easily manipulated</summary>
-		[StructLayout(LayoutKind.Explicit)]
-		private struct NanUnion
-		{
-			/// <summary>
-			/// Floating point representation of the union</summary>
-			[FieldOffset(0)]
-			internal double FloatingValue;
-
-			/// <summary>
-			/// Integer representation of the union</summary>
-			[FieldOffset(0)]
-			// ReSharper disable once FieldCanBeMadeReadOnly.Local
-			internal ulong IntegerValue;
-		}
-
-		/// <summary>
-		/// Check if a number isn't really a number</summary>
-		/// <param name="value">The number to check</param>
-		/// <returns>True if the number is not a number, false if it is a number</returns>
-		public static bool IsNaN(this double value)
-		{
-			// Get the double as an unsigned long
-			NanUnion union = new NanUnion { FloatingValue = value };
-
-			// An IEEE 754 double precision floating point number is NaN if its
-			// exponent equals 2047 and it has a non-zero mantissa.
-			ulong exponent = union.IntegerValue & 0xfff0000000000000L;
-			if ((exponent != 0x7ff0000000000000L) && (exponent != 0xfff0000000000000L))
-			{
-				return false;
-			}
-			ulong mantissa = union.IntegerValue & 0x000fffffffffffffL;
-			return mantissa != 0L;
-		}
-
+		
 		/// <summary>
 		/// Truncates strings if they are longer than 'maxChars' (minimum is 4 characters).
 		/// </summary>
 		/// <param name="maxChars">The maximum number of characters</param>
 		/// <returns>Truncated string</returns>
-		public static Expression<Func<string, string>> TruncateStringExpression(int maxChars)
+		private static Expression<Func<string, string>> TruncateStringExpression(int maxChars)
 		{
 			maxChars = Math.Max(maxChars, 4);
 			Expression<Func<string, string>> expression = x => x == null ? null :
@@ -345,9 +267,7 @@ namespace Happy_Reader
 			"plugin"
 		};
 
-		public static readonly string[] ResolveNamesToSkip =
-		{
-		};
+		public static readonly string[] ResolveNamesToSkip = { };
 
 		public static ListedVN ResolveVNForFile(string file)
 		{
@@ -448,8 +368,8 @@ namespace Happy_Reader
 			if (process.Is64BitProcess())
 			{
 				var searcher = new ManagementObjectSearcher("root\\CIMV2", $"SELECT ExecutablePath FROM Win32_Process WHERE ProcessId = {process.Id}");
-				processFileName = searcher.Get().Cast<ManagementObject>().FirstOrDefault()?["ExecutablePath"].ToString() ?? String.Empty;
-				if (String.IsNullOrWhiteSpace(processFileName)) throw new InvalidOperationException("Did not find executable path for process");
+				processFileName = searcher.Get().Cast<ManagementObject>().FirstOrDefault()?["ExecutablePath"].ToString() ?? string.Empty;
+				if (string.IsNullOrWhiteSpace(processFileName)) throw new InvalidOperationException("Did not find executable path for process");
 			}
 			else
 			{

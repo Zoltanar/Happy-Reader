@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -33,7 +35,7 @@ namespace Happy_Reader.View
         /// Dependency property for ItemHeight</summary>
         public static readonly DependencyProperty ItemHeightProperty =
             DependencyProperty.Register("ItemHeight", typeof(double), typeof(VirtualizingWrapPanel),
-                new FrameworkPropertyMetadata(double.NaN, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange));
+                new FrameworkPropertyMetadata(Double.NaN, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange));
 
         /// <summary>
         /// Gets and sets the width of items in the view</summary>
@@ -48,7 +50,7 @@ namespace Happy_Reader.View
         /// Dependency property for ItemWidth</summary>
         public static readonly DependencyProperty ItemWidthProperty =
             DependencyProperty.Register("ItemWidth", typeof(double), typeof(VirtualizingWrapPanel),
-                new FrameworkPropertyMetadata(double.NaN, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange));
+                new FrameworkPropertyMetadata(Double.NaN, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange));
 
         /// <summary>
         /// Gets and sets the orientation for layout of the items</summary>
@@ -382,8 +384,8 @@ namespace Happy_Reader.View
                 double itemWidth = this.ItemWidth;
                 double itemHeight = this.ItemHeight;
                 return new Size(
-                    !itemWidth.IsNaN() ? itemWidth : double.PositiveInfinity,
-                    !itemHeight.IsNaN() ? itemHeight : double.PositiveInfinity);
+                    !IsNaN(itemWidth) ? itemWidth : Double.PositiveInfinity,
+                    !IsNaN(itemHeight) ? itemHeight : Double.PositiveInfinity);
             }
         }
 
@@ -784,7 +786,7 @@ namespace Happy_Reader.View
 
             #region IEnumerable Members
 
-            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            IEnumerator IEnumerable.GetEnumerator()
             {
                 return GetEnumerator();
             }
@@ -1059,5 +1061,43 @@ namespace Happy_Reader.View
         private Size m_viewport = new Size(0, 0);
         private int m_firstIndex = 0;
         private readonly Dictionary<UIElement, Rect> m_realizedChildLayout = new Dictionary<UIElement, Rect>();
+
+        /// <summary>
+        /// NanUnion is a C++ style type union used for efficiently converting
+        /// a double into an unsigned long, whose bits can be easily manipulated</summary>
+        [StructLayout(LayoutKind.Explicit)]
+        public struct NanUnion
+        {
+	        /// <summary>
+	        /// Floating point representation of the union</summary>
+	        [FieldOffset(0)]
+	        internal double FloatingValue;
+
+	        /// <summary>
+	        /// Integer representation of the union</summary>
+	        [FieldOffset(0)]
+	        // ReSharper disable once FieldCanBeMadeReadOnly.Local
+	        internal ulong IntegerValue;
+        }
+
+        /// <summary>
+        /// Check if a number isn't really a number</summary>
+        /// <param name="value">The number to check</param>
+        /// <returns>True if the number is not a number, false if it is a number</returns>
+        public static bool IsNaN(double value)
+        {
+	        // Get the double as an unsigned long
+	        NanUnion union = new NanUnion { FloatingValue = value };
+
+	        // An IEEE 754 double precision floating point number is NaN if its
+	        // exponent equals 2047 and it has a non-zero mantissa.
+	        ulong exponent = union.IntegerValue & 0xfff0000000000000L;
+	        if ((exponent != 0x7ff0000000000000L) && (exponent != 0xfff0000000000000L))
+	        {
+		        return false;
+	        }
+	        ulong mantissa = union.IntegerValue & 0x000fffffffffffffL;
+	        return mantissa != 0L;
+        }
     }
 }

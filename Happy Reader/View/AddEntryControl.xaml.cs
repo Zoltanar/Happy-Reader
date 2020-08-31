@@ -14,20 +14,23 @@ namespace Happy_Reader.View
     {
 
         private readonly MainWindowViewModel _mainViewModel;
-	    private readonly Entry _entry;
+        private readonly Entry _entry;
         private bool _entryAlreadyAdded;
 
-        internal AddEntryControl([NotNull]MainWindowViewModel mainViewModel, Entry entry)
+        internal AddEntryControl([NotNull]MainWindowViewModel mainViewModel, string input, string output, bool seriesSpecific)
         {
             _mainViewModel = mainViewModel;
             InitializeComponent();
-	        var enumTypes = Enum.GetValues(typeof(EntryType)).Cast<EntryType>();
-	        TypeCb.ItemsSource = enumTypes;
-			_entry = entry;
-	        _entry.GameId = _mainViewModel.UserGame?.VN?.VNID;
-	        _entry.UserId = _mainViewModel.User?.Id ?? 0;
-			DataContext = _entry;
-			_entry.OnPropertyChanged();
+            var enumTypes = Enum.GetValues(typeof(EntryType)).Cast<EntryType>();
+            TypeCb.ItemsSource = enumTypes;
+            _entry = new Entry(input, output)
+            {
+	            SeriesSpecific = seriesSpecific,
+	            GameId = _mainViewModel.UserGame?.VN?.VNID,
+	            UserId = _mainViewModel.User?.Id ?? 0
+            };
+            DataContext = _entry;
+            _entry.OnPropertyChanged();
 		}
 
         private void Cancel_Click(object sender, System.Windows.RoutedEventArgs e)

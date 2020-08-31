@@ -71,10 +71,10 @@ namespace Happy_Reader.View
 				EntriesTabItem.Visibility = Visibility.Collapsed;
 				TestTabItem.Visibility = Visibility.Collapsed;
 			}
-			await ViewModel.Initialize(watch, GroupByAdded, !noHook, !noEntries,noTranslation);
+			await ViewModel.Initialize(watch, GroupByAdded, !noHook, !noEntries, noTranslation);
 		}
 
-		private void AddEntry_Click(object sender, RoutedEventArgs e) => CreateAddEntryTab(new Entry());
+		private void AddEntry_Click(object sender, RoutedEventArgs e) => CreateAddEntryTab(null,null,false);
 
 		private void DropFileOnGamesTab(object sender, DragEventArgs e)
 		{
@@ -93,24 +93,24 @@ namespace Happy_Reader.View
 			var titledImage = ViewModel.AddGameFile(file);
 			if (titledImage == null) return;
 			((IList<UserGameTile>)GameFiles.ItemsSource).Add(titledImage);
-			titledImage.GameDetails(this, null);
+			titledImage.ViewDetails(this, null);
 		}
 
 		private void GameFiles_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-		{
+		{/*
 			var item = GameFiles.SelectedItem as UserGameTile;
 			var userGame = (UserGame)item?.DataContext;
 			if (userGame == null) return;
-			ViewModel.HookUserGame(userGame, null, false);
+			ViewModel.HookUserGame(userGame, null, false);*/
 		}
 
-		public void ShowLogNotification([NotNull]Log message)
+		public void ShowLogNotification([NotNull] Log message)
 		{
 			Console.WriteLine($"Notification - {message.Kind} - {message}");
 			NotificationWindow.Launch(message);
 		}
 
-		public void ShowNotification(object sender, [NotNull]string message, string title = "Notification")
+		public void ShowNotification(object sender, [NotNull] string message, string title = "Notification")
 		{
 			Console.WriteLine($"Notification - {title} - {message}");
 			NotificationWindow.Launch(title, message);
@@ -124,13 +124,13 @@ namespace Happy_Reader.View
 			MainTabControl.Items.Remove(tabItem);
 		}
 
-		public void CreateAddEntryTab(Entry initialEntry)
+		public void CreateAddEntryTab(string input, string output, bool seriesSpecific)
 		{
 			var tabItem = new TabItem
 			{
 				Header = "Add Entry",
 				Name = nameof(AddEntryControl),
-				Content = new AddEntryControl(ViewModel, initialEntry)
+				Content = new AddEntryControl(ViewModel, input,output,seriesSpecific)
 			};
 			AddTabItem(tabItem);
 		}
@@ -184,7 +184,7 @@ namespace Happy_Reader.View
 			MainTabControl.SelectedItem = tabItem;
 			tabItem.Focus();
 		}
-		
+
 		private void GroupByProducer(object sender, RoutedEventArgs e)
 		{
 			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
@@ -250,7 +250,7 @@ namespace Happy_Reader.View
 				var expanders = StaticMethods.GetVisualChildren<Expander>(GameFiles);
 				for (int index = 0; index < expanders.Count; index++)
 				{
-					expanders[index].IsExpanded = index >= expanders.Count - count  == expanded;
+					expanders[index].IsExpanded = index >= expanders.Count - count == expanded;
 				}
 			}, DispatcherPriority.ContextIdle);
 		}

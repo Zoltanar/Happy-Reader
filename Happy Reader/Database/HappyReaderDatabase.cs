@@ -12,22 +12,16 @@ namespace Happy_Reader.Database
 	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 	public class HappyReaderDatabase : DbContext
 	{
-		static HappyReaderDatabase()
-		{
-			DbInterception.Add(new SqliteInterceptor());
-		}
-
-		public HappyReaderDatabase() : base("name=HappyReaderDatabase")
-		{
-		}
+		static HappyReaderDatabase() => DbInterception.Add(new SqliteInterceptor());
+		
+		public HappyReaderDatabase() : base("name=HappyReaderDatabase") { }
 
 		public virtual DbSet<Entry> Entries { get; set; }
 		public virtual DbSet<UserGame> UserGames { get; set; }
 		public virtual DbSet<HRGoogleTranslate.GoogleTranslation> CachedTranslations { get; set; }
 		public virtual DbSet<Log> Logs { get; set; }
 
-		protected override void OnModelCreating(DbModelBuilder modelBuilder)
-		{ }
+		protected override void OnModelCreating(DbModelBuilder modelBuilder) { }
 
 		public IQueryable<Entry> GetGameOnlyEntries(ListedVN game) => Entries.Where(x => x.GameId == game.VNID);
 
