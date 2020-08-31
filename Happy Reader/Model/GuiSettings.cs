@@ -1,4 +1,8 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
+using System.Linq;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Newtonsoft.Json;
@@ -15,7 +19,7 @@ namespace Happy_Reader
 		private string _culture;
 		private CultureInfo _cultureInfo = CultureInfo.DefaultThreadCurrentCulture ?? CultureInfo.CurrentCulture;
 		private string _localeEmulatorPath;
-		private string _extraPageLink;
+		private List<PageLink> _pageLinks;
 
 		[JsonIgnore]
 		public CultureInfo[] Cultures { get; } = CultureInfo.GetCultures(CultureTypes.InstalledWin32Cultures);
@@ -130,15 +134,21 @@ namespace Happy_Reader
 			}
 		}
 
-		public string ExtraPageLink
+		//todo make editable
+		public List<PageLink> PageLinks
 		{
-			get => _extraPageLink;
+			get => _pageLinks;
 			set
 			{
-				if (_extraPageLink == value) return;
-				_extraPageLink = value;
+				if (_pageLinks == value) return;
+				_pageLinks = value;
 				if (Loaded) Save();
 			}
+		}
+
+		public void SavePageLinks(List<PageLink> pageLinks)
+		{
+			PageLinks = pageLinks.ToList();
 		}
 	}
 }

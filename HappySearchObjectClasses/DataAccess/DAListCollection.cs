@@ -110,7 +110,7 @@ namespace Happy_Apps_Core.DataAccess
 		/// </summary>
 		public TItem ByKey(TListKey listKey, TItemKey itemKey)
 		{
-			var list = _items[listKey];
+			if(!_items.TryGetValue(listKey, out var list)) return default;
 			return list.TryGetValue(itemKey, out var item) ? item : default;
 		}
 	}

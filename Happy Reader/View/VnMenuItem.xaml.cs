@@ -14,7 +14,7 @@ namespace Happy_Reader.View
 {
 	public partial class VnMenuItem : ItemsControl
 	{
-		private static readonly Regex MinusRegex = new Regex(@"[-－ー]");
+		private static readonly Regex MinusRegex = new Regex(@"[-－]");
 
 		[NotNull]
 		private MainWindow MainWindow(FrameworkElement sender) => (MainWindow)Window.GetWindow(sender) ?? throw new ArgumentNullException(nameof(MainWindow));
@@ -26,6 +26,17 @@ namespace Happy_Reader.View
 		{
 			InitializeComponent();
 			DataContext = vn;
+			var itemIndex = Items.IndexOf(ReleaseLinkItem);
+			foreach (var link in StaticMethods.GSettings.PageLinks ?? Array.Empty<PageLink>().AsEnumerable())
+			{
+				var menuItem = new MenuItem()
+				{
+					Header = $"Search on {link.Label}",
+					Tag = link
+				};
+				menuItem.Click += BrowseToExtraPage;
+				this.Items.Insert(++itemIndex, menuItem);
+			}
 		}
 
 		private void BrowseToVndbPage(object sender, RoutedEventArgs e) => Process.Start($"http://vndb.org/v{VN.VNID}/");
@@ -38,17 +49,21 @@ namespace Happy_Reader.View
 		
 		private void BrowseToExtraPage(object sender, RoutedEventArgs e)
 		{
-			var title = string.IsNullOrWhiteSpace(VN.KanjiTitle) ? VN.Title : VN.KanjiTitle;
+			var pageLink = (PageLink)((MenuItem)sender).Tag;
+			var title = pageLink.UseRomaji 
+				? !string.IsNullOrWhiteSpace(VN.Title) ? VN.Title : VN.KanjiTitle
+				: !string.IsNullOrWhiteSpace(VN.KanjiTitle) ? VN.KanjiTitle : VN.Title;
 			//remove minus so search includes term
 			var titleFixed = MinusRegex.Replace(title, string.Empty);
-			Process.Start(StaticMethods.GSettings.ExtraPageLink.Replace("%s", titleFixed));
+			var link = pageLink.Link.Replace("%s", titleFixed);
+			if (!Uri.IsWellFormedUriString(link, UriKind.Absolute)) throw new InvalidOperationException($"'{link}' is not a well formed URI.");
+			Process.Start(link);
 		}
 
 		public void ContextMenuOpened()
 		{
 			ReleaseLinkItem.IsEnabled = !string.IsNullOrWhiteSpace(VN.ReleaseLink);
 			OriginalTitleItem.IsEnabled = !string.IsNullOrWhiteSpace(VN.KanjiTitle);
-			ExtraPageItem.IsEnabled = !string.IsNullOrWhiteSpace(StaticMethods.GSettings.ExtraPageLink);
 			//clearing previous
 			foreach (MenuItem item in Labels.Items) item.IsChecked = false;
 			foreach (MenuItem item in VoteMenu.Items) item.IsChecked = false;

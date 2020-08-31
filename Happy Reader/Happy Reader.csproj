@@ -137,6 +137,7 @@
     <Compile Include="Model\CustomVnFilter.cs" />
     <Compile Include="Model\GuiSettings.cs" />
     <Compile Include="Model\Jisho.cs" />
+    <Compile Include="Model\PageLink.cs" />
     <Compile Include="Model\TranslatorSettings.cs" />
     <Compile Include="Model\VnFilters\DefaultFilterCollectionBuilder.cs" />
     <Compile Include="Model\VnFilters\VnFilter.cs" />

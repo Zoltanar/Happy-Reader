@@ -36,7 +36,6 @@
 		<Separator/>
 		<MenuItem Header="Browse to VNDB Page" Click="BrowseToVndbPage"/>
 		<MenuItem x:Name="ReleaseLinkItem" Header="Browse to Release Page" Click="BrowseToReleasePage"/>
-		<MenuItem x:Name="ExtraPageItem" Header="Browse to Extra Page" Click="BrowseToExtraPage"/>
 		<Separator/>
 		<MenuItem Header="Copy Title" Click="CopyTitle"/>
 		<MenuItem x:Name="OriginalTitleItem" Header="Copy Original Title" Click="CopyOriginalTitle"/>
