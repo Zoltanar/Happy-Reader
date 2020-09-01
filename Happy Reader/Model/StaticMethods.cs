@@ -11,11 +11,9 @@ using Happy_Apps_Core;
 using Happy_Reader.Database;
 using System.Linq.Expressions;
 using System.Management;
-using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Happy_Apps_Core.Database;
-using HRGoogleTranslate;
 using StaticHelpers = Happy_Apps_Core.StaticHelpers;
 
 // ReSharper disable UnusedMember.Global
@@ -32,102 +30,21 @@ namespace Happy_Reader
 		public static readonly string GuiSettingsJson = Path.Combine(StaticHelpers.StoredDataFolder, "guisettings.json");
 		public static readonly string TranslatorSettingsJson = Path.Combine(StaticHelpers.StoredDataFolder, "translatorsettings.json");
 		public static HappyReaderDatabase Data { get; } = new HappyReaderDatabase();
-		public static readonly GuiSettings GSettings;
-		public static readonly TranslatorSettings TSettings;
+		public static readonly GuiSettings GuiSettings;
+		public static readonly TranslatorSettings TranslatorSettings;
 
 		static StaticMethods()
 		{
-			GSettings = SettingsJsonFile.Load<GuiSettings>(GuiSettingsJson);
-			TSettings = SettingsJsonFile.Load<TranslatorSettings>(TranslatorSettingsJson);
+			GuiSettings = SettingsJsonFile.Load<GuiSettings>(GuiSettingsJson);
+			TranslatorSettings = SettingsJsonFile.Load<TranslatorSettings>(TranslatorSettingsJson);
 		}
 
 		public static string GetLocalizedTime(this DateTime dateTime)
 		{
-			bool isAmPm = GSettings.CultureInfo.DateTimeFormat.AMDesignator != String.Empty;
-			return dateTime.ToString(isAmPm ? "hh:mm tt" : "HH:mm", GSettings.CultureInfo);
+			bool isAmPm = GuiSettings.CultureInfo.DateTimeFormat.AMDesignator != String.Empty;
+			return dateTime.ToString(isAmPm ? "hh:mm tt" : "HH:mm", GuiSettings.CultureInfo);
 		}
-
-		public static Process StartProcess(string executablePath)
-		{
-			var processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(executablePath));
-			Process existing = processes.FirstOrDefault();
-			if (existing != null) return existing;
-			string exeParentFolder = Path.GetDirectoryName(executablePath);
-			// ReSharper disable once NotResolvedInText
-			if (exeParentFolder == null) throw new ArgumentNullException("exeParentFolder", "Parent folder of exe was not found.");
-			ProcessStartInfo pi = new ProcessStartInfo
-			{
-				FileName = executablePath,
-				UseShellExecute = false,
-				WorkingDirectory = exeParentFolder
-			};
-			var process = Process.Start(pi);
-			Debug.Assert(process != null, nameof(process) + " != null");
-			if (!process.HasExited) process.WaitForInputIdle(3000);
-			return process;
-		}
-
-		public static Process StartProcessThroughProxy(UserGame userGame)
-		{
-			var firstQuote = userGame.LaunchPath.IndexOf('"');
-			string proxyPath;
-			string args;
-			if (firstQuote > -1)
-			{
-				var secondQuote = userGame.LaunchPath.IndexOf('"', firstQuote + 1);
-				proxyPath = userGame.LaunchPath.Substring(firstQuote + 1, secondQuote - 1);
-				args = userGame.LaunchPath.Substring(secondQuote + 1).Trim();
-			}
-			else
-			{
-				var firstSpace = userGame.LaunchPath.IndexOf(' ');
-				proxyPath = userGame.LaunchPath.Substring(0, firstSpace);
-				args = userGame.LaunchPath.Substring(firstSpace + 1).Trim();
-			}
-			var processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(userGame.FilePath));
-			Process existing = processes.FirstOrDefault();
-			if (existing != null) return existing;
-			string exeParentFolder = Path.GetDirectoryName(proxyPath);
-			// ReSharper disable once NotResolvedInText
-			if (exeParentFolder == null) throw new ArgumentNullException(nameof(exeParentFolder), "Parent folder of exe was not found.");
-			ProcessStartInfo pi = new ProcessStartInfo
-			{
-				FileName = proxyPath,
-				UseShellExecute = false,
-				WorkingDirectory = exeParentFolder,
-				Arguments = args
-			};
-			Process.Start(pi);
-			Thread.Sleep(1500);
-			processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(userGame.FilePath));
-			existing = processes.FirstOrDefault();
-			return existing;
-		}
-
-		public static Process StartProcessThroughLocaleEmulator(UserGame userGame)
-		{
-			var proxyPath = GSettings.LocaleEmulatorPath;
-			var args = $"\"{userGame.FilePath}\"";
-			var processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(userGame.FilePath));
-			Process existing = processes.FirstOrDefault();
-			if (existing != null) return existing;
-			string exeParentFolder = Path.GetDirectoryName(proxyPath);
-			// ReSharper disable once NotResolvedInText
-			if (exeParentFolder == null) throw new ArgumentNullException(nameof(exeParentFolder), "Parent folder of exe was not found.");
-			ProcessStartInfo pi = new ProcessStartInfo
-			{
-				FileName = proxyPath,
-				UseShellExecute = false,
-				WorkingDirectory = exeParentFolder,
-				Arguments = args
-			};
-			Process.Start(pi);
-			Thread.Sleep(1500);
-			processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(userGame.FilePath));
-			existing = processes.FirstOrDefault();
-			return existing;
-		}
-
+		
 		public static T FindParent<T>(this DependencyObject child) where T : DependencyObject
 		{
 			while (true)
@@ -297,56 +214,6 @@ namespace Happy_Reader
 			}
 			//ListedVN[] allResults = fileResults.Concat(folderResults).ToArray(); //todo list results and ask user
 			return vn;
-		}
-
-		/// <summary>
-		/// Returns dictionary with Key: VN, Value: List of paths.
-		/// </summary>
-		public static Dictionary<ListedVN, List<string>> GetMissingVNsFromFolder(string folderPath)
-		{
-			var allExes = new DirectoryInfo(folderPath).GetFiles("*.exe", SearchOption.AllDirectories);
-			var foundGames = new Dictionary<ListedVN, List<string>>();
-			foreach (var file in allExes)
-			{
-				if (Data.UserGames.Any(ug => ug.FilePath == file.FullName)
-				|| ExcludedNamesForVNResolve.Contains(file.Name) || file.Name.ToLower().Contains("uninst")) continue;
-				var vn = ResolveVNForFile(file.FullName);
-				if (vn == null || vn.IsOwned == OwnedStatus.CurrentlyOwned) continue;
-				if (!foundGames.ContainsKey(vn)) foundGames[vn] = new List<string>();
-				foundGames[vn].Add(file.FullName);
-			}
-			foreach (var pair in foundGames)
-			{
-				StaticHelpers.Logger.ToFile($"Found {pair.Value.Count} titles for VN {pair.Key}");
-				foreach (var path in pair.Value)
-				{
-					StaticHelpers.Logger.ToFile($"\t{path}");
-				}
-			}
-			return foundGames;
-		}
-
-		public static void GetFoldersWithoutVNs(string folderPath, int depth)
-		{
-			if (depth > 2 || depth < 1) throw new ArgumentOutOfRangeException(nameof(depth));
-			var allFolders = new DirectoryInfo(folderPath).GetDirectories();
-			StaticHelpers.Logger.ToFile($"Folders in '{folderPath}' without VNs, depth {depth}:");
-			if (depth == 2)
-			{
-				allFolders = allFolders.Where(folder =>
-				{
-					var allExes = folder.GetFiles("*.exe", SearchOption.TopDirectoryOnly).Select(f => f.FullName).ToArray();
-					return !Data.UserGames.Any(ug => allExes.Contains(ug.FilePath));
-				}).SelectMany(f => f.GetDirectories()).ToArray();
-			}
-
-			allFolders = allFolders.Where(f => !ExcludedNamesForVNResolve.Contains(f.Name)).ToArray();
-			foreach (var folder in allFolders)
-			{
-				var allExes = folder.GetFiles("*.exe", SearchOption.AllDirectories).Select(f => f.FullName).ToArray();
-				if (Data.UserGames.Any(ug => allExes.Contains(ug.FilePath))) continue;
-				StaticHelpers.Logger.ToFile($"\t{folder.FullName}");
-			}
 		}
 
 		public static readonly Dictionary<string, FontFamily> FontsInstalled =

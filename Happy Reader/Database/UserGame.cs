@@ -4,10 +4,13 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using Happy_Apps_Core.Database;
@@ -146,7 +149,7 @@ namespace Happy_Reader.Database
 					image = new Bitmap(iconStream);
 				}
 				using var memory = new MemoryStream();
-				image.Save(memory, System.Drawing.Imaging.ImageFormat.Bmp);
+				image.Save(memory, ImageFormat.Bmp);
 				memory.Position = 0;
 				var bitmapImage = new BitmapImage();
 				bitmapImage.BeginInit();
@@ -177,7 +180,7 @@ namespace Happy_Reader.Database
 				if (VN == null) return "Other"; //DateTime.MinValue.AddDays(1);
 				var dt = VN.ReleaseDate;
 				var newDt = new DateTime(dt.Year, dt.Month, DateTime.DaysInMonth(dt.Year, dt.Month));
-				return string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:MMMM} {0:yyyy}", newDt);
+				return string.Format(CultureInfo.InvariantCulture, "{0:MMMM} {0:yyyy}", newDt);
 			}
 		}
 		[NotMapped]
@@ -319,8 +322,7 @@ namespace Happy_Reader.Database
 			Process.Exited += hookedProcessOnExited;
 			if (WinAPI.IsIconic(process.MainWindowHandle)) WindowIsMinimised(process.MainWindowHandle);
 		}
-
-
+		
 		private void WindowMoveStarts(IntPtr windowPointer)
 		{
 			if (MoveOutputWindow == null) return;
@@ -350,6 +352,59 @@ namespace Happy_Reader.Database
 			Logger.ToDebug($"Minimized {DisplayName}, stopped running time at {_runningTime.Elapsed}");
 		}
 
+		public Process StartProcessThroughLocaleEmulator()
+		{
+			var proxyPath = StaticMethods.GuiSettings.LocaleEmulatorPath;
+			var args = $"\"{FilePath}\"";
+			return StartProcess(proxyPath, args, true);
+		}
+
+		public Process StartProcessThroughProxy()
+		{
+			var firstQuote = LaunchPath.IndexOf('"');
+			string proxyPath;
+			string args;
+			if (firstQuote > -1)
+			{
+				var secondQuote = LaunchPath.IndexOf('"', firstQuote + 1);
+				proxyPath = LaunchPath.Substring(firstQuote + 1, secondQuote - 1);
+				args = LaunchPath.Substring(secondQuote + 1).Trim();
+			}
+			else
+			{
+				var firstSpace = LaunchPath.IndexOf(' ');
+				proxyPath = LaunchPath.Substring(0, firstSpace);
+				args = LaunchPath.Substring(firstSpace + 1).Trim();
+			}
+			return StartProcess(proxyPath, args, true);
+		}
+
+		public Process StartProcess(string filePath, string args, bool usingProxy)
+		{
+			var processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(FilePath));
+			var existing = processes.FirstOrDefault();
+			if (existing != null) return existing;
+			string exeParentFolder = Path.GetDirectoryName(filePath);
+			if (exeParentFolder == null) throw new ArgumentNullException(nameof(exeParentFolder), "Parent folder of exe was not found.");
+			var pi = new ProcessStartInfo
+			{
+				FileName = filePath,
+				UseShellExecute = false,
+				WorkingDirectory = exeParentFolder,
+				Arguments = args ?? string.Empty
+			};
+			var processStarted = Process.Start(pi);
+			if (usingProxy)
+			{
+				Thread.Sleep(1500);
+				processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(FilePath));
+				return processes.FirstOrDefault();
+			}
+			Debug.Assert(processStarted != null, nameof(processStarted) + " != null");
+			if (!processStarted.HasExited) processStarted.WaitForInputIdle(3000);
+			return processStarted;
+		}
+		
 		public enum EncodingEnum
 		{
 			// ReSharper disable once InconsistentNaming

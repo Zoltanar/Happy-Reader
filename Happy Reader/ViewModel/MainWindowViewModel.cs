@@ -168,7 +168,7 @@ namespace Happy_Reader.ViewModel
 		{
 			Instance = this;
 			Application.Current.Exit += ExitProcedures;
-			SettingsViewModel = new SettingsViewModel(CSettings, StaticMethods.GSettings, StaticMethods.TSettings);
+			SettingsViewModel = new SettingsViewModel(CSettings, StaticMethods.GuiSettings, StaticMethods.TranslatorSettings);
 			ApiLogViewModel = new ApiLogViewModel
 			{
 				VndbQueries = _vndbQueriesList.Items,
@@ -557,7 +557,7 @@ namespace Happy_Reader.ViewModel
 
 		public void VndbAdvancedAction(string text, bool isQuery)
 		{
-			if (!StaticMethods.GSettings.AdvancedMode) return;
+			if (!StaticMethods.GuiSettings.AdvancedMode) return;
 			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			Application.Current.Dispatcher.Invoke(() => (isQuery ? _vndbQueriesList : _vndbResponsesList).AddWithId(text));
 		}
@@ -573,9 +573,9 @@ namespace Happy_Reader.ViewModel
 					return;
 				}
 				UserGame = userGame;
-				process ??= useLocaleEmulator ? StaticMethods.StartProcessThroughLocaleEmulator(UserGame) :
-					UserGame.LaunchPath != null ? StaticMethods.StartProcessThroughProxy(UserGame) :
-					StaticMethods.StartProcess(UserGame.FilePath);
+				process ??= useLocaleEmulator ? UserGame.StartProcessThroughLocaleEmulator() :
+					UserGame.LaunchPath != null ? UserGame.StartProcessThroughProxy() :
+					UserGame.StartProcess(UserGame.FilePath, string.Empty, false);
 				//process can be closed at any point
 				try
 				{

@@ -38,9 +38,9 @@ namespace Happy_Reader
 				cachedTranslations.ToDictionary(x => x.Input),
 				cachedTranslations,
 				Kakasi.JapaneseToRomaji,
-				StaticMethods.TSettings.GoogleCredentialPath,
-				StaticMethods.TSettings.FreeUserAgent,
-				StaticMethods.TSettings.UntouchedStrings,
+				StaticMethods.TranslatorSettings.GoogleCredentialPath,
+				StaticMethods.TranslatorSettings.FreeUserAgent,
+				StaticMethods.TranslatorSettings.UntouchedStrings,
 				noApiTranslation);
 		}
 
@@ -48,7 +48,7 @@ namespace Happy_Reader
 		{
 			input = input.Replace("\r", "");
 			if (string.IsNullOrWhiteSpace(input)) return null;
-			if (input.Length > StaticMethods.TSettings.MaxClipboardSize) return null; //todo report error
+			if (input.Length > StaticMethods.TranslatorSettings.MaxClipboardSize) return null; //todo report error
 			if (LatinOnlyRegex.IsMatch(input)) return null;
 			input = input.Replace("\r\n", "");
 			input = CheckRepeatedString(input);
@@ -346,7 +346,7 @@ namespace Happy_Reader
 				result[7] = ex.Message;
 				return result;
 			}
-			if (StaticMethods.TSettings.GoogleUseCredential) GoogleTranslate.Translate(sb);
+			if (StaticMethods.TranslatorSettings.GoogleUseCredential) GoogleTranslate.Translate(sb);
 			else GoogleTranslate.TranslateFree(sb);
 			StaticHelpers.Logger.Verbose($"Stage 5: {sb}");
 			result[5] = sb.ToString();

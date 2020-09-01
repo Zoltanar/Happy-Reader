@@ -110,21 +110,21 @@ namespace Happy_Reader
 		public void SetParagraphs()
 		{
 			var originalP = new Paragraph(new Run(Original));
-			originalP.Inlines.FirstInline.Foreground = StaticMethods.TSettings.OriginalColor;
-			SetFont(originalP, StaticMethods.TSettings.OriginalTextFont);
+			originalP.Inlines.FirstInline.Foreground = StaticMethods.TranslatorSettings.OriginalColor;
+			SetFont(originalP, StaticMethods.TranslatorSettings.OriginalTextFont);
 			OriginalBlock = originalP;
 			if (!string.IsNullOrWhiteSpace(Romaji) && !Romaji.Equals(Original))
 			{
 				var romajiP = new Paragraph(new Run(Romaji));
-				romajiP.Inlines.FirstInline.Foreground = StaticMethods.TSettings.RomajiColor;
-				SetFont(romajiP, StaticMethods.TSettings.RomajiTextFont);
+				romajiP.Inlines.FirstInline.Foreground = StaticMethods.TranslatorSettings.RomajiColor;
+				SetFont(romajiP, StaticMethods.TranslatorSettings.RomajiTextFont);
 				RomajiBlock = romajiP;
 			}
 			if (!string.IsNullOrWhiteSpace(Output) && !Output.Equals(Original))
 			{
 				var translatedP = new Paragraph(new Run(Output));
-				translatedP.Inlines.FirstInline.Foreground = StaticMethods.TSettings.TranslationColor;
-				SetFont(translatedP, StaticMethods.TSettings.TranslatedTextFont);
+				translatedP.Inlines.FirstInline.Foreground = StaticMethods.TranslatorSettings.TranslationColor;
+				SetFont(translatedP, StaticMethods.TranslatorSettings.TranslatedTextFont);
 				TranslatedBlock = translatedP;
 			}
 		}
@@ -146,7 +146,7 @@ namespace Happy_Reader
 			{
 				block.Margin = new Thickness(0);
 				block.TextAlignment = TextAlignment.Center;
-				block.FontSize = StaticMethods.TSettings.FontSize;
+				block.FontSize = StaticMethods.TranslatorSettings.FontSize;
 			}
 			var spacer = new Paragraph(new Run("￣￣￣"));
 			spacer.Inlines.FirstInline.Foreground = Brushes.White;

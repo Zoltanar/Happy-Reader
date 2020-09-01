@@ -19,8 +19,8 @@ namespace Happy_Reader.View.Tabs
 	{
 		public bool AdvancedMode
 		{
-			get => StaticMethods.GSettings.AdvancedMode;
-			set => StaticMethods.GSettings.AdvancedMode = value;
+			get => StaticMethods.GuiSettings.AdvancedMode;
+			set => StaticMethods.GuiSettings.AdvancedMode = value;
 		}
 
 		[JsonIgnore]
