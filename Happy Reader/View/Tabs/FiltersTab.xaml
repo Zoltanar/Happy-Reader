@@ -164,10 +164,7 @@
 						</ComboBox>
 					</TabItem>
 					<TabItem Visibility="Collapsed" Content="User-related Title" Header="User-related Title"/>
-					<TabItem Visibility="Collapsed" Header="Released After">
-						<TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
-					</TabItem>
-					<TabItem Visibility="Collapsed" Header="Released Before">
+					<TabItem Visibility="Collapsed" Header="Release Date">
 						<TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
 					</TabItem>
 					<TabItem Visibility="Collapsed" Content="Has Anime" Header="Traits"/>

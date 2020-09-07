@@ -22,6 +22,7 @@ namespace Happy_Reader
 		private static readonly char[] InclusiveSeparators = "。？".ToCharArray();
 		private static readonly char[] AllSeparators = Separators.Concat(InclusiveSeparators).ToArray();
 		private static readonly Regex LatinOnlyRegex = new Regex(@"^[a-zA-Z0-9:/\\\\r\\n .!?,;()_$^""]+$");
+		private static readonly Dictionary<string, Regex> RegexDict = new Dictionary<string, Regex>();
 
 		private readonly HappyReaderDatabase _data;
 		private User _lastUser;
@@ -122,12 +123,12 @@ namespace Happy_Reader
 		{
 			foreach (var entry in _entries.Where(i => i.Type == EntryType.Game))
 			{
-				if (entry.Regex) LogReplaceRegex(sb, entry.Input, entry.Output, entry.Id);
-				else LogReplace(sb, entry.Input, entry.Output, entry.Id);
+				if (entry.Regex) LogReplaceRegex(sb, entry);
+				else LogReplace(sb, entry);
 			}
 			StaticHelpers.Logger.Verbose($"Stage 1: {sb}");
 			//Stage One is also used for Translation.Original which does not require setting result to array.
-			if(result != null) result[1] = sb.ToString();
+			if (result != null) result[1] = sb.ToString();
 		}
 
 		/// <summary>
@@ -137,8 +138,8 @@ namespace Happy_Reader
 		{
 			foreach (var entry in _entries.Where(i => i.Type == EntryType.Input))
 			{
-				if (entry.Regex) LogReplaceRegex(sb, entry.Input, entry.Output, entry.Id);
-				else LogReplace(sb, entry.Input, entry.Output, entry.Id);
+				if (entry.Regex) LogReplaceRegex(sb, entry);
+				else LogReplace(sb, entry);
 			}
 			StaticHelpers.Logger.Verbose($"Stage 2: {sb}");
 			result[2] = sb.ToString();
@@ -149,19 +150,36 @@ namespace Happy_Reader
 		/// </summary>
 		private void TranslateStageThree(StringBuilder sb, string[] result)
 		{
-			foreach (var entry in _entries.Where(i => i.Type == EntryType.Yomi)) LogReplace(sb, entry.Input, entry.Output, entry.Id);
+			foreach (var entry in _entries.Where(i => i.Type == EntryType.Yomi)) LogReplace(sb, entry);
 			StaticHelpers.Logger.Verbose($"Stage 3: {sb}");
 			result[3] = sb.ToString();
 		}
 
-		public string ReplaceNames(string original)
+		public void ReplacePreRomaji(StringBuilder sb)
 		{
-			var sb = new StringBuilder(original);
-			foreach (var entry in _entries.Where(x => x.Type == EntryType.Name || x.Type == EntryType.Yomi))
+			foreach (var entry in _entries.Where(x => x.Type == EntryType.Name || x.Type == EntryType.Yomi || x.Type == EntryType.PreRomaji))
 			{
-				sb.Replace(entry.Input, entry.Output);
+				if (entry.Regex) LogReplaceRegex(sb, entry);
+				else LogReplace(sb, entry);
 			}
-			return sb.ToString();
+		}
+
+		public void ReplacePostRomaji(StringBuilder sb)
+		{
+			foreach (var entry in _entries.Where(x => x.Type == EntryType.PostRomaji))
+			{
+				if (entry.Regex) LogReplaceRegex(sb, entry);
+				else LogReplace(sb, entry);
+			}
+		}
+
+		private static Regex GetRegex(string input)
+		{
+			if (!RegexDict.TryGetValue(input, out var regex))
+			{
+				regex = RegexDict[input] = new Regex(input);
+			}
+			return regex;
 		}
 
 		/// <summary>
@@ -363,7 +381,7 @@ namespace Happy_Reader
 			foreach (var entry in usefulEntriesWithProxies)
 			{
 				LogReplace(sb, entry.AssignedProxy.Entry.Output, entry.AssignedProxy.FullRoleString, entry.Id);
-				foreach (var proxyMod in entry.AssignedProxy.ProxyMods)
+				foreach (var proxyMod in entry.AssignedProxy.ProxyMods.AsEnumerable().Reverse())
 				{
 					var pmO = proxyMod.Output.Replace($"[[{proxyMod.RoleString ?? "m"}]]", entry.AssignedProxy.FullRoleString);
 					LogReplace(sb, entry.AssignedProxy.FullRoleString, pmO, proxyMod.Id);
@@ -418,7 +436,7 @@ namespace Happy_Reader
             var sbReplaced = sb.ToString();
             if (sbOriginal != sbReplaced)
             {
-                Debug.WriteLine($"Replace happened - id {id}: '{input}' > '{output}'");
+                Debug.WriteLine($"Replace happened - Id {id}: '{input}' > '{output}'");
             }
 #else
 			sb.Replace(input, output);
@@ -427,21 +445,32 @@ namespace Happy_Reader
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		// ReSharper disable once UnusedParameter.Local
-		private static void LogReplaceRegex(StringBuilder sb, string input, string output, long id)
+		private static void LogReplace(StringBuilder sb, Entry entry)
 		{
-			var rgx = new Regex(input);
+			LogReplace(sb, entry.Input, entry.Output, entry.Id);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		// ReSharper disable once UnusedParameter.Local
+		private static void LogReplaceRegex(StringBuilder sb, string regexInput, string output, long id)
+		{
+			var rgx = GetRegex(regexInput);
 #if LOGVERBOSE
-            var sbOriginal = sb.ToString();
-            var sbReplaced = rgx.Replace(sbOriginal, output);
-            if (sbOriginal != sbReplaced)
-            {
-                Debug.WriteLine($"Replace happened - id {id}: '{input}' > '{output}'");
-            }
+      var sbOriginal = sb.ToString();
+      var sbReplaced = rgx.Replace(sbOriginal, output);
+      if (sbOriginal != sbReplaced) Debug.WriteLine($"Replace happened - Id {id}: '{regexInput}' > '{output}'");
 #else
 			var sbReplaced = rgx.Replace(sb.ToString(), output);
 #endif
 			sb.Clear();
 			sb.Append(sbReplaced);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		// ReSharper disable once UnusedParameter.Local
+		private static void LogReplaceRegex(StringBuilder sb, Entry entry)
+		{
+			LogReplaceRegex(sb, entry.Input, entry.Output, entry.Id);
 		}
 
 		private class ProxiesWithCount

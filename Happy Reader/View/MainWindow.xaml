@@ -121,18 +121,18 @@
 				<Grid>
 					<CheckBox Content="Game-only" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="{Binding OnlyGameEntries, Mode=TwoWay}"/>
 					<Button Content="Add Entry" Margin="83,0,0,0" VerticalAlignment="Top" Click="AddEntry_Click" HorizontalAlignment="Left" Width="90"/>
-					<DataGrid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding EntriesList}" Margin="0,25,0,0" AutoGenerateColumns="False" CanUserAddRows="False" >
+					<DataGrid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding EntriesList}" Margin="0,25,0,0" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="False" >
 						<DataGrid.Columns>
-							<DataGridTextColumn Header="Id" Binding="{Binding Id}" />
-							<DataGridTextColumn Header="User" Binding="{Binding User}" />
+							<DataGridTextColumn Header="Id" Binding="{Binding Id, Mode=OneWay}" />
+							<DataGridTextColumn Header="User" Binding="{Binding User, Mode=OneWay}" />
 							<DataGridTextColumn Header="Type" Binding="{Binding Type}" />
 							<DataGridTextColumn Header="Game" Binding="{Binding Game}" />
 							<DataGridTextColumn Header="Role" Binding="{Binding Role}" />
 							<DataGridTextColumn Header="Input" Binding="{Binding Input}" />
-							<DataGridTextColumn Header="Output" Binding="{Binding Output}" />
+							<DataGridTextColumn Header="Output" Binding="{Binding Output, Mode=TwoWay}"  />
 							<DataGridTextColumn Header="Series-specific" Binding="{Binding SeriesSpecific}" />
 							<DataGridTextColumn Header="Regex" Binding="{Binding Regex}" />
-							<DataGridTemplateColumn Header="Delete">
+							<DataGridTemplateColumn Header="Delete" >
 								<DataGridTemplateColumn.CellTemplate>
 									<DataTemplate>
 										<Button Width="150" Content="Delete" Click="ClickDeleteButton" Background="CornflowerBlue"/>

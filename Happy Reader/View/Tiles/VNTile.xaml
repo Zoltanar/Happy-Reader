@@ -12,7 +12,7 @@
 	<Border BorderBrush="Black" BorderThickness="1" CornerRadius="10" Background="{Binding UserVN, Converter={StaticResource UserVnToBackgroundConverter}}">
 		<Grid>
 			<Label Content="{Binding Title}" Margin="10,10,10,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="{Binding UserVN, Converter={StaticResource UserVnToForegroundConverter}}"/>
-			<Label Content="{Binding Producer.Name}" Foreground="{Binding Path=DataContext, RelativeSource={RelativeSource Self}, Converter={StaticResource VnToProducerForegroundConverter}}" Margin="10,0,10,52" VerticalAlignment="Bottom" Padding="0"/>
+			<Label Content="{Binding Producer.Name}" Foreground="{Binding Path=., Converter={StaticResource VnToProducerForegroundConverter}, NotifyOnSourceUpdated=True, Mode=OneWay}" Margin="10,0,10,52" VerticalAlignment="Bottom" Padding="0"/>
 			<Label Content="{Binding LengthTime, Converter={StaticResource EnumDescriptionConverter}}" Foreground="Purple" Margin="10,0,10,52" VerticalAlignment="Bottom" HorizontalAlignment="Right" Padding="0"/>
 			<Label Margin="10,0,97,31" VerticalAlignment="Bottom" Padding="0" Foreground="{Binding UserVN, Converter={StaticResource UserVnToForegroundConverter}}">
 				<TextBlock>
@@ -25,7 +25,7 @@
 				</TextBlock>
 			</Label>
 			<Label Margin="0,0,10,31" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="82" HorizontalContentAlignment="Right" 
-			       Foreground="{Binding Path=., Converter={StaticResource DateToBrushConverter}}" Padding="0">
+			       Foreground="{Binding Path=., Converter={StaticResource DateToBrushConverter}, NotifyOnSourceUpdated=True, Mode=OneWay}" Padding="0">
 			<TextBlock Text="{Binding ReleaseDateString}" FontWeight="{Binding ReleaseDate, Converter={StaticResource DateToWeightConverter}}"/>
 				</Label>
 			<Label Content="{Binding UserRelatedStatus}" Margin="10,0,10,10" VerticalAlignment="Bottom" Foreground="{Binding UserVN, Converter={StaticResource UserVnToForegroundConverter}}" Padding="0"/>

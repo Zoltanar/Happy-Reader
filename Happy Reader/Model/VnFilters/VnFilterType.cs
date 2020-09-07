@@ -29,14 +29,12 @@ namespace Happy_Reader
 		GameOwned = 13,
 		[Description("User-related Title")]
 		UserVN = 14,
-		[Description("Released After")]
-		ReleasedAfter = 15,
-		[Description("Released Before")]
-		ReleasedBefore = 16,
+		[Description("Release Date")]
+		ReleaseDate = 15,
 		[Description("Has Anime")]
 		HasAnime = 17,
-		[Description("Suggestion Score Over")]
-		SuggestionScoreOver
+		[Description("Suggestion Score")]
+		SuggestionScore
 #pragma warning restore 1591
 	}
 }

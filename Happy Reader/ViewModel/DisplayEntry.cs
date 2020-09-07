@@ -12,40 +12,61 @@ namespace Happy_Reader.ViewModel
 	{
 		public readonly Entry Entry;
 		private Timer _deleteEntryTimer;
-		public bool DeletePrimed {get; set;}
+		public bool DeletePrimed { get; set; }
 		private Button _deleteButton;
 
 		public DisplayEntry(Entry entry)
 		{
 			Entry = entry;
-			Id = entry.Id;
-			User = entry.User;
 			Type = entry.Type;
-			Game = entry.Game;
 			Role = entry.RoleString;
 			Input = entry.Input;
 			Output = entry.Output;
 			SeriesSpecific = entry.SeriesSpecific;
 			Regex = entry.Regex;
 		}
-		
-		public bool Regex { get; set; }
 
-		public bool SeriesSpecific { get; set; }
+		public bool Regex
+		{
+			get => Entry.Regex;
+			set => Entry.Regex = value;
+		}
 
-		public string Output { get; set; }
+		public bool SeriesSpecific
+		{
+			get => Entry.SeriesSpecific;
+			set => Entry.SeriesSpecific = value;
+		}
 
-		public string Input { get; set; }
+		public string Output
+		{
+			get => Entry.Output;
+			set => Entry.Output = value;
+		}
 
-		public string Role { get; set; }
+		public string Input
+		{
+			get => Entry.Input;
+			set => Entry.Input = value;
+		}
 
-		public ListedVN Game { get; set; }
+		public string Role
+		{
+			get => Entry.RoleString;
+			set => Entry.RoleString = value;
+		}
 
-		public EntryType Type { get; set; }
+		public ListedVN Game => Entry.Game;
 
-		public User User { get; set; }
+		public EntryType Type
+		{
+			get => Entry.Type;
+			set => Entry.Type = value;
+		}
 
-		public long Id { get; set; }
+		public User User => Entry.User;
+
+		public long Id => Entry.Id;
 
 		public void PrimeDeletion(Button button)
 		{

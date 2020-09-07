@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Linq;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 
 namespace Happy_Reader
@@ -65,6 +66,10 @@ namespace Happy_Reader
 						_stringValue = IntValue.ToString();
 						break;
 					case UserVN.LabelKind enumValue:
+						IntValue = (int)enumValue;
+						_stringValue = IntValue.ToString();
+						break;
+					case OwnedStatus enumValue:
 						IntValue = (int)enumValue;
 						_stringValue = IntValue.ToString();
 						break;
@@ -148,19 +153,60 @@ namespace Happy_Reader
 					return vn => vn.IsOwned == (OwnedStatus)IntValue != Exclude;
 				case VnFilterType.UserVN:
 					return vn => vn.UserVN != null != Exclude;
-				case VnFilterType.ReleasedAfter:
-					var afterDate = DateTime.ParseExact(StringValue, "yyyyMMdd", CultureInfo.CurrentCulture);
-					return vn => vn.ReleaseDate > afterDate != Exclude;
-				case VnFilterType.ReleasedBefore:
-					var beforeDate = DateTime.ParseExact(StringValue, "yyyyMMdd", CultureInfo.CurrentCulture);
-					return vn => vn.ReleaseDate < beforeDate != Exclude;
+				case VnFilterType.ReleaseDate:
+					return vn => DateFunctionFromString(vn.ReleaseDate) != Exclude;
 				case VnFilterType.HasAnime:
 					return vn => vn.HasAnime != Exclude;
-				case VnFilterType.SuggestionScoreOver:
-					return vn => vn.Suggestion.Score >= IntValue != Exclude;
+				case VnFilterType.SuggestionScore:
+					return vn => DoubleFunctionFromString(vn.Suggestion.Score) != Exclude;
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
+		}
+
+		[CanBeNull] private Func<double, bool> _intFunc;
+		[CanBeNull] private Func<DateTime, bool> _dateTimeFunc;
+
+		private bool DateFunctionFromString(DateTime dtValue)
+		{
+			if (_dateTimeFunc != null) return _dateTimeFunc(dtValue);
+			var firstChar = StringValue[0];
+			if (char.IsDigit(firstChar))
+			{
+				var date = DateTime.ParseExact(StringValue, "yyyyMMdd", CultureInfo.CurrentCulture);
+				_dateTimeFunc = i => i == date;
+			}
+			else
+			{
+				var date = DateTime.ParseExact(StringValue.Substring(1), "yyyyMMdd", CultureInfo.CurrentCulture);
+				_dateTimeFunc = firstChar switch
+				{
+					'>' => i => i > date,
+					'<' => i => i < date,
+					'=' => i => i == date,
+					_ => throw new InvalidOperationException($"Invalid character for function filter: '{firstChar}'")
+				};
+			}
+			return _dateTimeFunc(dtValue);
+		}
+
+		private bool DoubleFunctionFromString(double iValue)
+		{
+			if (_intFunc != null) return _intFunc(iValue);
+			var firstChar = StringValue[0];
+			if (char.IsDigit(firstChar)) _intFunc = i => i == IntValue;
+			else
+			{
+				var functionIntValue = int.Parse(StringValue.Substring(1));
+				_intFunc = firstChar switch
+				{
+					'>' => i => i > functionIntValue,
+					'<' => i => i < functionIntValue,
+					'=' => i => i == functionIntValue,
+					_ => throw new InvalidOperationException($"Invalid character for function filter: {firstChar}")
+				};
+			}
+			return _intFunc(iValue);
 		}
 
 		private Func<ListedVN, bool> GetTagsFunction()
@@ -188,17 +234,20 @@ namespace Happy_Reader
 				case VnFilterType.Blacklisted:
 				case VnFilterType.ByFavoriteProducer:
 				case VnFilterType.HasFullDate:
-				case VnFilterType.GameOwned:
 				case VnFilterType.UserVN:
 				case VnFilterType.HasAnime:
-				case VnFilterType.SuggestionScoreOver:
 					return result;
+				case VnFilterType.SuggestionScore:
+				case VnFilterType.ReleaseDate:
+					return $"{result} {StringValue}";
 				case VnFilterType.Length:
 					return $"{result} - {(StringValue == null ? "None" : ((LengthFilterEnum)IntValue).GetDescription())}";
 				case VnFilterType.ReleaseStatus:
 					return $"{result} - {(StringValue == null ? "None" : ((ReleaseStatusEnum)IntValue).GetDescription())}";
 				case VnFilterType.Label:
 					return $"{result} - {(StringValue == null ? "None" : ((UserVN.LabelKind)IntValue).GetDescription())}";
+				case VnFilterType.GameOwned:
+					return $"{result} - {(StringValue == null ? "None" : ((OwnedStatus)IntValue).GetDescription())}";
 				case VnFilterType.Language:
 				case VnFilterType.OriginalLanguage:
 					return $"{result} - {CultureInfo.GetCultureInfo(StringValue).DisplayName}";
@@ -208,9 +257,6 @@ namespace Happy_Reader
 					return result;
 				case VnFilterType.Traits:
 					return $"{result} - {DumpFiles.GetTrait(IntValue).Name}";
-				case VnFilterType.ReleasedAfter:
-				case VnFilterType.ReleasedBefore:
-					return $"{result} - {DateTime.ParseExact(StringValue, "yyyyMMdd", CultureInfo.CurrentCulture)}";
 				default:
 					throw new ArgumentOutOfRangeException();
 			}

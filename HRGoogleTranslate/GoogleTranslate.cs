@@ -191,7 +191,7 @@ namespace HRGoogleTranslate
 			try
 			{
 				LogVerbose($"{nameof(HRGoogleTranslate)} - Getting string from API, input: {input}");
-				var response = _client.TranslateText(input, "en", "ja", TranslationModel.Base);
+				var response = _client.TranslateText(input, "en", "ja", TranslationModel.NeuralMachineTranslation);
 				GotFromAPICount++;
 				if (!string.IsNullOrWhiteSpace(response?.TranslatedText))
 				{

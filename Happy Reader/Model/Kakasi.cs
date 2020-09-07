@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using Happy_Apps_Core;
 using JetBrains.Annotations;
 using KakasiNET;
@@ -72,6 +73,13 @@ namespace Happy_Reader
 			return null;
 		}
 
+		public static void JapaneseToRomaji([NotNull] StringBuilder sb)
+		{
+			var result = JapaneseToRomaji(sb.ToString());
+			sb.Clear();
+			if(result != null) sb.Append(result);
+		}
+
 		public static string JapaneseToKana([NotNull]string text)
 		{
 			int tries = 0;
@@ -90,6 +98,13 @@ namespace Happy_Reader
 				}
 			}
 			return null;
+		}
+
+		public static void JapaneseToKana([NotNull] StringBuilder sb)
+		{
+			var result = JapaneseToKana(sb.ToString());
+			sb.Clear();
+			if (result != null) sb.Append(result);
 		}
 
 		[Conditional("LOGVERBOSE")]

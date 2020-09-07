@@ -55,7 +55,7 @@ namespace Happy_Reader.View
 				: !string.IsNullOrWhiteSpace(VN.KanjiTitle) ? VN.KanjiTitle : VN.Title;
 			//remove minus so search includes term
 			var titleFixed = MinusRegex.Replace(title, string.Empty);
-			var link = pageLink.Link.Replace("%s", titleFixed);
+			var link = pageLink.Link.Replace("%s", titleFixed).Replace(" ","%20");
 			if (!Uri.IsWellFormedUriString(link, UriKind.Absolute)) throw new InvalidOperationException($"'{link}' is not a well formed URI.");
 			Process.Start(link);
 		}
@@ -113,7 +113,11 @@ namespace Happy_Reader.View
 				labelsToSet.UnionWith(labels);
 			}
 			var success = await ViewModel(menuItem).ChangeVNStatus(VN, labelsToSet);
-			if (success) VN.OnPropertyChanged(null);
+			if (success)
+			{
+				VN.OnPropertyChanged(null);
+				VN.Producer.OnPropertyChanged(null);
+			}
 		}
 
 		private async void ChangeVote(object sender, RoutedEventArgs e)

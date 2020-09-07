@@ -23,15 +23,19 @@ namespace Happy_Reader
 
 		public Translation(string original)
 		{
-			var s1Original = new StringBuilder(original);
-			Translator.TranslateStageOne(s1Original, null);
-			Original = s1Original.ToString();
-			var originalForRomaji = Translator.ReplaceNames(s1Original.ToString());
-			var romajiRegex = new System.Text.RegularExpressions.Regex(@"っ(?=[…？！。「」【】、])");
-			originalForRomaji = romajiRegex.Replace(originalForRomaji, "");
-			Romaji = Kakasi.JapaneseToRomaji(originalForRomaji);
-			//IsCharacterOnly = Original.StartsWith("【") && Original.EndsWith("】") && Original.Length < 10;
+			var romajiSb = new StringBuilder(original);
+			Translator.TranslateStageOne(romajiSb, null);
+			Original = romajiSb.ToString();
+			GetRomaji(romajiSb);
+			Romaji = romajiSb.ToString();
 			IsCharacterOnly = Original.IndexOfAny(new[] { '「', '」' }) < 0 && Original.Length < 10;
+		}
+
+		private static void GetRomaji(StringBuilder romajiSb)
+		{
+			Translator.ReplacePreRomaji(romajiSb);
+			Kakasi.JapaneseToRomaji(romajiSb);
+			Translator.ReplacePostRomaji(romajiSb);
 		}
 
 		public Translation(string text, bool fromClipboard) : this(text)
