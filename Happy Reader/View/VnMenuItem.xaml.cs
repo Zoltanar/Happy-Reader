@@ -17,12 +17,12 @@ namespace Happy_Reader.View
 		private static readonly Regex MinusRegex = new Regex(@"[-－]");
 
 		[NotNull]
-		private MainWindow MainWindow(FrameworkElement sender) => (MainWindow)Window.GetWindow(sender) ?? throw new ArgumentNullException(nameof(MainWindow));
-		private MainWindowViewModel MainViewModel(FrameworkElement sender) => MainWindow(sender).ViewModel;
-		private VNTabViewModel ViewModel(FrameworkElement sender) => MainViewModel(sender).DatabaseViewModel;
+		private MainWindow MainWindow => (MainWindow)Window.GetWindow(_parentTile) ?? throw new ArgumentNullException(nameof(MainWindow));
+		private MainWindowViewModel MainViewModel => MainWindow.ViewModel;
+		private VNTabViewModel ViewModel => MainViewModel.DatabaseViewModel;
 		private ListedVN VN => (ListedVN)DataContext;
-
-		public VnMenuItem(ListedVN vn)
+		private readonly FrameworkElement _parentTile;
+		public VnMenuItem(ListedVN vn, FrameworkElement parentTile)
 		{
 			InitializeComponent();
 			DataContext = vn;
@@ -36,6 +36,7 @@ namespace Happy_Reader.View
 				};
 				menuItem.Click += BrowseToExtraPage;
 				this.Items.Insert(++itemIndex, menuItem);
+				_parentTile = parentTile;
 			}
 		}
 
@@ -112,7 +113,7 @@ namespace Happy_Reader.View
 				if (VN.UserVN?.Labels?.Contains(UserVN.LabelKind.Voted) ?? false) labelsToSet.Add(UserVN.LabelKind.Voted);
 				labelsToSet.UnionWith(labels);
 			}
-			var success = await ViewModel(menuItem).ChangeVNStatus(VN, labelsToSet);
+			var success = await ViewModel.ChangeVNStatus(VN, labelsToSet);
 			if (success)
 			{
 				VN.OnPropertyChanged(null);
@@ -126,13 +127,12 @@ namespace Happy_Reader.View
 			var remove = menuItem.IsChecked;
 			var header = menuItem.Header.ToString();
 			var voteValue = remove ? null : header == "None" ? (int?)null : int.Parse(header);
-			var success = await ViewModel(menuItem).ChangeVote(VN, voteValue);
+			var success = await ViewModel.ChangeVote(VN, voteValue);
 			if (success) VN.OnPropertyChanged(null);
 		}
 
 		private async void ChangePreciseNumber(object sender, RoutedEventArgs e)
 		{
-			var menuItem = (MenuItem)sender;
 			var inputWindow = new InputWindow
 			{
 				Title = $"{StaticHelpers.ClientName} - Enter Visual Novel Vote",
@@ -143,16 +143,15 @@ namespace Happy_Reader.View
 			if (result == true)
 			{
 				var voteValue = int.Parse(inputWindow.InputText);
-				var success = await ViewModel(menuItem).ChangeVote(VN, voteValue);
+				var success = await ViewModel.ChangeVote(VN, voteValue);
 				if (success) VN.OnPropertyChanged(null);
 			}
 		}
 
 		private async void ShowTitlesByProducer(object sender, RoutedEventArgs e)
 		{
-			var menuItem = (MenuItem)sender;
-			await ViewModel(menuItem).ShowForProducer(VN.Producer);
-			MainWindow(menuItem).SelectTab(typeof(Tabs.DatabaseTab));
+			await ViewModel.ShowForProducer(VN.Producer);
+			MainWindow.SelectTab(typeof(Tabs.DatabaseTab));
 		}
 
 		private void CopyTitle(object sender, RoutedEventArgs e) => Clipboard.SetText(VN.Title);

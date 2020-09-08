@@ -35,8 +35,8 @@ namespace Happy_Apps_Core
 
 		public static readonly string DefaultTraitsJson = Path.Combine(ProgramDataFolder, "Default Files\\traits.json");
 		public static readonly string DefaultTagsJson = Path.Combine(ProgramDataFolder, "Default Files\\tags.json");
-		public static readonly string NsfwImageFile = Path.Combine(ProgramDataFolder, "Default Files\\nsfw-image.png");
-		public static readonly string NoImageFile = Path.Combine(ProgramDataFolder, "Default Files\\no-image.png");
+		public static readonly string NsfwImageFile = Path.Combine(ProgramDataFolder, "Default Files\\nsfw-image.png"); //todo move to Happy Reader
+		public static readonly string NoImageFile = Path.Combine(ProgramDataFolder, "Default Files\\no-image.png"); //todo move to Happy Reader
 		public static readonly string FlagsFolder = Path.Combine(ProgramDataFolder, "Flags\\");
 		public static readonly string ImagesFolder = Path.Combine(StoredDataFolder, "vndb-img\\");
 		public static readonly string CoreSettingsJson = Path.Combine(StoredDataFolder, "coresettings.json");

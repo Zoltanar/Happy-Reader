@@ -137,6 +137,13 @@ namespace Happy_Reader.View
 
 		public void OpenVNPanel(ListedVN vn, bool openOnUserGame)
 		{
+			UserGame userGame = null;
+			if (openOnUserGame)
+			{
+				userGame = StaticMethods.Data.UserGames.FirstOrDefault(ug => ug.VNID == vn.VNID);
+				var userGameTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.Tag == userGame);
+				if(userGameTab != null) MainTabControl.Items.Remove(userGameTab);
+			}
 			var vnTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.Tag == vn);
 			if (vnTab != null)
 			{
@@ -144,7 +151,6 @@ namespace Happy_Reader.View
 				vnTab.Focus();
 				return;
 			}
-			var userGame = StaticMethods.Data.UserGames.FirstOrDefault(ug => ug.VNID == vn.VNID);
 			var tabItem = new TabItem
 			{
 				Header = userGame?.DisplayName ?? StaticHelpers.TruncateString(vn.Title, 30),
@@ -155,8 +161,13 @@ namespace Happy_Reader.View
 			AddTabItem(tabItem);
 		}
 
-		public void OpenUserGamePanel(UserGame userGame)
+		public void OpenUserGamePanel(UserGame userGame, ListedVN priorVN)
 		{
+			if (priorVN != null)
+			{
+				var vnTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.Tag == priorVN);
+				if (vnTab != null) MainTabControl.Items.Remove(vnTab);
+			}
 			var userGameTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.Tag == userGame);
 			if (userGameTab != null)
 			{

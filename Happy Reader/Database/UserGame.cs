@@ -275,7 +275,7 @@ namespace Happy_Reader.Database
 			OnPropertyChanged(nameof(Tag));
 		}
 
-		public void SaveVNID(int? vnid)
+		public bool SaveVNID(int? vnid)
 		{
 			VNID = vnid;
 			StaticMethods.Data.SaveChanges();
@@ -283,6 +283,7 @@ namespace Happy_Reader.Database
 			OnPropertyChanged(nameof(DisplayName));
 			OnPropertyChanged(nameof(Image));
 			OnPropertyChanged(nameof(VN));
+			return VN != null;
 		}
 
 		public void SaveHookCode(string hookCode, string fullHook)

@@ -13,14 +13,14 @@ namespace Happy_Reader.View.Tabs
 	public partial class UserGameTab : UserControl
 	{
 		private readonly UserGame _viewModel;
-		private readonly bool _hideImage;
+		private readonly bool _isForVN;
 
-		public UserGameTab(UserGame game, bool hideImage)
+		public UserGameTab(UserGame game, bool isForVN)
 		{
 			InitializeComponent();
 			DataContext = game;
 			_viewModel = game;
-			_hideImage = hideImage;
+			_isForVN = isForVN;
 		}
 
 		private void BrowseToFolderClick(object sender, RoutedEventArgs e)
@@ -37,7 +37,6 @@ namespace Happy_Reader.View.Tabs
 				directory = directory == null ? Environment.CurrentDirectory : Directory.GetParent(directory).FullName;
 			}
 			dialog.InitialDirectory = directory;
-			Debug.WriteLine(dialog.InitialDirectory);
 			var result = dialog.ShowDialog();
 			if (result ?? false) _viewModel.ChangeFilePath(dialog.FileName);
 		}
@@ -56,7 +55,20 @@ namespace Happy_Reader.View.Tabs
 		private void SaveVNID(object sender, KeyEventArgs e)
 		{
 			if (e.Key != Key.Enter) return;
-			_viewModel.SaveVNID(VnidNameBox.Text.Length == 0 ? null : (int?)int.Parse(VnidNameBox.Text));
+			var priorVN = _viewModel.VN;
+			var mainWindow = (MainWindow)Window.GetWindow(this);
+			Debug.Assert(mainWindow != null, nameof(mainWindow) + " != null");
+			var result = _viewModel.SaveVNID(VnidNameBox.Text.Length == 0 ? null : (int?)int.Parse(VnidNameBox.Text));
+			if (result)
+			{
+				mainWindow.OpenVNPanel(_viewModel.VN, true);
+			}
+			if (!result)
+			{
+
+				mainWindow.OpenUserGamePanel(_viewModel, priorVN);
+			}
+
 		}
 
 		private void SaveHookCode(object sender, KeyEventArgs e)
@@ -80,9 +92,10 @@ namespace Happy_Reader.View.Tabs
 
 		private void UserGameTab_OnLoaded(object sender, RoutedEventArgs e)
 		{
-			if (!_hideImage) return;
-			Image.Visibility = Visibility.Collapsed;
-			ImageBorder.Visibility = Visibility.Collapsed;
+			Image.Visibility = _isForVN ? Visibility.Collapsed : Visibility.Visible;
+			ImageBorder.Visibility = _isForVN ? Visibility.Collapsed : Visibility.Visible;
+			ImageColumn.Width = _isForVN ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
+			DataColumn.Width = _isForVN ? new GridLength(1, GridUnitType.Star) : GridLength.Auto;
 		}
 	}
 }

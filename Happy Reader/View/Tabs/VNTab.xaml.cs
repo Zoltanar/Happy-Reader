@@ -29,7 +29,10 @@ namespace Happy_Reader.View.Tabs
 				Header = "User Game",
 				Name = nameof(UserGameTab),
 				Content = new UserGameTab(userGame, true),
-				Tag = userGame
+				Tag = userGame,
+				HorizontalAlignment = HorizontalAlignment.Stretch,
+				VerticalAlignment = VerticalAlignment.Stretch
+
 			};
 			TabControl.Items.Add(tabItem);
 			if (openOnUserGame) TabControl.SelectedItem = tabItem;

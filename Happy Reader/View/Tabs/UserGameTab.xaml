@@ -52,13 +52,10 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="150"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto" MinWidth="30" x:Name="DataColumn"/>
+            <ColumnDefinition Width="*" x:Name="ImageColumn"/>
         </Grid.ColumnDefinitions>
-        <UniformGrid Grid.Column="0" Rows="13" Columns="1">
-            <Label Style="{StaticResource Row0Label}" Content="Title" />
-            <Label Style="{StaticResource Row0Label}" Content="Original" />
-            <Label Style="{StaticResource Row0Label}" Content="Producer" />
+        <UniformGrid Grid.Column="0" Rows="10" Columns="1">
             <Label Style="{StaticResource Row0Label}" Content="File"/>
 			<Button Style="{StaticResource UniformButton}" Content="Browse to file" Click="BrowseToFolderClick"/>
 			<Label Style="{StaticResource Row0Label}" Content="User Defined Name" />
@@ -70,10 +67,7 @@
             <Label Style="{StaticResource Row0Label}" Content="Launch Path" />
             <CheckBox Style="{StaticResource UniformCheckbox}" Content="Hook to Process" IsChecked="{Binding HookProcess}" />
         </UniformGrid>
-        <UniformGrid Grid.Column="1" Rows="13">
-            <TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding VN.Title, Mode=OneWay}" />
-            <TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding VN.KanjiTitle, Mode=OneWay}" />
-            <TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding VN.Producer.Name, Mode=OneWay}" />
+        <UniformGrid Grid.Column="1" Rows="10">
             <TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding FilePath, Mode=OneWay}" />
 			<Button  Style="{StaticResource UniformButton}" Content="Change File Path" Click="ChangeFileLocationClick"/>
 			<TextBox Style="{StaticResource Row1TextBox}" x:Name="DisplayNameBox" Text="{Binding UserDefinedName}" KeyUp="SaveUserDefinedName" />
