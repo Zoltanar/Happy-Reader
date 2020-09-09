@@ -1,3 +1,4 @@
+Remove WindowsBase dependencies from Happy_Apps_Core (DependencyProperty.UnsetValue)
 vntile right click show related
 
 add blacklistedproducers to user
@@ -7,27 +8,9 @@ allow keeping time played for multiple games
 allow monitor to keep running always
 make monitor only have one instance.
 if notification window is already present, simply replace text and restart timer
-
-mainwindowviewmodel.clipboardchanged, catch comexception OpenClipboard Failed (Exception from HRESULT: 0x800401D0 (CLIPBRD_E_CANT_OPEN))'
-great outstanding problems:
-can't show outputwindow on top of some fullscreen games, steals focus on games where it works
-
-translation:
-handle proxymods by order
-assign entry.location to merged proxy to allow for triple+ name
-allow user to choose location of google credential, currently C:\Google\hrtranslate-credential.json.
 apply translate stage 4 to pre-romaji
-
 if response is error with id 'needlogin' show user that credentials are wrong
 
 
-
-sql for vn credits given staffid (5)
-select 
-ListedVNs.Title, ListedVNs.ReleaseDateString, VnStaffs.Role, StaffAliass.Name, VnStaffs.Note
- from VnStaffs 
- join ListedVNs on VnStaffs.VNID = ListedVNs.VNID 
- join StaffAliass on VnStaffs.AID = StaffAliass.AliasID where StaffAliass.StaffId = 5
- order by ReleaseDateString;
-
- sql for seiyuu
+great outstanding problems:
+can't show outputwindow on top of some fullscreen games, steals focus on games where it works

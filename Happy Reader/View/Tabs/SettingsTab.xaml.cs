@@ -34,5 +34,12 @@ namespace Happy_Reader.View.Tabs
 				: new VndbConnection.LoginCredentials(ClientName, ClientVersion), false);
 			LoginResponseBlock.Text = response;
 		}
+
+		private void OnNsfwToggle(object sender, System.Windows.RoutedEventArgs e)
+		{
+			//refresh images of active objects.
+			MainWindowViewModel.Instance.RefreshActiveObjectImages();
+		}
+
 	}
 }

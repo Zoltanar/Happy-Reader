@@ -29,7 +29,7 @@
 			<TextBlock Text="{Binding ReleaseDateString}" FontWeight="{Binding ReleaseDate, Converter={StaticResource DateToWeightConverter}}"/>
 				</Label>
 			<Label Content="{Binding UserRelatedStatus}" Margin="10,0,10,10" VerticalAlignment="Bottom" Foreground="{Binding UserVN, Converter={StaticResource UserVnToForegroundConverter}}" Padding="0"/>
-			<Image Margin="10,41,10,73"		Source="{Binding CoverSource}" />
+			<Image Margin="10,41,10,73"	Source="{Binding ., Converter={StaticResource VnOrScreenToImagePathConverter}}" />
 			<Image Margin="194,41,10,320" Source="{Binding FlagSource}"/>
 			<Border Margin="0,59,10,0" Style="{StaticResource AlertFlagStyle}" Visibility="{Binding Path=., Converter={StaticResource VnOrCharacterToAlertFlagVisibilityConverter}}">
 				<TextBlock  Foreground="White" TextAlignment="Center" Text="S" />

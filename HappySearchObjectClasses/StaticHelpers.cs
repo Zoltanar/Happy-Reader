@@ -19,7 +19,7 @@ using Microsoft.Win32;
 namespace Happy_Apps_Core
 {
 	/// <summary>
-	/// Static Methods
+	/// Static Methods shared by many components.
 	/// </summary>
 	public static class StaticHelpers
 	{
@@ -28,16 +28,14 @@ namespace Happy_Apps_Core
 		public const string TagsURL = "http://vndb.org/api/tags.json.gz";
 		public const string TraitsURL = "http://vndb.org/api/traits.json.gz";
 		public const string ProjectURL = "https://github.com/Zoltanar/Happy-Reader";
-		public const string ProgramDataFolder = "Program Data";
+		public static readonly string ProgramDataFolder = Path.Combine(Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName,"Program Data\\");
+		public static readonly string DefaultTraitsJson = Path.Combine(ProgramDataFolder, "Default Files\\traits.json");
+		public static readonly string DefaultTagsJson = Path.Combine(ProgramDataFolder, "Default Files\\tags.json");
+		public static readonly string FlagsFolder = Path.Combine(ProgramDataFolder, "Flags\\");
+		public static readonly string CertificatesFolder = Path.Combine(ProgramDataFolder, "Certificates");
 		public static readonly string AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Happy Reader");
 		public static readonly string StoredDataFolder = Path.Combine(AppDataFolder, "Stored Data");
 		public static readonly string LogsFolder = Path.Combine(AppDataFolder, "Logs");
-
-		public static readonly string DefaultTraitsJson = Path.Combine(ProgramDataFolder, "Default Files\\traits.json");
-		public static readonly string DefaultTagsJson = Path.Combine(ProgramDataFolder, "Default Files\\tags.json");
-		public static readonly string NsfwImageFile = Path.Combine(ProgramDataFolder, "Default Files\\nsfw-image.png"); //todo move to Happy Reader
-		public static readonly string NoImageFile = Path.Combine(ProgramDataFolder, "Default Files\\no-image.png"); //todo move to Happy Reader
-		public static readonly string FlagsFolder = Path.Combine(ProgramDataFolder, "Flags\\");
 		public static readonly string ImagesFolder = Path.Combine(StoredDataFolder, "vndb-img\\");
 		public static readonly string CoreSettingsJson = Path.Combine(StoredDataFolder, "coresettings.json");
 		public static readonly string DatabaseFile = Path.Combine(StoredDataFolder, "Happy-Apps.sqlite");
@@ -389,31 +387,63 @@ namespace Happy_Apps_Core
 			}
 		}
 
-		public static void RunWithRetries(Action action, Action onFailure, int maxAtempts, Func<Exception, bool> exceptionValid)
+		public static void RunWithRetries(Action action, Action onFailure, int maxAttempts, Func<Exception, bool> exceptionValid)
 		{
 			int attempts = 0;
-			while (attempts < maxAtempts)
+			while (attempts < maxAttempts)
 			{
 				try
 				{
 					action();
-					break;
+					return;
 				}
 				catch (Exception ex)
 				{
-					if (!exceptionValid(ex) || attempts == maxAtempts - 1) throw;
+					if (!exceptionValid(ex) || attempts == maxAttempts - 1) throw;
 					onFailure?.Invoke();
 					attempts++;
 				}
 			}
+			throw new InvalidOperationException($"Method '{nameof(RunWithRetries)}' should not return here.");
 		}
 
-		public static string GetImageLocation(string imageId2)
+		public static T RunWithRetries<T>(Func<T> action, Action onFailure, int maxAttempts, Func<Exception, bool> exceptionValid)
 		{
-			var folder = imageId2.Substring(0, 2);
-			var id = int.Parse(imageId2.Substring(2));
+			int attempts = 0;
+			while (attempts < maxAttempts)
+			{
+				try
+				{
+					return action();
+				}
+				catch (Exception ex)
+				{
+					if (!exceptionValid(ex) || attempts == maxAttempts - 1) throw;
+					onFailure?.Invoke();
+					attempts++;
+				}
+			}
+			throw new InvalidOperationException($"Method '{nameof(RunWithRetries)}' should not return here.");
+		}
+
+		public static string GetImageLocation(string imageId)
+		{
+			var folder = imageId.Substring(0, 2);
+			var id = int.Parse(imageId.Substring(2));
 			var filePath = Path.GetFullPath($"{ImagesFolder}\\{folder}\\{id % 100:00}\\{id}.jpg");
 			return filePath;
+		}
+
+		public static string GetImageSource(string imageId, ref bool imageSourceSet, ref string imageSource)
+		{
+			if (imageId == null) return null;
+			if (!imageSourceSet)
+			{
+				var filePath = GetImageLocation(imageId);
+				imageSource = File.Exists(filePath) ? filePath : null;
+				imageSourceSet = true;
+			}
+			return imageSource;
 		}
 	}
 }

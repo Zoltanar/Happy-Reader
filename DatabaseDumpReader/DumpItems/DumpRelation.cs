@@ -128,7 +128,7 @@ namespace DatabaseDumpReader.DumpItems
 
 		public double Violence { get; set; }
 
-		public bool Nsfw => Sexual > 2.5 || Violence > 2.5;
+		public bool Nsfw => Sexual >= 1.5 || Violence >= 1.5;
 
 		public string Id { get; set; }
 

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -494,7 +495,8 @@ namespace Happy_Reader.ViewModel
 			var b3 = cpOwner?.ProcessName.ToLower().Equals("ithvnr") ?? false;
 			var b4 = cpOwner?.ProcessName.ToLower().Equals("ithvnrsharp") ?? false;
 			if (!(b1 || b2 || b3 || b4)) return; //if process isn't hooked process or named ithvnr
-			var text = Clipboard.GetText();
+			//0x800401D0 = CLIPBRD_E_CANT_OPEN
+			var text = RunWithRetries(Clipboard.GetText, ()=> Thread.Sleep(10),5, (ex) => ex is COMException comEx && (uint) comEx.ErrorCode == 0x800401D0);
 			var timeSinceLast = DateTime.UtcNow - _lastUpdateTime;
 			if (timeSinceLast.TotalMilliseconds < 100 && _lastUpdateText == text) return;
 			Logger.Verbose($"Capturing clipboard from {cpOwner?.ProcessName ?? "??"}\t {DateTime.UtcNow:HH\\:mm\\:ss\\:fff}\ttimeSinceLast:{timeSinceLast.Milliseconds}\t{text}");
@@ -645,6 +647,18 @@ namespace Happy_Reader.ViewModel
 			StaticMethods.Data.Entries.Remove(displayEntry.Entry);
 			StaticMethods.Data.SaveChanges();
 			OnPropertyChanged(nameof(EntriesList));
+		}
+
+		public void RefreshActiveObjectImages()
+		{
+			foreach (var tile in UserGameItems)
+			{
+				tile.UserGame.OnPropertyChanged(nameof(Database.UserGame.Image));
+			}
+			foreach (var tile in DatabaseViewModel.ListedVNs)
+			{
+				tile.VN.OnPropertyChanged(nameof(ListedVN.ImageSource));
+			}
 		}
 	}
 }

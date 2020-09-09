@@ -122,7 +122,7 @@
 			</Grid>
 			<TextBox Grid.Row="1" Text="{Binding Description}" TextWrapping="Wrap" Margin="0" Padding="5" Background="LightGray" Name="DescBox"/>
 		</Grid>
-		<Image x:Name="ImageBox" Grid.Row="0" Source="{Binding CoverSource}" Margin="5" Grid.Column="1"/>
+		<Image x:Name="ImageBox" Grid.Row="0" Source="{Binding ., Converter={StaticResource VnOrScreenToImagePathConverter}}" Margin="5" Grid.Column="1"/>
 		<Border Grid.Row="0" Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Right" Padding="5" Background="Black" CornerRadius="5" Margin="5">
 			<Label VerticalContentAlignment="Top" HorizontalContentAlignment="Right"  VerticalAlignment="Top" HorizontalAlignment="Right" Padding="0" Background="Black">
 				<Hyperlink Click="ID_OnClick">
@@ -133,7 +133,7 @@
 		<TabControl Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="0" x:Name="TabControl">
 			<TabItem Header="Screenshots">
 				<view:AspectRatioLayoutDecorator x:Name="ScreensBox" Margin="5">
-					<ItemsControl ItemsSource="{Binding DisplayScreenshots}" >
+					<ItemsControl ItemsSource="{Binding ScreensObject}" >
 						<ItemsControl.ItemsPanel>
 							<ItemsPanelTemplate>
 								<StackPanel Orientation="Horizontal"/>
@@ -147,6 +147,11 @@
 								</ScrollViewer>
 							</ControlTemplate>
 						</ItemsControl.Template>
+						<ItemsControl.ItemTemplate>
+							<DataTemplate>
+									<Image Source="{Binding Converter={StaticResource VnOrScreenToImagePathConverter}}"/>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
 					</ItemsControl>
 				</view:AspectRatioLayoutDecorator>
 			</TabItem>
@@ -181,11 +186,7 @@
 									<Setter Property="Template">
 										<Setter.Value>
 											<ControlTemplate>
-												<Expander
-                                        Padding="0"                                           
-                                        BorderThickness="0"
-                                        IsExpanded="True"
-                                        >
+												<Expander Padding="0" BorderThickness="0" IsExpanded="True">
 													<Expander.Header>
 														<TextBlock FontWeight="Bold" Text="{Binding Name}"/>
 													</Expander.Header>

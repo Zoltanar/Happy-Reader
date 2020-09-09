@@ -240,7 +240,7 @@ namespace Happy_Apps_Core
 		private static X509CertificateCollection GetCertificates(bool printCertificates)
 		{
 			var certs = new X509CertificateCollection();
-			var certFiles = Directory.GetFiles("Program Data\\Certificates");
+			var certFiles = Directory.GetFiles(CertificatesFolder);
 			foreach (var certFile in certFiles) certs.Add(X509Certificate.CreateFromCertFile(certFile));
 			if (!printCertificates) return certs;
 			Logger.ToFile("Local Certificate data - subject/issuer/format/effectivedate/expirationdate");

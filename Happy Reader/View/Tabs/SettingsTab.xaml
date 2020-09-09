@@ -61,7 +61,7 @@
 				<CheckBox Content="Show Content Tags" IsChecked="{Binding ContentTags}"/>
 				<CheckBox Content="Show Sexual Tags" IsChecked="{Binding SexualTags}"/>
 				<CheckBox Content="Show Technical Tags" IsChecked="{Binding TechnicalTags}"/>
-				<CheckBox Content="Show NSFW Images" IsChecked="{Binding NSFWImages}"/>
+				<CheckBox Content="Show NSFW Images" IsChecked="{Binding NSFWImages}" Click="OnNsfwToggle"/>
 				<view:LabeledTextBox LabelWidth="120" Label="Locale Emulator Path:" Text="{Binding LocaleEmulatorPath}" ToolTip="Path to locale emulator executable (LEProc.exe)"/>
 				<!--<view:LabeledTextBox LabelWidth="120" Label="Extra Page Link:" Text="{Binding ExtraPageLink}" ToolTip="A link that can be visited when right clicking a VN tile, for searching purposes (%s is replaced by original title)"/>-->
 				<Grid>

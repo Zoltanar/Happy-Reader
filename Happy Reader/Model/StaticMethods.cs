@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -13,7 +15,9 @@ using System.Linq.Expressions;
 using System.Management;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Happy_Apps_Core.Database;
+using FontFamily = System.Windows.Media.FontFamily;
 using StaticHelpers = Happy_Apps_Core.StaticHelpers;
 
 // ReSharper disable UnusedMember.Global
@@ -23,15 +27,16 @@ namespace Happy_Reader
 	public static class StaticMethods
 	{
 		public delegate void NotificationEventHandler(object sender, string message, string title = null);
-
+		
 		public static readonly string ProxiesJson = Path.Combine(StaticHelpers.StoredDataFolder, "proxies.json");
 		public static readonly string CustomFiltersJson = Path.Combine(StaticHelpers.StoredDataFolder, "customfilters.json");
 		public static readonly string PermanentFilterJson = Path.Combine(StaticHelpers.StoredDataFolder, "filters.json");
 		public static readonly string GuiSettingsJson = Path.Combine(StaticHelpers.StoredDataFolder, "guisettings.json");
 		public static readonly string TranslatorSettingsJson = Path.Combine(StaticHelpers.StoredDataFolder, "translatorsettings.json");
-		public static HappyReaderDatabase Data { get; } = new HappyReaderDatabase();
 		public static readonly GuiSettings GuiSettings;
 		public static readonly TranslatorSettings TranslatorSettings;
+		public static HappyReaderDatabase Data { get; } = new HappyReaderDatabase();
+		public static Func<bool> ShowNSFWImages { get; set; } = () => true;
 
 		static StaticMethods()
 		{

@@ -1,5 +1,4 @@
-﻿using System.IO;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace Happy_Apps_Core
 {
@@ -10,25 +9,13 @@ namespace Happy_Apps_Core
 		public int Height { get; set; }
 		public int Width { get; set; }
 
+		private bool _imageSourceSet;
 		private string _imageSource;
 
 		/// <summary>
 		/// Get path of stored screenshot
 		/// </summary>
 		[JsonIgnore]
-		public string StoredLocation
-		{
-			get
-			{
-				if (_imageSource != null) return _imageSource;
-				if (ImageId == null) _imageSource = Path.GetFullPath(StaticHelpers.NoImageFile);
-				else
-				{
-					var filePath = StaticHelpers.GetImageLocation(ImageId);
-					_imageSource = File.Exists(filePath) ? filePath : Path.GetFullPath(StaticHelpers.NoImageFile);
-				}
-				return _imageSource;
-			}
-		}
+		public string StoredLocation => StaticHelpers.GetImageSource(ImageId, ref _imageSourceSet, ref _imageSource);
 	}
 }

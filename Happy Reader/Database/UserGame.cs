@@ -11,9 +11,9 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
-using System.Windows;
 using System.Windows.Media.Imaging;
 using Happy_Apps_Core.Database;
+using Happy_Reader.View;
 using IthVnrSharpLib;
 using JetBrains.Annotations;
 using static Happy_Apps_Core.StaticHelpers;
@@ -127,6 +127,8 @@ namespace Happy_Reader.Database
 		public string DisplayName =>
 			UserDefinedName ?? StaticMethods.TruncateStringFunction30(VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath));
 
+		private BitmapImage _image;
+
 		[NotMapped]
 		public BitmapImage Image
 		{
@@ -136,27 +138,24 @@ namespace Happy_Reader.Database
 				if (!File.Exists(FilePath))
 				{
 					// ReSharper disable once PossibleNullReferenceException
-					Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/file-not-found.png")).Stream;
-					image = new Bitmap(iconStream);
+					return Theme.FileNotFoundImage;
 				}
-				else if (VN == null) image = Icon.ExtractAssociatedIcon(FilePath)?.ToBitmap();
-				else if (File.Exists(VN.ImageSource)) image = new Bitmap(VN.ImageSource);
-				else image = Icon.ExtractAssociatedIcon(FilePath)?.ToBitmap();
-				if (image == null)
-				{
-					// ReSharper disable once PossibleNullReferenceException
-					Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/no-image.png")).Stream;
-					image = new Bitmap(iconStream);
-				}
+				if ((VN?.ImageNSFW  ?? false) && !StaticMethods.ShowNSFWImages()) return Theme.NsfwImage;
+				if (_image != null) return _image;
+				// ReSharper disable once PossibleNullReferenceException
+				if (VN == null) image = Icon.ExtractAssociatedIcon(FilePath).ToBitmap();
+				else if (VN.ImageSource != null) image = new Bitmap(VN.ImageSource);
+				// ReSharper disable once PossibleNullReferenceException
+				else image = Icon.ExtractAssociatedIcon(FilePath).ToBitmap();
 				using var memory = new MemoryStream();
 				image.Save(memory, ImageFormat.Bmp);
 				memory.Position = 0;
-				var bitmapImage = new BitmapImage();
-				bitmapImage.BeginInit();
-				bitmapImage.StreamSource = memory;
-				bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-				bitmapImage.EndInit();
-				return bitmapImage;
+				_image = new BitmapImage();
+				_image.BeginInit();
+				_image.StreamSource = memory;
+				_image.CacheOption = BitmapCacheOption.OnLoad;
+				_image.EndInit();
+				return _image;
 			}
 		}
 		[NotMapped]
@@ -259,7 +258,7 @@ namespace Happy_Reader.Database
 		}
 
 		[NotifyPropertyChangedInvocator]
-		protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		public void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
 		public void SaveUserDefinedName([NotNull] string text)
 		{

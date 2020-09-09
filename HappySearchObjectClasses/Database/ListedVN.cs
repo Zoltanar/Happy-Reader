@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
@@ -10,27 +8,20 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media.Imaging;
 using Happy_Apps_Core.DataAccess;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 
-// ReSharper disable VirtualMemberCallInConstructor
-// ReSharper disable MemberCanBeProtected.Global
 
 namespace Happy_Apps_Core.Database
 {
 	public class ListedVN : INotifyPropertyChanged, IDataItem<int>, IDumpItem
 	{
-		public static Func<bool> ShowNSFWImages { get; set; } = () => true;
-		
+
 		#region Columns
 		/// <summary>
 		/// VN's ID
 		/// </summary>
-		[Key]
-		[DatabaseGenerated(DatabaseGeneratedOption.None)]
 		public int VNID { get; set; }
 
 		/// <summary>
@@ -147,7 +138,6 @@ namespace Happy_Apps_Core.Database
 
 		private bool? _hasFullDate;
 
-		[NotMapped]
 		public bool HasFullDate
 		{
 			get
@@ -161,7 +151,7 @@ namespace Happy_Apps_Core.Database
 			}
 		}
 
-		[NotMapped, NotNull]
+		[NotNull]
 		public IEnumerable<string> DisplayRelations
 		{
 			get
@@ -169,14 +159,14 @@ namespace Happy_Apps_Core.Database
 				if (!RelationsObject.Any()) return new List<string> { "No relations found." };
 				var titleString = RelationsObject.Length == 1 ? "1 Relation" : $"{RelationsObject.Length} Relations";
 				var stringList = new List<string> { titleString, "--------------" };
-				stringList.AddRange(RelationsObject.Select(r=>r.Print()));
+				stringList.AddRange(RelationsObject.Select(r => r.Print()));
 				return stringList;
 			}
 		}
 
-		private static readonly string[] NoAnimeFound = {"No Anime found."};
+		private static readonly string[] NoAnimeFound = { "No Anime found." };
 
-		[NotMapped, NotNull]
+		[NotNull]
 		public IEnumerable<string> DisplayAnime
 		{
 			get
@@ -187,7 +177,7 @@ namespace Happy_Apps_Core.Database
 						//static to save memory and performance
 						return NoAnimeFound;
 					case 1:
-						return new[] {AnimeObject.First().Print()};
+						return new[] { AnimeObject.First().Print() };
 					default:
 						var titleString = $"{AnimeObject.Length} Anime";
 						var stringList = new List<string> { titleString, "--------------" };
@@ -203,14 +193,14 @@ namespace Happy_Apps_Core.Database
 		/// </summary>
 		public string DisplayAliases => Aliases?.Replace("\n", ", ") ?? "";
 
-		[NotMapped, NotNull]
+		[NotNull]
 		public RelationsItem[] RelationsObject
 		{
 			get
 			{
 				if (_relationsObject != null) return _relationsObject;
 				if (string.IsNullOrWhiteSpace(Relations)) _relationsObject = Array.Empty<RelationsItem>();
-				else _relationsObject = JsonConvert.DeserializeObject<RelationsItem[]>(Relations) ?? Array.Empty<RelationsItem>(); 
+				else _relationsObject = JsonConvert.DeserializeObject<RelationsItem[]>(Relations) ?? Array.Empty<RelationsItem>();
 				foreach (var r in _relationsObject)
 				{
 					if (string.IsNullOrWhiteSpace(r.Title))
@@ -220,7 +210,7 @@ namespace Happy_Apps_Core.Database
 			}
 		}
 
-		[NotMapped, NotNull]
+		[NotNull]
 		public AnimeItem[] AnimeObject
 		{
 			get
@@ -232,7 +222,7 @@ namespace Happy_Apps_Core.Database
 			}
 		}
 
-		[NotMapped, NotNull]
+		[NotNull]
 		public ScreenItem[] ScreensObject
 		{
 			get
@@ -250,14 +240,13 @@ namespace Happy_Apps_Core.Database
 		private VNLanguages _languagesObject;
 		private ListedProducer _producer;
 		private int? _producerID;
-
-		[NotMapped]
+		
 		public SuggestionScoreObject Suggestion { get; set; }
 
 		/// <summary>
 		/// Language of producer
 		/// </summary>
-		[NotMapped, NotNull]
+		[NotNull]
 		public VNLanguages LanguagesObject => _languagesObject ??= Languages == null ? new VNLanguages() : JsonConvert.DeserializeObject<VNLanguages>(Languages) ?? new VNLanguages();
 
 		/// <summary>
@@ -314,47 +303,15 @@ namespace Happy_Apps_Core.Database
 				return string.Join(" ", parts);
 			}
 		}
-
-		/// <summary>
-		/// Checks if title was released between two dates, the recent date is inclusive.
-		/// Make sure to enter arguments in correct order.
-		/// </summary>
-		/// <param name="oldDate">Date furthest from the present</param>
-		/// <param name="recentDate">Date closest to the present</param>
-		/// <returns></returns>
-		public bool ReleasedBetween(DateTime oldDate, DateTime recentDate)
-		{
-			return ReleaseDate > oldDate && ReleaseDate <= recentDate;
-		}
-
-		/// <summary>
-		/// Check if title was released in specified year.
-		/// </summary>
-		/// <param name="year">Year of release</param>
-		public bool ReleasedInYear(int year)
-		{
-			return ReleaseDate.Year == year;
-		}
-
+		
+		private bool _imageSourceSet;
 		private string _imageSource;
 
 		/// <summary>
 		/// Get location of cover image in system (not online)
+		/// if there is no image or file is not found, returns null.
 		/// </summary>
-		public string ImageSource
-		{
-			get
-			{
-				if (_imageSource != null) return _imageSource;
-				if (ImageId == null) _imageSource = Path.GetFullPath(StaticHelpers.NoImageFile);
-				else
-				{
-					var filePath = StaticHelpers.GetImageLocation(ImageId);
-					_imageSource = File.Exists(filePath) ? filePath : Path.GetFullPath(StaticHelpers.NoImageFile);
-				}
-				return _imageSource;
-			}
-		}
+		public string ImageSource => StaticHelpers.GetImageSource(ImageId, ref _imageSourceSet, ref _imageSource);
 
 		public string Series { get; set; }
 
@@ -371,7 +328,7 @@ namespace Happy_Apps_Core.Database
 				if (Suggestion != null) _specialFlag = Suggestion.Score > 0;
 				else
 				{
-					foreach(var tagId in tagIds)
+					foreach (var tagId in tagIds)
 					{
 						var tag = DumpFiles.GetTag(tagId);
 						if (tag == null) continue;
@@ -398,39 +355,7 @@ namespace Happy_Apps_Core.Database
 			}
 			return _specialFlag.Value;
 		}
-
-		[NotNull]
-		public Uri CoverSource
-		{
-			get
-			{
-				if (VNID == 0) return new Uri(_imageSource);
-				string image;
-				if (ImageNSFW && !ShowNSFWImages()) image = StaticHelpers.NsfwImageFile;
-				else image = ImageSource;
-				return new Uri(image);
-			}
-		}
 		
-		[NotNull]
-		public IEnumerable<Image> DisplayScreenshots
-		{
-			get
-			{
-				if (!ScreensObject.Any()) return Array.Empty<Image>();
-				var images = new List<Image>();
-				foreach (var screen in ScreensObject)
-				{
-					images.Add(new Image
-					{
-						Source = new BitmapImage(new Uri(Path.GetFullPath(screen.Nsfw && !ShowNSFWImages() ? StaticHelpers.NsfwImageFile
-							: File.Exists(screen.StoredLocation) ? screen.StoredLocation : StaticHelpers.NoImageFile)))
-					});
-				}
-				return images;
-			}
-		}
-
 		public bool HasLanguage(string value)
 		{
 			return LanguagesObject.All.Contains(value);
@@ -449,7 +374,7 @@ namespace Happy_Apps_Core.Database
 		public void OnPropertyChanged([CallerMemberName] string propertyName = null)
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-			if(propertyName == null) Producer.OnPropertyChanged(null);
+			if (propertyName == null) Producer.OnPropertyChanged(null);
 		}
 
 		public void SetRelations(string relationsString, RelationsItem[] relationsObject)
@@ -469,7 +394,7 @@ namespace Happy_Apps_Core.Database
 			Screens = screensString;
 			_screensObject = screensObject;
 		}
-		
+
 		#region IDumpItem Implementation
 
 		public static Dictionary<string, int> Headers = new Dictionary<string, int>();
@@ -486,7 +411,7 @@ namespace Happy_Apps_Core.Database
 		{
 			try
 			{
-				VNID = Convert.ToInt32(GetPart(parts,"id"));
+				VNID = Convert.ToInt32(GetPart(parts, "id"));
 				Title = GetPart(parts, "title");
 				KanjiTitle = GetPart(parts, "original");
 				Aliases = GetPart(parts, "alias");

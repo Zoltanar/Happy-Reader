@@ -78,8 +78,8 @@ namespace Happy_Reader.View
 
 	public class NullableToVisibilityConverter : IValueConverter
 	{
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture) 
-			=> value == null  || value is string sValue && string.IsNullOrWhiteSpace(sValue)? Visibility.Collapsed : Visibility.Visible;
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+			=> value == null || value is string sValue && string.IsNullOrWhiteSpace(sValue) ? Visibility.Collapsed : Visibility.Visible;
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => new NotSupportedException();
 	}
@@ -233,7 +233,7 @@ namespace Happy_Reader.View
 				case CharacterItem character:
 					userVN = character.VisualNovel?.UserVN;
 					break;
-					default: throw new NotSupportedException();
+				default: throw new NotSupportedException();
 			}
 			return userVN?.Blacklisted ?? false ? Brushes.White : Brushes.Black;
 		}
@@ -267,6 +267,22 @@ namespace Happy_Reader.View
 				"appears" => Brushes.LightBlue,
 				null => Brushes.Gray,
 				_ => Brushes.White
+			};
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
+	}
+
+	public class VnOrScreenToImagePathConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			if (value is null) return Theme.ImageNotFoundImage;
+			return value switch
+			{
+				ListedVN vn => vn.ImageNSFW && !StaticMethods.ShowNSFWImages() ? Theme.NsfwImage : (object)vn.ImageSource ?? Theme.ImageNotFoundImage,
+				ScreenItem screen => screen.Nsfw && !StaticMethods.ShowNSFWImages() ? Theme.NsfwImage : (object)screen.StoredLocation ?? Theme.ImageNotFoundImage,
+				_ => throw new NotSupportedException()
 			};
 		}
 

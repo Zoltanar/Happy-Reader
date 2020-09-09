@@ -49,7 +49,7 @@ namespace Happy_Reader.View.Tiles
 		private void CharacterTile_OnLoaded(object sender, RoutedEventArgs e)
 		{
 			if (_loaded) return;
-			ImageBox.Source = new BitmapImage(new Uri(_viewModel.ImageSource));
+			ImageBox.Source = _viewModel.ImageSource == null ? Theme.ImageNotFoundImage : new BitmapImage(new Uri(_viewModel.ImageSource));
 			if (_forVnTab)
 			{
 				VisualNovelNameBox.Visibility = Visibility.Collapsed;

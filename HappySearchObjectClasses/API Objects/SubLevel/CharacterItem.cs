@@ -1,24 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.Data.Common;
-using System.IO;
 using System.Linq;
 using Happy_Apps_Core.DataAccess;
 using Happy_Apps_Core.Database;
-using JetBrains.Annotations;
-
-// ReSharper disable ClassWithVirtualMembersNeverInherited.Global
-// ReSharper disable ClassNeverInstantiated.Global
-// ReSharper disable VirtualMemberCallInConstructor
-// ReSharper disable UnusedMember.Global
-// ReSharper disable InconsistentNaming
 
 namespace Happy_Apps_Core
 {
 	public class CharacterItem : IDataItem<int>, IDumpItem, ICloneable
 	{
+		private bool _imageSourceSet;
 		private string _imageSource;
 		private bool? _alertFlag;
 
@@ -47,18 +39,6 @@ namespace Happy_Apps_Core
 				};
 			}
 		}
-		[NotNull] public IEnumerable<string> DisplayTraits
-		{
-			get
-			{
-				if (ID == 0) return new List<string>();
-				var traits = DbTraits.ToList();
-				if (traits.Count == 0) return new List<string>();
-				var stringList = new List<string> { $"{traits.Count} Traits" };
-				stringList.AddRange(traits.Select(trait => DumpFiles.GetTrait(trait.TraitId)?.ToString()));
-				return stringList;
-			}
-		}
 		public CharacterVN CharacterVN { get; set; }
 		public ListedVN VisualNovel => CharacterVN == null ? null : StaticHelpers.LocalDatabase.VisualNovels[CharacterVN.VNId];
 		public string VisualNovelName => VisualNovel?.Title;
@@ -67,27 +47,7 @@ namespace Happy_Apps_Core
 		public ListedProducer Producer => VisualNovel?.Producer;
 		public bool HasFullReleaseDate => VisualNovel?.HasFullDate ?? false;
 		public IEnumerable<CharacterVN> VisualNovels => StaticHelpers.LocalDatabase.CharacterVNs.Where(cvn => cvn.CharacterId == ID);
-		public string ImageSource
-		{
-			get
-			{
-				if (_imageSource != null) return _imageSource;
-				if (ImageId == null) _imageSource = Path.GetFullPath(StaticHelpers.NoImageFile);
-				else
-				{
-					var filePath = StaticHelpers.GetImageLocation(ImageId);
-					_imageSource = File.Exists(filePath) ? filePath : Path.GetFullPath(StaticHelpers.NoImageFile);
-				}
-				return _imageSource;
-			}
-		}
-
-		public bool ContainsTraits(IEnumerable<DumpFiles.WrittenTrait> traitFilters)
-		{
-			//remove all numbers in traits from traitIDs, if nothing is left then it matched all
-			int[] traits = DbTraits.Select(x => x.TraitId).ToArray();
-			return traitFilters.All(writtenTrait => traits.Any(characterTrait => writtenTrait.AllIDs.Contains(characterTrait)));
-		}
+		public string ImageSource => StaticHelpers.GetImageSource(ImageId, ref _imageSourceSet, ref _imageSource);
 
 		#region IDataItem Implementation
 		public string KeyField => "ID";
@@ -130,13 +90,6 @@ namespace Happy_Apps_Core
 				StaticHelpers.Logger.ToFile(ex);
 				throw;
 			}
-		}
-
-		public static CharacterItem FromReader(IDataRecord reader)
-		{
-			var character = new CharacterItem();
-			character.LoadFromReader(reader);
-			return character;
 		}
 		#endregion
 

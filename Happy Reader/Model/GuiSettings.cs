@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Happy_Apps_Core;
-using Happy_Apps_Core.Database;
 using Newtonsoft.Json;
 
 namespace Happy_Reader
@@ -27,7 +24,7 @@ namespace Happy_Reader
 		public GuiSettings()
 		{
 			_culture = CultureInfo.CurrentCulture.ToString();
-			ListedVN.ShowNSFWImages = () => NSFWImages;
+			StaticMethods.ShowNSFWImages = () => NSFWImages;
 		}
 
 		public bool NSFWImages

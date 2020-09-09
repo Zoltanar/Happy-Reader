@@ -36,6 +36,7 @@ namespace Happy_Apps_Core.Database
 
         private void ReplaceCharIndexFunc(DbCommand command)
         {
+            //todo can remove?
             bool isMatch = false;
             var text = CharIndexReplaceRegex.Replace(command.CommandText, (match) =>
             {
