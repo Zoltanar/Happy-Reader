@@ -273,7 +273,7 @@ namespace Happy_Reader.ViewModel
 		{
 			var watch = Stopwatch.StartNew();
 			_dbFunction = new NamedFunction(
-				db => db.VisualNovels.WithKeyIn(db.Tags.Where(t => tag.AllIDs.Contains(t.TagId)).Select(x => x.ListedVN_VNID).Distinct().ToArray()),
+				db => db.VisualNovels.WithKeyIn(db.Tags.Where(t => tag.AllIDs.Contains(t.TagId)).Select(x => x.VNID).Distinct().ToArray()),
 				$"Tag {tag.Name}", false);
 			await RefreshListedVns();
 			Debug.WriteLine($@"{nameof(ShowTagged)}: {watch.ElapsedMilliseconds}ms");

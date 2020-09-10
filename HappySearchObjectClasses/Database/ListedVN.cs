@@ -4,10 +4,8 @@ using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Windows;
 using Happy_Apps_Core.DataAccess;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -315,8 +313,7 @@ namespace Happy_Apps_Core.Database
 
 		public string Series { get; set; }
 
-		public object FlagSource => LanguagesObject.Originals.Select(language => $"{StaticHelpers.FlagsFolder}{language}.png")
-																.Where(File.Exists).Select(Path.GetFullPath).FirstOrDefault() ?? DependencyProperty.UnsetValue;
+		public string FlagSource => StaticHelpers.GetFlag(LanguagesObject.Originals);
 
 		private bool? _specialFlag;
 

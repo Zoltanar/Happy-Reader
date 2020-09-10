@@ -16,10 +16,9 @@ namespace Happy_Apps_Core.Database
 
 		public int Spoiler { get; set; }
 
-		public StaticHelpers.TagCategory? Category { get; private set; }
+		public TagCategory? Category { get; private set; }
 
-		//todo rename
-		public int ListedVN_VNID { get; set; }
+		public int VNID { get; set; }
 		
 		public void SetCategory()
 		{
@@ -27,13 +26,13 @@ namespace Happy_Apps_Core.Database
 			switch (cat)
 			{
 				case DumpFiles.ContentTag:
-					Category = StaticHelpers.TagCategory.Content;
+					Category = TagCategory.Content;
 					return;
 				case DumpFiles.SexualTag:
-					Category = StaticHelpers.TagCategory.Sexual;
+					Category = TagCategory.Sexual;
 					return;
 				case DumpFiles.TechnicalTag:
-					Category = StaticHelpers.TagCategory.Technical;
+					Category = TagCategory.Technical;
 					return;
 				default:
 					return;
@@ -51,8 +50,8 @@ namespace Happy_Apps_Core.Database
 		}
 		#region IDataItem Implementation
 		public string KeyField { get; } = "(TagId, ListedVN_VNID)";
-		public (int, int) Key => (TagId, ListedVN_VNID);
-		public int ListKey => ListedVN_VNID;
+		public (int, int) Key => (TagId, VNID);
+		public int ListKey => VNID;
 
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
 		{
@@ -61,7 +60,7 @@ namespace Happy_Apps_Core.Database
 			command.CommandText = sql;
 			command.AddParameter("@TagId", TagId);
 			command.AddParameter("@Spoiler", Spoiler);
-			command.AddParameter("@ListedVN_VNID", ListedVN_VNID);
+			command.AddParameter("@ListedVN_VNID", VNID);
 			command.AddParameter("@Score", Score);
 			command.AddParameter("@Category", Category);
 			return command;
@@ -72,11 +71,11 @@ namespace Happy_Apps_Core.Database
 			if (reader == null) throw new ArgumentNullException(nameof(reader));
 			try
 			{
-				ListedVN_VNID = Convert.ToInt32(reader["ListedVN_VNID"]);
+				VNID = Convert.ToInt32(reader["ListedVN_VNID"]);
 				TagId = Convert.ToInt32(reader["TagId"]);
 				Spoiler = Convert.ToInt32(reader["Spoiler"]);
 				Score = Convert.ToDouble(reader["Score"]);
-				Category = (StaticHelpers.TagCategory?)StaticHelpers.GetNullableInt(reader["Category"]);
+				Category = (TagCategory?)StaticHelpers.GetNullableInt(reader["Category"]);
 			}
 			catch (Exception ex)
 			{
@@ -87,5 +86,16 @@ namespace Happy_Apps_Core.Database
 		#endregion
 
 		public override string ToString() => $"[{TagId}] Score: {Score:N2}, Spoiler: {Spoiler}";
+
+		/// <summary>
+		/// Categories of VN Tags
+		/// </summary>
+		public enum TagCategory
+		{
+			Null,
+			Content,
+			Sexual,
+			Technical
+		}
 	}
 }

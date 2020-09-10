@@ -237,7 +237,7 @@ namespace DatabaseDumpReader
 					var dbTag = new DbTag
 					{
 						TagId = group.Key.TagId,
-						ListedVN_VNID = group.Key.VnId,
+						VNID = group.Key.VnId,
 						Score = group.Average(t => t.Vote),
 						// ReSharper disable once PossibleInvalidOperationException
 						Spoiler = spoilerTags.Any() ? (int)Math.Round(spoilerTags.Average(t => t.Spoiler.Value)) : 0

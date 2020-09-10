@@ -1,4 +1,3 @@
-Remove WindowsBase dependencies from Happy_Apps_Core (DependencyProperty.UnsetValue)
 vntile right click show related
 
 add blacklistedproducers to user

@@ -31,12 +31,13 @@ namespace Happy_Reader.ViewModel
 	{
 		private static readonly object HookLock = new object();
 		private static MainWindowViewModel _instance;
-		[NotNull] public static MainWindowViewModel Instance
+		[NotNull]
+		public static MainWindowViewModel Instance
 		{
 			get => _instance ?? throw new ArgumentNullException(nameof(_instance), "Should not be null");
 			set
 			{
-				if(_instance != null) throw new InvalidOperationException("Instance was already set.");
+				if (_instance != null) throw new InvalidOperationException("Instance was already set.");
 				_instance = value;
 			}
 
@@ -320,7 +321,7 @@ namespace Happy_Reader.ViewModel
 			}
 			return status;
 		}
-		
+
 		public async Task LoadUserGames()
 		{
 			UserGameItems.Clear();
@@ -447,7 +448,7 @@ namespace Happy_Reader.ViewModel
 						if (UserGame?.Process != null) return true;
 						if (gameProcess.HasExited) continue;
 						if (!userGame.FilePath.Equals(processFileName, StringComparison.InvariantCultureIgnoreCase)) continue;
-						DispatchIfRequired(()=>HookUserGame(userGame, gameProcess, false),TimeSpan.FromSeconds(10));
+						DispatchIfRequired(() => HookUserGame(userGame, gameProcess, false), TimeSpan.FromSeconds(10));
 						return true;
 					}
 				}
@@ -495,8 +496,12 @@ namespace Happy_Reader.ViewModel
 			var b3 = cpOwner?.ProcessName.ToLower().Equals("ithvnr") ?? false;
 			var b4 = cpOwner?.ProcessName.ToLower().Equals("ithvnrsharp") ?? false;
 			if (!(b1 || b2 || b3 || b4)) return; //if process isn't hooked process or named ithvnr
-			//0x800401D0 = CLIPBRD_E_CANT_OPEN
-			var text = RunWithRetries(Clipboard.GetText, ()=> Thread.Sleep(10),5, (ex) => ex is COMException comEx && (uint) comEx.ErrorCode == 0x800401D0);
+																					 //0x800401D0 = CLIPBRD_E_CANT_OPEN
+			var text = RunWithRetries(
+				Clipboard.GetText, 
+				() => Thread.Sleep(10),
+				5, 
+				(ex) => ex is COMException comEx && (uint)comEx.ErrorCode == 0x800401D0);
 			var timeSinceLast = DateTime.UtcNow - _lastUpdateTime;
 			if (timeSinceLast.TotalMilliseconds < 100 && _lastUpdateText == text) return;
 			Logger.Verbose($"Capturing clipboard from {cpOwner?.ProcessName ?? "??"}\t {DateTime.UtcNow:HH\\:mm\\:ss\\:fff}\ttimeSinceLast:{timeSinceLast.Milliseconds}\t{text}");
@@ -520,19 +525,11 @@ namespace Happy_Reader.ViewModel
 				if ((sender as TextThread)?.IsConsole ?? false) return false;
 				var rect = NativeMethods.GetWindowDimensions(UserGame.Process);
 				if (rect.IsEmpty) return false; //todo show it somehow or show error.
-				Translation translation;
-				if (false /*e.FromClipboard todo fix this*/)
+				var translation = Translator.Translate(User, UserGame?.VN, e.Text);
+				if (string.IsNullOrWhiteSpace(translation?.Output))
 				{
-					translation = new Translation(e.Text, true);
-				}
-				else
-				{
-					translation = Translator.Translate(User, UserGame?.VN, e.Text);
-					if (string.IsNullOrWhiteSpace(translation?.Output))
-					{
-						//todo report error
-						return false;
-					}
+					//todo report error
+					return false;
 				}
 				DispatchIfRequired(() => OutputWindow.AddTranslation(translation), new TimeSpan(0, 0, 5));
 			}

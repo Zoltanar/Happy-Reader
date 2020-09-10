@@ -1,5 +1,4 @@
 ﻿using System.Data.Entity;
-using System.Data.Entity.Infrastructure.Interception;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -12,8 +11,6 @@ namespace Happy_Reader.Database
 	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 	public class HappyReaderDatabase : DbContext
 	{
-		static HappyReaderDatabase() => DbInterception.Add(new SqliteInterceptor());
-		
 		public HappyReaderDatabase() : base("name=HappyReaderDatabase") { }
 
 		public virtual DbSet<Entry> Entries { get; set; }

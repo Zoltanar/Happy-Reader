@@ -24,11 +24,10 @@ namespace Happy_Apps_Core
 	public static class StaticHelpers
 	{
 		#region File Locations
-#pragma warning disable 1591
 		public const string TagsURL = "http://vndb.org/api/tags.json.gz";
 		public const string TraitsURL = "http://vndb.org/api/traits.json.gz";
 		public const string ProjectURL = "https://github.com/Zoltanar/Happy-Reader";
-		public static readonly string ProgramDataFolder = Path.Combine(Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName,"Program Data\\");
+		public static readonly string ProgramDataFolder = Path.Combine(Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName, "Program Data\\");
 		public static readonly string DefaultTraitsJson = Path.Combine(ProgramDataFolder, "Default Files\\traits.json");
 		public static readonly string DefaultTagsJson = Path.Combine(ProgramDataFolder, "Default Files\\tags.json");
 		public static readonly string FlagsFolder = Path.Combine(ProgramDataFolder, "Flags\\");
@@ -39,29 +38,19 @@ namespace Happy_Apps_Core
 		public static readonly string ImagesFolder = Path.Combine(StoredDataFolder, "vndb-img\\");
 		public static readonly string CoreSettingsJson = Path.Combine(StoredDataFolder, "coresettings.json");
 		public static readonly string DatabaseFile = Path.Combine(StoredDataFolder, "Happy-Apps.sqlite");
-#pragma warning restore 1591
 		#endregion
 
-#pragma warning disable 1591
 		public const string ClientName = "Happy Reader";
 		public const string ClientVersion = "2.1.0";
 		public const string APIVersion = "2020-07-09";
-
-		/// <summary>
-		/// Categories of VN Tags
-		/// </summary>
-		public enum TagCategory
-		{
-			Null,
-			Content,
-			Sexual,
-			Technical
-		}
-
+		private const string PasswordRegistryKey = "SOFTWARE\\" + ClientName;
+		private const string PasswordRegistryCipherValueName = "Data1";
+		private const string PasswordRegistryEntropyValueName = "Data2";
+		private static readonly Dictionary<string, bool> FlagExistsDictionary = new Dictionary<string, bool>();
+		
 		public static readonly CoreSettings CSettings;
 		public static readonly MultiLogger Logger;
 		public static VndbConnection Conn;
-#pragma warning restore 1591
 
 		static StaticHelpers()
 		{
@@ -83,7 +72,6 @@ namespace Happy_Apps_Core
 				try
 				{
 					return LocalDatabase.UserProducers[(vn.ProducerID.Value, LocalDatabase.CurrentUser.Id)] != null;
-					//return LocalDatabase.CurrentUser.FavoriteProducers.Any(x => x.ID == vn.ProducerID); 
 				}
 				catch (InvalidOperationException ex)
 				{
@@ -167,7 +155,7 @@ namespace Happy_Apps_Core
 		public static DateTime StringToDate(string date, out bool hasFullDate)
 		{
 			hasFullDate = false;
-			//unreleased if date is null or doesnt have any digits (tba, n/a etc)
+			//unreleased if date is null or doesn't have any digits (tba, n/a etc)
 			if (date == null || !date.Any(char.IsDigit)) return DateTime.MaxValue;
 			int[] dateArray = date.Split('-').Select(int.Parse).ToArray();
 			var dtDate = new DateTime();
@@ -280,13 +268,9 @@ namespace Happy_Apps_Core
 			return Epoch.AddSeconds(timestamp.Value);
 		}
 		public static string ToSeconds(this TimeSpan time) => $"{(int)(time.TotalSeconds):N0}.{time.Milliseconds} seconds";
-
-		private const string PasswordRegistryKey = "SOFTWARE\\" + ClientName;
-		private const string PasswordRegistryCipherValueName = "Data1";
-		private const string PasswordRegistryEntropyValueName = "Data2";
-
+		
 		/// <summary>
-		///     Save user's VNDB login password to Windows Registry (encrypted).
+		/// Save user's VNDB login password to Windows Registry (encrypted).
 		/// </summary>
 		/// <param name="password">User's password</param>
 		public static void SavePassword(char[] password)
@@ -444,6 +428,30 @@ namespace Happy_Apps_Core
 				imageSourceSet = true;
 			}
 			return imageSource;
+		}
+
+		public static string GetFlag(IEnumerable<string> languageStrings)
+		{
+			foreach (var languageFile in languageStrings.Select(language => $"{FlagsFolder}{language}.png"))
+			{
+				if (!FlagExistsDictionary.TryGetValue(languageFile, out bool exists))
+				{
+					exists = FlagExistsDictionary[languageFile] = File.Exists(Path.GetFullPath(languageFile));
+				}
+				if (exists) return Path.GetFullPath(languageFile);
+			}
+			return null;
+		}
+
+		public static string GetFlag(string language)
+		{
+			if (language == null) return null;
+			var languageFile = $"{FlagsFolder}{language}.png";
+			if (!FlagExistsDictionary.TryGetValue(languageFile, out bool exists))
+			{
+				exists = FlagExistsDictionary[languageFile] = File.Exists(Path.GetFullPath(languageFile));
+			}
+			return exists ? Path.GetFullPath(languageFile) : null;
 		}
 	}
 }

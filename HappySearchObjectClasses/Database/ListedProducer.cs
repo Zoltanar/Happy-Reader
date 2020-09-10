@@ -4,10 +4,8 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Common;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Windows;
 using Happy_Apps_Core.DataAccess;
 using JetBrains.Annotations;
 
@@ -103,8 +101,7 @@ namespace Happy_Apps_Core.Database
 		/// </summary>
 		public string Language { get; set; }
 
-		public object FlagSource => Language != null ? Path.GetFullPath($"{StaticHelpers.FlagsFolder}{Language}.png")
-																		: DependencyProperty.UnsetValue;
+		public string FlagSource => StaticHelpers.GetFlag(Language);
 
 		#endregion
 		/// <summary>Returns a string that represents the current object.</summary>
