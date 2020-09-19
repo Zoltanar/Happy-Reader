@@ -148,49 +148,7 @@ namespace Happy_Apps_Core.Database
 				return _hasFullDate.Value;
 			}
 		}
-
-		[NotNull]
-		public IEnumerable<string> DisplayRelations
-		{
-			get
-			{
-				if (!RelationsObject.Any()) return new List<string> { "No relations found." };
-				var titleString = RelationsObject.Length == 1 ? "1 Relation" : $"{RelationsObject.Length} Relations";
-				var stringList = new List<string> { titleString, "--------------" };
-				stringList.AddRange(RelationsObject.Select(r => r.Print()));
-				return stringList;
-			}
-		}
-
-		private static readonly string[] NoAnimeFound = { "No Anime found." };
-
-		[NotNull]
-		public IEnumerable<string> DisplayAnime
-		{
-			get
-			{
-				switch (AnimeObject.Length)
-				{
-					case 0:
-						//static to save memory and performance
-						return NoAnimeFound;
-					case 1:
-						return new[] { AnimeObject.First().Print() };
-					default:
-						var titleString = $"{AnimeObject.Length} Anime";
-						var stringList = new List<string> { titleString, "--------------" };
-						stringList.AddRange(AnimeObject.Select(x => x.Print()));
-						return stringList;
-				}
-			}
-		}
-
-
-		/// <summary>
-		/// Newline separated string of aliases
-		/// </summary>
-		public string DisplayAliases => Aliases?.Replace("\n", ", ") ?? "";
-
+		
 		[NotNull]
 		public RelationsItem[] RelationsObject
 		{
@@ -272,7 +230,8 @@ namespace Happy_Apps_Core.Database
 		{
 			get
 			{
-				_ownedStatus ??= VnIsOwned?.Invoke(VNID) ?? OwnedStatus.NeverOwned;
+				if (VnIsOwned == null) return OwnedStatus.NeverOwned;
+				_ownedStatus ??= VnIsOwned.Invoke(VNID);
 				return _ownedStatus.Value;
 			}
 		}

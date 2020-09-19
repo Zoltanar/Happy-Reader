@@ -6,7 +6,7 @@
              xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
              xmlns:controls="clr-namespace:System.Windows.Controls;assembly=DotNetProjects.Input.Toolkit"
              mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModel:VNTabViewModel}"
-             Loaded="VNTab_OnLoaded" d:DesignWidth="800" d:DesignHeight="600">
+             Loaded="OnLoaded" d:DesignWidth="800" d:DesignHeight="600">
 	<UserControl.Resources>
 		<Style TargetType="Button">
 			<Setter Property="BorderThickness" Value="0"/>

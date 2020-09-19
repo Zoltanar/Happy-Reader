@@ -15,14 +15,14 @@ namespace Happy_Reader.View.Tabs
 	public partial class VNTab : UserControl
 	{
 		private MainWindow _mainWindow;
+		private bool _loaded;
+
 		private readonly ListedVN _viewModel;
 		public VNTab(ListedVN vn, UserGame userGame, bool openOnUserGame)
 		{
 			InitializeComponent();
 			_viewModel = vn;
 			DataContext = vn;
-			var cvnItems = StaticHelpers.LocalDatabase.CharacterVNs[vn.VNID];
-			CharacterTiles.ItemsSource = cvnItems.Select(CharacterTile.FromCharacterVN).ToArray();
 			if (userGame == null) return;
 			var tabItem = new TabItem
 			{
@@ -66,23 +66,109 @@ namespace Happy_Reader.View.Tabs
 
 		private void VNPanel_OnLoaded(object sender, RoutedEventArgs e)
 		{
+			if (_loaded) return;
 			_mainWindow = (MainWindow)Window.GetWindow(this);
+			LoadAliases();
+			LoadCharacters();
 			if (_viewModel.Tags.Any()) LoadTags(_viewModel);
-			ScreensBox.AspectRatio = _viewModel.ScreensObject.Any() ? _viewModel.ScreensObject.Max(x => (double)x.Width / x.Height) : 1;
+			LoadScreenshots();
+			StaffTab.Visibility = _viewModel.Staff.Any() ? Visibility.Visible : Visibility.Collapsed;
 			ImageBox.MaxHeight = ImageBox.Source.Height;
-			if (!_viewModel.RelationsObject.Any())
+			LoadRelations();
+			LoadAnime();
+			_loaded = true;
+			_viewModel.OnPropertyChanged(null);
+		}
+
+		private void LoadAliases()
+		{
+			var aliasString = _viewModel.Aliases?.Replace(@"\n", ", ");
+			if (!string.IsNullOrWhiteSpace(aliasString))
+			{
+				AliasesTb.Text = aliasString;
+				AliasesLabel.Visibility = Visibility.Visible;
+				AliasesTb.Visibility = Visibility.Visible;
+			}
+			else
+			{
+				AliasesTb.Text = string.Empty;
+				AliasesLabel.Visibility = Visibility.Collapsed;
+				AliasesTb.Visibility = Visibility.Collapsed;
+			}
+		}
+
+		private void LoadRelations()
+		{
+			if (_viewModel.RelationsObject.Length > 0)
+			{
+				var set = new HashSet<RelationsItem>(RelationsItem.IDComparer);
+				GetRelationsRecursive(_viewModel.RelationsObject, set);
+				set.RemoveWhere(r => r.ID == _viewModel.VNID);
+				var titleString = set.Count == 1 ? "1 Relation" : $"{set.Count} Relations";
+				var elementList = new List<object> { titleString, "--------------" };
+				foreach (var relation in set.OrderBy(c => c.ID))
+				{
+					var tb = new TextBlock { Text = relation.Print2(), Tag = relation };
+					elementList.Add(tb);
+				}
+				RelationsCombobox.ItemsSource = elementList;
+				RelationsCombobox.SelectedIndex = 0;
+				RelationsLabel.Visibility = Visibility.Visible;
+				RelationsCombobox.Visibility = Visibility.Visible;
+			}
+			else
 			{
 				RelationsLabel.Visibility = Visibility.Collapsed;
 				RelationsCombobox.Visibility = Visibility.Collapsed;
 			}
-			else RelationsCombobox.SelectedIndex = 0;
-			if (!_viewModel.AnimeObject.Any())
+		}
+
+		private void LoadAnime()
+		{
+			if (_viewModel.AnimeObject.Length > 0)
+			{
+				var titleString = $"{_viewModel.AnimeObject.Length} Anime";
+				var stringList = new List<string> { titleString, "--------------" };
+				stringList.AddRange(_viewModel.AnimeObject.Select(x => x.Print()));
+				AnimeCombobox.ItemsSource = stringList;
+				AnimeCombobox.SelectedIndex = 0;
+				AnimeLabel.Visibility = Visibility.Visible;
+				AnimeCombobox.Visibility = Visibility.Visible;
+			}
+			else
 			{
 				AnimeLabel.Visibility = Visibility.Collapsed;
 				AnimeCombobox.Visibility = Visibility.Collapsed;
 			}
-			else AnimeCombobox.SelectedIndex = 0;
-			_viewModel.OnPropertyChanged(null);
+		}
+
+		private void LoadScreenshots()
+		{
+			if (_viewModel.ScreensObject.Length > 0)
+			{
+				ScreensBox.AspectRatio = _viewModel.ScreensObject.Max(x => (double)x.Width / x.Height);
+				ScreenshotsTab.Visibility = Visibility.Visible;
+			}
+			else
+			{
+				ScreensBox.AspectRatio = 1;
+				ScreenshotsTab.Visibility = Visibility.Collapsed;
+			}
+		}
+
+		private void LoadCharacters()
+		{
+			var cvnItems = StaticHelpers.LocalDatabase.CharacterVNs[_viewModel.VNID];
+			var characterTiles = cvnItems.Select(CharacterTile.FromCharacterVN).ToArray();
+			if (characterTiles.Length > 0)
+			{
+				CharacterTiles.ItemsSource = characterTiles;
+				CharactersTab.Visibility = Visibility.Visible;
+			}
+			else
+			{
+				CharactersTab.Visibility = Visibility.Collapsed;
+			}
 		}
 
 		private void ScrollViewer_OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
@@ -98,7 +184,7 @@ namespace Happy_Reader.View.Tabs
 		{
 			System.Diagnostics.Process.Start($"https://vndb.org/v{_viewModel.VNID}");
 		}
-		
+
 		private async void ShowVNsForStaff(object sender, RoutedEventArgs e)
 		{
 			var element = sender as FrameworkElement;
@@ -114,5 +200,28 @@ namespace Happy_Reader.View.Tabs
 			await _mainWindow.ViewModel.CharactersViewModel.ShowForStaffWithAlias(vnStaff.AliasID);
 			_mainWindow.SelectTab(typeof(CharactersTab));
 		}
+
+		private void RelationSelected(object sender, SelectionChangedEventArgs e)
+		{
+			if (!_loaded) return;
+			if (e.AddedItems.Count == 0) return;
+			var relationElement = e.AddedItems.OfType<TextBlock>().FirstOrDefault();
+			if (!(relationElement?.Tag is RelationsItem relation)) return;
+			var vn = StaticHelpers.LocalDatabase.VisualNovels[relation.ID];
+			if (vn != null) _mainWindow.OpenVNPanel(vn, false);
+		}
+
+		private static void GetRelationsRecursive(RelationsItem[] relationsItems, HashSet<RelationsItem> set)
+		{
+			foreach (var relation in relationsItems)
+			{
+				if (set.Contains(relation)) continue;
+				var vn = StaticHelpers.LocalDatabase.VisualNovels[relation.ID];
+				if (vn == null) continue;
+				set.Add(relation);
+				GetRelationsRecursive(vn.RelationsObject, set);
+			}
+		}
+
 	}
 }

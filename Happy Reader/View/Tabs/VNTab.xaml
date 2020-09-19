@@ -48,7 +48,7 @@
 				<Grid Grid.Column="0" Margin="0" Background="LightGray" Name="InfoLabels">
 					<Grid.RowDefinitions >
 						<RowDefinition Height="20"/>
-						<RowDefinition Height="20"/>
+						<RowDefinition Height="*" MaxHeight="25"/>
 						<RowDefinition Height="20"/>
 						<RowDefinition Height="20"/>
 						<RowDefinition Height="*" MaxHeight="25"/>
@@ -56,7 +56,7 @@
 						<RowDefinition Height="*"/>
 					</Grid.RowDefinitions>
 					<Label Grid.Row="0"  Style="{StaticResource RightLabel}" Content="Title"/>
-					<Label Grid.Row="1" Style="{StaticResource RightLabel}" Content="Aliases"/>
+					<Label Grid.Row="1" Style="{StaticResource RightLabel}" Content="Aliases" x:Name="AliasesLabel" />
 					<Label Grid.Row="2" Style="{StaticResource RightLabel}" Content="Producer"/>
 					<Label Grid.Row="3" Style="{StaticResource RightLabel}" Content="Rating"/>
 					<Label Grid.Row="4" Style="{StaticResource RightLabel}" Content="Relations" x:Name="RelationsLabel"/>
@@ -66,7 +66,7 @@
 				<Grid Grid.Column="1" Margin="0" Background="LightGray" Name="InfoData">
 					<Grid.RowDefinitions >
 						<RowDefinition Height="20"/>
-						<RowDefinition Height="20"/>
+						<RowDefinition Height="*" MaxHeight="25"/>
 						<RowDefinition Height="20"/>
 						<RowDefinition Height="20"/>
 						<RowDefinition Height="*" MaxHeight="25"/>
@@ -81,7 +81,7 @@
 							</MultiBinding>
 						</TextBox.Text>
 					</TextBox>
-					<TextBox Grid.Row="1" Text="{Binding DisplayAliases, Mode=OneWay}" />
+					<TextBox x:Name="AliasesTb" Grid.Row="1" />
 					<Grid Grid.Row="2">
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="30"/>
@@ -107,8 +107,8 @@
 						</TextBox>
 						<TextBox Grid.Column="1" Text="{Binding Popularity, StringFormat=Popularity {0:0.00}}" HorizontalContentAlignment="Right"/>
 					</Grid>
-					<ComboBox Grid.Row="4" x:Name="RelationsCombobox" ItemsSource="{Binding DisplayRelations}" SelectedIndex="0" IsReadOnly="True"/>
-					<ComboBox Grid.Row="5" x:Name="AnimeCombobox" ItemsSource="{Binding DisplayAnime}" SelectedIndex="0" IsReadOnly="True"/>
+					<ComboBox Grid.Row="4" x:Name="RelationsCombobox" SelectionChanged="RelationSelected" SelectedIndex="0" IsReadOnly="True"/>
+					<ComboBox Grid.Row="5" x:Name="AnimeCombobox" SelectedIndex="0" IsReadOnly="True"/>
 					<Grid Grid.Row="6" MaxHeight="375" Margin="0" Background="Wheat">
 						<ListBox x:Name="AllTagsControl" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="LightBlue">
 							<ListBox.ItemsPanel>
@@ -131,7 +131,7 @@
 			</Label>
 		</Border>
 		<TabControl Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="0" x:Name="TabControl">
-			<TabItem Header="Screenshots">
+			<TabItem x:Name="ScreenshotsTab" Header="Screenshots">
 				<view:AspectRatioLayoutDecorator x:Name="ScreensBox" Margin="5">
 					<ItemsControl ItemsSource="{Binding ScreensObject}" >
 						<ItemsControl.ItemsPanel>
@@ -155,7 +155,7 @@
 					</ItemsControl>
 				</view:AspectRatioLayoutDecorator>
 			</TabItem>
-			<TabItem Header="Characters">
+			<TabItem x:Name="CharactersTab" Header="Characters">
 				<ItemsControl x:Name="CharacterTiles"  Margin="5" Background="MediumPurple">
 					<ItemsControl.ItemsPanel>
 						<ItemsPanelTemplate>
@@ -172,7 +172,7 @@
 					</ItemsControl.Template>
 				</ItemsControl>
 			</TabItem>
-			<TabItem Header="Staff">
+			<TabItem Header="Staff" x:Name="StaffTab">
 				<ListBox ItemsSource="{Binding Source={StaticResource StaffBoxItems}}">
 					<ListBox.GroupStyle>
 						<GroupStyle>

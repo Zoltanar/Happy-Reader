@@ -17,12 +17,12 @@ namespace Happy_Reader.View
 		private static readonly Regex MinusRegex = new Regex(@"[-－]");
 
 		[NotNull]
-		private MainWindow MainWindow => (MainWindow)Window.GetWindow(_parentTile) ?? throw new ArgumentNullException(nameof(MainWindow));
+		private MainWindow MainWindow => (MainWindow)Application.Current.MainWindow ?? throw new InvalidOperationException();
+
 		private MainWindowViewModel MainViewModel => MainWindow.ViewModel;
 		private VNTabViewModel ViewModel => MainViewModel.DatabaseViewModel;
 		private ListedVN VN => (ListedVN)DataContext;
-		private readonly FrameworkElement _parentTile;
-		public VnMenuItem(ListedVN vn, FrameworkElement parentTile)
+		public VnMenuItem(ListedVN vn)
 		{
 			InitializeComponent();
 			DataContext = vn;
@@ -36,7 +36,6 @@ namespace Happy_Reader.View
 				};
 				menuItem.Click += BrowseToExtraPage;
 				this.Items.Insert(++itemIndex, menuItem);
-				_parentTile = parentTile;
 			}
 		}
 

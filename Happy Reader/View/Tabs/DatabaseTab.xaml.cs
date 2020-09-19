@@ -37,7 +37,7 @@ namespace Happy_Reader.View.Tabs
 			await ViewModel.SearchForVN(((TextBox)sender).Text);
 		}
 
-		private void VNTab_OnLoaded(object sender, RoutedEventArgs e)
+		private void OnLoaded(object sender, RoutedEventArgs e)
 		{
 			if (_loaded) return;
 			if (DesignerProperties.GetIsInDesignMode(this)) return;

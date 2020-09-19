@@ -11,7 +11,7 @@ namespace Happy_Reader.View.Tiles
 
 		public ListedVN VN { get; }
 
-		private VnMenuItem VnMenu => _vnMenu ??= new VnMenuItem(VN,this);
+		private VnMenuItem VnMenu => _vnMenu ??= new VnMenuItem(VN);
 
 		public VNTile(ListedVN vn)
 		{

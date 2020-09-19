@@ -74,7 +74,7 @@ namespace Happy_Reader.View
 			await ViewModel.Initialize(watch, GroupByAdded, !noHook, !noEntries, noTranslation);
 		}
 
-		private void AddEntry_Click(object sender, RoutedEventArgs e) => CreateAddEntryTab(null,null,false);
+		private void AddEntry_Click(object sender, RoutedEventArgs e) => CreateAddEntryTab(null, null, false);
 
 		private void DropFileOnGamesTab(object sender, DragEventArgs e)
 		{
@@ -130,19 +130,18 @@ namespace Happy_Reader.View
 			{
 				Header = "Add Entry",
 				Name = nameof(AddEntryControl),
-				Content = new AddEntryControl(ViewModel, input,output,seriesSpecific)
+				Content = new AddEntryControl(ViewModel, input, output, seriesSpecific)
 			};
 			AddTabItem(tabItem);
 		}
 
 		public void OpenVNPanel(ListedVN vn, bool openOnUserGame)
 		{
-			UserGame userGame = null;
-			if (openOnUserGame)
+			var userGame = StaticMethods.Data.UserGames.FirstOrDefault(ug => ug.VNID == vn.VNID);
+			if (userGame != null)
 			{
-				userGame = StaticMethods.Data.UserGames.FirstOrDefault(ug => ug.VNID == vn.VNID);
 				var userGameTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.Tag == userGame);
-				if(userGameTab != null) MainTabControl.Items.Remove(userGameTab);
+				if (userGameTab != null) MainTabControl.Items.Remove(userGameTab);
 			}
 			var vnTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.Tag == vn);
 			if (vnTab != null)
@@ -188,7 +187,12 @@ namespace Happy_Reader.View
 		private void AddTabItem(TabItem tabItem)
 		{
 			var header = new Grid();
-			header.Children.Add(new TextBlock { Text = (string)tabItem.Header });
+			header.Children.Add(new TextBlock
+			{
+				Text = (string)tabItem.Header,
+				TextWrapping = TextWrapping.Wrap,
+				TextAlignment = TextAlignment.Center
+			});
 			tabItem.MouseDown += TabMiddleClick;
 			tabItem.Header = header;
 			MainTabControl.Items.Add(tabItem);
@@ -198,65 +202,86 @@ namespace Happy_Reader.View
 
 		private void GroupByProducer(object sender, RoutedEventArgs e)
 		{
-			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
-			PropertyGroupDescription groupDescription = new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.VN)}.{nameof(ListedVN.Producer)}.{nameof(ListedProducer.Name)}");
-			UserGamesGroupStyle.HeaderStringFormat = null;
-			var sortDescription = new SortDescription(groupDescription.PropertyName, ListSortDirection.Descending);
-			view.GroupDescriptions.Clear();
-			view.GroupDescriptions.Add(groupDescription);
-			view.SortDescriptions.Clear();
-			view.SortDescriptions.Add(sortDescription);
+			var groupProperty = $"{nameof(UserGame)}.{nameof(UserGame.VN)}.{nameof(ListedVN.Producer)}.{nameof(ListedProducer.Name)}";
+			GroupUserGameItems(
+				new PropertyGroupDescription(groupProperty),
+				true, new SortDescription(groupProperty, ListSortDirection.Descending));
 		}
 
 		private void GroupByMonth(object sender, RoutedEventArgs e)
 		{
-			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
-			PropertyGroupDescription groupDescription = new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.MonthGroupingString)}");
-			view.GroupDescriptions.Clear();
-			view.GroupDescriptions.Add(groupDescription);
-			view.SortDescriptions.Clear();
-			view.SortDescriptions.Add(new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.MonthGrouping)}", ListSortDirection.Descending));
+			GroupUserGameItems(
+				new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.MonthGroupingString)}"),
+				false, new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.MonthGrouping)}", ListSortDirection.Descending));
 		}
 
 		private void GroupByName(object sender, RoutedEventArgs e)
 		{
-			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
-			PropertyGroupDescription groupDescription = new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayNameGroup)}");
-			view.GroupDescriptions.Clear();
-			view.GroupDescriptions.Add(groupDescription);
-			view.SortDescriptions.Clear();
-			view.SortDescriptions.Add(new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayName)}", ListSortDirection.Ascending));
+			GroupUserGameItems(
+				new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayNameGroup)}"),
+				false, new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayName)}", ListSortDirection.Ascending));
 		}
 
 		private void GroupByLastPlayed(object sender, RoutedEventArgs e)
 		{
-			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
 			var groupName = $@"{nameof(UserGame)}.{nameof(UserGame.LastPlayedDate)}";
-			PropertyGroupDescription groupDescription = new PropertyGroupDescription(groupName, new LastPlayedConverter());
-			view.GroupDescriptions.Clear();
-			view.GroupDescriptions.Add(groupDescription);
-			view.SortDescriptions.Clear();
-			view.SortDescriptions.Add(new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.LastPlayedDate)}", ListSortDirection.Descending));
-			ToggleLastGroups(view, groupName, 2, false);
+			var groupDescription = new PropertyGroupDescription(groupName, new LastPlayedConverter());
+			GroupUserGameItems(
+				groupDescription,
+				false, new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.LastPlayedDate)}", ListSortDirection.Descending));
+			ToggleLastGroups(groupName, 2, false);
 		}
 
 		private void GroupByTimePlayed(object sender, RoutedEventArgs e)
 		{
-			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
 			var groupName = $@"{nameof(UserGame)}.{nameof(UserGame.TimeOpen)}";
-			PropertyGroupDescription groupDescription = new PropertyGroupDescription(groupName, new TimeOpenConverter());
-			view.GroupDescriptions.Clear();
-			view.GroupDescriptions.Add(groupDescription);
-			view.SortDescriptions.Clear();
-			view.SortDescriptions.Add(new SortDescription(groupName, ListSortDirection.Descending));
-			view.SortDescriptions.Add(new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayName)}", ListSortDirection.Ascending));
-			ToggleLastGroups(view, groupName, 2, true);
+			var groupDescription = new PropertyGroupDescription(groupName, new TimeOpenConverter());
+			GroupUserGameItems(
+				groupDescription,
+				false, new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayName)}", ListSortDirection.Descending));
+			ToggleLastGroups(groupName, 2, true);
 		}
 
-		private void ToggleLastGroups(CollectionView view, string groupName, int count, bool expanded)
+		private void GroupByAdded(object sender, RoutedEventArgs e)
+		{
+			GroupUserGameItems(
+				null,
+				false, new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.Id)}", ListSortDirection.Descending));
+		}
+
+		private void GroupByTag(object sender, RoutedEventArgs e)
+		{
+			var groupDescription = new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.Tag)}", new TagConverter());
+			GroupUserGameItems(
+				groupDescription,
+				false,
+				new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.TagSort)}", ListSortDirection.Descending),
+			new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayName)}", ListSortDirection.Ascending));
+		}
+
+		private void GroupUserGameItems(
+			GroupDescription groupDescription,
+			bool setHeaderStringFormatNull,
+			params SortDescription[] sortDescriptions)
+		{
+			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
+			Debug.Assert(view.GroupDescriptions != null, "view.GroupDescriptions != null");
+			if (setHeaderStringFormatNull) UserGamesGroupStyle.HeaderStringFormat = null;
+			view.GroupDescriptions.Clear();
+			if (groupDescription != null) view.GroupDescriptions.Add(groupDescription);
+			view.SortDescriptions.Clear();
+			foreach (var sortDescription in sortDescriptions)
+			{
+				view.SortDescriptions.Add(sortDescription);
+			}
+		}
+
+		private void ToggleLastGroups(string groupName, int count, bool expanded)
 		{
 			Dispatcher.Invoke(() =>
 			{
+				CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
+				Debug.Assert(view.GroupDescriptions != null, "view.GroupDescriptions != null");
 				if (!view.GroupDescriptions.Any(gd => gd is PropertyGroupDescription pgd && pgd.PropertyName == groupName)) return;
 				var expanders = StaticMethods.GetVisualChildren<Expander>(GameFiles);
 				for (int index = 0; index < expanders.Count; index++)
@@ -264,14 +289,6 @@ namespace Happy_Reader.View
 					expanders[index].IsExpanded = index >= expanders.Count - count == expanded;
 				}
 			}, DispatcherPriority.ContextIdle);
-		}
-
-		private void GroupByAdded(object sender, RoutedEventArgs e)
-		{
-			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
-			view.GroupDescriptions.Clear();
-			view.SortDescriptions.Clear();
-			view.SortDescriptions.Add(new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.Id)}", ListSortDirection.Descending));
 		}
 
 		private void ClickDeleteButton(object sender, RoutedEventArgs e)
@@ -287,7 +304,6 @@ namespace Happy_Reader.View
 			else
 			{
 				item.PrimeDeletion(button);
-
 			}
 		}
 
@@ -311,17 +327,6 @@ namespace Happy_Reader.View
 			ViewModel.ExitProcedures(this, null);
 			_finalized = true;
 			Close();
-		}
-
-		private void GroupByTag(object sender, RoutedEventArgs e)
-		{
-			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
-			PropertyGroupDescription groupDescription = new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.Tag)}", new TagConverter());
-			view.GroupDescriptions.Clear();
-			view.GroupDescriptions.Add(groupDescription);
-			view.SortDescriptions.Clear();
-			view.SortDescriptions.Add(new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.TagSort)}", ListSortDirection.Descending));
-			view.SortDescriptions.Add(new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayName)}", ListSortDirection.Ascending));
 		}
 
 		public void SelectTab(Type type)
