@@ -72,7 +72,7 @@
 		<TabControl Grid.Row="0" x:Name="MainTabControl" Padding="0" TabStripPlacement="Left">
 			<TabItem Header="Games" >
 				<Grid Background="#FFC9E1F5" AllowDrop="True" Drop="DropFileOnGamesTab">
-					<ListBox x:Name="GameFiles"  Margin="10,10,10,53" MouseDoubleClick="GameFiles_MouseDoubleClick" ItemsSource="{Binding UserGameItems}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+					<ListBox x:Name="GameFiles"  Margin="10,10,10,53" ItemsSource="{Binding UserGameItems}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 						<ListBox.GroupStyle>
 							<GroupStyle x:Name="UserGamesGroupStyle"  ContainerStyle="{StaticResource ContainerStyle}">
 							</GroupStyle>
@@ -118,30 +118,7 @@
 				<tabs:IthVnrTab DataContext="{Binding IthViewModel}"/>
 			</TabItem>
 			<TabItem Header="Entries" x:Name="EntriesTabItem">
-				<Grid>
-					<CheckBox Content="Game-only" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="{Binding OnlyGameEntries, Mode=TwoWay}"/>
-					<Button Content="Add Entry" Margin="83,0,0,0" VerticalAlignment="Top" Click="AddEntry_Click" HorizontalAlignment="Left" Width="90"/>
-					<DataGrid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding EntriesList}" Margin="0,25,0,0" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="False" >
-						<DataGrid.Columns>
-							<DataGridTextColumn Header="Id" Binding="{Binding Id, Mode=OneWay}" />
-							<DataGridTextColumn Header="User" Binding="{Binding User, Mode=OneWay}" />
-							<DataGridTextColumn Header="Type" Binding="{Binding Type}" />
-							<DataGridTextColumn Header="Game" Binding="{Binding Game}" />
-							<DataGridTextColumn Header="Role" Binding="{Binding Role}" />
-							<DataGridTextColumn Header="Input" Binding="{Binding Input}" />
-							<DataGridTextColumn Header="Output" Binding="{Binding Output, Mode=TwoWay}"  />
-							<DataGridTextColumn Header="Series-specific" Binding="{Binding SeriesSpecific}" />
-							<DataGridTextColumn Header="Regex" Binding="{Binding Regex}" />
-							<DataGridTemplateColumn Header="Delete" >
-								<DataGridTemplateColumn.CellTemplate>
-									<DataTemplate>
-										<Button Width="150" Content="Delete" Click="ClickDeleteButton" Background="CornflowerBlue"/>
-									</DataTemplate>
-								</DataGridTemplateColumn.CellTemplate>
-							</DataGridTemplateColumn>
-						</DataGrid.Columns>
-					</DataGrid>
-				</Grid>
+				<tabs:EntriesTab DataContext="{Binding EntriesViewModel}"/>
 			</TabItem>
 			<TabItem Header="Test" x:Name="TestTabItem">
 				<tabs:TestTranslationTab DataContext="{Binding TestViewModel}"/>

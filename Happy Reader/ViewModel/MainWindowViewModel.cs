@@ -51,7 +51,6 @@ namespace Happy_Reader.ViewModel
 
 		public readonly OutputWindow OutputWindow;
 		private string _statusText;
-		private bool _onlyGameEntries;
 		private bool _captureClipboard;
 		private bool _showFileNotFound;
 		public ClipboardManager ClipboardManager;
@@ -75,18 +74,7 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged();
 			}
 		}
-
-		public bool OnlyGameEntries
-		{
-			get => _onlyGameEntries;
-			set
-			{
-				if (_onlyGameEntries == value) return;
-				_onlyGameEntries = value;
-				SetEntries();
-			}
-		}
-
+		
 		public bool CaptureClipboard
 		{
 			get => _captureClipboard;
@@ -111,6 +99,7 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 
+		[NotNull] public EntriesTabViewModel EntriesViewModel { get; }
 		[NotNull] public TranslationTester TestViewModel { get; }
 		[NotNull] public Translator Translator { get; }
 		[NotNull] public VNTabViewModel DatabaseViewModel { get; }
@@ -134,7 +123,6 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 
-		public PausableUpdateList<DisplayEntry> EntriesList { get; } = new PausableUpdateList<DisplayEntry>();
 		public PausableUpdateList<DisplayLog> LogsList { get; } = new PausableUpdateList<DisplayLog>();
 		public ObservableCollection<UserGameTile> UserGameItems { get; } = new ObservableCollection<UserGameTile>();
 		public string DisplayUser => $"User: {User?.ToString() ?? "(none)"}";
@@ -178,6 +166,7 @@ namespace Happy_Reader.ViewModel
 			};
 			Translator = new Translator(StaticMethods.Data);
 			Translation.Translator = Translator;
+			EntriesViewModel = new EntriesTabViewModel(()=>UserGame);
 			TestViewModel = new TranslationTester(this);
 			FiltersViewModel = new FiltersViewModel();
 			DatabaseViewModel = new VNTabViewModel(this, FiltersViewModel.Filters, FiltersViewModel.PermanentFilter);
@@ -195,21 +184,6 @@ namespace Happy_Reader.ViewModel
 			{
 				LogsList.Add(new DisplayLog(log));
 				OnPropertyChanged(nameof(LogsList));
-			});
-		}
-
-		public void SetEntries()
-		{
-			var items = (OnlyGameEntries && UserGame?.VN != null
-					? (string.IsNullOrWhiteSpace(UserGame?.VN.Series)
-				? StaticMethods.Data.GetGameOnlyEntries(UserGame?.VN)
-				: StaticMethods.Data.GetSeriesOnlyEntries(UserGame?.VN))
-					: StaticMethods.Data.Entries).ToArray();
-			var entries = items.Select(x => new DisplayEntry(x)).ToArray();
-			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
-			Application.Current.Dispatcher.Invoke(() =>
-			{
-				EntriesList.SetRange(entries);
 			});
 		}
 
@@ -265,7 +239,20 @@ namespace Happy_Reader.ViewModel
 			await DatabaseViewModel.Initialize();
 			await ProducersViewModel.Initialize();
 			await CharactersViewModel.Initialize(this);
-			await Task.Run(() => InitializeEntries(initialiseEntries, noApiTranslation));
+			if (initialiseEntries)
+			{
+				StatusText = "Loading Cached Translations...";
+				await Task.Run(() =>
+				{
+					var cacheLoadWatch = Stopwatch.StartNew();
+					Translator.SetCache(noApiTranslation);
+					Debug.WriteLine($"Loaded cached translations in {cacheLoadWatch.ElapsedMilliseconds} ms");
+				});
+				StatusText = "Populating Proxies...";
+				PopulateProxies();
+				StatusText = "Loading Entries...";
+				EntriesViewModel.SetEntries();
+			}
 			StatusText = "Loading User Games...";
 			await Task.Yield();
 			await LoadUserGames();
@@ -293,20 +280,7 @@ namespace Happy_Reader.ViewModel
 			monitor.Start();
 			return monitor;
 		}
-
-		private void InitializeEntries(bool initialiseEntries, bool noApiTranslation)
-		{
-			if (!initialiseEntries) return;
-			StatusText = "Loading Cached Translations...";
-			var cacheLoadWatch = Stopwatch.StartNew();
-			Translator.SetCache(noApiTranslation);
-			Debug.WriteLine($"Loaded cached translations in {cacheLoadWatch.ElapsedMilliseconds} ms");
-			StatusText = "Populating Proxies...";
-			PopulateProxies();
-			StatusText = "Loading Entries...";
-			SetEntries();
-		}
-
+		
 		private static OwnedStatus VnIsOwned(int vnid)
 		{
 			var status = OwnedStatus.NeverOwned;
@@ -637,15 +611,7 @@ namespace Happy_Reader.ViewModel
 			return processId != UserGame?.Process?.Id ? (null, null, null) : (UserGame.HookCode, UserGame.DefaultHookFull, UserGame.PrefEncoding);
 		}
 		// ReSharper restore UnusedTupleComponentInReturnValue
-
-		public void DeleteEntry(DisplayEntry displayEntry)
-		{
-			EntriesList.Remove(displayEntry);
-			StaticMethods.Data.Entries.Remove(displayEntry.Entry);
-			StaticMethods.Data.SaveChanges();
-			OnPropertyChanged(nameof(EntriesList));
-		}
-
+		
 		public void RefreshActiveObjectImages()
 		{
 			foreach (var tile in UserGameItems)

@@ -146,6 +146,7 @@
     <Compile Include="ViewModel\CommandHandler.cs" />
     <Compile Include="ViewModel\DisplayEntry.cs" />
     <Compile Include="ViewModel\DisplayLog.cs" />
+    <Compile Include="ViewModel\EntriesTabViewModel.cs" />
     <Compile Include="ViewModel\FiltersViewModel.cs" />
     <Compile Include="ViewModel\NamedFunction.cs" />
     <Compile Include="ViewModel\ProducersTabViewModel.cs" />
@@ -166,6 +167,9 @@
     </Compile>
     <Compile Include="View\Tabs\CharactersTab.xaml.cs">
       <DependentUpon>CharactersTab.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Tabs\EntriesTab.xaml.cs">
+      <DependentUpon>EntriesTab.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\Tabs\FiltersTab.xaml.cs">
       <DependentUpon>FiltersTab.xaml</DependentUpon>
@@ -255,6 +259,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\Tabs\CharactersTab.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Tabs\EntriesTab.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

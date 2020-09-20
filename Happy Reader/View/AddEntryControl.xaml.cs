@@ -49,7 +49,7 @@ namespace Happy_Reader.View
             StaticMethods.Data.SaveChanges();
             ResponseLabel.Content = $@"Entry was added (id {_entry.Id}).";
             _entryAlreadyAdded = true;
-            _mainViewModel.SetEntries();
+            _mainViewModel.EntriesViewModel.SetEntries();
 	        _mainViewModel.Translator.RefreshEntries = true;
             Cancel_Click(this, null);
         }

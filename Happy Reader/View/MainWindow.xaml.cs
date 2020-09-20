@@ -74,8 +74,6 @@ namespace Happy_Reader.View
 			await ViewModel.Initialize(watch, GroupByAdded, !noHook, !noEntries, noTranslation);
 		}
 
-		private void AddEntry_Click(object sender, RoutedEventArgs e) => CreateAddEntryTab(null, null, false);
-
 		private void DropFileOnGamesTab(object sender, DragEventArgs e)
 		{
 			string file = (e.Data.GetData(DataFormats.FileDrop) as string[])?.First();
@@ -94,14 +92,6 @@ namespace Happy_Reader.View
 			if (titledImage == null) return;
 			((IList<UserGameTile>)GameFiles.ItemsSource).Add(titledImage);
 			titledImage.ViewDetails(this, null);
-		}
-
-		private void GameFiles_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-		{/*
-			var item = GameFiles.SelectedItem as UserGameTile;
-			var userGame = (UserGame)item?.DataContext;
-			if (userGame == null) return;
-			ViewModel.HookUserGame(userGame, null, false);*/
 		}
 
 		public void ShowLogNotification([NotNull] Log message)
@@ -290,23 +280,7 @@ namespace Happy_Reader.View
 				}
 			}, DispatcherPriority.ContextIdle);
 		}
-
-		private void ClickDeleteButton(object sender, RoutedEventArgs e)
-		{
-			var button = sender as Button;
-			Debug.Assert(button != null, nameof(button) + " != null");
-			var item = button.DataContext as DisplayEntry;
-			Debug.Assert(item != null, nameof(item) + " != null");
-			if (item.DeletePrimed)
-			{
-				ViewModel.DeleteEntry(item);
-			}
-			else
-			{
-				item.PrimeDeletion(button);
-			}
-		}
-
+		
 		private bool _finalizing;
 		private bool _finalized;
 		private NotifyIcon _trayIcon;
