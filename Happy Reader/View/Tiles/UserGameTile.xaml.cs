@@ -15,7 +15,7 @@ namespace Happy_Reader.View.Tiles
 		private bool _loaded;
 
 		public UserGame UserGame { get; }
-
+		
 		private VnMenuItem VnMenu => _vnMenu ??= new VnMenuItem(UserGame?.VN);
 
 		public UserGameTile()

@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:database="clr-namespace:Happy_Reader.Database"
              xmlns:view="clr-namespace:Happy_Reader.View"
-             mc:Ignorable="d" d:DesignHeight="220" d:DesignWidth="160" Loaded="UserGameTile_OnLoaded" MouseDoubleClick="OnMouseDoubleClick">
+             mc:Ignorable="d" d:DesignHeight="250" d:DesignWidth="160" Loaded="UserGameTile_OnLoaded" MouseDoubleClick="OnMouseDoubleClick">
 	<UserControl.DataContext>
 		<database:UserGame/>
 	</UserControl.DataContext>
@@ -33,10 +33,11 @@
 		</Style>
 	</UserControl.Resources>
 	<Border Background="Salmon" CornerRadius="10">
-		<Grid Width="160" Height="220">
+		<Grid Width="160">
 			<Grid.RowDefinitions>
 				<RowDefinition Height="160"/>
 				<RowDefinition Height="30"/>
+				<RowDefinition Height="Auto" MaxHeight="30"/>
 				<RowDefinition Height="30"/>
 			</Grid.RowDefinitions>
 			<Border Name="Mask" Background="Salmon" CornerRadius="10"/>
@@ -47,12 +48,17 @@
 				<Image Source="{Binding Image}" />
 			</Grid>
 			<Viewbox Grid.Row="1">
-				<TextBlock Text="{Binding DisplayName}"  VerticalAlignment="Center" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+				<TextBlock Padding="5,0" Text="{Binding DisplayName}"  VerticalAlignment="Center" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
 			</Viewbox>
-			<Viewbox Grid.Row="2" Margin="0,0,48,0">
+			<TextBlock Text="{Binding VN.UserRelatedStatus}"  
+			           TextAlignment="Left" Padding="5,0"
+			           TextTrimming="CharacterEllipsis" Grid.Row="2" 
+			           Visibility="{Binding VN.UserRelatedStatus, Converter={StaticResource NullableToVisibilityConverter}}"
+			           Background="{Binding VN.UserVN, Converter={StaticResource UserVnToBackgroundConverter}}"/>
+			<Viewbox Grid.Row="3" Margin="0,0,48,0">
 				<TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding TimeOpen, Converter={StaticResource TimeSpanConverterKey}}"/>
 			</Viewbox>
-			<ToggleButton Margin="112,5,0,0" Grid.Row="2" Style="{StaticResource ToggleButtonStyle}" IsChecked="{Binding IsRunning, Mode=OneWay}"/>
+			<ToggleButton Margin="112,5,0,0" Grid.Row="3" Style="{StaticResource ToggleButtonStyle}" IsChecked="{Binding IsRunning, Mode=OneWay}"/>
 		</Grid>
 	</Border>
 	<UserControl.ContextMenu>

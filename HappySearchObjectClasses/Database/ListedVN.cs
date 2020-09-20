@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using Happy_Apps_Core.DataAccess;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -249,15 +250,15 @@ namespace Happy_Apps_Core.Database
 		{
 			get
 			{
-				string[] parts = { "", "", "" };
+				var sb = new StringBuilder();
 				var label = UserVN?.Labels.FirstOrDefault(l => l != UserVN.LabelKind.Voted && l != UserVN.LabelKind.Wishlist);
 				if (label != null)
 				{
-					parts[0] = "Label: ";
-					parts[1] = label.GetDescription();
+					sb.Append(label.GetDescription());
+					if (UserVN?.Vote > 0) sb.Append($" (Vote: {UserVN.Vote:0.#})");
 				}
-				if (UserVN?.Vote > 0) parts[2] = $" (Vote: {UserVN.Vote:0.#})";
-				return string.Join(" ", parts);
+				else if (UserVN?.Vote > 0) sb.Append($"Vote: {UserVN.Vote:0.#}");
+				return sb.ToString();
 			}
 		}
 		

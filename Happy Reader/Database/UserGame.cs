@@ -174,9 +174,9 @@ namespace Happy_Reader.Database
 			[UsedImplicitly]
 			get
 			{
-				if (!File.Exists(FilePath)) return "File not found"; //DateTime.MinValue;
+				if (!File.Exists(FilePath)) return "File not found";
 				if (LastGamesPlayed.IndexOfValue(Id) > LastGamesPlayed.Count - 6) return "Last Played";
-				if (VN == null) return "Other"; //DateTime.MinValue.AddDays(1);
+				if (VN == null) return "Other";
 				var dt = VN.ReleaseDate;
 				var newDt = new DateTime(dt.Year, dt.Month, DateTime.DaysInMonth(dt.Year, dt.Month));
 				return string.Format(CultureInfo.InvariantCulture, "{0:MMMM} {0:yyyy}", newDt);
