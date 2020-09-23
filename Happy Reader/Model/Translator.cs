@@ -218,13 +218,18 @@ namespace Happy_Reader
 			//remove unused entries
 			foreach (var entry in entriesWithProxiesArray)
 			{
-				var indexOfEntry = sb.ToString().IndexOf(entry.Input, StringComparison.Ordinal);
-				if (indexOfEntry < 0)
+				int? location = null;
+				if (entry.Regex)
 				{
-					usefulEntriesWithProxies.Remove(entry);
-					continue;
+					var match = GetRegex(entry.Input).Match(sb.ToString());
+					if (match.Success) location = match.Index;
 				}
-				entry.Location = indexOfEntry;
+				else
+				{
+					var indexOfEntry = sb.ToString().IndexOf(entry.Input, StringComparison.Ordinal);
+					if (indexOfEntry >= 0) location = indexOfEntry;
+				}
+				if(location == null) usefulEntriesWithProxies.Remove(entry);
 			}
 			if (usefulEntriesWithProxies.Count == 0) return usefulEntriesWithProxies;
 			usefulEntriesWithProxies = usefulEntriesWithProxies.OrderBy(x => x.Location).ToList();

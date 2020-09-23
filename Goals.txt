@@ -1,5 +1,6 @@
 ﻿vntile right click show related
 allow special characters through kakasi romaji, like ❤
+allow name import from vn characters
 
 add blacklistedproducers to user
 change order of load to load dumpfiles>filters>vndb>games>proxies>entries>connection

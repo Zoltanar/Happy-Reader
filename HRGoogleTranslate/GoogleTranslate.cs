@@ -210,7 +210,8 @@ namespace HRGoogleTranslate
 			if (input.Length != 1) return false;
 			var character = input[0];
 			if (!character.IsHiragana() && !character.IsKatakana()) return false;
-			var output = _japaneseToRomaji(input);
+			//if character is 'tsu' on its own, we remove it.
+			var output = character == 'っ' || character == 'ッ' ? string.Empty : _japaneseToRomaji(input);
 			text.Clear();
 			text.Append(output);
 			var translation = new GoogleTranslation(input, output);
