@@ -41,8 +41,8 @@
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type GroupItem}">
-						<!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
 						<Expander IsExpanded="True">
+							<d:Expander.DataContext><CollectionViewGroup/></d:Expander.DataContext>
 							<Expander.Header>
 								<TextBlock>
 									<TextBlock.Text>

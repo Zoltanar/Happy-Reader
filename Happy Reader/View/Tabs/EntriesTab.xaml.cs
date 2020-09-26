@@ -6,12 +6,11 @@ namespace Happy_Reader.View.Tabs
 {
 	public partial class EntriesTab : UserControl
 	{
-		private EntriesTabViewModel ViewModel { get; }
+		private EntriesTabViewModel ViewModel => (EntriesTabViewModel)DataContext;
 
 		public EntriesTab()
 		{
 			InitializeComponent();
-			ViewModel = (EntriesTabViewModel)DataContext;
 		}
 
 		private void AddEntry_Click(object sender, RoutedEventArgs e)
@@ -21,14 +20,8 @@ namespace Happy_Reader.View.Tabs
 		{
 			var button = (Button)sender;
 			var item = (DisplayEntry)button.DataContext;
-			if (item.DeletePrimed)
-			{
-				ViewModel.DeleteEntry(item);
-			}
-			else
-			{
-				item.PrimeDeletion(button);
-			}
+			if (item.DeletePrimed) ViewModel.DeleteEntry(item);
+			else item.PrimeDeletion(button);
 		}
 	}
 }

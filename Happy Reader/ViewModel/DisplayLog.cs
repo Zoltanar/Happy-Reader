@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using Happy_Reader.Database;
 
 namespace Happy_Reader.ViewModel
@@ -14,14 +13,9 @@ namespace Happy_Reader.ViewModel
 		public DisplayLog(Log log)
 		{
 			Timestamp = log.Timestamp;
-			Description = new RichTextBox(new FlowDocument(log.Description))
-			{
-				Margin = new Thickness(0d), 
-				Padding = new Thickness(0d), 
-				HorizontalAlignment = HorizontalAlignment.Stretch,
-				VerticalAlignment = VerticalAlignment.Stretch,
-				IsReadOnly = true,
-			};
+			var textBlock = new TextBlock();
+			foreach (var inline in log.Description) textBlock.Inlines.Add(inline);
+			Description = textBlock;
 		}
 	}
 }

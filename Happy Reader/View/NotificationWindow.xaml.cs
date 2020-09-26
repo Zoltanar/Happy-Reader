@@ -25,7 +25,12 @@ namespace Happy_Reader.View
 		public static void Launch(Log log)
 		{
 			var title = log.Kind.GetDescription();
-			Launch(title, log.GetParagraph);
+			Launch(title, () =>
+			{
+				var p = new Paragraph();
+				foreach (var inline in log.GetInlines()) p.Inlines.Add(inline);
+				return p;
+			});
 		}
 
 		public static void Launch(string title, string message)

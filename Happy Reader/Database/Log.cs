@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
@@ -13,19 +14,17 @@ namespace Happy_Reader.Database
 	public class Log : ICloneable
 	{
 		private object _parsedData;
-		private Paragraph _paragraph;
+		private List<Inline> _inlines;
 
-		public Log()
-		{
-		}
-		
+		public Log() { }
+
 		public long Id { get; set; }
 		public LogKind Kind { get; set; }
 		public long AssociatedId { get; set; }
 		public string Data { get; set; }
 
 		[NotMapped]
-		public Paragraph Description => _paragraph ??= GetParagraph();
+		public List<Inline> Description => _inlines ??= GetInlines();
 
 		[NotMapped]
 		public object ParsedData
@@ -82,7 +81,7 @@ namespace Happy_Reader.Database
 			AddToList?.Invoke(log);
 			return log;
 		}
-		
+
 		public static Log NewMergedTimePlayedLog(long userGameId, TimeSpan mergedTimePlayed, bool notify)
 		{
 			var log = new Log(LogKind.MergeTimePlayed, userGameId, mergedTimePlayed.ToString(), mergedTimePlayed);
@@ -108,44 +107,44 @@ namespace Happy_Reader.Database
 			return log;
 		}
 
-		public Paragraph GetParagraph()
+		public List<Inline> GetInlines()
 		{
-			var paragraph = new Paragraph();
+			var inlines = new List<Inline>();
 			switch (Kind)
 			{
 				case LogKind.TimePlayed:
 					var userGame1 = StaticMethods.Data.UserGames.FirstOrDefault(g => g.Id == AssociatedId);
-					paragraph.Inlines.Add("Played ");
-					paragraph.Inlines.Add(new Run(userGame1?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame") { Foreground = Brushes.Green });
-					paragraph.Inlines.Add($" for {((TimeSpan)ParsedData).ToHumanReadable()}.");
+					inlines.Add(new Run("Played "));
+					inlines.Add(new Run(userGame1?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame") { Foreground = Brushes.Green });
+					inlines.Add(new Run($" for {((TimeSpan)ParsedData).ToHumanReadable()}."));
 					break;
 				case LogKind.StartedPlaying:
 					var userGame2 = StaticMethods.Data.UserGames.FirstOrDefault(g => g.Id == AssociatedId);
-					paragraph.Inlines.Add("Started playing ");
-					paragraph.Inlines.Add(new Run(userGame2?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame") { Foreground = Brushes.Green });
-					paragraph.Inlines.Add($" at {((DateTime)ParsedData):hh\\:mm}");
+					inlines.Add(new Run("Started playing "));
+					inlines.Add(new Run(userGame2?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame") { Foreground = Brushes.Green });
+					inlines.Add(new Run($" at {((DateTime)ParsedData):hh\\:mm}"));
 					break;
 				case LogKind.MergeTimePlayed:
 					var userGame3 = StaticMethods.Data.UserGames.FirstOrDefault(g => g.Id == AssociatedId);
-					paragraph.Inlines.Add("Merged time played to ");
-					paragraph.Inlines.Add(new Run(userGame3?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame") { Foreground = Brushes.Green });
-					paragraph.Inlines.Add($" for {((TimeSpan)ParsedData).ToHumanReadable()}.");
+					inlines.Add(new Run("Merged time played to "));
+					inlines.Add(new Run(userGame3?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame") { Foreground = Brushes.Green });
+					inlines.Add(new Run($" for {((TimeSpan)ParsedData).ToHumanReadable()}."));
 					break;
 				case LogKind.ResetTimePlayed:
 					var userGame4 = StaticMethods.Data.UserGames.FirstOrDefault(g => g.Id == AssociatedId);
-					paragraph.Inlines.Add("Reset time played for ");
-					paragraph.Inlines.Add(new Run(userGame4?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame") { Foreground = Brushes.Green });
+					inlines.Add(new Run("Reset time played for "));
+					inlines.Add(new Run(userGame4?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame") { Foreground = Brushes.Green });
 					break;
 				case LogKind.Simple:
-					paragraph.Inlines.Add(new Run(Data));
+					inlines.Add(new Run(Data));
 					break;
 				default:
-					paragraph.Inlines.Add($"[{Kind}] Unknown Kind - ");
-					paragraph.Inlines.Add(new Run($"AssociatedId {AssociatedId}") { Foreground = Brushes.Green });
-					paragraph.Inlines.Add($" - Data {Data}");
+					inlines.Add(new Run($"[{Kind}] Unknown Kind - "));
+					inlines.Add(new Run($"AssociatedId {AssociatedId}") { Foreground = Brushes.Green });
+					inlines.Add(new Run($" - Data {Data}"));
 					break;
 			}
-			return paragraph;
+			return inlines;
 		}
 
 		public bool AssociatedIdExists
@@ -164,7 +163,7 @@ namespace Happy_Reader.Database
 				}
 			}
 		}
-		
+
 		public static Log NewSimpleLog(string message)
 		{
 			var log = new Log(LogKind.Simple, 0, message, message);
@@ -221,6 +220,15 @@ namespace Happy_Reader.Database
 				Timestamp = this.Timestamp
 			};
 			return newLog;
+		}
+
+		public DateTime GetGroupDate(DateTime now)
+		{
+			var daysAgo = now - Timestamp;
+			if (!(daysAgo.TotalDays >= 14)) return Timestamp.Date;
+			var week = Math.Ceiling(Timestamp.DayOfYear / 7d);
+			var date = new DateTime(Timestamp.Year, 1, 1).AddDays(week * 7 - 1);
+			return date;
 		}
 	}
 

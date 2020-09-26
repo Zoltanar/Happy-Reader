@@ -57,18 +57,32 @@ namespace Happy_Reader.View
         private bool ValidateEntry()
         {
 	        _entry.Output ??= string.Empty;
-	        if (string.IsNullOrWhiteSpace(_entry.RoleString) && _entry.Type == EntryType.Name) _entry.RoleString = "m";
-            if (_entryAlreadyAdded)
-            {
-                ResponseLabel.Content = @"Entry was already added.";
-                return false;
-            }
-            if (string.IsNullOrWhiteSpace(_entry.Input))
-            {
-                ResponseLabel.Content = @"Please type something in Input box.";
-                return false;
-            }
-            return true;
+	        if (string.IsNullOrWhiteSpace(_entry.RoleString))
+	        {
+		        switch (_entry.Type)
+		        {
+          case EntryType.Name:
+	          _entry.RoleString = "m";
+	          break;
+          case EntryType.Translation:
+	          _entry.RoleString = "n";
+            break;
+          case EntryType.Proxy:
+	          ResponseLabel.Content = $@"Entries of type '{_entry.Type}' require a role.";
+	          return false;
+		        }
+	        } 
+	        if (_entryAlreadyAdded)
+	        {
+		        ResponseLabel.Content = @"Entry was already added.";
+		        return false;
+	        }
+	        if (string.IsNullOrWhiteSpace(_entry.Input))
+	        {
+		        ResponseLabel.Content = @"Please type something in Input box.";
+		        return false;
+	        }
+	        return true;
         }
     }
 }

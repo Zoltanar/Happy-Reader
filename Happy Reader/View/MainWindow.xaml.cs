@@ -195,21 +195,21 @@ namespace Happy_Reader.View
 			var groupProperty = $"{nameof(UserGame)}.{nameof(UserGame.VN)}.{nameof(ListedVN.Producer)}.{nameof(ListedProducer.Name)}";
 			GroupUserGameItems(
 				new PropertyGroupDescription(groupProperty),
-				true, new SortDescription(groupProperty, ListSortDirection.Descending));
+				new SortDescription(groupProperty, ListSortDirection.Descending));
 		}
 
 		private void GroupByMonth(object sender, RoutedEventArgs e)
 		{
 			GroupUserGameItems(
 				new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.MonthGroupingString)}"),
-				false, new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.MonthGrouping)}", ListSortDirection.Descending));
+				new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.MonthGrouping)}", ListSortDirection.Descending));
 		}
 
 		private void GroupByName(object sender, RoutedEventArgs e)
 		{
 			GroupUserGameItems(
 				new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayNameGroup)}"),
-				false, new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayName)}", ListSortDirection.Ascending));
+				new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayName)}", ListSortDirection.Ascending));
 		}
 
 		private void GroupByLastPlayed(object sender, RoutedEventArgs e)
@@ -218,7 +218,7 @@ namespace Happy_Reader.View
 			var groupDescription = new PropertyGroupDescription(groupName, new LastPlayedConverter());
 			GroupUserGameItems(
 				groupDescription,
-				false, new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.LastPlayedDate)}", ListSortDirection.Descending));
+				new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.LastPlayedDate)}", ListSortDirection.Descending));
 			ToggleLastGroups(groupName, 2, false);
 		}
 
@@ -228,7 +228,7 @@ namespace Happy_Reader.View
 			var groupDescription = new PropertyGroupDescription(groupName, new TimeOpenConverter());
 			GroupUserGameItems(
 				groupDescription,
-				false, new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayName)}", ListSortDirection.Descending));
+				new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.TimeOpen)}", ListSortDirection.Descending));
 			ToggleLastGroups(groupName, 2, true);
 		}
 
@@ -236,7 +236,7 @@ namespace Happy_Reader.View
 		{
 			GroupUserGameItems(
 				null,
-				false, new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.Id)}", ListSortDirection.Descending));
+				new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.Id)}", ListSortDirection.Descending));
 		}
 
 		private void GroupByTag(object sender, RoutedEventArgs e)
@@ -244,19 +244,14 @@ namespace Happy_Reader.View
 			var groupDescription = new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.Tag)}", new TagConverter());
 			GroupUserGameItems(
 				groupDescription,
-				false,
 				new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.TagSort)}", ListSortDirection.Descending),
 			new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayName)}", ListSortDirection.Ascending));
 		}
 
-		private void GroupUserGameItems(
-			GroupDescription groupDescription,
-			bool setHeaderStringFormatNull,
-			params SortDescription[] sortDescriptions)
+		private void GroupUserGameItems(GroupDescription groupDescription, params SortDescription[] sortDescriptions)
 		{
-			CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
+			var view = CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
 			Debug.Assert(view.GroupDescriptions != null, "view.GroupDescriptions != null");
-			if (setHeaderStringFormatNull) UserGamesGroupStyle.HeaderStringFormat = null;
 			view.GroupDescriptions.Clear();
 			if (groupDescription != null) view.GroupDescriptions.Add(groupDescription);
 			view.SortDescriptions.Clear();
@@ -270,7 +265,7 @@ namespace Happy_Reader.View
 		{
 			Dispatcher.Invoke(() =>
 			{
-				CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
+				var view = CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
 				Debug.Assert(view.GroupDescriptions != null, "view.GroupDescriptions != null");
 				if (!view.GroupDescriptions.Any(gd => gd is PropertyGroupDescription pgd && pgd.PropertyName == groupName)) return;
 				var expanders = StaticMethods.GetVisualChildren<Expander>(GameFiles);
@@ -280,7 +275,7 @@ namespace Happy_Reader.View
 				}
 			}, DispatcherPriority.ContextIdle);
 		}
-		
+
 		private bool _finalizing;
 		private bool _finalized;
 		private NotifyIcon _trayIcon;

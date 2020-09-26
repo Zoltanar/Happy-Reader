@@ -182,7 +182,7 @@ namespace Happy_Reader.ViewModel
 			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			Application.Current.Dispatcher.Invoke(() =>
 			{
-				LogsList.Add(new DisplayLog(log));
+				LogsList.Insert(0,new DisplayLog(log));
 				OnPropertyChanged(nameof(LogsList));
 			});
 		}
@@ -320,7 +320,8 @@ namespace Happy_Reader.ViewModel
 		{
 			StaticMethods.Data.Logs.Load();
 			var logs = new List<DisplayLog>();
-			foreach (var group in StaticMethods.Data.Logs.Local.GroupBy(i => (i.Timestamp.Date, i.Kind, i.AssociatedId)))
+			var now = DateTime.UtcNow;
+			foreach (var group in StaticMethods.Data.Logs.Local.GroupBy(i => (Date: i.GetGroupDate(now), i.Kind, i.AssociatedId)))
 			{
 				if (group.Key.Kind != LogKind.TimePlayed || group.Key.Date == DateTime.Now.Date)
 				{
@@ -337,7 +338,7 @@ namespace Happy_Reader.ViewModel
 					logs.Add(new DisplayLog(templateLog));
 				}
 			}
-			LogsList.AddRange(logs.OrderBy(l => l.Timestamp));
+			LogsList.AddRange(logs.OrderByDescending(l => l.Timestamp));
 			OnPropertyChanged(nameof(LogsList));
 		}
 
@@ -348,7 +349,7 @@ namespace Happy_Reader.ViewModel
 			foreach (var log in lastPlayed)
 			{
 				var userGame = StaticMethods.Data.UserGames.FirstOrDefault(x => x.Id == log.AssociatedId);
-				if (userGame != null && File.Exists(userGame.FilePath)) UserGame.LastGamesPlayed.Add(log.Timestamp, log.AssociatedId);
+				if (userGame != null) UserGame.LastGamesPlayed.Add(log.Timestamp, log.AssociatedId);
 			}
 		}
 		public void SetUser(int userid)

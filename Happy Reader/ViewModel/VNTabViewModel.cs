@@ -205,8 +205,9 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged(nameof(ListedVNs));
 				OnPropertyChanged(nameof(AllResults));
 			});
-			SetReplyText("", VndbConnection.MessageSeverity.Normal);
-			Logger.ToDebug($"RefreshListedVns took {watch.Elapsed.ToSeconds()}.");
+			watch.Stop();
+			SetReplyText($"Loaded results in {watch.Elapsed.ToSeconds()}.", VndbConnection.MessageSeverity.Normal);
+			//Logger.ToDebug($"RefreshListedVns took {watch.Elapsed.ToSeconds()}.");
 
 			void ResolveHistory()
 			{
