@@ -254,13 +254,13 @@ where TraitId = @TraitId";
 			if (searchString.StartsWith("\"") && searchString.EndsWith("\""))
 			{
 				var trimmedSearchString = lowerSearchString.Trim('\"');
-				return vn => HasWholeWord(vn.Title, trimmedSearchString) 
-				             || HasWholeWord(vn.KanjiTitle, trimmedSearchString) 
-				             || HasWholeWord(vn.Aliases, trimmedSearchString);
+				return vn => HasWholeWord(vn.Title, trimmedSearchString)
+										 || HasWholeWord(vn.KanjiTitle, trimmedSearchString)
+										 || HasWholeWord(vn.Aliases, trimmedSearchString);
 			}
 			return vn => vn.Title.ToLower().Contains(lowerSearchString) ||
-			             vn.KanjiTitle != null && vn.KanjiTitle.ToLower().Contains(lowerSearchString) ||
-			             vn.Aliases != null && vn.Aliases.ToLower().Contains(lowerSearchString);
+									 vn.KanjiTitle != null && vn.KanjiTitle.ToLower().Contains(lowerSearchString) ||
+									 vn.Aliases != null && vn.Aliases.ToLower().Contains(lowerSearchString);
 		}
 
 		public static Func<CharacterItem, bool> SearchForCharacter(string searchString)
@@ -269,13 +269,13 @@ where TraitId = @TraitId";
 			if (searchString.StartsWith("\"") && searchString.EndsWith("\""))
 			{
 				var trimmedSearchString = lowerSearchString.Trim('\"');
-				return ch => HasWholeWord(ch.Name, trimmedSearchString) 
-				             || HasWholeWord(ch.Original, trimmedSearchString) 
-				             || HasWholeWord(ch.Aliases, trimmedSearchString);
+				return ch => HasWholeWord(ch.Name, trimmedSearchString)
+										 || HasWholeWord(ch.Original, trimmedSearchString)
+										 || HasWholeWord(ch.Aliases, trimmedSearchString);
 			}
 			return ch => ch.Name.ToLower().Contains(lowerSearchString) ||
-			             ch.Original != null && ch.Original.ToLower().Contains(lowerSearchString) ||
-			             ch.Aliases != null && ch.Aliases.ToLower().Contains(lowerSearchString);
+									 ch.Original != null && ch.Original.ToLower().Contains(lowerSearchString) ||
+									 ch.Aliases != null && ch.Aliases.ToLower().Contains(lowerSearchString);
 		}
 
 		private static bool HasWholeWord(string input, string searchString)

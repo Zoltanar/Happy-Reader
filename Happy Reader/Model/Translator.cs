@@ -22,6 +22,8 @@ namespace Happy_Reader
 		private static readonly char[] InclusiveSeparators = "。？".ToCharArray();
 		private static readonly char[] AllSeparators = Separators.Concat(InclusiveSeparators).ToArray();
 		private static readonly Regex LatinOnlyRegex = new Regex(@"^[a-zA-Z0-9:/\\\\r\\n .!?,;()_$^""]+$");
+		private static readonly Regex Stage4P1InputRegex = new Regex(@"\[\[(.+?)]]");
+		private static readonly Regex Stage4P1OutputRegex = new Regex(@"^.*?\[\[(.+)]].*?$");
 		private static readonly Dictionary<string, Regex> RegexDict = new Dictionary<string, Regex>();
 
 		private readonly HappyReaderDatabase _data;
@@ -188,22 +190,24 @@ namespace Happy_Reader
 		private IEnumerable<Entry> TranslateStageFour(StringBuilder sb, HappyReaderDatabase data, string[] result)
 		{
 			var usefulEntriesWithProxies = GetRelevantEntriesWithProxies(sb, data, out Dictionary<string, ProxiesWithCount> proxies);
-			if (usefulEntriesWithProxies.Count == 0) return usefulEntriesWithProxies;
-			foreach (var entry in usefulEntriesWithProxies)
+			if (usefulEntriesWithProxies.Count != 0)
 			{
-				var proxyAssigned = AssignProxy(proxies, entry);
-				if (proxyAssigned) LogReplace(sb, entry.Input, entry.AssignedProxy.FullRoleString, entry.Id);
+				foreach (var entry in usefulEntriesWithProxies)
+				{
+					var proxyAssigned = AssignProxy(proxies, entry);
+					if (proxyAssigned) LogReplace(sb, entry.Input, entry.AssignedProxy.FullRoleString, entry.Id);
+				}
+				usefulEntriesWithProxies = usefulEntriesWithProxies.Where(e => e.AssignedProxy != null).ToList();
+				StaticHelpers.Logger.Verbose($"Stage 4.0: {sb}");
+				//perform replaces involving proxies
+				var entriesOnProxies = _entries.Where(i => i.Type == EntryType.ProxyMod).ToArray();
+				TranslateStage4P1(sb, usefulEntriesWithProxies, entriesOnProxies);
+				foreach (var entry in usefulEntriesWithProxies)
+				{
+					LogReplace(sb, entry.AssignedProxy.FullRoleString, entry.AssignedProxy.Entry.Input, entry.Id);
+				}
+				StaticHelpers.Logger.Verbose($"Stage 4.2: {sb}");
 			}
-			usefulEntriesWithProxies = usefulEntriesWithProxies.Where(e => e.AssignedProxy != null).ToList();
-			StaticHelpers.Logger.Verbose($"Stage 4.0: {sb}");
-			//perform replaces involving proxies
-			var entriesOnProxies = _entries.Where(i => i.Type == EntryType.ProxyMod).ToArray();
-			TranslateStage4P1(sb, usefulEntriesWithProxies, entriesOnProxies);
-			foreach (var entry in usefulEntriesWithProxies)
-			{
-				LogReplace(sb, entry.AssignedProxy.FullRoleString, entry.AssignedProxy.Entry.Input, entry.Id);
-			}
-			StaticHelpers.Logger.Verbose($"Stage 4.2: {sb}");
 			result[4] = sb.ToString();
 			return usefulEntriesWithProxies;
 		}
@@ -318,18 +322,18 @@ namespace Happy_Reader
 			entry.AssignedProxy = proxy;
 			return true;
 		}
-
+		
 		private void TranslateStage4P1(StringBuilder sb, IReadOnlyCollection<Entry> entriesWithProxies, IEnumerable<Entry> entriesOnProxies)
 		{
 			foreach (var entry in entriesOnProxies)
 			{
-				var input = Regex.Replace(entry.Input, @"\[\[(.+?)]]", @"\[\[$1#(\d+)]]");
-				var matches = Regex.Matches(sb.ToString(), input).Cast<Match>().Select(x => Int32.Parse(x.Groups[1].Value)).Distinct();
+				var input = Stage4P1InputRegex.Replace(entry.Input, @"\[\[$1#(\d+)]]");
+				var matches = Regex.Matches(sb.ToString(), input).Cast<Match>().Select(x => int.Parse(x.Groups[1].Value)).Distinct();
 				foreach (int match in matches)
 				{
-					entriesWithProxies.Single(x => x.AssignedProxy.Id == match).AssignedProxy.ProxyMods.Add(entry);
+					entriesWithProxies.Single(x => x.AssignedProxy.Id == match && x.AssignedProxy.Role == entry.RoleString).AssignedProxy.ProxyMods.Add(entry);
 				}
-				var output = new Regex(@"^.*?\[\[(.+)]].*?$").Replace(entry.Output, @"[[$1#$$1]]");
+				var output = Stage4P1OutputRegex.Replace(entry.Output, @"[[$1#$$1]]");
 				LogReplaceRegex(sb, input, output, entry.Id);
 			}
 			StaticHelpers.Logger.Verbose($"Stage 4.1: {sb}");

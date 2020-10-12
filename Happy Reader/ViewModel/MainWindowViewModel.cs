@@ -498,8 +498,6 @@ namespace Happy_Reader.ViewModel
 				Logger.Verbose($"{nameof(RunTranslation)} - {e}");
 				if (UserGame.Process == null) return false;
 				if ((sender as TextThread)?.IsConsole ?? false) return false;
-				var rect = NativeMethods.GetWindowDimensions(UserGame.Process);
-				if (rect.IsEmpty) return false; //todo show it somehow or show error.
 				var translation = Translator.Translate(User, UserGame?.VN, e.Text);
 				if (string.IsNullOrWhiteSpace(translation?.Output))
 				{

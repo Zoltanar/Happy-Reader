@@ -65,12 +65,6 @@ namespace Happy_Reader.View
 			var noHook = commandLineArgs.Contains("-nh");
 			var noEntries = commandLineArgs.Contains("-ne");
 			var noTranslation = commandLineArgs.Contains("-nt");
-			if (noHook) IthTabItem.Visibility = Visibility.Collapsed;
-			if (noEntries)
-			{
-				EntriesTabItem.Visibility = Visibility.Collapsed;
-				TestTabItem.Visibility = Visibility.Collapsed;
-			}
 			await ViewModel.Initialize(watch, GroupByAdded, !noHook, !noEntries, noTranslation);
 		}
 
@@ -144,7 +138,7 @@ namespace Happy_Reader.View
 			{
 				Header = userGame?.DisplayName ?? StaticHelpers.TruncateString(vn.Title, 30),
 				Name = nameof(VNTab),
-				Content = new VNTab(vn, userGame, openOnUserGame),
+				Content = new VNTab(vn, userGame),
 				Tag = vn
 			};
 			AddTabItem(tabItem);
@@ -195,7 +189,8 @@ namespace Happy_Reader.View
 			var groupProperty = $"{nameof(UserGame)}.{nameof(UserGame.VN)}.{nameof(ListedVN.Producer)}.{nameof(ListedProducer.Name)}";
 			GroupUserGameItems(
 				new PropertyGroupDescription(groupProperty),
-				new SortDescription(groupProperty, ListSortDirection.Descending));
+				new SortDescription(groupProperty, ListSortDirection.Ascending),
+				new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.VN)}.{nameof(ListedVN.Title)}", ListSortDirection.Ascending));
 		}
 
 		private void GroupByMonth(object sender, RoutedEventArgs e)

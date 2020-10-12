@@ -68,7 +68,8 @@ namespace Happy_Reader.View
 	          _entry.RoleString = "n";
             break;
           case EntryType.Proxy:
-	          ResponseLabel.Content = $@"Entries of type '{_entry.Type}' require a role.";
+          case EntryType.ProxyMod:
+            ResponseLabel.Content = $@"Entries of type '{_entry.Type}' require a role.";
 	          return false;
 		        }
 	        } 

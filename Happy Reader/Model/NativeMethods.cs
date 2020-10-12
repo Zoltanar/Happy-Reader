@@ -91,14 +91,14 @@ namespace Happy_Reader
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool IsWow64Process([In] IntPtr processHandle, [Out, MarshalAs(UnmanagedType.Bool)] out bool wow64Process);
 
-        public static NativeMethods.RECT GetWindowDimensions(Process process)
+        public static RECT GetWindowDimensions(Process process)
         {
 	        var windowHandle = process.MainWindowHandle;
-	        NativeMethods.GetWindowRect(windowHandle, out var rct);
-	        if (rct.IsEmpty)
+	        var ret = GetWindowRect(windowHandle, out var rct);
+	        if (rct.IsEmpty && !string.IsNullOrWhiteSpace(process.MainWindowTitle))
 	        {
-		        var hwnd = NativeMethods.FindWindow(null, process.MainWindowTitle);
-		        NativeMethods.GetWindowRect(hwnd, out rct);
+		        var hwnd = FindWindow(null, process.MainWindowTitle);
+		        GetWindowRect(hwnd, out rct);
 	        }
 	        return rct;
         }

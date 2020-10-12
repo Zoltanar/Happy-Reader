@@ -18,7 +18,7 @@ namespace Happy_Reader.View.Tabs
 		private bool _loaded;
 
 		private readonly ListedVN _viewModel;
-		public VNTab(ListedVN vn, UserGame userGame, bool openOnUserGame)
+		public VNTab(ListedVN vn, UserGame userGame)
 		{
 			InitializeComponent();
 			_viewModel = vn;
@@ -34,8 +34,7 @@ namespace Happy_Reader.View.Tabs
 				VerticalAlignment = VerticalAlignment.Stretch
 
 			};
-			TabControl.Items.Add(tabItem);
-			if (openOnUserGame) TabControl.SelectedItem = tabItem;
+			TabControl.Items.Insert(0,tabItem);
 		}
 
 		private void LoadTags(ListedVN vn)
@@ -77,6 +76,8 @@ namespace Happy_Reader.View.Tabs
 			LoadRelations();
 			LoadAnime();
 			_loaded = true;
+			var firstVisibleTab = TabControl.Items.Cast<FrameworkElement>().FirstOrDefault(t=>t.Visibility != Visibility.Collapsed);
+			if(firstVisibleTab != null) TabControl.SelectedItem = firstVisibleTab;
 			_viewModel.OnPropertyChanged(null);
 		}
 
