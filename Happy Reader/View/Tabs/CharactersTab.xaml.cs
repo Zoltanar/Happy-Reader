@@ -50,7 +50,7 @@ namespace Happy_Reader.View.Tabs
 			var item = CharacterItems.SelectedItem as Tiles.CharacterTile;
 			var ch = (CharacterItem)item?.DataContext;
 			if (ch?.CharacterVN == null) return;
-			_mainWindow.OpenVNPanel(StaticHelpers.LocalDatabase.VisualNovels[ch.CharacterVN.VNId], false);
+			_mainWindow.OpenVNPanel(StaticHelpers.LocalDatabase.VisualNovels[ch.CharacterVN.VNId]);
 		}
 		
 		private async void ShowSuggested(object sender, RoutedEventArgs e)

@@ -9,7 +9,6 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
 using Happy_Reader.View.Tabs;
@@ -113,21 +112,21 @@ namespace Happy_Reader.View
 			var tabItem = new TabItem
 			{
 				Header = "Add Entry",
-				Name = nameof(AddEntryControl),
-				Content = new AddEntryControl(ViewModel, input, output, seriesSpecific)
+				Name = nameof(AddEntryTab),
+				Content = new AddEntryTab(ViewModel, input, output, seriesSpecific)
 			};
-			AddTabItem(tabItem);
+			AddTabItem(tabItem,null);
 		}
 
-		public void OpenVNPanel(ListedVN vn, bool openOnUserGame)
+		public void OpenVNPanel(ListedVN vn)
 		{
 			var userGame = StaticMethods.Data.UserGames.FirstOrDefault(ug => ug.VNID == vn.VNID);
 			if (userGame != null)
 			{
-				var userGameTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.Tag == userGame);
+				var userGameTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.DataContext == userGame);
 				if (userGameTab != null) MainTabControl.Items.Remove(userGameTab);
 			}
-			var vnTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.Tag == vn);
+			var vnTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.DataContext == vn);
 			if (vnTab != null)
 			{
 				MainTabControl.SelectedItem = vnTab;
@@ -136,22 +135,26 @@ namespace Happy_Reader.View
 			}
 			var tabItem = new TabItem
 			{
-				Header = userGame?.DisplayName ?? StaticHelpers.TruncateString(vn.Title, 30),
 				Name = nameof(VNTab),
 				Content = new VNTab(vn, userGame),
-				Tag = vn
+				DataContext = (object) userGame ?? vn
 			};
-			AddTabItem(tabItem);
+			var headerBinding =
+				new Binding(userGame != null ? nameof(UserGame.DisplayName) : nameof(ListedVN.Title))
+				{
+					Source = tabItem.DataContext
+				};
+			AddTabItem(tabItem, headerBinding);
 		}
 
 		public void OpenUserGamePanel(UserGame userGame, ListedVN priorVN)
 		{
 			if (priorVN != null)
 			{
-				var vnTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.Tag == priorVN);
+				var vnTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.DataContext == priorVN);
 				if (vnTab != null) MainTabControl.Items.Remove(vnTab);
 			}
-			var userGameTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.Tag == userGame);
+			var userGameTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.DataContext == userGame);
 			if (userGameTab != null)
 			{
 				MainTabControl.SelectedItem = userGameTab;
@@ -160,30 +163,35 @@ namespace Happy_Reader.View
 			}
 			var tabItem = new TabItem
 			{
-				Header = userGame.DisplayName,
 				Name = nameof(UserGameTab),
 				Content = new UserGameTab(userGame, false),
-				Tag = userGame
+				DataContext = userGame
 			};
-			AddTabItem(tabItem);
+			var headerBinding = new Binding(nameof(UserGame.DisplayName))
+			{
+				Source = tabItem.DataContext
+			};
+			AddTabItem(tabItem, headerBinding);
 		}
 
-		private void AddTabItem(TabItem tabItem)
+		private void AddTabItem(TabItem tabItem, Binding headerBinding)
 		{
-			var header = new Grid();
-			header.Children.Add(new TextBlock
+			var headerTextBlock = new TextBlock
 			{
-				Text = (string)tabItem.Header,
+				Text = (string) tabItem.Header,
 				TextWrapping = TextWrapping.Wrap,
 				TextAlignment = TextAlignment.Center
-			});
+			};
+			if(headerBinding != null) headerTextBlock.SetBinding(TextBlock.TextProperty, headerBinding);
+			var header = new Grid();
+			header.Children.Add(headerTextBlock);
 			tabItem.MouseDown += TabMiddleClick;
 			tabItem.Header = header;
 			MainTabControl.Items.Add(tabItem);
 			MainTabControl.SelectedItem = tabItem;
 			tabItem.Focus();
 		}
-
+		
 		private void GroupByProducer(object sender, RoutedEventArgs e)
 		{
 			var groupProperty = $"{nameof(UserGame)}.{nameof(UserGame.VN)}.{nameof(ListedVN.Producer)}.{nameof(ListedProducer.Name)}";

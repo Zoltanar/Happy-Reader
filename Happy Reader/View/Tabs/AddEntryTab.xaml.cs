@@ -5,19 +5,16 @@ using Happy_Reader.Database;
 using Happy_Reader.ViewModel;
 using JetBrains.Annotations;
 
-namespace Happy_Reader.View
+namespace Happy_Reader.View.Tabs
 {
-    /// <summary>
-    /// Interaction logic for AddEntryControl.xaml
-    /// </summary>
-    public partial class AddEntryControl
+    public partial class AddEntryTab
     {
 
         private readonly MainWindowViewModel _mainViewModel;
         private readonly Entry _entry;
         private bool _entryAlreadyAdded;
 
-        internal AddEntryControl([NotNull]MainWindowViewModel mainViewModel, string input, string output, bool seriesSpecific)
+        internal AddEntryTab([NotNull]MainWindowViewModel mainViewModel, string input, string output, bool seriesSpecific)
         {
             _mainViewModel = mainViewModel;
             InitializeComponent();

@@ -61,7 +61,7 @@ namespace Happy_Reader.View.Tabs
 			var result = _viewModel.SaveVNID(VnidNameBox.Text.Length == 0 ? null : (int?)int.Parse(VnidNameBox.Text));
 			if (result)
 			{
-				mainWindow.OpenVNPanel(_viewModel.VN, true);
+				mainWindow.OpenVNPanel(_viewModel.VN);
 			}
 			if (!result)
 			{

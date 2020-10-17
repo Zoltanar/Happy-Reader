@@ -209,7 +209,7 @@ namespace Happy_Reader.View.Tabs
 			var relationElement = e.AddedItems.OfType<TextBlock>().FirstOrDefault();
 			if (!(relationElement?.Tag is RelationsItem relation)) return;
 			var vn = StaticHelpers.LocalDatabase.VisualNovels[relation.ID];
-			if (vn != null) _mainWindow.OpenVNPanel(vn, false);
+			if (vn != null) _mainWindow.OpenVNPanel(vn);
 		}
 
 		private static void GetRelationsRecursive(RelationsItem[] relationsItems, HashSet<RelationsItem> set)

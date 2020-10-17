@@ -34,7 +34,7 @@ namespace Happy_Reader.View.Tiles
 		{
 			var mainWindow = (MainWindow)(sender is MainWindow ? sender : Window.GetWindow(this));
 			Trace.Assert(mainWindow != null, nameof(mainWindow) + " != null");
-			if (UserGame.HasVN) mainWindow.OpenVNPanel(UserGame.VN, true);
+			if (UserGame.HasVN) mainWindow.OpenVNPanel(UserGame.VN);
 			else mainWindow.OpenUserGamePanel(UserGame,null);
 
 		}

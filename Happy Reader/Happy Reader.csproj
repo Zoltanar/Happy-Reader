@@ -184,8 +184,8 @@
     <Compile Include="Model\RecentItemList.cs" />
     <Compile Include="ViewModel\IthViewModel.cs" />
     <Compile Include="ViewModel\TranslationTester.cs" />
-    <Compile Include="View\AddEntryControl.xaml.cs">
-      <DependentUpon>AddEntryControl.xaml</DependentUpon>
+    <Compile Include="View\Tabs\AddEntryTab.xaml.cs">
+      <DependentUpon>AddEntryTab.xaml</DependentUpon>
     </Compile>
     <Compile Include="Database\Entry.cs" />
     <Compile Include="Database\UserGame.cs" />
@@ -274,7 +274,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="View\AddEntryControl.xaml">
+    <Page Include="View\Tabs\AddEntryTab.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
