@@ -225,17 +225,7 @@ namespace Happy_Apps_Core.Database
 
 		public bool HasAnime => AnimeObject.Any();
 
-		private OwnedStatus? _ownedStatus;
-
-		public OwnedStatus IsOwned
-		{
-			get
-			{
-				if (VnIsOwned == null) return OwnedStatus.NeverOwned;
-				_ownedStatus ??= VnIsOwned.Invoke(VNID);
-				return _ownedStatus.Value;
-			}
-		}
+		public OwnedStatus IsOwned { get; set; } = OwnedStatus.NeverOwned;
 
 		/// <summary>Returns a string that represents the current object.</summary>
 		/// <returns>A string that represents the current object.</returns>
@@ -324,8 +314,6 @@ namespace Happy_Apps_Core.Database
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
-
-		public static Func<int, OwnedStatus> VnIsOwned = null;
 
 		[NotifyPropertyChangedInvocator]
 		public void OnPropertyChanged([CallerMemberName] string propertyName = null)

@@ -75,7 +75,7 @@
 					</Grid.RowDefinitions>
 					<TextBox Grid.Row="0" >
 						<TextBox.Text>
-							<MultiBinding StringFormat="{}{0} ({1})">
+							<MultiBinding Converter="{StaticResource StringAndBracketedConverter}">
 								<Binding Path="Title"/>
 								<Binding Path="KanjiTitle"/>
 							</MultiBinding>

@@ -36,6 +36,7 @@ namespace Happy_Reader.Database
 			FilePath = file;
 			VNID = vn?.VNID;
 			VN = vn;
+			if (VN != null) VN.IsOwned = FileExists ? OwnedStatus.CurrentlyOwned : OwnedStatus.PastOwned;
 		}
 
 		public UserGame() { }
@@ -279,6 +280,7 @@ namespace Happy_Reader.Database
 			VNID = vnid;
 			StaticMethods.Data.SaveChanges();
 			VN = vnid == null ? null : LocalDatabase.VisualNovels[vnid.Value];
+			if (VN != null) VN.IsOwned = FileExists ? OwnedStatus.CurrentlyOwned : OwnedStatus.PastOwned;
 			OnPropertyChanged(nameof(DisplayName));
 			OnPropertyChanged(nameof(Image));
 			OnPropertyChanged(nameof(VN));

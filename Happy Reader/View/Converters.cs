@@ -221,20 +221,13 @@ namespace Happy_Reader.View
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if (value is null) return Brushes.Black;
-			UserVN userVN;
-			switch (value)
+			var userVN = value switch
 			{
-				case UserVN vUserVN:
-					userVN = vUserVN;
-					break;
-				case ListedVN listedVN:
-					userVN = listedVN.UserVN;
-					break;
-				case CharacterItem character:
-					userVN = character.VisualNovel?.UserVN;
-					break;
-				default: throw new NotSupportedException();
-			}
+				UserVN vUserVN => vUserVN,
+				ListedVN listedVN => listedVN.UserVN,
+				CharacterItem character => character.VisualNovel?.UserVN,
+				_ => throw new NotSupportedException()
+			};
 			return userVN?.Blacklisted ?? false ? Brushes.White : Brushes.Black;
 		}
 
@@ -287,5 +280,18 @@ namespace Happy_Reader.View
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
+	}
+
+	public class StringAndBracketedConverter : IMultiValueConverter
+	{
+		public object Convert(object[] value, Type targetType, object parameter, CultureInfo culture)
+		{
+			if (value is null || !(value is object[] values) || values.Length != 2) return Theme.ImageNotFoundImage;
+			if (values[1] == null || values[1] is string v1String && string.IsNullOrWhiteSpace(v1String)) return values[0];
+			if (values[0] == null || values[0] is string v0String && string.IsNullOrWhiteSpace(v0String)) return values[1];
+			return $"{values[0]} ({values[1]})";
+		}
+
+		public object[] ConvertBack(object value, Type[] targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 	}
 }

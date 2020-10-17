@@ -55,7 +55,7 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 		public PausableUpdateList<VNTile> ListedVNs { get; set; } = new PausableUpdateList<VNTile>();
-		public int[] AllResults { get; private set; }
+		public ListedVN[] AllResults { get; private set; }
 		public string ReplyText
 		{
 			get => _replyText;
@@ -191,11 +191,15 @@ namespace Happy_Reader.ViewModel
 				var vns = _dbFunction.SelectAndInvoke(LocalDatabase);
 				OnPropertyChanged(nameof(SelectedFunctionIndex));
 				if (!_dbFunction.AlwaysIncludeBlacklisted && !IsBlacklisted) vns = vns.Where(vn => !(vn.UserVN?.Blacklisted ?? false));
-				var preFilteredResults = _ordering(vns).ToArray();
+				var filterFunc = PermanentFilter.GetFunction();
+				var filteredResults = vns.Where(vn => filterFunc(vn));
+				/*var preFilteredResults = _ordering(vns).ToArray();
+				/*
 				var filterResults = LocalDatabase.VisualNovels.Where(PermanentFilter.GetFunction()).Select(x => x.VNID).ToArray();
-				AllResults = _ordering(preFilteredResults.Where(x => filterResults.Contains(x.VNID))).Select(x => x.VNID).ToArray();
+				AllResults = _ordering(preFilteredResults.Where(x => filterResults.Contains(x.VNID))).Select(x => x.VNID).ToArray();*/
+				AllResults = _ordering(filteredResults).ToArray();
 				var firstPage = AllResults.Take(PageSize).ToArray();
-				return _ordering(LocalDatabase.VisualNovels.WithKeyIn(firstPage)).ToList();
+				return firstPage;
 			});
 			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			Application.Current.Dispatcher.Invoke(() =>
@@ -243,6 +247,7 @@ namespace Happy_Reader.ViewModel
 		public void AddListedVNPage()
 		{
 			if (_finalPage) return;
+			var overWatch = Stopwatch.StartNew();
 			var newPage = AllResults.Skip(_listedVnPage * PageSize).Take(PageSize).ToList();
 			_listedVnPage++;
 			if (newPage.Count < PageSize)
@@ -250,10 +255,10 @@ namespace Happy_Reader.ViewModel
 				_finalPage = true;
 				if (newPage.Count == 0) return;
 			}
-			var watch = Stopwatch.StartNew();
-			var newTiles = LocalDatabase.VisualNovels.WithKeyIn(newPage).OrderByDescending(vn => vn.ReleaseDate).Select(VNTile.FromListedVN).ToList();
-			Logger.ToDebug($"[{nameof(AddListedVNPage)}] Creating VN tiles: {watch.Elapsed.ToSeconds()}.");
+			var newTiles = newPage.Select(VNTile.FromListedVN).ToList();
 			ListedVNs.AddRange(newTiles);
+			overWatch.Stop();
+			SetReplyText($"Loaded {newPage.Count} results for page {_listedVnPage} in {overWatch.Elapsed.ToSeconds()}.", VndbConnection.MessageSeverity.Normal);
 			OnPropertyChanged(nameof(ListedVNs));
 			OnPropertyChanged(nameof(AllResults));
 		}
@@ -354,13 +359,13 @@ namespace Happy_Reader.ViewModel
 
 		public async Task SortByMyScore()
 		{
-			_ordering = lvn => lvn.OrderByDescending(vn => vn.UserVN?.Vote);
+			_ordering = lvn => lvn.OrderByDescending(vn => vn.UserVN?.Vote).ThenByDescending(vn => vn.ReleaseDate);
 			await RefreshListedVns();
 		}
 
 		public async Task SortByRating()
 		{
-			_ordering = lvn => lvn.OrderByDescending(vn => vn.Rating);
+			_ordering = lvn => lvn.OrderByDescending(vn => vn.Rating).ThenByDescending(vn=>vn.ReleaseDate);
 			await RefreshListedVns();
 		}
 
@@ -372,7 +377,7 @@ namespace Happy_Reader.ViewModel
 
 		public async Task SortByTitle()
 		{
-			_ordering = lvn => lvn.OrderBy(vn => vn.Title);
+			_ordering = lvn => lvn.OrderBy(vn => vn.Title).ThenByDescending(vn => vn.ReleaseDate);
 			await RefreshListedVns();
 		}
 

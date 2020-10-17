@@ -74,7 +74,7 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged();
 			}
 		}
-		
+
 		public bool CaptureClipboard
 		{
 			get => _captureClipboard;
@@ -166,7 +166,7 @@ namespace Happy_Reader.ViewModel
 			};
 			Translator = new Translator(StaticMethods.Data);
 			Translation.Translator = Translator;
-			EntriesViewModel = new EntriesTabViewModel(()=>UserGame);
+			EntriesViewModel = new EntriesTabViewModel(() => UserGame);
 			TestViewModel = new TranslationTester(this);
 			FiltersViewModel = new FiltersViewModel();
 			DatabaseViewModel = new VNTabViewModel(this, FiltersViewModel.Filters, FiltersViewModel.PermanentFilter);
@@ -182,7 +182,7 @@ namespace Happy_Reader.ViewModel
 			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			Application.Current.Dispatcher.Invoke(() =>
 			{
-				LogsList.Insert(0,new DisplayLog(log));
+				LogsList.Insert(0, new DisplayLog(log));
 				OnPropertyChanged(nameof(LogsList));
 			});
 		}
@@ -256,7 +256,6 @@ namespace Happy_Reader.ViewModel
 			StatusText = "Loading User Games...";
 			await Task.Yield();
 			await LoadUserGames();
-			ListedVN.VnIsOwned = VnIsOwned;
 			LoadLogs();
 			SetLastPlayed();
 			defaultUserGameGrouping(null, null);
@@ -280,21 +279,6 @@ namespace Happy_Reader.ViewModel
 			monitor.Start();
 			return monitor;
 		}
-		
-		private static OwnedStatus VnIsOwned(int vnid)
-		{
-			var status = OwnedStatus.NeverOwned;
-			foreach (var userGame in StaticMethods.Data.UserGames.Where(ug => ug.VNID.Value == vnid))
-			{
-				if (!userGame.FileExists) status = OwnedStatus.PastOwned;
-				else
-				{
-					status = OwnedStatus.CurrentlyOwned;
-					break;
-				}
-			}
-			return status;
-		}
 
 		public async Task LoadUserGames()
 		{
@@ -305,9 +289,13 @@ namespace Happy_Reader.ViewModel
 			 StaticMethods.Data.UserGames.Load();
 			 foreach (var game in StaticMethods.Data.UserGames.Local)
 			 {
-				 game.VN = game.VNID != null
-					 ? LocalDatabase.VisualNovels[game.VNID.Value]
-					 : null;
+				 if (game.VNID != null)
+				 {
+					 game.VN = LocalDatabase.VisualNovels[game.VNID.Value];
+					 //if game has vn and vn is not already marked as owned, this prevents overwriting CurrentlyOwned with PastOwned,
+					 //if multiple user games have the same VN but the later one has been deleted.
+					 if (game.VN != null && game.VN.IsOwned != OwnedStatus.CurrentlyOwned) game.VN.IsOwned = game.FileExists ? OwnedStatus.CurrentlyOwned : OwnedStatus.PastOwned;
+				 }
 			 }
 			 orderedGames = StaticMethods.Data.UserGames.Local.OrderBy(x => x.VNID ?? 0).ToList();
 			 if (!ShowFileNotFound) orderedGames = orderedGames.Where(og => og.FileExists);
@@ -473,9 +461,9 @@ namespace Happy_Reader.ViewModel
 			if (!(b1 || b2 || b3 || b4)) return; //if process isn't hooked process or named ithvnr
 																					 //0x800401D0 = CLIPBRD_E_CANT_OPEN
 			var text = RunWithRetries(
-				Clipboard.GetText, 
+				Clipboard.GetText,
 				() => Thread.Sleep(10),
-				5, 
+				5,
 				(ex) => ex is COMException comEx && (uint)comEx.ErrorCode == 0x800401D0);
 			var timeSinceLast = DateTime.UtcNow - _lastUpdateTime;
 			if (timeSinceLast.TotalMilliseconds < 100 && _lastUpdateText == text) return;
@@ -610,7 +598,7 @@ namespace Happy_Reader.ViewModel
 			return processId != UserGame?.Process?.Id ? (null, null, null) : (UserGame.HookCode, UserGame.DefaultHookFull, UserGame.PrefEncoding);
 		}
 		// ReSharper restore UnusedTupleComponentInReturnValue
-		
+
 		public void RefreshActiveObjectImages()
 		{
 			foreach (var tile in UserGameItems)

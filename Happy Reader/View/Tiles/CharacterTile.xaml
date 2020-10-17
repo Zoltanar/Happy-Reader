@@ -34,9 +34,9 @@
 				</Grid.RowDefinitions>
 				<TextBox Grid.Row="0" VerticalAlignment="Top" Height="26" Margin="0,10,0,0" Foreground="{Binding ., Converter={StaticResource UserVnToForegroundConverter}}">
 					<TextBox.Text>
-						<MultiBinding StringFormat="{}{0} {1}">
+						<MultiBinding Converter="{StaticResource StringAndBracketedConverter}">
 							<Binding Path="Name" Mode="OneWay"/>
-							<Binding Path="GenderSymbol" Mode="OneWay"/>
+							<Binding Path="Original" Mode="OneWay"/>
 						</MultiBinding>
 					</TextBox.Text>
 				</TextBox>
@@ -45,7 +45,7 @@
 				</Border>
 				<Image Grid.Row="1" x:Name="ImageBox" MaxHeight="300" MaxWidth="250"/>
 				<StackPanel Grid.Row="2">
-					<TextBox Text="{Binding Original, Mode=OneWay}" Foreground="{Binding ., Converter={StaticResource UserVnToForegroundConverter}}" Visibility="{Binding Original, Converter={StaticResource NullableToVisibilityConverter}}" Padding="5,0,0,0" />
+					<TextBox Text="{Binding GenderSymbol, Mode=OneWay}" Foreground="{Binding ., Converter={StaticResource UserVnToForegroundConverter}}" Visibility="{Binding Original, Converter={StaticResource NullableToVisibilityConverter}}" Padding="5,0,0,0" />
 					<TextBox Text="{Binding Seiyuu, Mode=OneWay}" Foreground="{Binding ., Converter={StaticResource UserVnToForegroundConverter}}" Visibility="{Binding Seiyuu, Mode=OneWay, Converter={StaticResource NullableToVisibilityConverter}}" Padding="5,0,0,0"/>
 					<TextBox x:Name="VisualNovelNameBox" Text="{Binding VisualNovelName, Mode=OneWay}" Foreground="{Binding ., Converter={StaticResource UserVnToForegroundConverter}}" Padding="5,0,0,0" />
 					<TextBox x:Name="VisualNovelReleaseBox" Text="{Binding VisualNovelReleaseDate, Mode=OneWay}" Foreground="{Binding ., Converter={StaticResource UserVnToForegroundConverter}}" Padding="5,0,0,0"/>
