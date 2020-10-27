@@ -38,5 +38,7 @@
 		<MenuItem x:Name="ReleaseLinkItem" Header="Browse to Release Page" Click="BrowseToReleasePage"/>
 		<Separator/>
 		<MenuItem Header="Copy Title" Click="CopyTitle"/>
-		<MenuItem x:Name="OriginalTitleItem" Header="Copy Original Title" Click="CopyOriginalTitle"/>
+	<MenuItem x:Name="OriginalTitleItem" Header="Copy Original Title" Click="CopyOriginalTitle"/>
+		<Separator/>
+		<MenuItem Header="Import Names" Click="ImportNames"/>
 </ItemsControl>

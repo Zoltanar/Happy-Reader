@@ -286,10 +286,10 @@ namespace Happy_Reader.View
 	{
 		public object Convert(object[] value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is null || !(value is object[] values) || values.Length != 2) return Theme.ImageNotFoundImage;
-			if (values[1] == null || values[1] is string v1String && string.IsNullOrWhiteSpace(v1String)) return values[0];
-			if (values[0] == null || values[0] is string v0String && string.IsNullOrWhiteSpace(v0String)) return values[1];
-			return $"{values[0]} ({values[1]})";
+			if (value is null || value.Length != 2) return Theme.ImageNotFoundImage;
+			if (value[1] == null || value[1] is string v1String && string.IsNullOrWhiteSpace(v1String)) return value[0];
+			if (value[0] == null || value[0] is string v0String && string.IsNullOrWhiteSpace(v0String)) return value[1];
+			return $"{value[0]} ({value[1]})";
 		}
 
 		public object[] ConvertBack(object value, Type[] targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();

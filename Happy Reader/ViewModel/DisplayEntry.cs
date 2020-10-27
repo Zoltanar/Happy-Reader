@@ -15,6 +15,9 @@ namespace Happy_Reader.ViewModel
 		public bool DeletePrimed { get; set; }
 		private Button _deleteButton;
 
+		public DisplayEntry() : this(new Entry())
+		{ }
+
 		public DisplayEntry(Entry entry)
 		{
 			Entry = entry;
@@ -56,7 +59,11 @@ namespace Happy_Reader.ViewModel
 			set => Entry.RoleString = value;
 		}
 
-		public ListedVN Game => Entry.Game;
+		public ListedVN Game
+		{
+			get => Entry.Game;
+			set => Entry.GameId = value.VNID;
+		}
 
 		public EntryType Type
 		{

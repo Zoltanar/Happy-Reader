@@ -162,6 +162,9 @@
       <DependentUpon>MergeWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\RadioButtonCheckedConverter.cs" />
+    <Compile Include="View\Tabs\AddEntriesTab.xaml.cs">
+      <DependentUpon>AddEntriesTab.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\Tabs\ApiLogTab.xaml.cs">
       <DependentUpon>ApiLogTab.xaml</DependentUpon>
     </Compile>
@@ -184,9 +187,6 @@
     <Compile Include="Model\RecentItemList.cs" />
     <Compile Include="ViewModel\IthViewModel.cs" />
     <Compile Include="ViewModel\TranslationTester.cs" />
-    <Compile Include="View\Tabs\AddEntryTab.xaml.cs">
-      <DependentUpon>AddEntryTab.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Database\Entry.cs" />
     <Compile Include="Database\UserGame.cs" />
     <Compile Include="Database\HappyReaderDatabase.cs" />
@@ -254,6 +254,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="View\Tabs\AddEntriesTab.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\Tabs\ApiLogTab.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -273,10 +277,6 @@
     <Page Include="View\Tabs\IthVnrTab.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Page>
-    <Page Include="View\Tabs\AddEntryTab.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
     </Page>
     <DesignData Include="View\SampleData\CharacterItemSampleData.xaml">
       <Generator>MSBuild:Compile</Generator>

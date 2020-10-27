@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
+using Happy_Reader.Database;
 using Happy_Reader.ViewModel;
 using JetBrains.Annotations;
 
@@ -46,16 +47,16 @@ namespace Happy_Reader.View
 			if (!Uri.IsWellFormedUriString(VN.ReleaseLink, UriKind.Absolute)) throw new InvalidOperationException($"'{VN.ReleaseLink}' is not a well formed URI.");
 			Process.Start(VN.ReleaseLink);
 		}
-		
+
 		private void BrowseToExtraPage(object sender, RoutedEventArgs e)
 		{
 			var pageLink = (PageLink)((MenuItem)sender).Tag;
-			var title = pageLink.UseRomaji 
+			var title = pageLink.UseRomaji
 				? !string.IsNullOrWhiteSpace(VN.Title) ? VN.Title : VN.KanjiTitle
 				: !string.IsNullOrWhiteSpace(VN.KanjiTitle) ? VN.KanjiTitle : VN.Title;
 			//remove minus so search includes term
 			var titleFixed = MinusRegex.Replace(title, string.Empty);
-			var link = pageLink.Link.Replace("%s", titleFixed).Replace(" ","%20");
+			var link = pageLink.Link.Replace("%s", titleFixed).Replace(" ", "%20");
 			if (!Uri.IsWellFormedUriString(link, UriKind.Absolute)) throw new InvalidOperationException($"'{link}' is not a well formed URI.");
 			Process.Start(link);
 		}
@@ -135,7 +136,7 @@ namespace Happy_Reader.View
 			var inputWindow = new InputWindow
 			{
 				Title = $"{StaticHelpers.ClientName} - Enter Visual Novel Vote",
-				InputLabel = "Enter vote value from 10 to 100", 
+				InputLabel = "Enter vote value from 10 to 100",
 				Filter = (s) => int.TryParse(s, out var vote) && vote >= 10 && vote <= 100,
 			};
 			var result = inputWindow.ShowDialog();
@@ -164,6 +165,36 @@ namespace Happy_Reader.View
 				Items.Remove(item);
 				parent.Items.Add(item);
 			}
+		}
+
+		private void ImportNames(object sender, RoutedEventArgs e)
+		{
+			var cvns = StaticHelpers.LocalDatabase.CharacterVNs[VN.VNID].ToList();
+			var characterEntries = cvns.SelectMany(GetEntriesFromCharacter).Distinct(Entry.ValueComparer).ToArray();
+			MainWindow.CreateAddEntriesTab(characterEntries);
+		}
+
+		private static List<Entry> GetEntriesFromCharacter(CharacterVN cvn)
+		{
+			var entries = new List<Entry>();
+			var character = StaticHelpers.LocalDatabase.Characters[cvn.CharacterId];
+			if (string.IsNullOrWhiteSpace(character.Name) || string.IsNullOrWhiteSpace(character.Original)) return entries;
+			var outputParts = character.Name.Split(' ');
+			var inputParts = character.Original.Split(' ');
+			if (outputParts.Length != inputParts.Length) return entries;
+			for (int i = 0; i < outputParts.Length; i++)
+			{
+				var entry = new Entry
+				{
+					RoleString = "m",
+					Input = inputParts[i],
+					Output = outputParts[i],
+					GameId = cvn.VNId,
+					SeriesSpecific = true
+				};
+				entries.Add(entry);
+			}
+			return entries;
 		}
 	}
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -86,8 +87,13 @@ namespace Happy_Reader.ViewModel
 			var input = TextArea.Selection.Text;
 			var output = Kakasi.JapaneseToRomaji(input);
 			if (output.Length > 0) output = char.ToUpper(output[0]) + output.Substring(1);
-			output = output.Replace(" ", "");
-			MainWindow.CreateAddEntryTab(input, output, true);
+			var entry = new Entry
+			{
+				Input = input,
+				Output = output.Replace(" ", ""),
+				SeriesSpecific = true
+			};
+			MainWindow.CreateAddEntriesTab(new List<Entry> { entry });
 		}
 
 		private FlowDocument _flowDocument;

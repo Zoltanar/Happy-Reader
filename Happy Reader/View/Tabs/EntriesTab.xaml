@@ -10,7 +10,7 @@
 
 	<Grid>
 		<CheckBox Content="Game-only" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="{Binding OnlyGameEntries, Mode=TwoWay}"/>
-		<Button Content="Add Entry" Margin="83,0,0,0" VerticalAlignment="Top" Click="AddEntry_Click" HorizontalAlignment="Left" Width="90"/>
+		<Button Content="Add Entries" Margin="83,0,0,0" VerticalAlignment="Top" Click="AddEntries_Click" HorizontalAlignment="Left" Width="90"/>
 		<DataGrid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding EntriesList}" Margin="0,25,0,0" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="False" >
 			<DataGrid.Columns>
 				<DataGridTextColumn Header="Id" Binding="{Binding Id, Mode=OneWay}" />

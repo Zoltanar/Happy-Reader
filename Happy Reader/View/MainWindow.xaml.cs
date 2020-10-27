@@ -21,9 +21,6 @@ using ContextMenuStrip = System.Windows.Forms.ContextMenuStrip;
 
 namespace Happy_Reader.View
 {
-	/// <summary>
-	/// Interaction logic for MainWindow.xaml
-	/// </summary>
 	public partial class MainWindow
 	{
 		public MainWindowViewModel ViewModel { get; }
@@ -106,16 +103,23 @@ namespace Happy_Reader.View
 			tabItem.Template = null;
 			MainTabControl.Items.Remove(tabItem);
 		}
-
-		public void CreateAddEntryTab(string input, string output, bool seriesSpecific)
+		
+		public void CreateAddEntriesTab(ICollection<Entry> entries)
 		{
+			var vnEntries = ViewModel.UserGameItems
+				.Select(i => i.UserGame.VN)
+				.Concat(entries.Select(e => e.Game))
+				.Distinct()
+				.Where(i => i != null)
+				.ToArray();
+				;
 			var tabItem = new TabItem
 			{
-				Header = "Add Entry",
-				Name = nameof(AddEntryTab),
-				Content = new AddEntryTab(ViewModel, input, output, seriesSpecific)
+				Header = "Add Entries",
+				Name = nameof(AddEntriesTab),
+				Content = new AddEntriesTab(ViewModel, vnEntries, entries)
 			};
-			AddTabItem(tabItem,null);
+			AddTabItem(tabItem, null);
 		}
 
 		public void OpenVNPanel(ListedVN vn)
