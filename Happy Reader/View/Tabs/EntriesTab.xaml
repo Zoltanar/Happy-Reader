@@ -20,7 +20,7 @@
 				<DataGridTextColumn Header="Role" Binding="{Binding Role}" />
 				<DataGridTextColumn Header="Input" Binding="{Binding Input}" />
 				<DataGridTextColumn Header="Output" Binding="{Binding Output, Mode=TwoWay}"  />
-				<DataGridTextColumn Header="Series-specific" Binding="{Binding SeriesSpecific}" />
+				<DataGridCheckBoxColumn Header="Series-specific" Binding="{Binding SeriesSpecific}" />
 				<DataGridCheckBoxColumn Header="Regex" Binding="{Binding Regex}" />
 				<DataGridTemplateColumn Header="Delete" >
 					<DataGridTemplateColumn.CellTemplate>

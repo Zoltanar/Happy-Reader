@@ -1,8 +1,7 @@
 ﻿vntile right click show related
 allow special characters through kakasi romaji, like ❤
-allow name import from vn characters
 auto-place last translation in test tab, show game properly
-test tab: list entries used (per stage?).
+test tab: list entries used per stage.
 
 add blacklistedproducers to user
 change order of load to load dumpfiles>filters>vndb>games>proxies>entries>connection

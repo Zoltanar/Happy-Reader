@@ -55,6 +55,7 @@ namespace Happy_Reader.ViewModel
 			EntriesList.Remove(displayEntry);
 			StaticMethods.Data.Entries.Remove(displayEntry.Entry);
 			StaticMethods.Data.SaveChanges();
+			Translation.Translator.RefreshEntries = true;
 			OnPropertyChanged(nameof(EntriesList));
 		}
 

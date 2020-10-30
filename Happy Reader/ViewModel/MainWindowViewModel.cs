@@ -486,7 +486,7 @@ namespace Happy_Reader.ViewModel
 				Logger.Verbose($"{nameof(RunTranslation)} - {e}");
 				if (UserGame.Process == null) return false;
 				if ((sender as TextThread)?.IsConsole ?? false) return false;
-				var translation = Translator.Translate(User, UserGame?.VN, e.Text);
+				var translation = Translator.Translate(User, UserGame?.VN, e.Text, false);
 				if (string.IsNullOrWhiteSpace(translation?.Output))
 				{
 					//todo report error

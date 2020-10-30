@@ -175,8 +175,6 @@ namespace Happy_Reader.Database
 			[UsedImplicitly]
 			get
 			{
-				if (!File.Exists(FilePath)) return "File not found";
-				if (LastGamesPlayed.IndexOfValue(Id) > LastGamesPlayed.Count - 6) return "Last Played";
 				if (VN == null) return "Other";
 				var dt = VN.ReleaseDate;
 				var newDt = new DateTime(dt.Year, dt.Month, DateTime.DaysInMonth(dt.Year, dt.Month));
@@ -192,9 +190,7 @@ namespace Happy_Reader.Database
 			[UsedImplicitly]
 			get
 			{
-				if (!File.Exists(FilePath)) return DateTime.MinValue;
-				if (VN == null) return DateTime.MinValue.AddDays(1);
-				if (LastGamesPlayed.IndexOfValue(Id) > LastGamesPlayed.Count - 6) return DateTime.MaxValue;
+				if (VN == null) return DateTime.MinValue;
 				var dt = VN.ReleaseDate;
 				var newDt = new DateTime(dt.Year, dt.Month, DateTime.DaysInMonth(dt.Year, dt.Month));
 				return newDt;

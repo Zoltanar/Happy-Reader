@@ -7,9 +7,6 @@ using Happy_Reader.ViewModel;
 
 namespace Happy_Reader.View.Tabs
 {
-    /// <summary>
-    /// Interaction logic for TestTranslationPanel.xaml
-    /// </summary>
     public partial class TestTranslationTab : UserControl
     {
         private TranslationTester _viewModel;
@@ -45,6 +42,14 @@ namespace Happy_Reader.View.Tabs
 	        if (DesignerProperties.GetIsInDesignMode(this)) return;
             _viewModel = (TranslationTester)DataContext;
         }
-    }
+
+        private void ClickDeleteButton(object sender, RoutedEventArgs e)
+        {
+	        var button = (Button)sender;
+	        var item = (DisplayEntry)button.DataContext;
+	        if (item.DeletePrimed) _viewModel.DeleteEntry(item);
+	        else item.PrimeDeletion(button);
+        }
+  }
 
 }

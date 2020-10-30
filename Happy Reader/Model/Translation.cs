@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
 using Happy_Apps_Core;
+using Happy_Reader.Database;
 
 namespace Happy_Reader
 {
@@ -13,7 +14,7 @@ namespace Happy_Reader
 	{
 		public static Translator Translator { get; set; }
 		internal readonly List<(string Part, bool Translate)> Parts = new List<(string Part, bool Translate)>();
-		private readonly List<string[]> _partResults = new List<string[]>();
+		private readonly List<TranslationResults> _partResults = new List<TranslationResults>();
 		public readonly string[] Results = new string[8];
 		public readonly string Original;
 		public readonly string Romaji;
@@ -29,6 +30,11 @@ namespace Happy_Reader
 			GetRomaji(romajiSb);
 			Romaji = romajiSb.ToString();
 			IsCharacterOnly = Original.IndexOfAny(new[] { '「', '」' }) < 0 && Original.Length < 10;
+		}
+
+		public Entry[] GetEntriesUsed()
+		{
+			return _partResults.Where(pr=>pr.EntriesUsed != null).SelectMany(pr => pr.EntriesUsed.SelectMany(eu=>eu)).Distinct().ToArray();
 		}
 
 		private static void GetRomaji(StringBuilder romajiSb)
@@ -74,7 +80,7 @@ namespace Happy_Reader
 			IsCharacterOnly = false;
 		}
 
-		public void TranslateParts()
+		public void TranslateParts(bool saveEntriesUsed)
 		{
 			try
 			{
@@ -82,10 +88,10 @@ namespace Happy_Reader
 				{
 					if (!translate)
 					{
-						_partResults.Add(Enumerable.Repeat(part, 8).ToArray());
+						_partResults.Add(new TranslationResults(part));
 						continue;
 					}
-					_partResults.Add(Translator.TranslatePart(part));
+					_partResults.Add(Translator.TranslatePart(part, saveEntriesUsed));
 				}
 				for (int stage = 0; stage < 7; stage++)
 				{
@@ -98,13 +104,11 @@ namespace Happy_Reader
 					Results[7] += text;
 					if (part < _partResults.Count - 1 && Parts[part].Translate && Parts[part + 1].Translate) Results[7] += " ";
 				}
-
 			}
 			catch (Exception ex)
 			{
 				StaticHelpers.Logger.ToFile(ex.Message);
 			}
-
 		}
 
 		public Paragraph OriginalBlock { get; private set; }

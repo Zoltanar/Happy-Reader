@@ -21,9 +21,10 @@
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="Auto" MaxHeight="160"/>
+		</Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>
@@ -53,5 +54,26 @@
         <Label Grid.Row="0" Grid.Column="0" x:Name="TesterGameValid" Content="❌" Margin="0,0,10,35" VerticalAlignment="Bottom" Height="18" VerticalContentAlignment="Center" Padding="0" HorizontalAlignment="Right" Width="16"/>
         <Label Grid.Row="0" Grid.Column="1" Content="Romaji" HorizontalAlignment="Left" Margin="10,0,0,80" VerticalAlignment="Bottom" Height="18" VerticalContentAlignment="Center" Padding="0"/>
         <TextBox Text="{Binding Romaji}" Grid.Row="0" Grid.Column="1" Margin="10,0,10,10" Height="65" VerticalAlignment="Bottom"/>
+        <Label Grid.Row="2" Grid.Column="0" Content="Entries Used" HorizontalAlignment="Right"/>
+		<DataGrid Grid.Row="2" Grid.ColumnSpan="3" Grid.Column="1" ItemsSource="{Binding EntriesUsed}" AutoGenerateColumns="False" CanUserAddRows="False">
+	        <DataGrid.Columns>
+		        <DataGridTextColumn Header="Id" Binding="{Binding Id, Mode=OneWay}" />
+		        <DataGridTextColumn Header="User" Binding="{Binding User, Mode=OneWay}" />
+		        <DataGridTextColumn Header="Type" Binding="{Binding Type}" />
+		        <DataGridTextColumn Header="Game" Binding="{Binding Game}" />
+		        <DataGridTextColumn Header="Role" Binding="{Binding Role}" />
+		        <DataGridTextColumn Header="Input" Binding="{Binding Input}" />
+		        <DataGridTextColumn Header="Output" Binding="{Binding Output, Mode=TwoWay}"  />
+		        <DataGridCheckBoxColumn Header="Series-specific" Binding="{Binding SeriesSpecific}" />
+		        <DataGridCheckBoxColumn Header="Regex" Binding="{Binding Regex}" />
+		        <DataGridTemplateColumn Header="Delete" >
+			        <DataGridTemplateColumn.CellTemplate>
+				        <DataTemplate>
+					        <Button Width="150" Content="Delete" Click="ClickDeleteButton" Background="CornflowerBlue"/>
+				        </DataTemplate>
+			        </DataGridTemplateColumn.CellTemplate>
+		        </DataGridTemplateColumn>
+	        </DataGrid.Columns>
+		</DataGrid>
     </Grid>
 </UserControl>

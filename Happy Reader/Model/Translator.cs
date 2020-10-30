@@ -17,6 +17,12 @@ namespace Happy_Reader
 	{
 		//TODO add regex to all stages
 
+		const bool LogVerbose =
+#if LOGVERBOSE
+			true
+#else
+			false;
+#endif
 		private static readonly object TranslateLock = new object();
 		private static readonly char[] Separators = "『「」』…".ToCharArray();
 		private static readonly char[] InclusiveSeparators = "。？".ToCharArray();
@@ -47,7 +53,7 @@ namespace Happy_Reader
 				noApiTranslation);
 		}
 
-		public Translation Translate(User user, ListedVN game, string input)
+		public Translation Translate(User user, ListedVN game, string input, bool saveEntriesUsed)
 		{
 			input = input.Replace("\r", "");
 			if (string.IsNullOrWhiteSpace(input)) return null;
@@ -61,7 +67,7 @@ namespace Happy_Reader
 				if (user != _lastUser || game != _lastGame || RefreshEntries) SetEntries(user, game);
 				var item = new Translation(input);
 				SplitInputIntoParts(item);
-				item.TranslateParts();
+				item.TranslateParts(saveEntriesUsed);
 				return item;
 			}
 		}
@@ -121,12 +127,13 @@ namespace Happy_Reader
 		/// <summary>
 		/// Replace entries of type Game.
 		/// </summary>
-		public void TranslateStageOne(StringBuilder sb, string[] result)
+		public void TranslateStageOne(StringBuilder sb, TranslationResults result)
 		{
+			result?.SetStage(1);
 			foreach (var entry in _entries.Where(i => i.Type == EntryType.Game))
 			{
-				if (entry.Regex) LogReplaceRegex(sb, entry);
-				else LogReplace(sb, entry);
+				if (entry.Regex) LogReplaceRegex(sb, entry, result);
+				else LogReplace(sb, entry, result);
 			}
 			StaticHelpers.Logger.Verbose($"Stage 1: {sb}");
 			//Stage One is also used for Translation.Original which does not require setting result to array.
@@ -136,12 +143,13 @@ namespace Happy_Reader
 		/// <summary>
 		/// Replace entries of type Input.
 		/// </summary>
-		private void TranslateStageTwo(StringBuilder sb, string[] result)
+		private void TranslateStageTwo(StringBuilder sb, TranslationResults result)
 		{
+			result.SetStage(2);
 			foreach (var entry in _entries.Where(i => i.Type == EntryType.Input))
 			{
-				if (entry.Regex) LogReplaceRegex(sb, entry);
-				else LogReplace(sb, entry);
+				if (entry.Regex) LogReplaceRegex(sb, entry, result);
+				else LogReplace(sb, entry, result);
 			}
 			StaticHelpers.Logger.Verbose($"Stage 2: {sb}");
 			result[2] = sb.ToString();
@@ -150,9 +158,10 @@ namespace Happy_Reader
 		/// <summary>
 		/// Replace entries of type Yomi.
 		/// </summary>
-		private void TranslateStageThree(StringBuilder sb, string[] result)
+		private void TranslateStageThree(StringBuilder sb, TranslationResults result)
 		{
-			foreach (var entry in _entries.Where(i => i.Type == EntryType.Yomi)) LogReplace(sb, entry);
+			result.SetStage(3);
+			foreach (var entry in _entries.Where(i => i.Type == EntryType.Yomi)) LogReplace(sb, entry, result);
 			StaticHelpers.Logger.Verbose($"Stage 3: {sb}");
 			result[3] = sb.ToString();
 		}
@@ -161,8 +170,8 @@ namespace Happy_Reader
 		{
 			foreach (var entry in _entries.Where(x => x.Type == EntryType.Name || x.Type == EntryType.Yomi || x.Type == EntryType.PreRomaji))
 			{
-				if (entry.Regex) LogReplaceRegex(sb, entry);
-				else LogReplace(sb, entry);
+				if (entry.Regex) LogReplaceRegex(sb, entry, null);
+				else LogReplace(sb, entry, null);
 			}
 		}
 
@@ -170,8 +179,8 @@ namespace Happy_Reader
 		{
 			foreach (var entry in _entries.Where(x => x.Type == EntryType.PostRomaji))
 			{
-				if (entry.Regex) LogReplaceRegex(sb, entry);
-				else LogReplace(sb, entry);
+				if (entry.Regex) LogReplaceRegex(sb, entry, null);
+				else LogReplace(sb, entry, null);
 			}
 		}
 
@@ -187,15 +196,16 @@ namespace Happy_Reader
 		/// <summary>
 		/// Replace entries of type Name and translation to proxies.
 		/// </summary>
-		private IEnumerable<Entry> TranslateStageFour(StringBuilder sb, HappyReaderDatabase data, string[] result)
+		private IEnumerable<Entry> TranslateStageFour(StringBuilder sb, HappyReaderDatabase data, TranslationResults result)
 		{
+			result.SetStage(4);
 			var usefulEntriesWithProxies = GetRelevantEntriesWithProxies(sb, data, out Dictionary<string, ProxiesWithCount> proxies);
 			if (usefulEntriesWithProxies.Count != 0)
 			{
 				foreach (var entry in usefulEntriesWithProxies)
 				{
 					var proxyAssigned = AssignProxy(proxies, entry);
-					if (proxyAssigned) LogReplace(sb, entry.Input, entry.AssignedProxy.FullRoleString, entry.Id);
+					if (proxyAssigned) LogReplace(sb, entry.Input, entry.AssignedProxy.FullRoleString, result, entry);
 				}
 				usefulEntriesWithProxies = usefulEntriesWithProxies.Where(e => e.AssignedProxy != null).ToList();
 				StaticHelpers.Logger.Verbose($"Stage 4.0: {sb}");
@@ -204,7 +214,7 @@ namespace Happy_Reader
 				TranslateStage4P1(sb, usefulEntriesWithProxies, entriesOnProxies);
 				foreach (var entry in usefulEntriesWithProxies)
 				{
-					LogReplace(sb, entry.AssignedProxy.FullRoleString, entry.AssignedProxy.Entry.Input, entry.Id);
+					LogReplace(sb, entry.AssignedProxy.FullRoleString, entry.AssignedProxy.Entry.Input, result, entry);
 				}
 				StaticHelpers.Logger.Verbose($"Stage 4.2: {sb}");
 			}
@@ -233,7 +243,8 @@ namespace Happy_Reader
 					var indexOfEntry = sb.ToString().IndexOf(entry.Input, StringComparison.Ordinal);
 					if (indexOfEntry >= 0) location = indexOfEntry;
 				}
-				if(location == null) usefulEntriesWithProxies.Remove(entry);
+				if (!location.HasValue) usefulEntriesWithProxies.Remove(entry);
+				else entry.Location = location.Value;
 			}
 			if (usefulEntriesWithProxies.Count == 0) return usefulEntriesWithProxies;
 			usefulEntriesWithProxies = usefulEntriesWithProxies.OrderBy(x => x.Location).ToList();
@@ -322,7 +333,7 @@ namespace Happy_Reader
 			entry.AssignedProxy = proxy;
 			return true;
 		}
-		
+
 		private void TranslateStage4P1(StringBuilder sb, IReadOnlyCollection<Entry> entriesWithProxies, IEnumerable<Entry> entriesOnProxies)
 		{
 			foreach (var entry in entriesOnProxies)
@@ -334,14 +345,14 @@ namespace Happy_Reader
 					entriesWithProxies.Single(x => x.AssignedProxy.Id == match && x.AssignedProxy.Role == entry.RoleString).AssignedProxy.ProxyMods.Add(entry);
 				}
 				var output = Stage4P1OutputRegex.Replace(entry.Output, @"[[$1#$$1]]");
-				LogReplaceRegex(sb, input, output, entry.Id);
+				LogReplaceRegex(sb, input, output, null, entry);
 			}
 			StaticHelpers.Logger.Verbose($"Stage 4.1: {sb}");
 		}
 
-		public string[] TranslatePart(string input)
+		public TranslationResults TranslatePart(string input, bool saveEntriesUsed)
 		{
-			var result = new string[8];
+			var result = new TranslationResults(saveEntriesUsed);
 			var sb = new StringBuilder(input);
 			if (GoogleTranslate.TranslateSingleKana(sb, input))
 			{
@@ -373,29 +384,36 @@ namespace Happy_Reader
 				result[7] = ex.Message;
 				return result;
 			}
-			if (StaticMethods.TranslatorSettings.GoogleUseCredential) GoogleTranslate.Translate(sb);
-			else GoogleTranslate.TranslateFree(sb);
-			StaticHelpers.Logger.Verbose($"Stage 5: {sb}");
-			result[5] = sb.ToString();
+			TranslateStageFive(sb,result);
 			TranslateStageSix(sb, usefulEntriesWithProxies, result);
 			TranslateStageSeven(sb, result);
 			return result;
 		}
 
+		private static void TranslateStageFive(StringBuilder sb, TranslationResults result)
+		{
+			result.SetStage(5);
+			if (StaticMethods.TranslatorSettings.GoogleUseCredential) GoogleTranslate.Translate(sb);
+			else GoogleTranslate.TranslateFree(sb);
+			StaticHelpers.Logger.Verbose($"Stage 5: {sb}");
+			result[5] = sb.ToString();
+		}
+
 		/// <summary>
 		/// Replace Name and Translation proxies to entry outputs.
 		/// </summary>
-		private static void TranslateStageSix(StringBuilder sb, IEnumerable<Entry> usefulEntriesWithProxies, string[] result)
+		private static void TranslateStageSix(StringBuilder sb, IEnumerable<Entry> usefulEntriesWithProxies, TranslationResults result)
 		{
+			result.SetStage(6);
 			foreach (var entry in usefulEntriesWithProxies)
 			{
-				LogReplace(sb, entry.AssignedProxy.Entry.Output, entry.AssignedProxy.FullRoleString, entry.Id);
+				LogReplace(sb, entry.AssignedProxy.Entry.Output, entry.AssignedProxy.FullRoleString, result, entry);
 				foreach (var proxyMod in entry.AssignedProxy.ProxyMods.AsEnumerable().Reverse())
 				{
 					var pmO = proxyMod.Output.Replace($"[[{proxyMod.RoleString ?? "m"}]]", entry.AssignedProxy.FullRoleString);
-					LogReplace(sb, entry.AssignedProxy.FullRoleString, pmO, proxyMod.Id);
+					LogReplace(sb, entry.AssignedProxy.FullRoleString, pmO, result, entry);
 				}
-				LogReplace(sb, entry.AssignedProxy.FullRoleString, entry.Output, entry.Id);
+				LogReplace(sb, entry.AssignedProxy.FullRoleString, entry.Output, result, entry);
 			}
 			StaticHelpers.Logger.Verbose($"Stage 6: {sb}");
 			result[6] = sb.ToString();
@@ -404,10 +422,11 @@ namespace Happy_Reader
 		/// <summary>
 		/// Replace entries of type Output.
 		/// </summary>
-		private void TranslateStageSeven(StringBuilder sb, string[] result)
+		private void TranslateStageSeven(StringBuilder sb, TranslationResults result)
 		{
-			foreach (var entry in _entries.Where(i => i.Type == EntryType.Output && !i.Regex)) LogReplace(sb, entry.Input, entry.Output, entry.Id);
-			foreach (var entry in _entries.Where(i => i.Type == EntryType.Output && i.Regex)) LogReplaceRegex(sb, entry.Input, entry.Output, entry.Id);
+			result.SetStage(7);
+			foreach (var entry in _entries.Where(i => i.Type == EntryType.Output && !i.Regex)) LogReplace(sb, entry.Input, entry.Output, result, entry);
+			foreach (var entry in _entries.Where(i => i.Type == EntryType.Output && i.Regex)) LogReplaceRegex(sb, entry.Input, entry.Output, result, entry);
 			StaticHelpers.Logger.Verbose($"Stage 7: {sb}");
 			result[7] = sb.ToString();
 		}
@@ -436,50 +455,50 @@ namespace Happy_Reader
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		// ReSharper disable once UnusedParameter.Local
-		private static void LogReplace(StringBuilder sb, string input, string output, long id)
+		private static void LogReplace(StringBuilder sb, string input, string output, TranslationResults result, Entry entry)
 		{
-#if LOGVERBOSE
-            var sbOriginal = sb.ToString();
-            sb.Replace(input, output);
-            var sbReplaced = sb.ToString();
-            if (sbOriginal != sbReplaced)
-            {
-                Debug.WriteLine($"Replace happened - Id {id}: '{input}' > '{output}'");
-            }
-#else
-			sb.Replace(input, output);
-#endif
+			if (LogVerbose || (result != null && result.SaveEntries && entry != null))
+			{
+				var sbOriginal = sb.ToString();
+				sb.Replace(input, output);
+				var sbReplaced = sb.ToString();
+				if (sbOriginal == sbReplaced) return;
+				if (LogVerbose) Debug.WriteLine($"Replace happened - Id {(entry != null ? entry.Id.ToString() : "N/A")}: '{input}' > '{output}'");
+				if (result.SaveEntries) result.AddEntryUsed(entry);
+			}
+			else sb.Replace(input, output);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		// ReSharper disable once UnusedParameter.Local
-		private static void LogReplace(StringBuilder sb, Entry entry)
+		private static void LogReplace(StringBuilder sb, Entry entry, TranslationResults result)
 		{
-			LogReplace(sb, entry.Input, entry.Output, entry.Id);
+			LogReplace(sb, entry.Input, entry.Output, result, entry);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		// ReSharper disable once UnusedParameter.Local
-		private static void LogReplaceRegex(StringBuilder sb, string regexInput, string output, long id)
+		private static void LogReplaceRegex(StringBuilder sb, string regexInput, string output, TranslationResults result, Entry entry)
 		{
+			string replaced;
 			var rgx = GetRegex(regexInput);
-#if LOGVERBOSE
-      var sbOriginal = sb.ToString();
-      var sbReplaced = rgx.Replace(sbOriginal, output);
-      if (sbOriginal != sbReplaced) Debug.WriteLine($"Replace happened - Id {id}: '{regexInput}' > '{output}'");
-#else
-			var sbReplaced = rgx.Replace(sb.ToString(), output);
-#endif
+			if (LogVerbose || (result != null && result.SaveEntries && entry != null))
+			{
+				var sbOriginal = sb.ToString();
+				replaced = rgx.Replace(sbOriginal, output);
+				if (sbOriginal != replaced)
+				{
+					if (LogVerbose) Debug.WriteLine($"Replace happened - Id {(entry != null ? entry.Id.ToString() : "N/A")} '{regexInput}' > '{output}'");
+					if (result.SaveEntries) result.AddEntryUsed(entry);
+				}
+			}
+			else replaced = rgx.Replace(sb.ToString(), output);
 			sb.Clear();
-			sb.Append(sbReplaced);
+			sb.Append(replaced);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		// ReSharper disable once UnusedParameter.Local
-		private static void LogReplaceRegex(StringBuilder sb, Entry entry)
+		private static void LogReplaceRegex(StringBuilder sb, Entry entry, TranslationResults result)
 		{
-			LogReplaceRegex(sb, entry.Input, entry.Output, entry.Id);
+			LogReplaceRegex(sb, entry.Input, entry.Output, result, entry);
 		}
 
 		private class ProxiesWithCount
@@ -494,5 +513,4 @@ namespace Happy_Reader
 			}
 		}
 	}
-
 }

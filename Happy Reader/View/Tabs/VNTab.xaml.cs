@@ -58,7 +58,7 @@ namespace Happy_Reader.View.Tabs
 
 		private async void OnTagClick(object sender, MouseButtonEventArgs e)
 		{
-			_mainWindow.MainTabControl.SelectedIndex = 3;
+			_mainWindow.SelectTab(typeof(DatabaseTab));
 			var tag = (DbTag)((Hyperlink)sender).Tag;
 			await ((MainWindowViewModel)_mainWindow.DataContext).DatabaseViewModel.ShowTagged(DumpFiles.GetTag(tag.TagId));
 		}
