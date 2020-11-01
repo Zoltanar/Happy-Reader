@@ -15,6 +15,7 @@ namespace Happy_Reader
 		public static Translator Translator { get; set; }
 		internal readonly List<(string Part, bool Translate)> Parts = new List<(string Part, bool Translate)>();
 		private readonly List<TranslationResults> _partResults = new List<TranslationResults>();
+		private readonly List<Entry> _entriesUsedStageOne = new List<Entry>();
 		public readonly string[] Results = new string[8];
 		public readonly string Original;
 		public readonly string Romaji;
@@ -24,8 +25,10 @@ namespace Happy_Reader
 
 		public Translation(string original)
 		{
+			var stageOneResult = new TranslationResults(true);
 			var romajiSb = new StringBuilder(original);
-			Translator.TranslateStageOne(romajiSb, null);
+			Translator.TranslateStageOne(romajiSb, stageOneResult);
+			_entriesUsedStageOne.AddRange(stageOneResult.EntriesUsed.SelectMany(i=>i));
 			Original = romajiSb.ToString();
 			GetRomaji(romajiSb);
 			Romaji = romajiSb.ToString();
@@ -34,7 +37,7 @@ namespace Happy_Reader
 
 		public Entry[] GetEntriesUsed()
 		{
-			return _partResults.Where(pr=>pr.EntriesUsed != null).SelectMany(pr => pr.EntriesUsed.SelectMany(eu=>eu)).Distinct().ToArray();
+			return _partResults.Where(pr=>pr.EntriesUsed != null).SelectMany(pr => pr.EntriesUsed.SelectMany(eu=>eu)).Concat(_entriesUsedStageOne).Distinct().ToArray();
 		}
 
 		private static void GetRomaji(StringBuilder romajiSb)

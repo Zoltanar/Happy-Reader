@@ -181,18 +181,34 @@ namespace Happy_Reader.View
 			if (string.IsNullOrWhiteSpace(character.Name) || string.IsNullOrWhiteSpace(character.Original)) return entries;
 			var outputParts = character.Name.Split(' ');
 			var inputParts = character.Original.Split(' ');
-			if (outputParts.Length != inputParts.Length) return entries;
-			for (int i = 0; i < outputParts.Length; i++)
+			if (outputParts.Length != inputParts.Length)
 			{
 				var entry = new Entry
 				{
 					RoleString = "m",
-					Input = inputParts[i],
-					Output = outputParts[i],
+					Input = character.Original,
+					Output = character.Name,
 					GameId = cvn.VNId,
-					SeriesSpecific = true
+					SeriesSpecific = true,
+					Type = EntryType.Name
 				};
 				entries.Add(entry);
+			}
+			else
+			{
+				for (int i = 0; i < outputParts.Length; i++)
+				{
+					var entry = new Entry
+					{
+						RoleString = "m",
+						Input = inputParts[i],
+						Output = outputParts[i],
+						GameId = cvn.VNId,
+						SeriesSpecific = true,
+						Type = EntryType.Name
+					};
+					entries.Add(entry);
+				}
 			}
 			return entries;
 		}

@@ -91,7 +91,9 @@ namespace Happy_Reader.ViewModel
 			{
 				Input = input,
 				Output = output.Replace(" ", ""),
-				SeriesSpecific = true
+				SeriesSpecific = true,
+				GameId = MainViewModel.UserGame?.VNID,
+				Type = EntryType.Name
 			};
 			MainWindow.CreateAddEntriesTab(new List<Entry> { entry });
 		}

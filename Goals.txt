@@ -1,7 +1,8 @@
 ﻿vntile right click show related
 allow special characters through kakasi romaji, like ❤
-auto-place last translation in test tab, show game properly
 test tab: list entries used per stage.
+check no spaces between translated names in romaji
+allow changing direction of text in output window (down to up) and horizontal alignment
 
 add blacklistedproducers to user
 change order of load to load dumpfiles>filters>vndb>games>proxies>entries>connection

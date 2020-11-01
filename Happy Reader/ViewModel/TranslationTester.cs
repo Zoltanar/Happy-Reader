@@ -25,7 +25,18 @@ namespace Happy_Reader.ViewModel
             OnPropertyChanged(nameof(UserGameNames));
         }
 
-        public string OriginalText { get; set; }
+        private string _originalText = string.Empty;
+
+        public string OriginalText
+        {
+	        get => _originalText;
+	        set
+	        {
+		        _originalText = value;
+            OnPropertyChanged();
+	        } 
+        }
+
         public string Romaji { get; set; }
         public string Stage1 { get; set; }
         public string Stage2 { get; set; }
@@ -38,10 +49,11 @@ namespace Happy_Reader.ViewModel
         public PausableUpdateList<DisplayEntry> EntriesUsed { get; } = new PausableUpdateList<DisplayEntry>();
         public string[] UserGameNames => StaticMethods.Data.UserGames.Local.Select(x => x.DisplayName).ToArray();
 
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        public void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 

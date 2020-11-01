@@ -144,6 +144,8 @@ namespace Happy_Reader.ViewModel
 			private set
 			{
 				_userGame = value;
+				TestViewModel.Game = _userGame?.VN;
+				TestViewModel.OnPropertyChanged(nameof(TestViewModel.Game));
 				OnPropertyChanged(nameof(DisplayGame));
 			}
 		}
@@ -486,6 +488,7 @@ namespace Happy_Reader.ViewModel
 				Logger.Verbose($"{nameof(RunTranslation)} - {e}");
 				if (UserGame.Process == null) return false;
 				if ((sender as TextThread)?.IsConsole ?? false) return false;
+				TestViewModel.OriginalText = e.Text;
 				var translation = Translator.Translate(User, UserGame?.VN, e.Text, false);
 				if (string.IsNullOrWhiteSpace(translation?.Output))
 				{
