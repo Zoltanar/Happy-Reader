@@ -86,9 +86,16 @@ namespace Happy_Reader.View
 				else VoteMenu.Items.Cast<MenuItem>().Last().IsChecked = true;
 			}
 			else ((MenuItem)VoteMenu.Items[0]).IsChecked = true;
-			if (!VN.Producer?.IsFavorited ?? true) return;
-			AddProducerToFavoritesItem.IsEnabled = false;
-			AddProducerToFavoritesItem.ToolTip = @"Already in list.";
+			if (VN.Producer?.IsFavorited ?? false)
+			{
+				AddProducerToFavoritesItem.IsEnabled = false;
+				AddProducerToFavoritesItem.ToolTip = @"Already in list.";
+			}
+			if (VN.RelationsObject.Length == 0)
+			{
+				ShowRelatedTitlesItem.IsEnabled = false;
+				ShowRelatedTitlesItem.ToolTip = @"There are no related titles.";
+			}
 		}
 
 		private async void ChangeLabel(object sender, RoutedEventArgs e)
@@ -146,6 +153,12 @@ namespace Happy_Reader.View
 				var success = await ViewModel.ChangeVote(VN, voteValue);
 				if (success) VN.OnPropertyChanged(null);
 			}
+		}
+
+		private async void ShowRelatedTitles(object sender, RoutedEventArgs e)
+		{
+			await ViewModel.ShowRelatedTitles(VN);
+			MainWindow.SelectTab(typeof(Tabs.DatabaseTab));
 		}
 
 		private async void ShowTitlesByProducer(object sender, RoutedEventArgs e)

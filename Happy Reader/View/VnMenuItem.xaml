@@ -30,7 +30,8 @@
 			<MenuItem Click="ChangeVote" Header="100"/>
 			<MenuItem Click="ChangePreciseNumber" Header="Precise Number"/>
 		</MenuItem>
-		<Separator/>
+	<Separator/>
+		<MenuItem x:Name="ShowRelatedTitlesItem" Header="Show Related Titles" Click="ShowRelatedTitles" />
 		<MenuItem Header="Show Titles By Producer" Click="ShowTitlesByProducer" />
 		<MenuItem x:Name="AddProducerToFavoritesItem" Header="Add Producer to Favorites"/>
 		<Separator/>

@@ -227,6 +227,8 @@ namespace Happy_Apps_Core.Database
 
 		public OwnedStatus IsOwned { get; set; } = OwnedStatus.NeverOwned;
 
+		public HashSet<RelationsItem> AllRelations { get; set; }
+
 		/// <summary>Returns a string that represents the current object.</summary>
 		/// <returns>A string that represents the current object.</returns>
 		/// <filterpriority>2</filterpriority>
@@ -340,6 +342,28 @@ namespace Happy_Apps_Core.Database
 			_screensObject = screensObject;
 		}
 
+
+		public HashSet<RelationsItem> GetAllRelations()
+		{
+			if (AllRelations != null) return AllRelations;
+			var set = new HashSet<RelationsItem>();
+			GetRelationsRecursive(RelationsObject, set);
+			set.RemoveWhere(r => r.ID == VNID);
+			AllRelations = set;
+			return AllRelations;
+		}
+
+		private static void GetRelationsRecursive(RelationsItem[] relationsItems, HashSet<RelationsItem> set)
+		{
+			foreach (var relation in relationsItems)
+			{
+				if (set.Contains(relation)) continue;
+				var vn = StaticHelpers.LocalDatabase.VisualNovels[relation.ID];
+				if (vn == null) continue;
+				set.Add(relation);
+				GetRelationsRecursive(vn.RelationsObject, set);
+			}
+		}
 		#region IDumpItem Implementation
 
 		public static Dictionary<string, int> Headers = new Dictionary<string, int>();

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -102,12 +103,10 @@ namespace Happy_Reader.View.Tabs
 		{
 			if (_viewModel.RelationsObject.Length > 0)
 			{
-				var set = new HashSet<RelationsItem>(RelationsItem.IDComparer);
-				GetRelationsRecursive(_viewModel.RelationsObject, set);
-				set.RemoveWhere(r => r.ID == _viewModel.VNID);
-				var titleString = set.Count == 1 ? "1 Relation" : $"{set.Count} Relations";
+				var allRelations = _viewModel.GetAllRelations();
+				var titleString = allRelations.Count == 1 ? "1 Relation" : $"{allRelations.Count} Relations";
 				var elementList = new List<object> { titleString, "--------------" };
-				foreach (var relation in set.OrderBy(c => c.ID))
+				foreach (var relation in allRelations.OrderBy(c => c.ID))
 				{
 					var tb = new TextBlock { Text = relation.Print2(), Tag = relation };
 					elementList.Add(tb);
@@ -183,7 +182,7 @@ namespace Happy_Reader.View.Tabs
 
 		private void ID_OnClick(object sender, RoutedEventArgs e)
 		{
-			System.Diagnostics.Process.Start($"https://vndb.org/v{_viewModel.VNID}");
+			Process.Start($"https://vndb.org/v{_viewModel.VNID}");
 		}
 
 		private async void ShowVNsForStaff(object sender, RoutedEventArgs e)
@@ -211,18 +210,5 @@ namespace Happy_Reader.View.Tabs
 			var vn = StaticHelpers.LocalDatabase.VisualNovels[relation.ID];
 			if (vn != null) _mainWindow.OpenVNPanel(vn);
 		}
-
-		private static void GetRelationsRecursive(RelationsItem[] relationsItems, HashSet<RelationsItem> set)
-		{
-			foreach (var relation in relationsItems)
-			{
-				if (set.Contains(relation)) continue;
-				var vn = StaticHelpers.LocalDatabase.VisualNovels[relation.ID];
-				if (vn == null) continue;
-				set.Add(relation);
-				GetRelationsRecursive(vn.RelationsObject, set);
-			}
-		}
-
 	}
 }

@@ -295,6 +295,14 @@ namespace Happy_Reader.ViewModel
 
 		public async Task<bool> ChangeVote(ListedVN vn, int? vote) => await Conn.ChangeVote(vn, vote);
 
+		public async Task ShowRelatedTitles(ListedVN vn)
+		{
+			var vnIds = vn.GetAllRelations().Select(v => v.ID).Concat(new [] {vn.VNID}).ToArray();
+			_dbFunction = new NamedFunction(db => db.VisualNovels.WithKeyIn(vnIds),
+				$"Related to {vn.Title}", true);
+			await RefreshListedVns();
+		}
+
 		public async Task ShowForProducer(string producerName)
 		{
 			var lowerName = producerName.ToLowerInvariant();
