@@ -168,7 +168,10 @@ namespace Happy_Reader
 
 		public void ReplacePreRomaji(StringBuilder sb)
 		{
-			foreach (var entry in _entries.Where(x => x.Type == EntryType.Name || x.Type == EntryType.Yomi || x.Type == EntryType.PreRomaji))
+			var entries = _entries.Where(x => x.Type == EntryType.Name || x.Type == EntryType.Yomi || x.Type == EntryType.PreRomaji).ToArray();
+			var usefulEntries = RemoveUnusedEntriesAndSetLocation(sb, entries);
+			MergeNeighbouringEntries(usefulEntries);
+			foreach (var entry in usefulEntries)
 			{
 				if (entry.Regex) LogReplaceRegex(sb, entry, null);
 				else LogReplace(sb, entry, null);
@@ -228,34 +231,45 @@ namespace Happy_Reader
 			proxies = BuildProxiesList(data, roles);
 			var entriesWithProxiesArray = _entries.Where(i => i.Type == EntryType.Name || i.Type == EntryType.Translation)
 				.OrderByDescending(x => x.Input.Length).ToArray();
-			var usefulEntriesWithProxies = entriesWithProxiesArray.OrderByDescending(x => x.Input.Length).ToList();
-			//remove unused entries
-			foreach (var entry in entriesWithProxiesArray)
+			var usefulEntriesWithProxies = RemoveUnusedEntriesAndSetLocation(sb, entriesWithProxiesArray);
+			if (usefulEntriesWithProxies.Count == 0) return usefulEntriesWithProxies;
+			RemoveSubEntries(usefulEntriesWithProxies);
+			MergeNeighbouringEntries(usefulEntriesWithProxies);
+			return usefulEntriesWithProxies;
+		}
+
+		private static List<Entry> RemoveUnusedEntriesAndSetLocation(StringBuilder sb, IList<Entry> entries)
+		{
+			var text = sb.ToString();
+			List<Entry> relevantEntries = entries.OrderByDescending(x => x.Input.Length).ToList();
+			foreach (var entry in entries)
 			{
 				int? location = null;
 				if (entry.Regex)
 				{
-					var match = GetRegex(entry.Input).Match(sb.ToString());
+					var match = GetRegex(entry.Input).Match(text);
 					if (match.Success) location = match.Index;
 				}
 				else
 				{
-					var indexOfEntry = sb.ToString().IndexOf(entry.Input, StringComparison.Ordinal);
+					var indexOfEntry = text.IndexOf(entry.Input, StringComparison.Ordinal);
 					if (indexOfEntry >= 0) location = indexOfEntry;
 				}
-				if (!location.HasValue) usefulEntriesWithProxies.Remove(entry);
+				//remove unused entries or set location
+				if (!location.HasValue) relevantEntries.Remove(entry);
 				else entry.Location = location.Value;
 			}
-			if (usefulEntriesWithProxies.Count == 0) return usefulEntriesWithProxies;
-			usefulEntriesWithProxies = usefulEntriesWithProxies.OrderBy(x => x.Location).ToList();
-			RemoveSubEntries(usefulEntriesWithProxies);
-			//merge entries that are together
+			return relevantEntries.OrderBy(x => x.Location).ToList();
+		}
+
+		private static void MergeNeighbouringEntries(IList<Entry> entries)
+		{
 			var entriesToRemove = new List<Entry>();
 			var entriesToAdd = new List<Entry>();
-			for (var index = 1; index < usefulEntriesWithProxies.Count; index++)
+			for (var index = 1; index < entries.Count; index++)
 			{
-				var previousEntry = usefulEntriesWithProxies[index - 1];
-				var entry = usefulEntriesWithProxies[index];
+				var previousEntry = entries[index - 1];
+				var entry = entries[index];
 				if (previousEntry.Location + previousEntry.Input.Length != entry.Location) continue;
 				//merge entries next to each other
 				var mergedEntry = new Entry
@@ -268,9 +282,8 @@ namespace Happy_Reader
 				entriesToRemove.Add(previousEntry);
 				entriesToRemove.Add(entry);
 			}
-			foreach (var entry in entriesToRemove) usefulEntriesWithProxies.Remove(entry);
-			foreach (var entry in entriesToAdd) usefulEntriesWithProxies.Add(entry);
-			return usefulEntriesWithProxies;
+			foreach (var entry in entriesToRemove) entries.Remove(entry);
+			foreach (var entry in entriesToAdd) entries.Add(entry);
 		}
 
 		/// <summary>
@@ -285,7 +298,7 @@ namespace Happy_Reader
 		/// Input string: おかあーさんとか、かあーさんとか
 		/// We don't remove the second entry because it stands on its own.
 		/// </example>
-		private static void RemoveSubEntries(List<Entry> entriesWithProxies)
+		private static void RemoveSubEntries(IList<Entry> entriesWithProxies)
 		{
 			foreach (var entry in entriesWithProxies.ToList())
 			{
@@ -384,7 +397,7 @@ namespace Happy_Reader
 				result[7] = ex.Message;
 				return result;
 			}
-			TranslateStageFive(sb,result);
+			TranslateStageFive(sb, result);
 			TranslateStageSix(sb, usefulEntriesWithProxies, result);
 			TranslateStageSeven(sb, result);
 			return result;

@@ -1,7 +1,6 @@
 ﻿vntile right click show related
 allow special characters through kakasi romaji, like ❤
 test tab: list entries used per stage.
-check no spaces between translated names in romaji
 allow changing direction of text in output window (down to up) and horizontal alignment
 
 add blacklistedproducers to user
