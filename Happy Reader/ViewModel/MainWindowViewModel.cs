@@ -453,7 +453,7 @@ namespace Happy_Reader.ViewModel
 
 		public void ClipboardChanged(object sender, EventArgs e)
 		{
-			if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl) || TranslatePaused) return;
+			if (TranslatePaused || CtrlKeyIsHeld()) return;
 			if (UserGame?.Process == null) return;
 			var cpOwner = StaticMethods.GetClipboardOwner();
 			var b1 = cpOwner == null;
@@ -461,12 +461,11 @@ namespace Happy_Reader.ViewModel
 			var b3 = cpOwner?.ProcessName.ToLower().Equals("ithvnr") ?? false;
 			var b4 = cpOwner?.ProcessName.ToLower().Equals("ithvnrsharp") ?? false;
 			if (!(b1 || b2 || b3 || b4)) return; //if process isn't hooked process or named ithvnr
-																					 //0x800401D0 = CLIPBRD_E_CANT_OPEN
 			var text = RunWithRetries(
 				Clipboard.GetText,
 				() => Thread.Sleep(10),
 				5,
-				(ex) => ex is COMException comEx && (uint)comEx.ErrorCode == 0x800401D0);
+				(ex) => ex is COMException comEx && (uint)comEx.ErrorCode == 0x800401D0); //0x800401D0 = CLIPBRD_E_CANT_OPEN
 			var timeSinceLast = DateTime.UtcNow - _lastUpdateTime;
 			if (timeSinceLast.TotalMilliseconds < 100 && _lastUpdateText == text) return;
 			Logger.Verbose($"Capturing clipboard from {cpOwner?.ProcessName ?? "??"}\t {DateTime.UtcNow:HH\\:mm\\:ss\\:fff}\ttimeSinceLast:{timeSinceLast.Milliseconds}\t{text}");
@@ -482,8 +481,7 @@ namespace Happy_Reader.ViewModel
 			try
 			{
 				if (TranslatePaused) return false;
-				Func<bool> blockTranslateFunc = () => Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl);
-				bool blockTranslate = DispatchIfRequired(blockTranslateFunc);
+				bool blockTranslate = DispatchIfRequired(CtrlKeyIsHeld);
 				if (blockTranslate) return false;
 				Logger.Verbose($"{nameof(RunTranslation)} - {e}");
 				if (UserGame.Process == null) return false;
@@ -537,7 +535,7 @@ namespace Happy_Reader.ViewModel
 				}
 				UserGame = userGame;
 				process ??= useLocaleEmulator ? UserGame.StartProcessThroughLocaleEmulator() :
-					UserGame.LaunchPath != null ? UserGame.StartProcessThroughProxy() :
+					!string.IsNullOrWhiteSpace(UserGame.LaunchPath) ? UserGame.StartProcessThroughProxy() :
 					UserGame.StartProcess(UserGame.FilePath, string.Empty, false);
 				//process can be closed at any point
 				try
@@ -613,5 +611,7 @@ namespace Happy_Reader.ViewModel
 				tile.VN.OnPropertyChanged(nameof(ListedVN.ImageSource));
 			}
 		}
+
+		private static bool CtrlKeyIsHeld() => Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl);
 	}
 }

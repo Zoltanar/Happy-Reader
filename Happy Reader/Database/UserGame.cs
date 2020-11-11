@@ -5,7 +5,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -169,33 +168,10 @@ namespace Happy_Reader.Database
 				PrefEncodingEnum = (EncodingEnum)index;
 			}
 		}
-		[NotMapped]
-		public string MonthGroupingString
-		{
-			[UsedImplicitly]
-			get
-			{
-				if (VN == null) return "Other";
-				var dt = VN.ReleaseDate;
-				var newDt = new DateTime(dt.Year, dt.Month, DateTime.DaysInMonth(dt.Year, dt.Month));
-				return string.Format(CultureInfo.InvariantCulture, "{0:MMMM} {0:yyyy}", newDt);
-			}
-		}
+
 		[NotMapped]
 		public string DisplayNameGroup => DisplayName.Substring(0, Math.Min(DisplayName.Length, 1));
 
-		[NotMapped]
-		public DateTime MonthGrouping
-		{
-			[UsedImplicitly]
-			get
-			{
-				if (VN == null) return DateTime.MinValue;
-				var dt = VN.ReleaseDate;
-				var newDt = new DateTime(dt.Year, dt.Month, DateTime.DaysInMonth(dt.Year, dt.Month));
-				return newDt;
-			}
-		}
 		[NotMapped]
 		public string TagSort => string.IsNullOrWhiteSpace(Tag) ? char.MaxValue.ToString() : Tag;
 

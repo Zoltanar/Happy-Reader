@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
+using Happy_Reader.View.Converters;
 using Happy_Reader.View.Tabs;
 using Happy_Reader.View.Tiles;
 using Happy_Reader.ViewModel;
@@ -103,7 +104,7 @@ namespace Happy_Reader.View
 			tabItem.Template = null;
 			MainTabControl.Items.Remove(tabItem);
 		}
-		
+
 		public void CreateAddEntriesTab(ICollection<Entry> entries)
 		{
 			var vnEntries = ViewModel.UserGameItems
@@ -112,7 +113,6 @@ namespace Happy_Reader.View
 				.Distinct()
 				.Where(i => i != null)
 				.ToArray();
-				;
 			var tabItem = new TabItem
 			{
 				Header = "Add Entries",
@@ -141,7 +141,7 @@ namespace Happy_Reader.View
 			{
 				Name = nameof(VNTab),
 				Content = new VNTab(vn, userGame),
-				DataContext = (object) userGame ?? vn
+				DataContext = (object)userGame ?? vn
 			};
 			var headerBinding =
 				new Binding(userGame != null ? nameof(UserGame.DisplayName) : nameof(ListedVN.Title))
@@ -182,11 +182,11 @@ namespace Happy_Reader.View
 		{
 			var headerTextBlock = new TextBlock
 			{
-				Text = (string) tabItem.Header,
+				Text = (string)tabItem.Header,
 				TextWrapping = TextWrapping.Wrap,
 				TextAlignment = TextAlignment.Center
 			};
-			if(headerBinding != null) headerTextBlock.SetBinding(TextBlock.TextProperty, headerBinding);
+			if (headerBinding != null) headerTextBlock.SetBinding(TextBlock.TextProperty, headerBinding);
 			var header = new Grid();
 			header.Children.Add(headerTextBlock);
 			tabItem.MouseDown += TabMiddleClick;
@@ -195,21 +195,22 @@ namespace Happy_Reader.View
 			MainTabControl.SelectedItem = tabItem;
 			tabItem.Focus();
 		}
-		
+
 		private void GroupByProducer(object sender, RoutedEventArgs e)
 		{
-			var groupProperty = $"{nameof(UserGame)}.{nameof(UserGame.VN)}.{nameof(ListedVN.Producer)}.{nameof(ListedProducer.Name)}";
+			var groupName = $"{nameof(UserGame)}.{nameof(UserGame.VN)}.{nameof(ListedVN.Producer)}.{nameof(ListedProducer.Name)}";
 			GroupUserGameItems(
-				new PropertyGroupDescription(groupProperty),
-				new SortDescription(groupProperty, ListSortDirection.Ascending),
+				new PropertyGroupDescription(groupName),
+				new SortDescription(groupName, ListSortDirection.Ascending),
 				new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.VN)}.{nameof(ListedVN.Title)}", ListSortDirection.Ascending));
 		}
 
-		private void GroupByMonth(object sender, RoutedEventArgs e)
+		private void GroupByReleaseMonth(object sender, RoutedEventArgs e)
 		{
+			var groupName = $@"{nameof(UserGame)}.{nameof(UserGame.VN)}.{nameof(ListedVN.ReleaseDate)}";
 			GroupUserGameItems(
-				new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.MonthGroupingString)}"),
-				new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.MonthGrouping)}", ListSortDirection.Descending));
+				new PropertyGroupDescription(groupName, new DateToMonthStringConverter()),
+				new SortDescription(groupName, ListSortDirection.Descending));
 		}
 
 		private void GroupByName(object sender, RoutedEventArgs e)
@@ -222,20 +223,18 @@ namespace Happy_Reader.View
 		private void GroupByLastPlayed(object sender, RoutedEventArgs e)
 		{
 			var groupName = $@"{nameof(UserGame)}.{nameof(UserGame.LastPlayedDate)}";
-			var groupDescription = new PropertyGroupDescription(groupName, new LastPlayedConverter());
 			GroupUserGameItems(
-				groupDescription,
-				new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.LastPlayedDate)}", ListSortDirection.Descending));
+				new PropertyGroupDescription(groupName, new LastPlayedConverter()),
+				new SortDescription(groupName, ListSortDirection.Descending));
 			ToggleLastGroups(groupName, 2, false);
 		}
 
 		private void GroupByTimePlayed(object sender, RoutedEventArgs e)
 		{
 			var groupName = $@"{nameof(UserGame)}.{nameof(UserGame.TimeOpen)}";
-			var groupDescription = new PropertyGroupDescription(groupName, new TimeOpenConverter());
 			GroupUserGameItems(
-				groupDescription,
-				new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.TimeOpen)}", ListSortDirection.Descending));
+				new PropertyGroupDescription(groupName, new TimeOpenConverter()),
+				new SortDescription(groupName, ListSortDirection.Descending));
 			ToggleLastGroups(groupName, 2, true);
 		}
 

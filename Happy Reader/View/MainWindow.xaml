@@ -47,7 +47,7 @@
 								<TextBlock>
 									<TextBlock.Text>
 										<MultiBinding StringFormat="{}{0} ({1} Items)">
-											<Binding Path="Name"/>
+											<Binding Path="Name" FallbackValue="Other"/>
 											<Binding Path="ItemCount" />
 										</MultiBinding>
 									</TextBlock.Text>
@@ -103,7 +103,7 @@
 						</Grid.ColumnDefinitions>
 						<Button Margin="2" Grid.Row="0" Grid.Column="0" Content="By Added" Click="GroupByAdded" />
 						<Button Margin="2" Grid.Row="1" Grid.Column="0" Content="By Producer" Click="GroupByProducer" />
-						<Button Margin="2" Grid.Row="0" Grid.Column="1" Content="By Month" Click="GroupByMonth" />
+						<Button Margin="2" Grid.Row="0" Grid.Column="1" Content="By Release Month" Click="GroupByReleaseMonth" />
 						<Button Margin="2" Grid.Row="1" Grid.Column="1" Content="By Name" Click="GroupByName" />
 						<Button Margin="2" Grid.Row="0" Grid.Column="2" Content="By Last Played"  Click="GroupByLastPlayed" />
 						<Button Margin="2" Grid.Row="1" Grid.Column="2" Content="By Time Played"  Click="GroupByTimePlayed" />

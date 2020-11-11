@@ -28,17 +28,21 @@ namespace Happy_Reader.Database
 			return Entries.Where(i => series.Contains(i.GameId.Value));
 		}
 
-		public int SaveChanges([CallerMemberName] string source = null)
+		public override int SaveChanges()
 		{
 			int result = base.SaveChanges();
-			Debug.WriteLine($"{System.DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.SaveChanges called by {source} - returned {result}");
+			var caller = new StackFrame(1).GetMethod();
+			var callerName = $"{caller.DeclaringType?.Name}.{caller.Name}";
+			Debug.WriteLine($"{System.DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.{nameof(SaveChanges)} called by {callerName} - returned {result}");
 			return result;
 		}
 
-		public async Task<int> SaveChangesAsync([CallerMemberName] string source = null)
+		public override async Task<int> SaveChangesAsync()
 		{
 			int result = await base.SaveChangesAsync();
-			Debug.WriteLine($"{System.DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.SaveChangesAsync called by {source} - returned {result}");
+			var caller = new StackFrame(1).GetMethod();
+			var callerName = $"{caller.DeclaringType?.Name}.{caller.Name}";
+			Debug.WriteLine($"{System.DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.{nameof(SaveChangesAsync)} called by {callerName} - returned {result}");
 			return result;
 		}
 	}
