@@ -29,7 +29,7 @@ namespace Happy_Reader.View
 		public MainWindow()
 		{
 			InitializeComponent();
-			ViewModel = new MainWindowViewModel(this);
+			ViewModel = new MainWindowViewModel();
 			DataContext = ViewModel;
 			CreateNotifyIcon();
 			ViewModel.NotificationEvent += ShowNotification;

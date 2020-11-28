@@ -33,7 +33,7 @@
 	<Separator/>
 		<MenuItem x:Name="ShowRelatedTitlesItem" Header="Show Related Titles" Click="ShowRelatedTitles" />
 		<MenuItem Header="Show Titles By Producer" Click="ShowTitlesByProducer" />
-		<MenuItem x:Name="AddProducerToFavoritesItem" Header="Add Producer to Favorites"/>
+		<MenuItem x:Name="AddProducerToFavoritesItem" Header="Add Producer to Favorites" Click="AddProducerToFavoritesItem_OnClick"/>
 		<Separator/>
 		<MenuItem Header="Browse to VNDB Page" Click="BrowseToVndbPage"/>
 		<MenuItem x:Name="ReleaseLinkItem" Header="Browse to Release Page" Click="BrowseToReleasePage"/>

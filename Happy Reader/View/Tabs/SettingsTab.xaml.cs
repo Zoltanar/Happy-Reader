@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Happy_Apps_Core;
 using Happy_Reader.ViewModel;
+using JetBrains.Annotations;
 using static Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Reader.View.Tabs
@@ -12,6 +15,9 @@ namespace Happy_Reader.View.Tabs
 		private SettingsViewModel ViewModel => DataContext as SettingsViewModel ?? throw new ArgumentNullException($"Expected view model to be of type {nameof(SettingsViewModel)}");
 
 		public SettingsTab() => InitializeComponent();
+		
+		// ReSharper disable once PossibleNullReferenceException
+		[NotNull] public MainWindowViewModel MainViewModel => (MainWindowViewModel)Window.GetWindow(this).DataContext;
 
 		private void SetClipboardSize(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
 		{
@@ -22,7 +28,7 @@ namespace Happy_Reader.View.Tabs
 		{
 			if (e.Key != Key.Enter) return;
 			var pwBox = (PasswordBox)sender;
-			StaticHelpers.SavePassword(pwBox.Password.ToCharArray());
+			SavePassword(pwBox.Password.ToCharArray());
 			LoginResponseBlock.Text = "Saved new password.";
 		}
 
@@ -35,10 +41,10 @@ namespace Happy_Reader.View.Tabs
 			LoginResponseBlock.Text = response;
 		}
 
-		private void OnNsfwToggle(object sender, System.Windows.RoutedEventArgs e)
+		private void OnNsfwToggle(object sender, RoutedEventArgs e)
 		{
 			//refresh images of active objects.
-			MainWindowViewModel.Instance.RefreshActiveObjectImages();
+			MainViewModel.RefreshActiveObjectImages();
 		}
 
 	}

@@ -11,16 +11,14 @@ namespace Happy_Reader.View
 	public partial class OutputWindow
 	{
 		private readonly GridLength _settingsColumnLength;
-		private readonly MainWindow _mainWindow;
 		private OutputWindowViewModel _viewModel;
 
 		public bool SettingsOn { get; set; }
 		public bool FullScreenOn { get; set; }
 
-		public OutputWindow(MainWindow mainWindow)
+		public OutputWindow()
 		{
 			InitializeComponent();
-			_mainWindow = mainWindow;
 			_settingsColumnLength = SettingsColumn.Width;
 			var tColor = ((SolidColorBrush) StaticMethods.TranslatorSettings.TranslationColor).Color;
 			var darkerColor = System.Windows.Media.Color.FromRgb((byte) (tColor.R * 0.75), (byte) (tColor.G * 0.75), (byte) (tColor.B * 0.75));
@@ -66,13 +64,12 @@ namespace Happy_Reader.View
 		private void OutputWindow_OnLoaded(object sender, RoutedEventArgs e)
 		{
 			_viewModel = (OutputWindowViewModel)DataContext;
-			_viewModel.Initialize(_mainWindow, OutputTextBox);
+			_viewModel.Initialize(() =>OutputTextBox.Selection.Text, OutputTextBox.Document);
 		}
 
 		private void ShowSettingsOnMouseHover(object sender, MouseEventArgs e)
 		{
 			if (SettingsOn) return;
-			// ReSharper disable once PossibleInvalidOperationException
 			SettingsColumn.Width = _settingsColumnLength;
 			SettingsButton.Visibility = Visibility.Hidden;
 		}
@@ -80,7 +77,6 @@ namespace Happy_Reader.View
 		private void HideSettingsOnMouseLeave(object sender, MouseEventArgs e)
 		{
 			if (SettingsOn) return;
-			// ReSharper disable once PossibleInvalidOperationException
 			SettingsColumn.Width = new GridLength(0);
 			SettingsButton.Visibility = Visibility.Visible;
 		}

@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Input;
 using Happy_Reader.Database;
 using Happy_Reader.ViewModel;
+using JetBrains.Annotations;
 
 namespace Happy_Reader.View.Tiles
 {
@@ -15,7 +16,10 @@ namespace Happy_Reader.View.Tiles
 		private bool _loaded;
 
 		public UserGame UserGame { get; }
-		
+
+		// ReSharper disable once PossibleNullReferenceException
+		[NotNull] public MainWindowViewModel MainViewModel => (MainWindowViewModel)Window.GetWindow(this).DataContext;
+
 		private VnMenuItem VnMenu => _vnMenu ??= new VnMenuItem(UserGame?.VN);
 
 		public UserGameTile()
@@ -55,7 +59,7 @@ namespace Happy_Reader.View.Tiles
 			var result = MessageBox.Show($"Are you sure you want to remove {UserGame.DisplayName}?", "Confirm", MessageBoxButton.YesNo);
 			if (result == MessageBoxResult.Yes)
 			{
-				MainWindowViewModel.Instance.RemoveUserGame(this);
+				MainViewModel.RemoveUserGame(this);
 			}
 		}
 
@@ -70,19 +74,13 @@ namespace Happy_Reader.View.Tiles
 			UserGame.MergeTimePlayed(additionalTimePlayed);
 			foreach (var mergeTarget in mergeWindow.MergeResults)
 			{
-				MainWindowViewModel.Instance.RemoveUserGame(mergeTarget.UserGame);
+				MainViewModel.RemoveUserGame(mergeTarget.UserGame);
 			}
 		}
 
-		private void LaunchProcessClick(object sender, RoutedEventArgs e)
-		{
-			MainWindowViewModel.Instance.HookUserGame(UserGame, null, false);
-		}
+		private void LaunchProcessClick(object sender, RoutedEventArgs e) => MainViewModel.HookUserGame(UserGame, null, false);
 
-		private void LaunchWithLeJapan(object sender, RoutedEventArgs e)
-		{
-			MainWindowViewModel.Instance.HookUserGame(UserGame, null, true);
-		}
+		private void LaunchWithLeJapan(object sender, RoutedEventArgs e) => MainViewModel.HookUserGame(UserGame, null, true);
 
 		private void ResetTimePlayed(object sender, RoutedEventArgs e)
 		{

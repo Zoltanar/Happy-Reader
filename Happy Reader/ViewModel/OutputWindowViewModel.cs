@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Windows.Controls;
+using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
 using Happy_Reader.Database;
@@ -19,11 +19,12 @@ namespace Happy_Reader.ViewModel
 		private bool _romajiOn = true;
 		private int _translationCounter;
 		private DateTime _lastTranslated;
+		private Func<string> _getSelectedText;
+		private FlowDocument _flowDocument;
 		private readonly RecentItemList<Translation> _translations = new RecentItemList<Translation>(10);
 
-		public RichTextBox TextArea { get; set; }
-		public MainWindow MainWindow { get; set; }
-		public MainWindowViewModel MainViewModel { get; set; }
+		private MainWindow MainWindow => (MainWindow) Application.Current.MainWindow;
+		private MainWindowViewModel MainViewModel => (MainWindowViewModel) MainWindow.DataContext;
 		public string IdText { get; set; }
 		public bool TranslatePaused
 		{
@@ -61,30 +62,30 @@ namespace Happy_Reader.ViewModel
 
 		private void AskJisho()
 		{
-			var input = TextArea.Selection.Text;
+			var input =  _getSelectedText();
 			Process.Start($"http://jisho.org/search/{input}");
 		}
 
 		private void AskJishoNotification()
 		{
-			var input = TextArea.Selection.Text;
+			var input = _getSelectedText();
 			var task = System.Threading.Tasks.Task.Run(async () => await Jisho.Search(input));
 			task.Wait();
 			var text = task.Result.Data.Length < 1 ? "No results found." : task.Result.Data[0].Results();
 			NotificationWindow.Launch("Ask Jisho", text);
 		}
 
-		public void Initialize(MainWindow mainWindow, RichTextBox outputTextBox)
+		public void Initialize(Func<string> getSelectedText, FlowDocument flowDocument)
 		{
-			TextArea = outputTextBox;
-			MainWindow = mainWindow;
-			MainViewModel = (MainWindowViewModel)mainWindow.DataContext;
+			_getSelectedText = getSelectedText;
+			_flowDocument = flowDocument;
 			OnPropertyChanged(nameof(TranslatePaused));
 		}
 
+
 		private void AddEntry()
 		{
-			var input = TextArea.Selection.Text;
+			var input = _getSelectedText();
 			var output = Kakasi.JapaneseToRomaji(input);
 			if (output.Length > 0) output = char.ToUpper(output[0]) + output.Substring(1);
 			var entry = new Entry
@@ -97,16 +98,9 @@ namespace Happy_Reader.ViewModel
 			};
 			MainWindow.CreateAddEntriesTab(new List<Entry> { entry });
 		}
-
-		private FlowDocument _flowDocument;
-
+		
 		public void UpdateOutput()
 		{
-			if (_flowDocument == null)
-			{
-				_flowDocument = new FlowDocument();
-				TextArea.Document = _flowDocument;
-			}
 			_flowDocument.Blocks.Clear();
 			_flowDocument.Blocks.AddRange(_translations.Items.SelectMany(x => x.GetBlocks(_originalOn, _romajiOn)));
 			IdText = $"TL Count: {_translationCounter}";
@@ -117,7 +111,6 @@ namespace Happy_Reader.ViewModel
 		{
 			var last = _translations.Items.Count == 0 ? null : _translations.Items[0];
 			var timeSinceLast = (DateTime.UtcNow - _lastTranslated).TotalMilliseconds;
-			//if(last != null) System.Diagnostics.Debug.WriteLine($"Milliseconds since last TL= {timeSinceLast.TotalMilliseconds}, last.IsCharacterOnly={last.IsCharacterOnly}, translation.IsCharacterOnly={translation.IsCharacterOnly}");
 			if (last != null && (
 				(timeSinceLast < 1000 && last.IsCharacterOnly && !translation.IsCharacterOnly)
 				|| timeSinceLast < 100))

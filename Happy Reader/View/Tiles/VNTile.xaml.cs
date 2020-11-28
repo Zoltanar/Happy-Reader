@@ -33,5 +33,12 @@ namespace Happy_Reader.View.Tiles
 			VnMenu.TransferItems(VnMenuParent);
 			_loaded = true;
 		}
+
+		public void UpdateImageBinding()
+		{
+			var bindingExpression = CoverBox.GetBindingExpression(Image.SourceProperty);
+			System.Diagnostics.Debug.Assert(bindingExpression != null, nameof(bindingExpression) + " != null");
+			bindingExpression.UpdateTarget();
+		}
 	}
 }

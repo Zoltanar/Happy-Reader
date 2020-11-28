@@ -321,7 +321,7 @@ namespace Happy_Apps_Core.Database
 		public void OnPropertyChanged([CallerMemberName] string propertyName = null)
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-			if (propertyName == null) Producer.OnPropertyChanged(null);
+			if (propertyName == null) Producer?.OnPropertyChanged(null);
 		}
 
 		public void SetRelations(string relationsString, RelationsItem[] relationsObject)

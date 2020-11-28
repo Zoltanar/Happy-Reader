@@ -30,18 +30,6 @@ namespace Happy_Reader.ViewModel
 	public class MainWindowViewModel : INotifyPropertyChanged
 	{
 		private static readonly object HookLock = new object();
-		private static MainWindowViewModel _instance;
-		[NotNull]
-		public static MainWindowViewModel Instance
-		{
-			get => _instance ?? throw new ArgumentNullException(nameof(_instance), "Should not be null");
-			set
-			{
-				if (_instance != null) throw new InvalidOperationException("Instance was already set.");
-				_instance = value;
-			}
-
-		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
 		public StaticMethods.NotificationEventHandler NotificationEvent;
@@ -150,15 +138,8 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 
-		/// <summary>
-		/// Used by XAML.
-		/// </summary>
-		[UsedImplicitly]
-		public MainWindowViewModel() { }
-
-		public MainWindowViewModel(MainWindow mainWindow)
+		public MainWindowViewModel()
 		{
-			Instance = this;
 			Application.Current.Exit += ExitProcedures;
 			SettingsViewModel = new SettingsViewModel(CSettings, StaticMethods.GuiSettings, StaticMethods.TranslatorSettings);
 			ApiLogViewModel = new ApiLogViewModel
@@ -175,7 +156,7 @@ namespace Happy_Reader.ViewModel
 			CharactersViewModel = new CharactersTabViewModel();
 			ProducersViewModel = new ProducersTabViewModel(this);
 			IthViewModel = new IthViewModel(this);
-			OutputWindow = new OutputWindow(mainWindow);
+			OutputWindow = new OutputWindow();
 			Log.AddToList += AddLogToList;
 		}
 
@@ -235,7 +216,7 @@ namespace Happy_Reader.ViewModel
 			CaptureClipboard = SettingsViewModel.TranslatorSettings.CaptureClipboardOnStart;
 			await Task.Run(() =>
 			{
-				StatusText = "Loading Dumpfiles...";
+				StatusText = "Loading data from dump files...";
 				DumpFiles.Load();
 			});
 			await DatabaseViewModel.Initialize();
@@ -608,7 +589,7 @@ namespace Happy_Reader.ViewModel
 			}
 			foreach (var tile in DatabaseViewModel.ListedVNs)
 			{
-				tile.VN.OnPropertyChanged(nameof(ListedVN.ImageSource));
+				tile.UpdateImageBinding();
 			}
 		}
 

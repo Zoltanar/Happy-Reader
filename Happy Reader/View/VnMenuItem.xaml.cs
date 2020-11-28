@@ -225,5 +225,15 @@ namespace Happy_Reader.View
 			}
 			return entries;
 		}
+
+		private void AddProducerToFavoritesItem_OnClick(object sender, RoutedEventArgs e)
+		{
+			StaticHelpers.LocalDatabase.UserProducers.Add(new UserListedProducer
+			{
+				ListedProducer_Id = VN.ProducerID.Value,
+				User_Id = StaticHelpers.LocalDatabase.CurrentUser.Id
+			}, true, true);
+			VN.Producer.SetFavoriteProducerData(StaticHelpers.LocalDatabase);
+		}
 	}
 }
