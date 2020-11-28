@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -14,7 +13,6 @@ namespace Happy_Reader
 		private static KakasiLib _kakasiJtr;
 		private static AppDomain _kakasiAppDomainJtr;
 		private static AppDomain _kakasiAppDomainJtk;
-		private static int _counter;
 
 		private static readonly string KakasiAssembly;
 
@@ -58,7 +56,6 @@ namespace Happy_Reader
 			int tries = 0;
 			while (tries < 5)
 			{
-				HandleCounter();
 				try
 				{
 					tries++;
@@ -85,7 +82,6 @@ namespace Happy_Reader
 			int tries = 0;
 			while (tries < 5)
 			{
-				HandleCounter();
 				try
 				{
 					tries++;
@@ -106,15 +102,6 @@ namespace Happy_Reader
 			sb.Clear();
 			if (result != null) sb.Append(result);
 		}
-
-		[Conditional("LOGVERBOSE")]
-		private static void HandleCounter()
-		{
-			_counter++;
-			if (_counter % 50 == 0) Debug.WriteLine($"Kakasi counter at {_counter}");
-		}
-
-
 	}
 
 }

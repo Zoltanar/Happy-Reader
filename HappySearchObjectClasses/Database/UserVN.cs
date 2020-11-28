@@ -13,6 +13,8 @@ namespace Happy_Apps_Core.Database
 	/// </summary>
 	public sealed class UserVN : IDataItem<(int, int)>
 	{
+		private readonly LabelKind[] _labelsToExcludeFromPriority = { LabelKind.Wishlist, LabelKind.Voted };
+
 		public int VNID { get; set; }
 
 		public int UserId { get; set; }
@@ -29,6 +31,9 @@ namespace Happy_Apps_Core.Database
 
 		[NotMapped]
 		public bool Blacklisted => Labels?.Any(b => b == LabelKind.Blacklist) ?? false;
+
+		[NotMapped]
+		public LabelKind PriorityLabel => Labels.FirstOrDefault(i => !_labelsToExcludeFromPriority.Contains(i));
 
 		public enum LabelKind
 		{
@@ -47,7 +52,7 @@ namespace Happy_Apps_Core.Database
 			WishlistLow = 12,
 			Owned = 13,
 		}
-
+		
 		#region IDataItem implementation
 
 		string IDataItem<(int, int)>.KeyField => "(UserId,VNID)";

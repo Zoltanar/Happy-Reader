@@ -53,11 +53,6 @@ namespace Happy_Reader.View.Tabs
 			_mainWindow.OpenVNPanel(StaticHelpers.LocalDatabase.VisualNovels[ch.CharacterVN.VNId]);
 		}
 		
-		private async void ShowSuggested(object sender, RoutedEventArgs e)
-		{
-			await ViewModel.ShowSuggested();
-		}
-
 		private async void ShowFiltered(object sender, RoutedEventArgs e)
 		{
 			await ViewModel.ShowFiltered();

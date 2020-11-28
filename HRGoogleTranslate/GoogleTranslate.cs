@@ -25,9 +25,8 @@ namespace HRGoogleTranslate
 		private const string TranslateFreeUrl = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=en&dt=t&q=";
 		private static Dictionary<string, GoogleTranslation> _cache = new Dictionary<string, GoogleTranslation>();
 		private static readonly HashSet<string> UntouchedStrings = new HashSet<string>();
-
 		private static bool _noApiTranslation;
-
+		private static bool _logVerbose;
 		private static string _googleCredentialPath;
 		private static bool _canUseGoogleCredential;
 		private static TranslationClient _client;
@@ -44,8 +43,10 @@ namespace HRGoogleTranslate
 			string credentialLocation,
 			string userAgentString,
 			HashSet<string> untouchedStrings,
-			bool noApiTranslation)
+			bool noApiTranslation,
+			bool logVerbose)
 		{
+			_logVerbose = logVerbose;
 			_japaneseToRomaji = japaneseToRomaji;
 			_linkedCache = inputCache;
 			_cache = existingCache;
@@ -233,8 +234,11 @@ namespace HRGoogleTranslate
 
 		}
 
-		[Conditional("LOGVERBOSE")]
-		private static void LogVerbose(string text) => Debug.WriteLine(text);
+		private static void LogVerbose(string text)
+		{
+			if (!_logVerbose) return;
+			Debug.WriteLine(text);
+		}
 
 		/// <summary>
 		/// Character is between points \u3040 and \u309f

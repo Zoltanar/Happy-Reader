@@ -62,7 +62,8 @@ namespace Happy_Reader.View
 			var noHook = commandLineArgs.Contains("-nh");
 			var noEntries = commandLineArgs.Contains("-ne");
 			var noTranslation = commandLineArgs.Contains("-nt");
-			await ViewModel.Initialize(watch, GroupByAdded, !noHook, !noEntries, noTranslation);
+			var logVerbose = commandLineArgs.Contains("-lv");
+			await ViewModel.Initialize(watch, GroupByAdded, !noHook, !noEntries, noTranslation, logVerbose);
 		}
 
 		private void DropFileOnGamesTab(object sender, DragEventArgs e)
@@ -203,6 +204,7 @@ namespace Happy_Reader.View
 				new PropertyGroupDescription(groupName),
 				new SortDescription(groupName, ListSortDirection.Ascending),
 				new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.VN)}.{nameof(ListedVN.Title)}", ListSortDirection.Ascending));
+			ToggleUserGameGroups(groupName,1,false,true);
 		}
 
 		private void GroupByReleaseMonth(object sender, RoutedEventArgs e)
@@ -226,7 +228,7 @@ namespace Happy_Reader.View
 			GroupUserGameItems(
 				new PropertyGroupDescription(groupName, new LastPlayedConverter()),
 				new SortDescription(groupName, ListSortDirection.Descending));
-			ToggleLastGroups(groupName, 2, false);
+			ToggleUserGameGroups(groupName, 2, false, false);
 		}
 
 		private void GroupByTimePlayed(object sender, RoutedEventArgs e)
@@ -235,7 +237,7 @@ namespace Happy_Reader.View
 			GroupUserGameItems(
 				new PropertyGroupDescription(groupName, new TimeOpenConverter()),
 				new SortDescription(groupName, ListSortDirection.Descending));
-			ToggleLastGroups(groupName, 2, true);
+			ToggleUserGameGroups(groupName, 2, true, false);
 		}
 
 		private void GroupByAdded(object sender, RoutedEventArgs e)
@@ -254,8 +256,19 @@ namespace Happy_Reader.View
 			new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayName)}", ListSortDirection.Ascending));
 		}
 
+		private void GroupByVnLabel(object sender, RoutedEventArgs e)
+		{
+			var groupName = $"{nameof(UserGame)}.{nameof(UserGame.VN)}.{nameof(ListedVN.UserVN)}.{nameof(UserVN.PriorityLabel)}";
+			var groupDescription = new PropertyGroupDescription(groupName, new UserVnToLabelConverter());
+			GroupUserGameItems(
+				groupDescription,
+				new SortDescription(groupName, ListSortDirection.Ascending),
+				new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayName)}", ListSortDirection.Ascending));
+			ToggleUserGameGroups(groupName, 2, true, true);
+		}
 		private void GroupUserGameItems(GroupDescription groupDescription, params SortDescription[] sortDescriptions)
 		{
+			if (ViewModel == null) return;
 			var view = CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
 			Debug.Assert(view.GroupDescriptions != null, "view.GroupDescriptions != null");
 			view.GroupDescriptions.Clear();
@@ -267,7 +280,7 @@ namespace Happy_Reader.View
 			}
 		}
 
-		private void ToggleLastGroups(string groupName, int count, bool expanded)
+		private void ToggleUserGameGroups(string groupName, int count, bool expanded, bool fromStart)
 		{
 			Dispatcher.Invoke(() =>
 			{
@@ -277,7 +290,7 @@ namespace Happy_Reader.View
 				var expanders = StaticMethods.GetVisualChildren<Expander>(GameFiles);
 				for (int index = 0; index < expanders.Count; index++)
 				{
-					expanders[index].IsExpanded = index >= expanders.Count - count == expanded;
+					expanders[index].IsExpanded = (fromStart ? index >= count != expanded : index >=  expanders.Count - count == expanded);
 				}
 			}, DispatcherPriority.ContextIdle);
 		}

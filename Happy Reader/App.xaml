@@ -4,6 +4,7 @@
              xmlns:happyReader="clr-namespace:Happy_Reader"
              xmlns:system="clr-namespace:System;assembly=mscorlib"
              xmlns:view="clr-namespace:Happy_Reader.View"
+             xmlns:converters="clr-namespace:Happy_Reader.View.Converters"
              StartupUri="View/MainWindow.xaml" 
              ShutdownMode="OnMainWindowClose">
 	<Application.Resources>
@@ -20,8 +21,8 @@
 		<view:OwnedStatusToTextConverter x:Key="OwnedStatusToTextConverter" />
 		<view:DateToWeightConverter x:Key="DateToWeightConverter" />
 		<view:DateToBrushConverter x:Key="DateToBrushConverter" />
-		<view:UserVnToBackgroundConverter x:Key="UserVnToBackgroundConverter" />
-		<view:UserVnToForegroundConverter x:Key="UserVnToForegroundConverter" />
+		<converters:UserVnToBackgroundConverter x:Key="UserVnToBackgroundConverter" />
+		<converters:UserVnToForegroundConverter x:Key="UserVnToForegroundConverter" />
 		<view:VnToProducerForegroundConverter x:Key="VnToProducerForegroundConverter" />
 		<view:StringToNullableIntConverter x:Key="StringToNullableIntConverter" />
 		<view:VnOrScreenToImagePathConverter x:Key="VnOrScreenToImagePathConverter"/>
@@ -70,5 +71,4 @@
 			<Setter Property="Background" Value="MediumPurple"/>
 		</Style>
 	</Application.Resources>
-
 </Application>

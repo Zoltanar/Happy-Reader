@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -32,7 +31,7 @@ namespace Happy_Reader.View.Tabs
 			LoginResponseBlock.Text = "Saved new password.";
 		}
 
-		private void LogInWithDetails(object sender, System.Windows.RoutedEventArgs e)
+		private void LogInWithDetails(object sender, RoutedEventArgs e)
 		{
 			var password = LoadPassword();
 			var response = Conn.Login(password != null

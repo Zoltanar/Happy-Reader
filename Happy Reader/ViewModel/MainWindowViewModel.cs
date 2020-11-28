@@ -24,6 +24,7 @@ using Happy_Reader.View.Tiles;
 using HRGoogleTranslate;
 using IthVnrSharpLib;
 using static Happy_Apps_Core.StaticHelpers;
+using StaticHelpers = Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Reader.ViewModel
 {
@@ -211,8 +212,9 @@ namespace Happy_Reader.ViewModel
 			return new UserGameTile(userGame);
 		}
 
-		public async Task Initialize(Stopwatch watch, RoutedEventHandler defaultUserGameGrouping, bool initialiseIthVnr, bool initialiseEntries, bool noApiTranslation)
+		public async Task Initialize(Stopwatch watch, RoutedEventHandler defaultUserGameGrouping, bool initialiseIthVnr, bool initialiseEntries, bool noApiTranslation, bool logVerbose)
 		{
+			StaticHelpers.Logger.LogVerbose = logVerbose;
 			CaptureClipboard = SettingsViewModel.TranslatorSettings.CaptureClipboardOnStart;
 			await Task.Run(() =>
 			{
@@ -228,7 +230,7 @@ namespace Happy_Reader.ViewModel
 				await Task.Run(() =>
 				{
 					var cacheLoadWatch = Stopwatch.StartNew();
-					Translator.SetCache(noApiTranslation);
+					Translator.SetCache(noApiTranslation, logVerbose);
 					Debug.WriteLine($"Loaded cached translations in {cacheLoadWatch.ElapsedMilliseconds} ms");
 				});
 				StatusText = "Populating Proxies...";

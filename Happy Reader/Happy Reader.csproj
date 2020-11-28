@@ -154,6 +154,7 @@
     <Compile Include="ViewModel\SettingsViewModel.cs" />
     <Compile Include="View\Converters.cs" />
     <Compile Include="View\Converters\DateToMonthStringConverter.cs" />
+    <Compile Include="View\Converters\UserVnConverters.cs" />
     <Compile Include="View\InputWindow.xaml.cs">
       <DependentUpon>InputWindow.xaml</DependentUpon>
     </Compile>

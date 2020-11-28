@@ -10,13 +10,11 @@ namespace Happy_Reader.View.Tabs
 	{
 		private EntriesTabViewModel ViewModel => (EntriesTabViewModel)DataContext;
 
-		public EntriesTab()
-		{
-			InitializeComponent();
-		}
+		public EntriesTab() => InitializeComponent();
 
 		private void AddEntries_Click(object sender, RoutedEventArgs e) 
 			=> ((MainWindow)Application.Current.MainWindow).CreateAddEntriesTab(Array.Empty<Entry>());
+
 		private void ClickDeleteButton(object sender, RoutedEventArgs e)
 		{
 			var button = (Button)sender;

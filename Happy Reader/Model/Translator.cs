@@ -17,12 +17,6 @@ namespace Happy_Reader
 	{
 		//TODO add regex to all stages
 
-		const bool LogVerbose =
-#if LOGVERBOSE
-			true
-#else
-			false;
-#endif
 		private static readonly object TranslateLock = new object();
 		private static readonly char[] Separators = "『「」』…".ToCharArray();
 		private static readonly char[] InclusiveSeparators = "。？".ToCharArray();
@@ -36,12 +30,14 @@ namespace Happy_Reader
 		private User _lastUser;
 		private ListedVN _lastGame;
 		private Entry[] _entries;
+		private bool _logVerbose;
 		public bool RefreshEntries = true;
 
 		public Translator(HappyReaderDatabase data) => _data = data;
 
-		public void SetCache(bool noApiTranslation)
+		public void SetCache(bool noApiTranslation, bool logVerbose)
 		{
+			_logVerbose = logVerbose;
 			var cachedTranslations = _data.CachedTranslations.Local;
 			GoogleTranslate.Initialize(
 				cachedTranslations.ToDictionary(x => x.Input),
@@ -50,7 +46,8 @@ namespace Happy_Reader
 				StaticMethods.TranslatorSettings.GoogleCredentialPath,
 				StaticMethods.TranslatorSettings.FreeUserAgent,
 				StaticMethods.TranslatorSettings.UntouchedStrings,
-				noApiTranslation);
+				noApiTranslation,
+				logVerbose);
 		}
 
 		public Translation Translate(User user, ListedVN game, string input, bool saveEntriesUsed)
@@ -415,7 +412,7 @@ namespace Happy_Reader
 		/// <summary>
 		/// Replace Name and Translation proxies to entry outputs.
 		/// </summary>
-		private static void TranslateStageSix(StringBuilder sb, IEnumerable<Entry> usefulEntriesWithProxies, TranslationResults result)
+		private void TranslateStageSix(StringBuilder sb, IEnumerable<Entry> usefulEntriesWithProxies, TranslationResults result)
 		{
 			result.SetStage(6);
 			foreach (var entry in usefulEntriesWithProxies)
@@ -468,38 +465,38 @@ namespace Happy_Reader
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static void LogReplace(StringBuilder sb, string input, string output, TranslationResults result, Entry entry)
+		private void LogReplace(StringBuilder sb, string input, string output, TranslationResults result, Entry entry)
 		{
-			if (LogVerbose || (result != null && result.SaveEntries && entry != null))
+			if (_logVerbose || (result != null && result.SaveEntries && entry != null))
 			{
 				var sbOriginal = sb.ToString();
 				sb.Replace(input, output);
 				var sbReplaced = sb.ToString();
 				if (sbOriginal == sbReplaced) return;
-				if (LogVerbose) Debug.WriteLine($"Replace happened - Id {(entry != null ? entry.Id.ToString() : "N/A")}: '{input}' > '{output}'");
+				if (_logVerbose) Debug.WriteLine($"Replace happened - Id {(entry != null ? entry.Id.ToString() : "N/A")}: '{input}' > '{output}'");
 				if (result.SaveEntries) result.AddEntryUsed(entry);
 			}
 			else sb.Replace(input, output);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static void LogReplace(StringBuilder sb, Entry entry, TranslationResults result)
+		private void LogReplace(StringBuilder sb, Entry entry, TranslationResults result)
 		{
 			LogReplace(sb, entry.Input, entry.Output, result, entry);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static void LogReplaceRegex(StringBuilder sb, string regexInput, string output, TranslationResults result, Entry entry)
+		private void LogReplaceRegex(StringBuilder sb, string regexInput, string output, TranslationResults result, Entry entry)
 		{
 			string replaced;
 			var rgx = GetRegex(regexInput);
-			if (LogVerbose || (result != null && result.SaveEntries && entry != null))
+			if (_logVerbose || (result != null && result.SaveEntries && entry != null))
 			{
 				var sbOriginal = sb.ToString();
 				replaced = rgx.Replace(sbOriginal, output);
 				if (sbOriginal != replaced)
 				{
-					if (LogVerbose) Debug.WriteLine($"Replace happened - Id {(entry != null ? entry.Id.ToString() : "N/A")} '{regexInput}' > '{output}'");
+					if (_logVerbose) Debug.WriteLine($"Replace happened - Id {(entry != null ? entry.Id.ToString() : "N/A")} '{regexInput}' > '{output}'");
 					if (result.SaveEntries) result.AddEntryUsed(entry);
 				}
 			}
@@ -509,7 +506,7 @@ namespace Happy_Reader
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static void LogReplaceRegex(StringBuilder sb, Entry entry, TranslationResults result)
+		private void LogReplaceRegex(StringBuilder sb, Entry entry, TranslationResults result)
 		{
 			LogReplaceRegex(sb, entry.Input, entry.Output, result, entry);
 		}

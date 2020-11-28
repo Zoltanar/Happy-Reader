@@ -10,7 +10,28 @@ namespace Happy_Apps_Core
 	{
 		private readonly string _logFolder;
 		private readonly int _creatingProcessId;
+		private static DateTime? _previousLogTime;
+		
+		public bool LogVerbose { get; set; }
 
+		private static string TimeString
+		{
+			get
+			{
+				var dt = DateTime.Now;
+				var timePassedString = string.Empty;
+				if (_previousLogTime.HasValue)
+				{
+					var timePassed = dt - _previousLogTime.Value;
+					var ts = timePassed.TotalSeconds < 10 ? $"{(int)timePassed.TotalMilliseconds:D0} ms" : $"{(int)timePassed.TotalSeconds:D0} s ";
+					timePassedString = $" ({ts,7})";
+				}
+				_previousLogTime = dt;
+				var timeString = $"[{dt,-12:hh:mm:ss:fff}{timePassedString}] ";
+				return timeString;
+			}
+		}
+		
 		public MultiLogger(string logFolder)
 		{
 			Directory.CreateDirectory(logFolder);
@@ -19,9 +40,9 @@ namespace Happy_Apps_Core
 			_creatingProcessId = process.Id;
 		}
 
-		[Conditional("LOGVERBOSE")]
 		public void Verbose(string text)
 		{
+			if (!LogVerbose) return;
 			Debug.WriteLine(TimeString + text);
 		}
 
@@ -64,26 +85,6 @@ namespace Happy_Apps_Core
 				Console.WriteLine(messageWithTime);
 				//Debug.WriteLine(messageWithTime);
 				writer.WriteLine(messageWithTime);
-			}
-		}
-
-		private static DateTime? _previousLogTime;
-
-		private static string TimeString
-		{
-			get
-			{
-				var dt = DateTime.Now;
-				var timePassedString = string.Empty;
-				if (_previousLogTime.HasValue)
-				{
-					var timePassed = dt - _previousLogTime.Value;
-					var ts = timePassed.TotalSeconds < 10 ? $"{(int)timePassed.TotalMilliseconds:D0} ms" : $"{(int)timePassed.TotalSeconds:D0} s ";
-					timePassedString = $" ({ts,7})";
-				}
-				_previousLogTime = dt;
-				var timeString = $"[{dt,-12:hh:mm:ss:fff}{timePassedString}] ";
-				return timeString;
 			}
 		}
 

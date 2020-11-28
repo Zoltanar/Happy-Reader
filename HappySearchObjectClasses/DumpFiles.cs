@@ -15,7 +15,7 @@ namespace Happy_Apps_Core
 		private static readonly string TraitsJsonGz = Path.Combine(StoredDataFolder, "traits.json.gz");
 		private static readonly string TagsJson = Path.Combine(StoredDataFolder, "tags.json");
 		private static readonly string TraitsJson = Path.Combine(StoredDataFolder, "traits.json");
-		public static readonly int[] RootTraitIds = Enum.GetValues(typeof(DumpFiles.RootTrait)).Cast<int>().ToArray();
+		public static readonly int[] RootTraitIds = Enum.GetValues(typeof(RootTrait)).Cast<int>().ToArray();
 
 		public static bool Loaded { get; private set; }
 

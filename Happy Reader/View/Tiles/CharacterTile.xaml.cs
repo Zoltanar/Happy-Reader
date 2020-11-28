@@ -11,6 +11,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
+using Happy_Reader.View.Converters;
 using Happy_Reader.View.Tabs;
 using Happy_Reader.ViewModel;
 using JetBrains.Annotations;

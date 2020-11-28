@@ -367,7 +367,7 @@ namespace Happy_Apps_Core.Database
 		#region IDumpItem Implementation
 
 		public static Dictionary<string, int> Headers = new Dictionary<string, int>();
-
+		
 		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
 
 		public void SetDumpHeaders(string[] parts)

@@ -42,7 +42,7 @@
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type GroupItem}">
 						<Expander IsExpanded="True">
-							<d:Expander.DataContext><CollectionViewGroup/></d:Expander.DataContext>
+							<!--<d:Expander.DataContext><CollectionViewGroup/></d:Expander.DataContext>-->
 							<Expander.Header>
 								<TextBlock>
 									<TextBlock.Text>
@@ -72,7 +72,7 @@
 		<TabControl Grid.Row="0" x:Name="MainTabControl" Padding="0" TabStripPlacement="Left">
 			<TabItem Header="Games" >
 				<Grid Background="#FFC9E1F5" AllowDrop="True" Drop="DropFileOnGamesTab">
-					<ListBox x:Name="GameFiles"  Margin="10,10,10,53" ItemsSource="{Binding UserGameItems}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+					<ListBox x:Name="GameFiles"  Margin="10,10,10,30" ItemsSource="{Binding UserGameItems}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 						<ListBox.GroupStyle>
 							<GroupStyle x:Name="UserGamesGroupStyle"  ContainerStyle="{StaticResource ContainerStyle}">
 							</GroupStyle>
@@ -89,11 +89,7 @@
 							</Style>
 						</ListBox.ItemContainerStyle>
 					</ListBox>
-					<Grid Height="53" VerticalAlignment="Bottom">
-						<Grid.RowDefinitions>
-							<RowDefinition/>
-							<RowDefinition/>
-						</Grid.RowDefinitions>
+					<Grid Margin="10,10,10,2" Height="23" VerticalAlignment="Bottom">
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition/>
 							<ColumnDefinition/>
@@ -101,16 +97,19 @@
 							<ColumnDefinition/>
 							<ColumnDefinition/>
 						</Grid.ColumnDefinitions>
-						<Button Margin="2" Grid.Row="0" Grid.Column="0" Content="By Added" Click="GroupByAdded" />
-						<Button Margin="2" Grid.Row="1" Grid.Column="0" Content="By Producer" Click="GroupByProducer" />
-						<Button Margin="2" Grid.Row="0" Grid.Column="1" Content="By Release Month" Click="GroupByReleaseMonth" />
-						<Button Margin="2" Grid.Row="1" Grid.Column="1" Content="By Name" Click="GroupByName" />
-						<Button Margin="2" Grid.Row="0" Grid.Column="2" Content="By Last Played"  Click="GroupByLastPlayed" />
-						<Button Margin="2" Grid.Row="1" Grid.Column="2" Content="By Time Played"  Click="GroupByTimePlayed" />
-						<CheckBox Margin="2" Grid.Row="0" Grid.Column="3" Content="Show File Not Found" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsChecked="{Binding ShowFileNotFound}" />
-						<CheckBox Margin="2" Grid.Row="1" Grid.Column="3" Content="Capture Clipboard" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"  IsChecked="{Binding CaptureClipboard}" />
-						<Button Margin="2" Grid.Row="0" Grid.Column="4" Content="By Tag"  Click="GroupByTag" />
-						<TextBlock Margin="2" Grid.Row="1" Grid.Column="4" Text="{Binding UserGameItems.Count, StringFormat={}{0} Items.}" Background="Aquamarine" TextAlignment="Center" />
+						<ComboBox Margin="0,2,2,2" Grid.Column="0" Grid.ColumnSpan="2" SelectedIndex="0" Padding="5,0" >
+							<ComboBoxItem Content="By Added" Selected="GroupByAdded" />
+							<ComboBoxItem Content="By Producer" Selected="GroupByProducer" />
+							<ComboBoxItem Content="By Release Month" Selected="GroupByReleaseMonth" />
+							<ComboBoxItem Content="By Name" Selected="GroupByName" />
+							<ComboBoxItem Content="By Last Played"  Selected="GroupByLastPlayed" />
+							<ComboBoxItem Content="By Time Played"  Selected="GroupByTimePlayed" />
+							<ComboBoxItem Content="By Tag"  Selected="GroupByTag" />
+							<ComboBoxItem Content="By VN Label"  Selected="GroupByVnLabel" />
+						</ComboBox>
+						<CheckBox Margin="2" Grid.Column="2" Content="Show File Not Found" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsChecked="{Binding ShowFileNotFound}" />
+						<CheckBox Margin="2" Grid.Column="3" Content="Capture Clipboard" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"  IsChecked="{Binding CaptureClipboard}" />
+						<TextBlock Margin="2,2,0,2" Grid.Column="4" Text="{Binding UserGameItems.Count, StringFormat={}{0} Items.}" Background="Aquamarine" TextAlignment="Center" />
 					</Grid>
 				</Grid>
 			</TabItem>

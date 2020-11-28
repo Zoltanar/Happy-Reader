@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
@@ -185,50 +183,6 @@ namespace Happy_Reader.View
 			if (value is null) return Brushes.Black;
 			if (!(value is ListedVN vn)) throw new NotSupportedException($"Value was type {value.GetType()}");
 			return vn.ReleaseDate > DateTime.UtcNow ? Theme.UnreleasedBrush : (vn.UserVN?.Blacklisted ?? false) ? Brushes.White : Brushes.Black;
-		}
-
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
-	}
-
-	public class UserVnToBackgroundConverter : IValueConverter
-	{
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			if (value is null) return Theme.DefaultTileBrush;
-			if (!(value is UserVN userVN)) throw new NotSupportedException();
-			var excludedLabels = new List<UserVN.LabelKind> { UserVN.LabelKind.Wishlist, UserVN.LabelKind.Voted };
-			var label = userVN.Labels.FirstOrDefault(i => !excludedLabels.Contains(i));
-			return label switch
-			{
-				UserVN.LabelKind.Playing => Theme.ULPlayingBrush,
-				UserVN.LabelKind.Finished => Theme.ULFinishedBrush,
-				UserVN.LabelKind.Stalled => Theme.ULStalledBrush,
-				UserVN.LabelKind.Dropped => Theme.ULDroppedBrush,
-				UserVN.LabelKind.Owned => Theme.ULUnknownBrush,
-				UserVN.LabelKind.WishlistHigh => Theme.WLHighBrush,
-				UserVN.LabelKind.WishlistMedium => Theme.WLMediumBrush,
-				UserVN.LabelKind.WishlistLow => Theme.WLLowBrush,
-				UserVN.LabelKind.Blacklist => Theme.WLBlacklistBrush,
-				_ => Theme.DefaultTileBrush
-			};
-		}
-
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
-	}
-
-	public class UserVnToForegroundConverter : IValueConverter
-	{
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			if (value is null) return Brushes.Black;
-			var userVN = value switch
-			{
-				UserVN vUserVN => vUserVN,
-				ListedVN listedVN => listedVN.UserVN,
-				CharacterItem character => character.VisualNovel?.UserVN,
-				_ => throw new NotSupportedException()
-			};
-			return userVN?.Blacklisted ?? false ? Brushes.White : Brushes.Black;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();

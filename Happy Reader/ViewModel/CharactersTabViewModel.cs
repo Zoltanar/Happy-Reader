@@ -184,12 +184,6 @@ namespace Happy_Reader.ViewModel
 			await RefreshCharacterTiles();
 		}
 
-		public async Task ShowSuggested()
-		{
-			await Task.Delay(0);
-			//todo CharacterTab ShowSuggested
-		}
-
 		public async Task SortByRecommended()
 		{
 			await Task.Delay(0);
