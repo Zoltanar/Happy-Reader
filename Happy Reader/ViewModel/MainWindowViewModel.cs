@@ -231,7 +231,7 @@ namespace Happy_Reader.ViewModel
 				{
 					var cacheLoadWatch = Stopwatch.StartNew();
 					Translator.SetCache(noApiTranslation, logVerbose);
-					Debug.WriteLine($"Loaded cached translations in {cacheLoadWatch.ElapsedMilliseconds} ms");
+					StaticHelpers.Logger.ToDebug($"Loaded cached translations in {cacheLoadWatch.ElapsedMilliseconds} ms");
 				});
 				StatusText = "Populating Proxies...";
 				PopulateProxies();
@@ -353,14 +353,14 @@ namespace Happy_Reader.ViewModel
 
 		private void MonitorStart()
 		{
-			Debug.WriteLine($"MonitorStart starting with ID: {Thread.CurrentThread.ManagedThreadId}");
+			StaticHelpers.Logger.ToDebug($"MonitorStart starting with ID: {Thread.CurrentThread.ManagedThreadId}");
 			StaticMethods.Data.UserGames.Load();
 			while (true)
 			{
 				if (_closing) return;
 				if (UserGame?.Process != null)
 				{
-					Debug.WriteLine($"MonitorStart ending with ID: {Thread.CurrentThread.ManagedThreadId}");
+					StaticHelpers.Logger.ToDebug($"MonitorStart ending with ID: {Thread.CurrentThread.ManagedThreadId}");
 					return;
 				}
 				try

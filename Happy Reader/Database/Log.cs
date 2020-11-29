@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Windows.Documents;
 using System.Windows.Media;
+using Happy_Apps_Core;
 
 namespace Happy_Reader.Database
 {
@@ -77,7 +77,7 @@ namespace Happy_Reader.Database
 		{
 			var log = new Log(LogKind.TimePlayed, userGameId, timePlayed.ToString(), timePlayed);
 			if (notify) log.Notify();
-			else Debug.WriteLine(log);
+			else StaticHelpers.Logger.ToDebug(log.ToString());
 			AddToList?.Invoke(log);
 			return log;
 		}
@@ -86,7 +86,7 @@ namespace Happy_Reader.Database
 		{
 			var log = new Log(LogKind.MergeTimePlayed, userGameId, mergedTimePlayed.ToString(), mergedTimePlayed);
 			if (notify) log.Notify();
-			else Debug.WriteLine(log);
+			else StaticHelpers.Logger.ToDebug(log.ToString());
 			AddToList?.Invoke(log);
 			return log;
 		}
@@ -95,7 +95,7 @@ namespace Happy_Reader.Database
 		{
 			var log = new Log(LogKind.ResetTimePlayed, userGameId, null, null);
 			if (notify) log.Notify();
-			else Debug.WriteLine(log);
+			else StaticHelpers.Logger.ToDebug(log.ToString());
 			AddToList?.Invoke(log);
 			return log;
 		}

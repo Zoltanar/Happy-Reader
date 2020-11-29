@@ -32,7 +32,7 @@ namespace Happy_Reader.Database
 			int result = base.SaveChanges();
 			var caller = new StackFrame(1).GetMethod();
 			var callerName = $"{caller.DeclaringType?.Name}.{caller.Name}";
-			Debug.WriteLine($"{System.DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.{nameof(SaveChanges)} called by {callerName} - returned {result}");
+			StaticHelpers.Logger.ToDebug($"{System.DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.{nameof(SaveChanges)} called by {callerName} - returned {result}");
 			return result;
 		}
 
@@ -41,7 +41,7 @@ namespace Happy_Reader.Database
 			int result = await base.SaveChangesAsync();
 			var caller = new StackFrame(1).GetMethod();
 			var callerName = $"{caller.DeclaringType?.Name}.{caller.Name}";
-			Debug.WriteLine($"{System.DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.{nameof(SaveChangesAsync)} called by {callerName} - returned {result}");
+			StaticHelpers.Logger.ToDebug($"{System.DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.{nameof(SaveChangesAsync)} called by {callerName} - returned {result}");
 			return result;
 		}
 	}

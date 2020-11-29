@@ -88,13 +88,13 @@ namespace Happy_Reader.View
 
 		public void ShowLogNotification([NotNull] Log message)
 		{
-			Console.WriteLine($"Notification - {message.Kind} - {message}");
+			Happy_Apps_Core.StaticHelpers.Logger.ToDebug($"Notification - {message.Kind} - {message}");
 			NotificationWindow.Launch(message);
 		}
 
 		public void ShowNotification(object sender, [NotNull] string message, string title = "Notification")
 		{
-			Console.WriteLine($"Notification - {title} - {message}");
+			Happy_Apps_Core.StaticHelpers.Logger.ToDebug($"Notification - {title} - {message}");
 			NotificationWindow.Launch(title, message);
 		}
 

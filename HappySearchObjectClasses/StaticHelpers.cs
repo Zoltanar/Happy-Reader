@@ -55,8 +55,8 @@ namespace Happy_Apps_Core
 		static StaticHelpers()
 		{
 			Directory.CreateDirectory(StoredDataFolder);
-			CSettings = SettingsJsonFile.Load<CoreSettings>(CoreSettingsJson);
 			Logger = new MultiLogger(LogsFolder);
+			CSettings = SettingsJsonFile.Load<CoreSettings>(CoreSettingsJson);
 		}
 
 		public static VisualNovelDatabase LocalDatabase;

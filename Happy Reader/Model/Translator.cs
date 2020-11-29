@@ -118,7 +118,7 @@ namespace Happy_Reader
 				specificEntries = _data.Entries.Where(e => (e.Private && e.UserId == user.Id || !e.Private) && e.SeriesSpecific && gamesInSeries.Contains(e.GameId.Value)).ToArray();
 			}
 			_entries = generalEntries.Concat(specificEntries).OrderBy(i => i.Id).ToArray();
-			Debug.WriteLine($"General entries: {generalEntries.Length}. Specific entries: {specificEntries.Length}");
+			StaticHelpers.Logger.ToDebug($"[Translator] General entries: {generalEntries.Length}. Specific entries: {specificEntries.Length}");
 		}
 
 		/// <summary>
@@ -473,7 +473,7 @@ namespace Happy_Reader
 				sb.Replace(input, output);
 				var sbReplaced = sb.ToString();
 				if (sbOriginal == sbReplaced) return;
-				if (_logVerbose) Debug.WriteLine($"Replace happened - Id {(entry != null ? entry.Id.ToString() : "N/A")}: '{input}' > '{output}'");
+				if (_logVerbose) StaticHelpers.Logger.Verbose($"Replace happened - Id {(entry != null ? entry.Id.ToString() : "N/A")}: '{input}' > '{output}'");
 				if (result.SaveEntries) result.AddEntryUsed(entry);
 			}
 			else sb.Replace(input, output);
@@ -496,7 +496,7 @@ namespace Happy_Reader
 				replaced = rgx.Replace(sbOriginal, output);
 				if (sbOriginal != replaced)
 				{
-					if (_logVerbose) Debug.WriteLine($"Replace happened - Id {(entry != null ? entry.Id.ToString() : "N/A")} '{regexInput}' > '{output}'");
+					if (_logVerbose) StaticHelpers.Logger.Verbose($"Replace happened - Id {(entry != null ? entry.Id.ToString() : "N/A")} '{regexInput}' > '{output}'");
 					if (result.SaveEntries) result.AddEntryUsed(entry);
 				}
 			}

@@ -3,7 +3,6 @@ allow special characters through kakasi romaji, like ❤
 test tab: list entries used per stage.
 allow changing direction of text in output window (down to up) and horizontal alignment
 setting to switch between vote scores of 10-100 and 1-10.
-usergames: group by status (label)
 databasedumpreader: auto clear previous dumps 
 
 add blacklistedproducers to user

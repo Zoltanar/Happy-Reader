@@ -111,8 +111,8 @@ namespace Happy_Reader.Database
 			{
 				if (value == null) _process?.Dispose();
 				_process = value;
-				OnPropertyChanged(nameof(IsRunning));
 				OnPropertyChanged(nameof(TimeOpen));
+				OnPropertyChanged(nameof(RunningStatus));
 				if (value == null) return;
 				Log.NewStartedPlayingLog(Id, DateTime.Now);
 				_runningTime = Stopwatch.StartNew();
@@ -186,7 +186,15 @@ namespace Happy_Reader.Database
 		}
 
 		[NotMapped]
-		public bool IsRunning => _process != null;
+		public ProcessStatus RunningStatus
+		{
+			get
+			{
+				if (_process == null) return ProcessStatus.Off; //off = no process running
+				if (_runningTime != null && !_runningTime.IsRunning) return ProcessStatus.Paused; //paused = process is running but timer is paused
+				return ProcessStatus.On; //on = process is running and timer is not paused
+			}
+		}
 
 		[NotMapped]
 		public Action<NativeMethods.RECT> MoveOutputWindow { get; set; }
@@ -318,12 +326,15 @@ namespace Happy_Reader.Database
 		{
 			Logger.ToDebug($"Restored {DisplayName}, starting running time at {_runningTime.Elapsed}");
 			_runningTime.Start();
+			OnPropertyChanged(nameof(RunningStatus));
 		}
 
 		private void WindowIsMinimised(IntPtr windowPointer)
 		{
 			_runningTime.Stop();
 			Logger.ToDebug($"Minimized {DisplayName}, stopped running time at {_runningTime.Elapsed}");
+			OnPropertyChanged(nameof(RunningStatus));
+			OnPropertyChanged(nameof(TimeOpen));
 		}
 
 		public Process StartProcessThroughLocaleEmulator()
@@ -383,6 +394,13 @@ namespace Happy_Reader.Database
 		{
 			// ReSharper disable once InconsistentNaming
 			ShiftJis, UTF8, Unicode
+		}
+
+		public enum ProcessStatus
+		{
+			Off = 0,
+			Paused = 1,
+			On = 2
 		}
 	}
 

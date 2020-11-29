@@ -127,7 +127,7 @@ namespace Happy_Reader.ViewModel
 				switch (status)
 				{
 					case VndbConnection.APIStatus.Ready:
-						Logger.Verbose($"{Conn.ActiveQuery.ActionName} Ended");
+						Logger.Verbose($"{Conn.ActiveQuery?.ActionName} Ended");
 						if (Conn.ActiveQuery != null) Conn.ActiveQuery.Completed = true;
 						VndbConnectionStatus = status.ToString();
 						VndbConnectionForeground = Brushes.Black;
@@ -282,7 +282,7 @@ namespace Happy_Reader.ViewModel
 				db => db.VisualNovels.WithKeyIn(db.Tags.Where(t => tag.AllIDs.Contains(t.TagId)).Select(x => x.VNID).Distinct().ToArray()),
 				$"Tag {tag.Name}", false);
 			await RefreshListedVns();
-			Debug.WriteLine($@"{nameof(ShowTagged)}: {watch.ElapsedMilliseconds}ms");
+			Logger.ToDebug($@"{nameof(ShowTagged)}: {watch.ElapsedMilliseconds}ms");
 		}
 
 		public async Task ChangeFilter(CustomVnFilter item)

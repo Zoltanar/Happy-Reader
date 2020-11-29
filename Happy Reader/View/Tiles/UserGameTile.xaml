@@ -37,6 +37,37 @@
 				</Setter.Value>
 			</Setter>
 		</Style>
+		<Style x:Key="StatusButtonStyle" TargetType="{x:Type Button}">
+			<Setter Property="IsEnabled" Value="True"/>
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="{x:Type Button}" >
+						<Border Name="Border" BorderBrush="Black" BorderThickness="2" Background="Red" CornerRadius="0,0,5,0" Padding="0">
+							<Viewbox>
+								<TextBlock Name="TextBlock" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Text="OFF"/>
+							</Viewbox>
+						</Border>
+						<ControlTemplate.Triggers>
+							<DataTrigger Binding="{Binding }" Value="2">
+								<Setter Property="Background" TargetName="Border" Value="LimeGreen"/>
+								<Setter Property="Text" TargetName="TextBlock" Value="ON"/>
+								<Setter Property="IsEnabled" Value="False"/>
+							</DataTrigger>
+							<DataTrigger Binding="{Binding }" Value="1">
+								<Setter Property="Background" TargetName="Border" Value="Yellow"/>
+								<Setter Property="Text" TargetName="TextBlock" Value="Paused"/>
+								<Setter Property="IsEnabled" Value="False"/>
+							</DataTrigger>
+							<Trigger Property="IsPressed" Value="True">
+								<Setter Property="Padding" TargetName="Border" Value="2"/>
+								<Setter Property="Background" TargetName="Border" Value="Orange"/>
+								<Setter Property="Text" TargetName="TextBlock" Value="Play"/>
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
 	</UserControl.Resources>
 	<Border Background="Salmon" CornerRadius="10">
 		<Grid Width="160">
@@ -64,7 +95,7 @@
 			<Viewbox Grid.Row="3" Margin="0,0,48,0">
 				<TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding TimeOpen, Converter={StaticResource TimeSpanConverterKey}}"/>
 			</Viewbox>
-			<ToggleButton Margin="112,5,0,0" Grid.Row="3" Style="{StaticResource ToggleButtonStyle}" IsChecked="{Binding IsRunning, Mode=OneWay}" Click="LaunchGame"/>
+			<Button Margin="112,5,0,0" Grid.Row="3" Style="{StaticResource StatusButtonStyle}" DataContext="{Binding RunningStatus}" Click="LaunchGame"/>
 		</Grid>
 	</Border>
 	<UserControl.ContextMenu>

@@ -108,8 +108,7 @@ namespace Happy_Reader.View.Tiles
 
 		private void LaunchGame(object sender, RoutedEventArgs e)
 		{
-			if (UserGame.IsRunning) return;
-			LaunchProcessClick(sender,e);
+			if (UserGame.RunningStatus == UserGame.ProcessStatus.Off) LaunchProcessClick(sender,e);
 		}
 	}
 }

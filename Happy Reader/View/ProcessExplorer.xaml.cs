@@ -48,13 +48,9 @@ namespace Happy_Reader.View
 						}
 						processList.Add(processInfo);
 					}
-					catch (Win32Exception ex)
-					{
-						Debug.WriteLine($"isWow64: {isWow64}, result: {result}, {ex.Message}");
-					}
 					catch (Exception ex)
 					{
-						Debug.WriteLine($"isWow64: {isWow64}, result: {result}, {ex.Message}");
+						Happy_Apps_Core.StaticHelpers.Logger.ToDebug($"isWow64: {isWow64}, result: {result}, {ex.Message}");
 					}
 				}
 			}

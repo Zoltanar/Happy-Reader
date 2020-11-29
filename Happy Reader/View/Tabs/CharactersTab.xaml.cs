@@ -80,11 +80,12 @@ namespace Happy_Reader.View.Tabs
 			await ViewModel.ShowForProducer(producer);
 		}
 
-		private bool ProducerBoxFilter(string search, object value)
+		private bool ProducerBoxFilter(string input, object item)
 		{
-			var lowerSearch = search.ToLower();
-			var producer = (ListedProducer)value;
-			return producer.Name.ToLower().Contains(lowerSearch);
+			//Short input is not filtered to prevent excessive loading times
+			if (input.Length <= 2) return false;
+			var producer = (ListedProducer)item;
+			return producer.Name.ToLowerInvariant().Contains(input.ToLowerInvariant());
 		}
 	}
 }

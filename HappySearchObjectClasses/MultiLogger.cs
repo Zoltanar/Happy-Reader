@@ -83,7 +83,6 @@ namespace Happy_Apps_Core
 			{
 				var messageWithTime = TimeString + message;
 				Console.WriteLine(messageWithTime);
-				//Debug.WriteLine(messageWithTime);
 				writer.WriteLine(messageWithTime);
 			}
 		}
