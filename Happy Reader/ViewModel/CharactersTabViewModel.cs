@@ -184,6 +184,15 @@ namespace Happy_Reader.ViewModel
 			await RefreshCharacterTiles();
 		}
 
+		public async Task ShowWithTrait(DumpFiles.WrittenTrait trait)
+		{
+			_dbFunction = db =>
+			{
+				return db.Characters.Where(c=>c.DbTraits.Any(t=>trait.AllIDs.Contains(t.TraitId)));
+			};
+			await RefreshCharacterTiles();
+		}
+
 		public async Task SortByRecommended()
 		{
 			await Task.Delay(0);

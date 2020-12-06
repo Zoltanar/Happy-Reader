@@ -72,23 +72,28 @@
 		<TabControl Grid.Row="0" x:Name="MainTabControl" Padding="0" TabStripPlacement="Left">
 			<TabItem Header="Games" >
 				<Grid Background="#FFC9E1F5" AllowDrop="True" Drop="DropFileOnGamesTab">
-					<ListBox x:Name="GameFiles"  Margin="10,10,10,30" ItemsSource="{Binding UserGameItems}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-						<ListBox.GroupStyle>
-							<GroupStyle x:Name="UserGamesGroupStyle"  ContainerStyle="{StaticResource ContainerStyle}">
-							</GroupStyle>
-						</ListBox.GroupStyle>
-						<ListBox.ItemsPanel>
-							<ItemsPanelTemplate>
-								<WrapPanel />
-							</ItemsPanelTemplate>
-						</ListBox.ItemsPanel>
-						<ListBox.ItemContainerStyle>
-							<Style TargetType="{x:Type ListBoxItem}">
-								<Setter Property="HorizontalContentAlignment" Value="Left"/>
-								<Setter Property="VerticalContentAlignment" Value="Center"/>
-							</Style>
-						</ListBox.ItemContainerStyle>
-					</ListBox>
+						<ListBox x:Name="GameFiles" ItemsSource="{Binding UserGameItems}" Margin="10,10,10,30" 
+						         ScrollViewer.VerticalScrollBarVisibility="Visible" 
+						         ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+						         ScrollViewer.ScrollChanged="ShowLabelOnScrollbar">
+							<ListBox.GroupStyle>
+								<GroupStyle ContainerStyle="{StaticResource ContainerStyle}"/>
+							</ListBox.GroupStyle>
+							<ListBox.ItemsPanel>
+								<ItemsPanelTemplate>
+									<WrapPanel />
+								</ItemsPanelTemplate>
+							</ListBox.ItemsPanel>
+							<ListBox.ItemContainerStyle>
+								<Style TargetType="{x:Type ListBoxItem}">
+									<Setter Property="HorizontalContentAlignment" Value="Left"/>
+									<Setter Property="VerticalContentAlignment" Value="Center"/>
+								</Style>
+							</ListBox.ItemContainerStyle>
+						</ListBox>
+					<Border x:Name="ScrollBorder" Margin="30,25" HorizontalAlignment="Right" VerticalAlignment="Top" BorderThickness="2" BorderBrush="CornflowerBlue" CornerRadius="2" Background="AliceBlue">
+						<TextBlock x:Name="ScrollLabel" Padding="5,0"/>
+					</Border>
 					<Grid Margin="10,10,10,2" Height="23" VerticalAlignment="Bottom">
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition/>

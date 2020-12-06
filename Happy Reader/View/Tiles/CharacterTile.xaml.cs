@@ -67,19 +67,18 @@ namespace Happy_Reader.View.Tiles
 
 		private void SetTraitsList()
 		{
-			var linkList = new List<Inline>();
 			foreach (var group in _viewModel.GetGroupedTraits().OrderBy(g => g.Key))
 			{
-				linkList.Add(new Run($"{@group.Key}: "));
+				TraitsControl.Items.Add(new Run($"{@group.Key}: "));
 				foreach (var trait in @group)
 				{
 					Inline content = new Run(trait?.Name ?? "Not Found");
 					if (trait != null && StaticHelpers.CSettings.AlertTraitIDs.Contains(trait.ID)) content = new Bold(content);
 					var link = new Hyperlink(content) { Tag = trait };
-					linkList.Add(link);
+					link.Click += ShowCharactersWithTrait;
+					TraitsControl.Items.Add(link);
 				}
 			}
-			TraitsControl.ItemsSource = linkList;
 		}
 
 		public static CharacterTile FromCharacterVN(CharacterVN cvn)
@@ -140,5 +139,13 @@ namespace Happy_Reader.View.Tiles
 			MainWindow.SelectTab(typeof(CharactersTab));
 			await TabViewModel.ShowForSeiyuuWithAlias(_viewModel.Seiyuu.AliasID);
 		}
-	}
+
+		private async void ShowCharactersWithTrait(object sender, EventArgs args)
+		{
+			var element = (FrameworkContentElement) sender;
+			var trait = (DumpFiles.WrittenTrait) element.Tag;
+			MainWindow.SelectTab(typeof(CharactersTab));
+			await TabViewModel.ShowWithTrait(trait);
+		}
+}
 }

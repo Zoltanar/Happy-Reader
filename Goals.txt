@@ -4,6 +4,7 @@ test tab: list entries used per stage.
 allow changing direction of text in output window (down to up) and horizontal alignment
 setting to switch between vote scores of 10-100 and 1-10.
 databasedumpreader: auto clear previous dumps 
+see vnid 26052 shows relations twice.
 
 add blacklistedproducers to user
 change order of load to load dumpfiles>filters>vndb>games>proxies>entries>connection

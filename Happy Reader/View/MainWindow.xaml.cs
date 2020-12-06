@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
@@ -34,6 +35,7 @@ namespace Happy_Reader.View
 			CreateNotifyIcon();
 			ViewModel.NotificationEvent += ShowNotification;
 			Log.NotificationEvent += ShowLogNotification;
+			_scrollLabelTimer = new DispatcherTimer(new TimeSpan(0, 0, 2), DispatcherPriority.ContextIdle, HideScrollLabel, Dispatcher);
 		}
 
 		private void CreateNotifyIcon()
@@ -321,6 +323,86 @@ namespace Happy_Reader.View
 		{
 			var tab = MainTabControl.Items.OfType<TabItem>().FirstOrDefault(t => t.Content.GetType() == type);
 			MainTabControl.SelectedItem = tab ?? throw new ArgumentNullException(nameof(tab), $"Did not find tab of type {type}");
+		}
+
+		private void ShowLabelOnScrollbar(object sender, ScrollChangedEventArgs e)
+		{
+			var list = sender as ListBox;
+			if (list == null)
+			{
+				ScrollLabel.Text = string.Empty;
+				ScrollBorder.Visibility = Visibility.Hidden;
+				return;
+			}
+			var hitTest = VisualTreeHelper.HitTest(list, new Point(5, 5/*e.VerticalOffset*/));
+			if (hitTest == null)
+			{
+					ScrollLabel.Text = string.Empty;
+					ScrollBorder.Visibility = Visibility.Hidden;
+					return;
+			}
+			var lbi = GetVisualItemOfType<ListBoxItem>(hitTest.VisualHit, list);
+			var tile = lbi?.DataContext as UserGameTile;
+			var game = tile?.UserGame;
+			var view = CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
+			Debug.Assert(view.GroupDescriptions != null, "view.GroupDescriptions != null");
+			var groupDescription = view.GroupDescriptions.FirstOrDefault();
+			if (game == null && groupDescription == null)
+			{
+				ScrollBorder.Visibility = Visibility.Hidden;
+				ScrollLabel.Text = string.Empty;
+				return;
+			}
+			string textForLabel;
+			if(groupDescription == null) textForLabel = $"Game: {game.DisplayName}";
+			else
+			{
+				string groupName;
+				if (game != null)
+				{
+					var groupNameObject = groupDescription.GroupNameFromItem(tile, 0, System.Globalization.CultureInfo.CurrentCulture);
+					groupName = groupNameObject == DependencyProperty.UnsetValue ? "Other" : groupNameObject.ToString();
+				}
+				else
+				{
+					var gi = GetVisualItemOfType<GroupItem>(hitTest.VisualHit, list);
+					if (gi == null)
+					{
+						ScrollBorder.Visibility = Visibility.Hidden;
+						ScrollLabel.Text = string.Empty;
+						return;
+					}
+					groupName = gi.ToString()?.Replace($"{gi.GetType()}: ","").Trim();
+				}
+
+				textForLabel = $"Group: {groupName}";
+			}
+			ScrollBorder.Visibility = Visibility.Visible;
+			ScrollLabel.Text = textForLabel;
+			if (_scrollLabelTimer.IsEnabled) _scrollLabelTimer.Stop();
+			_scrollLabelTimer.Start();
+		}
+
+		private readonly DispatcherTimer _scrollLabelTimer;
+
+		private void HideScrollLabel(object sender, EventArgs eventArgs)
+		{
+			ScrollBorder.Visibility = Visibility.Hidden;
+			_scrollLabelTimer.Stop();
+		}
+
+		private T GetVisualItemOfType<T>( object originalSource, object parent) where T : DependencyObject
+		{
+			if (!(originalSource is DependencyObject depObj)) return null;
+			// go up the visual hierarchy until we find the list view item the click came from  
+			// the click might have been on the grid or column headers so we need to cater for this  
+			DependencyObject current = depObj;
+			while (current != null && current != parent)
+			{
+				if (current is T item) return item;
+				current = VisualTreeHelper.GetParent(current);
+			}
+			return null;
 		}
 	}
 }
