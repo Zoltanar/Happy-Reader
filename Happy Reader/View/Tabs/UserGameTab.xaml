@@ -55,7 +55,7 @@
             <ColumnDefinition Width="Auto" MinWidth="30" x:Name="DataColumn"/>
             <ColumnDefinition Width="*" x:Name="ImageColumn"/>
         </Grid.ColumnDefinitions>
-        <UniformGrid Grid.Column="0" Rows="10" Columns="1">
+        <UniformGrid Grid.Column="0" Rows="11" Columns="1">
             <Label Style="{StaticResource Row0Label}" Content="File"/>
 			<Button Style="{StaticResource UniformButton}" Content="Browse to file" Click="BrowseToFolderClick"/>
 			<Label Style="{StaticResource Row0Label}" Content="User Defined Name" />
@@ -67,7 +67,7 @@
             <Label Style="{StaticResource Row0Label}" Content="Launch Path" />
             <CheckBox Style="{StaticResource UniformCheckbox}" Content="Hook to Process" IsChecked="{Binding HookProcess}" />
         </UniformGrid>
-        <UniformGrid Grid.Column="1" Rows="10">
+        <UniformGrid Grid.Column="1" Rows="11">
             <TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding FilePath, Mode=OneWay}" />
 			<Button  Style="{StaticResource UniformButton}" Content="Change File Path" Click="ChangeFileLocationClick"/>
 			<TextBox Style="{StaticResource Row1TextBox}" x:Name="DisplayNameBox" Text="{Binding UserDefinedName}" KeyUp="SaveUserDefinedName" />
@@ -77,8 +77,10 @@
             <TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding DefaultHookFull}" />
             <ComboBox ItemsSource="{Binding Encodings}" DisplayMemberPath="EncodingName" SelectedItem="{Binding PrefEncoding}" />
             <TextBox Style="{StaticResource Row1TextBox}" x:Name="LaunchPathBox" Text="{Binding LaunchPath}" KeyUp="SaveLaunchPath" />
-            <CheckBox Style="{StaticResource UniformCheckbox}" Content="Merge By Hook Code" IsChecked="{Binding MergeByHookCode}"/>
-        </UniformGrid>
+			<CheckBox Style="{StaticResource UniformCheckbox}" Content="Merge By Hook Code" IsChecked="{Binding MergeByHookCode}"/>
+			<CheckBox Style="{StaticResource UniformCheckbox}" Content="Remove Repetition" IsChecked="{Binding RemoveRepetition}"
+			          ToolTip="Remove repeated text at the start of strings to be translated, this occurs before Stage 1."/>
+		</UniformGrid>
 		<Border x:Name="ImageBorder" BorderBrush="Black" BorderThickness="4" Grid.Column="2" Background="#FF3EAE8F" />
 		<Image x:Name="Image" Grid.Column="2" Source="{Binding Image, Mode=OneWay}" Margin="10" />
     </Grid>

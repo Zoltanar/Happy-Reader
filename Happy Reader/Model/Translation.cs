@@ -23,9 +23,16 @@ namespace Happy_Reader
 		public bool IsCharacterOnly { get; }
 		public bool FromClipboard { get; }
 
-		public Translation(string original)
+		public Translation(string original, bool translate)
 		{
 			var stageOneResult = new TranslationResults(true);
+			if (!translate)
+			{
+				for (int i = 0; i < Results.Length; i++) Results[i] = original;
+				Original = original;
+				Romaji = original;
+				return;
+			}
 			var romajiSb = new StringBuilder(original);
 			Translator.TranslateStageOne(romajiSb, stageOneResult);
 			_entriesUsedStageOne.AddRange(stageOneResult.EntriesUsed.SelectMany(i=>i));
@@ -34,10 +41,12 @@ namespace Happy_Reader
 			Romaji = romajiSb.ToString();
 			IsCharacterOnly = Original.IndexOfAny(new[] { '「', '」' }) < 0 && Original.Length < 10;
 		}
-
-		public Entry[] GetEntriesUsed()
+		
+		public IEnumerable<Entry> GetEntriesUsed()
 		{
-			return _partResults.Where(pr=>pr.EntriesUsed != null).SelectMany(pr => pr.EntriesUsed.SelectMany(eu=>eu)).Concat(_entriesUsedStageOne).Distinct().ToArray();
+			return _partResults.Where(pr=>pr.EntriesUsed != null)
+				.SelectMany(pr => pr.EntriesUsed.SelectMany(eu=>eu))
+				.Concat(_entriesUsedStageOne).Distinct();
 		}
 
 		private static void GetRomaji(StringBuilder romajiSb)
@@ -45,19 +54,6 @@ namespace Happy_Reader
 			Translator.ReplacePreRomaji(romajiSb);
 			Kakasi.JapaneseToRomaji(romajiSb);
 			Translator.ReplacePostRomaji(romajiSb);
-		}
-
-		public Translation(string text, bool fromClipboard) : this(text)
-		{/*
-			Original = text;
-			Romaji = string.Empty;
-			IsCharacterOnly = false;
-			for (int stage = 0; stage < Results.Length; stage++)
-			{
-				Results[stage] = text;
-			}*/
-
-			FromClipboard = fromClipboard;
 		}
 
 		private Translation(string original, string romaji, string[] results)

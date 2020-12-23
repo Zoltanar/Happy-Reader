@@ -7,7 +7,6 @@ using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
 using HRGoogleTranslate;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 
@@ -50,23 +49,51 @@ namespace Happy_Reader
 				logVerbose);
 		}
 
-		public Translation Translate(User user, ListedVN game, string input, bool saveEntriesUsed)
+		public Translation Translate(User user, ListedVN game, string input, bool saveEntriesUsed, bool removeRepetition)
 		{
+			if (removeRepetition)
+			{
+				int loopCount = 0;
+				while (true)
+				{
+					if(loopCount > 1000) throw new ArgumentException($"Loop executed {loopCount} times, likely to be stuck.");
+					var before = input;
+					input = ReduceRepeatedString(before);
+					if (input == before) break;
+					loopCount++;
+				}
+			}
 			input = input.Replace("\r", "");
-			if (string.IsNullOrWhiteSpace(input)) return null;
+			if (string.IsNullOrWhiteSpace(input)) return new Translation(input, false);
 			if (input.Length > StaticMethods.TranslatorSettings.MaxClipboardSize) return null; //todo report error
-			if (LatinOnlyRegex.IsMatch(input)) return null;
 			input = input.Replace("\r\n", "");
-			input = CheckRepeatedString(input);
-			if (string.IsNullOrWhiteSpace(input)) return null;
+			if (string.IsNullOrWhiteSpace(input)) return new Translation(input, false);
 			lock (TranslateLock)
 			{
 				if (user != _lastUser || game != _lastGame || RefreshEntries) SetEntries(user, game);
-				var item = new Translation(input);
+				if (LatinOnlyRegex.IsMatch(input)) return new Translation(input, false);
+				var item = new Translation(input, true);
 				SplitInputIntoParts(item);
 				item.TranslateParts(saveEntriesUsed);
 				return item;
 			}
+		}
+
+		/// <summary>
+		/// If start of input is repeated, it is removed.
+		/// </summary>
+		/// <param name="input">String to be reduced.</param>
+		/// <returns>String without repeated segment at the start.</returns>
+		private string ReduceRepeatedString(string input)
+		{
+			if (input.Length == 1) return input;
+			var firstChar = input[0];
+			var indexOfSecondBracket = input.IndexOf(firstChar, 1);
+			if (indexOfSecondBracket == -1) return input;
+			int skip = 0;
+			while (input[skip] == input[indexOfSecondBracket + skip] && skip < indexOfSecondBracket) skip++;
+			if (skip != indexOfSecondBracket) return input;
+			return input.Substring(skip);
 		}
 
 		private static void SplitInputIntoParts(Translation item)
@@ -273,7 +300,8 @@ namespace Happy_Reader
 				{
 					Input = $"{previousEntry.Input}{entry.Input}",
 					Output = $"{previousEntry.Output} {entry.Output}",
-					RoleString = "m"
+					RoleString = "m",
+					Regex = previousEntry.Regex || entry.Regex
 				};
 				entriesToAdd.Add(mergedEntry);
 				entriesToRemove.Add(previousEntry);
@@ -439,29 +467,6 @@ namespace Happy_Reader
 			foreach (var entry in _entries.Where(i => i.Type == EntryType.Output && i.Regex)) LogReplaceRegex(sb, entry.Input, entry.Output, result, entry);
 			StaticHelpers.Logger.Verbose($"Stage 7: {sb}");
 			result[7] = sb.ToString();
-		}
-
-		private static string CheckRepeatedString(string text)
-		{
-			if (text.Length < 5) return text;
-			var evenCharacters = string.Join("", text.Where((x, i) => i % 2 == 0));
-			var oddCharacters = string.Join("", text.Where((x, i) => i % 2 == 1));
-			if (evenCharacters == oddCharacters) return evenCharacters;
-			//check if repeated after name
-			var firstBracket = text.IndexOfAny(new[] { '「', '『' });
-			if (firstBracket <= 0) return ReduceRepeatedString(text);
-			var name = text.Substring(0, firstBracket);
-			var checkText = text.Substring(firstBracket);
-			return name + ReduceRepeatedString(checkText);
-		}
-
-		private static string ReduceRepeatedString(string text)
-		{
-			if (text.Length % 2 != 0) return text;
-			var halfLength = text.Length / 2;
-			var p1 = text.Substring(0, halfLength);
-			var p2 = text.Substring(halfLength);
-			return p1 == p2 ? p1 : text;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

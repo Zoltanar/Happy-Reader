@@ -52,6 +52,7 @@ namespace Happy_Reader.Database
 		public bool MergeByHookCode { get; set; }
 		public string ProcessName { get; set; }
 		public string Tag { get; set; }
+		public bool RemoveRepetition { get; set; }
 
 		public bool HasVN => VNID.HasValue;
 		public bool FileExists => File.Exists(FilePath);
@@ -198,7 +199,7 @@ namespace Happy_Reader.Database
 
 		[NotMapped]
 		public Action<NativeMethods.RECT> MoveOutputWindow { get; set; }
-
+		
 		private NativeMethods.RECT? _locationOnMoveStart;
 
 		public event PropertyChangedEventHandler PropertyChanged;

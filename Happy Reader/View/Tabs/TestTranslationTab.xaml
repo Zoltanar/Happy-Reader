@@ -32,8 +32,8 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Label Content="Original Text" Margin="10,10,10,0" VerticalAlignment="Top"/>
-        <TextBox Margin="10,45,10,58" Text="{Binding OriginalText}" IsReadOnly="False" AcceptsReturn="True" AcceptsTab="True" Grid.Row="0" Grid.Column="0" >
-        </TextBox>
+        <TextBox Margin="10,45,10,71" Text="{Binding OriginalText}" IsReadOnly="False" AcceptsReturn="True" AcceptsTab="True" Grid.Row="0" Grid.Column="0" />
+		    <CheckBox Grid.Row="0" Grid.Column="0" Content="Remove Repetition" IsChecked="{Binding RemoveRepetition}" HorizontalAlignment="Left" Margin="10,0,0,53" VerticalAlignment="Bottom" Height="18" VerticalContentAlignment="Center" Padding="0"/>
         <Label Grid.Row="0" Grid.Column="0" Content="Game" HorizontalAlignment="Left" Margin="10,0,0,35" VerticalAlignment="Bottom" Height="18" VerticalContentAlignment="Center" Padding="0"/>
 				<controls:AutoCompleteBox Grid.Row="0" Grid.Column="0" Margin="46,0,31,35"  Text="None" VerticalContentAlignment="Center" Padding="0" Height="18" VerticalAlignment="Bottom" FilterMode="Contains" ItemsSource="{Binding UserGameNames}" KeyUp="EnterOnTester"/>
         <Button Content="Test" Margin="10,0,10,10" VerticalAlignment="Bottom" Click="TestTranslationClick" Grid.Row="0" Grid.Column="0" />

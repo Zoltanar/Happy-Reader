@@ -470,7 +470,7 @@ namespace Happy_Reader.ViewModel
 				if (UserGame.Process == null) return false;
 				if ((sender as TextThread)?.IsConsole ?? false) return false;
 				TestViewModel.OriginalText = e.Text;
-				var translation = Translator.Translate(User, UserGame?.VN, e.Text, false);
+				var translation = Translator.Translate(User, UserGame?.VN, e.Text, false, UserGame?.RemoveRepetition ?? false);
 				if (string.IsNullOrWhiteSpace(translation?.Output))
 				{
 					//todo report error
