@@ -5,6 +5,7 @@ setting to switch between vote scores of 10-100 and 1-10.
 databasedumpreader: auto clear previous dumps 
 see vnid 26052 shows relations twice.
 save tabs open, color tabs
+warn if an instance is already running (maybe show database file for opening instance)
 
 add blacklistedproducers to user
 change order of load to load dumpfiles>filters>vndb>games>proxies>entries>connection

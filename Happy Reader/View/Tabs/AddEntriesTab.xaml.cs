@@ -54,6 +54,19 @@ namespace Happy_Reader.View.Tabs
 		private bool ValidateEntry(Entry entry)
 		{
 			entry.Output ??= string.Empty;
+			if (entry.Regex)
+			{
+				try
+				{
+					// ReSharper disable once ReturnValueOfPureMethodIsNotUsed We just check if regex is valid
+					System.Text.RegularExpressions.Regex.IsMatch(string.Empty, entry.Input);
+				}
+				catch (ArgumentException ex)
+				{
+					ResponseLabel.Content = $@"Regex '{entry.Input}' is not valid: {ex.Message}";
+					return false;
+				}
+			}
 			if (string.IsNullOrWhiteSpace(entry.RoleString))
 			{
 				switch (entry.Type)

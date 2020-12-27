@@ -109,11 +109,11 @@ namespace Happy_Reader
 					if (InclusiveSeparators.Contains(@char))
 					{
 						currentPart += @char;
-						item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
+						item.Parts.Add((currentPart, !currentPart.All(c => AllSeparators.Contains(c))));
 					}
 					else
 					{
-						if (currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
+						if (currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => AllSeparators.Contains(c))));
 						item.Parts.Add((@char.ToString(), false));
 					}
 					currentPart = "";
@@ -123,7 +123,7 @@ namespace Happy_Reader
 				currentPart += @char;
 				index++;
 			}
-			if (currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => Separators.Contains(c))));
+			if (currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => AllSeparators.Contains(c))));
 		}
 
 		private void SetEntries([NotNull] User user, ListedVN game)

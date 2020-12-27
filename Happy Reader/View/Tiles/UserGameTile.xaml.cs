@@ -91,6 +91,7 @@ namespace Happy_Reader.View.Tiles
 
 		private void OpenVnSubmenu(object sender, RoutedEventArgs e)
 		{
+			VnMenu.DataContext ??= UserGame.VN;
 			VnMenu.ContextMenuOpened();
 		}
 
