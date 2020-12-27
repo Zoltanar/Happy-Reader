@@ -5,11 +5,12 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
-using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
 using Happy_Reader.ViewModel;
+using IthVnrSharpLib;
 using JetBrains.Annotations;
+using StaticHelpers = Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Reader.View
 {
@@ -65,6 +66,7 @@ namespace Happy_Reader.View
 		{
 			ReleaseLinkItem.IsEnabled = !string.IsNullOrWhiteSpace(VN.ReleaseLink);
 			OriginalTitleItem.IsEnabled = !string.IsNullOrWhiteSpace(VN.KanjiTitle);
+			TranslateTitleItem.IsEnabled = !string.IsNullOrWhiteSpace(VN.KanjiTitle);
 			//clearing previous
 			foreach (MenuItem item in Labels.Items) item.IsChecked = false;
 			foreach (MenuItem item in VoteMenu.Items) item.IsChecked = false;
@@ -234,6 +236,21 @@ namespace Happy_Reader.View
 				User_Id = StaticHelpers.LocalDatabase.CurrentUser.Id
 			}, true, true);
 			VN.Producer.SetFavoriteProducerData(StaticHelpers.LocalDatabase);
+		}
+
+		private void TranslateOriginalTitle(object sender, RoutedEventArgs e)
+		{
+			string message;
+			try
+			{
+				var translation = MainViewModel.Translator.Translate(MainViewModel.User, null, VN.KanjiTitle, false, false);
+				message = translation.Output;
+			}
+			catch (Exception ex)
+			{
+				message = ex.Message;
+			}
+			MainViewModel.NotificationEvent(this, message, $"Translated Title for {VN.Title}");
 		}
 	}
 }
