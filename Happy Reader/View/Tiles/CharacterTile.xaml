@@ -18,6 +18,7 @@
 			<MenuItem Header="Show Characters By Producer" Click="ShowCharactersByProducer" IsEnabled="{Binding Producer, Converter={StaticResource NullableToBooleanConverter}}"/>
 			<MenuItem Header="Show Visual Novels For Seiyuu" Click="ShowVisualNovelsForSeiyuu" IsEnabled="{Binding Seiyuu, Converter={StaticResource NullableToBooleanConverter}}"/>
 			<MenuItem Header="Show Characters For Seiyuu" Click="ShowCharactersForSeiyuu" IsEnabled="{Binding Seiyuu, Converter={StaticResource NullableToBooleanConverter}}"/>
+			<MenuItem IsEnabled="{Binding VisualNovel, Converter={StaticResource NullableToBooleanConverter}}" Header="Visual Novel" SubmenuOpened="OpenVnSubmenu" x:Name="VnMenuParent" />
 		</ContextMenu>
 	</UserControl.ContextMenu>
 	<Border x:Name="BorderElement" BorderBrush="Black" BorderThickness="1" CornerRadius="10" Background="{Binding ., Converter={StaticResource CharacterToBackBrushConverter}}">

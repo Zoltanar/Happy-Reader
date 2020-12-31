@@ -20,18 +20,31 @@ namespace Happy_Reader.View.Tiles
 {
 	public partial class CharacterTile : UserControl
 	{
-		private readonly CharacterItem _viewModel;
-
-		[NotNull]
-		private MainWindow MainWindow => (MainWindow)Window.GetWindow(this) ?? throw new ArgumentNullException(nameof(MainWindow));
-
-		private MainWindowViewModel MainViewModel => MainWindow.ViewModel;
-
-		private CharactersTabViewModel TabViewModel => this.FindParent<CharactersTab>()?.ViewModel
-																									 ?? MainViewModel.CharactersViewModel;
+		private static readonly IValueConverter StaticUserVnToBackgroundConverter = new UserVnToBackgroundConverter();
 
 		private readonly bool _hideTraits;
 		private readonly bool _forVnTab;
+		private readonly CharacterItem _viewModel;
+
+		private VnMenuItem _vnMenu;
+		private bool _loaded;
+		
+		[NotNull] private MainWindow MainWindow => (MainWindow)Window.GetWindow(this) ?? throw new ArgumentNullException(nameof(MainWindow));
+		private MainWindowViewModel MainViewModel => MainWindow.ViewModel;
+		private CharactersTabViewModel TabViewModel => this.FindParent<CharactersTab>()?.ViewModel ?? MainViewModel.CharactersViewModel;
+		private VnMenuItem VnMenu => _vnMenu ??= new VnMenuItem(_viewModel.VisualNovel);
+
+		public static CharacterTile FromCharacterVN(CharacterVN cvn)
+		{
+			var character = StaticHelpers.LocalDatabase.Characters[cvn.CharacterId].Clone();
+			character.CharacterVN = cvn;
+			return new CharacterTile(character, false, true);
+		}
+
+		public static CharacterTile FromCharacter(CharacterItem character, bool hideTraits)
+		{
+			return new CharacterTile(character, hideTraits, false);
+		}
 
 		public CharacterTile(CharacterItem character, bool hideTraits, bool forVnTab)
 		{
@@ -42,14 +55,11 @@ namespace Happy_Reader.View.Tiles
 			_hideTraits = hideTraits;
 			_forVnTab = forVnTab;
 		}
-
-		private bool _loaded;
-
-		private static readonly IValueConverter StaticUserVnToBackgroundConverter = new UserVnToBackgroundConverter();
-
+		
 		private void CharacterTile_OnLoaded(object sender, RoutedEventArgs e)
 		{
 			if (_loaded) return;
+			VnMenu.TransferItems(VnMenuParent);
 			ImageBox.Source = _viewModel.ImageSource == null ? Theme.ImageNotFoundImage : new BitmapImage(new Uri(_viewModel.ImageSource));
 			if (_forVnTab)
 			{
@@ -81,22 +91,7 @@ namespace Happy_Reader.View.Tiles
 			}
 		}
 
-		public static CharacterTile FromCharacterVN(CharacterVN cvn)
-		{
-			var character = StaticHelpers.LocalDatabase.Characters[cvn.CharacterId].Clone();
-			character.CharacterVN = cvn;
-			return new CharacterTile(character, false, true);
-		}
-
-		public static CharacterTile FromCharacter(CharacterItem character, bool hideTraits)
-		{
-			return new CharacterTile(character, hideTraits, false);
-		}
-
-		private void ID_OnClick(object sender, RoutedEventArgs e)
-		{
-			Process.Start($"https://vndb.org/c{_viewModel.ID}");
-		}
+		private void ID_OnClick(object sender, RoutedEventArgs e) => Process.Start($"https://vndb.org/c{_viewModel.ID}");
 
 		private async void ShowCharactersByProducer(object sender, RoutedEventArgs e)
 		{
@@ -147,5 +142,11 @@ namespace Happy_Reader.View.Tiles
 			MainWindow.SelectTab(typeof(CharactersTab));
 			await TabViewModel.ShowWithTrait(trait);
 		}
-}
+
+		private void OpenVnSubmenu(object sender, RoutedEventArgs e)
+		{
+			VnMenu.DataContext ??= _viewModel.VisualNovel;
+			VnMenu.ContextMenuOpened();
+		}
+	}
 }

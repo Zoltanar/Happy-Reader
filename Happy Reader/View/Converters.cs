@@ -74,6 +74,9 @@ namespace Happy_Reader.View
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => new NotSupportedException();
 	}
 
+	/// <summary>
+	/// Will convert object to a Visibility value, Visible if not null (or empty string), otherwise, Collapsed.
+	/// </summary>
 	public class NullableToVisibilityConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -82,6 +85,9 @@ namespace Happy_Reader.View
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => new NotSupportedException();
 	}
 
+	/// <summary>
+	/// Will convert object to a boolean value, true if not null, otherwise, false.
+	/// </summary>
 	public class NullableToBooleanConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => value != null;
