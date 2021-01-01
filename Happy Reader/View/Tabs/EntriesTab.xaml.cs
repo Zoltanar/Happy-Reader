@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using Happy_Reader.Database;
@@ -12,8 +13,11 @@ namespace Happy_Reader.View.Tabs
 
 		public EntriesTab() => InitializeComponent();
 
-		private void AddEntries_Click(object sender, RoutedEventArgs e) 
-			=> ((MainWindow)Application.Current.MainWindow).CreateAddEntriesTab(Array.Empty<Entry>());
+		private void AddEntries_Click(object sender, RoutedEventArgs e)
+		{
+			Debug.Assert(Application.Current.MainWindow != null, "Application.Current.MainWindow != null");
+			((MainWindow) Application.Current.MainWindow).CreateAddEntriesTab(Array.Empty<Entry>());
+		}
 
 		private void ClickDeleteButton(object sender, RoutedEventArgs e)
 		{

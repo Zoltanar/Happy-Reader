@@ -188,6 +188,7 @@
 											<ControlTemplate>
 												<Expander Padding="0" BorderThickness="0" IsExpanded="True">
 													<Expander.Header>
+														<!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
 														<TextBlock FontWeight="Bold" Text="{Binding Name}"/>
 													</Expander.Header>
 													<ItemsPresenter/>

@@ -12,6 +12,7 @@ namespace Happy_Apps_Core.Database
 	/// </summary>
 	public sealed class DbTrait : IDataItem<(int, int)>, IDataListItem<int>, IDumpItem
 	{
+		// ReSharper disable once InconsistentNaming
 		public int CharacterItem_Id { get; set; }
 
 		public int TraitId { get; set; }

@@ -60,6 +60,7 @@ namespace DatabaseDumpReader
 					return ExitCode.NoUpdate;
 				}
 			}
+			Debug.Assert(newFileDate != null, nameof(newFileDate) + " != null");
 			StaticHelpers.Logger.ToFile(oldDateString, $"Getting update to: {newFileDate.Value.ToShortDateString()}.");
 			var processor = new DumpReader(latestDumpFolder, StaticHelpers.DatabaseFile, userId);
 			processor.Run(newFileDate.Value);

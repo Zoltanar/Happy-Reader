@@ -124,5 +124,10 @@ namespace Happy_Reader.View.Tabs
 		private void AllowUserInteraction(object sender, EventArgs e) => _userInteractionHistory = true;
 
 		private void StopUserInteraction(object sender, EventArgs e) => _userInteractionHistory = false;
+
+		private void ShowFilters(object sender, RoutedEventArgs e)
+		{
+			FiltersPane.Visibility = FiltersPane.Visibility == Visibility.Collapsed ? Visibility.Visible : Visibility.Collapsed;
+		}
 	}
 }

@@ -141,8 +141,10 @@
     <Compile Include="Model\TranslationResults.cs" />
     <Compile Include="Model\TranslatorSettings.cs" />
     <Compile Include="Model\VnFilters\DefaultFilterCollectionBuilder.cs" />
+    <Compile Include="Model\VnFilters\IFilter.cs" />
     <Compile Include="Model\VnFilters\VnFilter.cs" />
     <Compile Include="Model\VnFilters\VnFilterType.cs" />
+    <Compile Include="Model\VnFilters\VnMultiFilter.cs" />
     <Compile Include="ViewModel\CharactersTabViewModel.cs" />
     <Compile Include="ViewModel\CommandHandler.cs" />
     <Compile Include="ViewModel\DisplayEntry.cs" />
@@ -155,6 +157,9 @@
     <Compile Include="View\Converters.cs" />
     <Compile Include="View\Converters\DateToMonthStringConverter.cs" />
     <Compile Include="View\Converters\UserVnConverters.cs" />
+    <Compile Include="View\FiltersPane.xaml.cs">
+      <DependentUpon>FiltersPane.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\InputWindow.xaml.cs">
       <DependentUpon>InputWindow.xaml</DependentUpon>
     </Compile>
@@ -176,9 +181,6 @@
     </Compile>
     <Compile Include="View\Tabs\EntriesTab.xaml.cs">
       <DependentUpon>EntriesTab.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\Tabs\FiltersTab.xaml.cs">
-      <DependentUpon>FiltersTab.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\Tabs\IthVnrTab.xaml.cs">
       <DependentUpon>IthVnrTab.xaml</DependentUpon>
@@ -245,6 +247,10 @@
       <DependentUpon>VnMenuItem.xaml</DependentUpon>
     </Compile>
     <Compile Include="WinAPI.cs" />
+    <Page Include="View\FiltersPane.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\InputWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -270,10 +276,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\Tabs\EntriesTab.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\Tabs\FiltersTab.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -8,7 +8,6 @@ using System.Windows.Controls;
 using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
 using Happy_Reader.ViewModel;
-using IthVnrSharpLib;
 using JetBrains.Annotations;
 using StaticHelpers = Happy_Apps_Core.StaticHelpers;
 
@@ -230,6 +229,7 @@ namespace Happy_Reader.View
 
 		private void AddProducerToFavoritesItem_OnClick(object sender, RoutedEventArgs e)
 		{
+			Debug.Assert(VN.ProducerID != null, "VN.ProducerID != null");
 			StaticHelpers.LocalDatabase.UserProducers.Add(new UserListedProducer
 			{
 				ListedProducer_Id = VN.ProducerID.Value,

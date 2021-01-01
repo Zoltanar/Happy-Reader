@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 
-namespace Happy_Reader.Model.VnFilters
+namespace Happy_Reader
 {
 	public static class DefaultFilterCollectionBuilder
 	{
@@ -25,6 +25,7 @@ namespace Happy_Reader.Model.VnFilters
 			var withReleaseDateAllFilter = new CustomVnFilter();
 			withReleaseDateAllFilter.OrFilters.Add(new VnFilter(VnFilterType.ReleaseStatus, ReleaseStatusEnum.WithReleaseDate));
 			withReleaseDateAllFilter.OrFilters.Add(new VnFilter(VnFilterType.ReleaseStatus, ReleaseStatusEnum.Released));
+			withReleaseDateAllFilter.SaveOrGroup();
 			withReleaseDateAllFilter.Name = "With Release Date (All)";
 			filters.Add(withReleaseDateAllFilter);
 			filters.Add(new CustomVnFilter("Has Complete Release Date", new VnFilter(VnFilterType.HasFullDate, true)));

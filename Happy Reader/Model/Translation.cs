@@ -10,7 +10,7 @@ using Happy_Reader.Database;
 
 namespace Happy_Reader
 {
-	public class Translation : ICloneable
+	public class Translation
 	{
 		public static Translator Translator { get; set; }
 		internal readonly List<(string Part, bool Translate)> Parts = new List<(string Part, bool Translate)>();
@@ -21,7 +21,6 @@ namespace Happy_Reader
 		public readonly string Romaji;
 		public string Output => Results[7];
 		public bool IsCharacterOnly { get; }
-		public bool FromClipboard { get; }
 
 		public Translation(string original, bool translate)
 		{
@@ -163,17 +162,6 @@ namespace Happy_Reader
 			spacer.Padding = new Thickness(0);
 			blocks.Add(spacer);
 			return blocks;
-		}
-
-		public static Translation Error(string error)
-		{
-			return new Translation(error, "", Enumerable.Repeat(error, 8).ToArray());
-		}
-
-		public object Clone()
-		{
-			//return MemberwiseClone();
-			return new Translation(Original, Romaji, Results);
 		}
 	}
 }

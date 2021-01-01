@@ -10,8 +10,10 @@ namespace Happy_Apps_Core.Database
 	/// </summary>
 	public class UserListedProducer : IDataItem<(int,int)>
 	{
+		// ReSharper disable InconsistentNaming
 		public int ListedProducer_Id { get; set; }
 		public int User_Id { get; set; }
+		// ReSharper restore InconsistentNaming
 		public double UserAverageVote { get; set; }
 		public int UserDropRate { get; set; }
 

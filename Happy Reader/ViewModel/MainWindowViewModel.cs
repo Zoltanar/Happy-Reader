@@ -94,11 +94,9 @@ namespace Happy_Reader.ViewModel
 		[NotNull] public VNTabViewModel DatabaseViewModel { get; }
 		[NotNull] public CharactersTabViewModel CharactersViewModel { get; }
 		[NotNull] public ProducersTabViewModel ProducersViewModel { get; }
-		[NotNull] public FiltersViewModel FiltersViewModel { get; }
 		[NotNull] public IthViewModel IthViewModel { get; }
 		[NotNull] public SettingsViewModel SettingsViewModel { get; }
 		[NotNull] public ApiLogViewModel ApiLogViewModel { get; }
-		//todo make a new UserControl and ViewModel for entries.
 
 		public bool TranslatePaused
 		{
@@ -152,8 +150,7 @@ namespace Happy_Reader.ViewModel
 			Translation.Translator = Translator;
 			EntriesViewModel = new EntriesTabViewModel(() => UserGame);
 			TestViewModel = new TranslationTester(this);
-			FiltersViewModel = new FiltersViewModel();
-			DatabaseViewModel = new VNTabViewModel(this, FiltersViewModel.Filters, FiltersViewModel.PermanentFilter);
+			DatabaseViewModel = new VNTabViewModel(this);
 			CharactersViewModel = new CharactersTabViewModel();
 			ProducersViewModel = new ProducersTabViewModel(this);
 			IthViewModel = new IthViewModel(this);

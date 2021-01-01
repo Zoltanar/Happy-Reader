@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace Happy_Reader
 {
-	public class VnFilter
+	public class VnFilter : IFilter<ListedVN>
 	{
 		private VnFilterType _type;
 		private string _typeName;
@@ -262,7 +262,7 @@ namespace Happy_Reader
 			}
 		}
 
-		public VnFilter GetCopy()
+		public IFilter<ListedVN> GetCopy()
 		{
 			var filter = new VnFilter(Type, 0, Exclude) { StringValue = StringValue };
 			return filter;

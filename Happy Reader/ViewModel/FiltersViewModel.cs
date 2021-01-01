@@ -9,7 +9,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
-using Happy_Reader.Model.VnFilters;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 
@@ -81,13 +80,17 @@ namespace Happy_Reader.ViewModel
 					if (result == MessageBoxResult.Cancel) return;
 					existingFilter.Overwrite(CustomFilter);
 				}
-				else Filters.Add(CustomFilter);
+				else
+				{
+					Filters.Add(CustomFilter);
+					CustomFilter = new CustomVnFilter();
+				}
 				SaveVnFilters();
 				SaveFilterError = "Filter saved.";
 			}
 			finally
 			{
-				OnPropertyChanged();
+				OnPropertyChanged(null);
 			}
 		}
 
@@ -137,7 +140,7 @@ namespace Happy_Reader.ViewModel
 				if (File.Exists(StaticMethods.PermanentFilterJson))
 				{
 					var text = File.ReadAllText(StaticMethods.PermanentFilterJson);
-					PermanentFilter = JsonConvert.DeserializeObject<CustomVnFilter>(text);
+					PermanentFilter = JsonConvert.DeserializeObject<CustomVnFilter>(text, StaticMethods.SerialiserSettings);
 				}
 			}
 			catch (Exception ex)
@@ -150,7 +153,7 @@ namespace Happy_Reader.ViewModel
 
 		public void SavePermanentFilter()
 		{
-			var text = JsonConvert.SerializeObject(PermanentFilter, Formatting.Indented);
+			var text = JsonConvert.SerializeObject(PermanentFilter, Formatting.Indented, StaticMethods.SerialiserSettings);
 			File.WriteAllText(StaticMethods.PermanentFilterJson, text);
 			OnPropertyChanged(nameof(PermanentFilter));
 		}
@@ -162,7 +165,7 @@ namespace Happy_Reader.ViewModel
 				if (File.Exists(StaticMethods.CustomFiltersJson))
 				{
 					var text = File.ReadAllText(StaticMethods.CustomFiltersJson);
-					Filters = JsonConvert.DeserializeObject<ObservableCollection<CustomVnFilter>>(text);
+					Filters = JsonConvert.DeserializeObject<ObservableCollection<CustomVnFilter>>(text, StaticMethods.SerialiserSettings);
 				}
 			}
 			catch (Exception ex)
@@ -176,7 +179,7 @@ namespace Happy_Reader.ViewModel
 
 		private void SaveVnFilters()
 		{
-			var text = JsonConvert.SerializeObject(Filters, Formatting.Indented);
+			var text = JsonConvert.SerializeObject(Filters, Formatting.Indented, StaticMethods.SerialiserSettings);
 			File.WriteAllText(StaticMethods.CustomFiltersJson, text);
 		}
 

@@ -47,8 +47,10 @@
 								<TextBlock>
 									<TextBlock.Text>
 										<MultiBinding StringFormat="{}{0} ({1} Items)">
+											<!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
 											<Binding Path="Name" FallbackValue="Other"/>
 											<Binding Path="ItemCount" />
+											<!-- ReSharper restore Xaml.BindingWithContextNotResolved -->
 										</MultiBinding>
 									</TextBlock.Text>
 								</TextBlock>
@@ -135,9 +137,6 @@
 			</TabItem>
 			<TabItem Header="Characters" Style="{StaticResource DatabaseTabItem}">
 				<tabs:CharactersTab DataContext="{Binding CharactersViewModel}"/>
-			</TabItem>
-			<TabItem Header="Filters">
-				<tabs:FiltersTab DataContext="{Binding FiltersViewModel}"/>
 			</TabItem>
 			<TabItem Header="Info/Settings">
 				<tabs:SettingsTab DataContext="{Binding SettingsViewModel}"/>

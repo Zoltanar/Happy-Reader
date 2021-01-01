@@ -14,6 +14,7 @@ using System.Management;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Happy_Apps_Core.Database;
+using Newtonsoft.Json;
 using FontFamily = System.Windows.Media.FontFamily;
 using StaticHelpers = Happy_Apps_Core.StaticHelpers;
 
@@ -34,6 +35,7 @@ namespace Happy_Reader
 		public static readonly TranslatorSettings TranslatorSettings;
 		public static HappyReaderDatabase Data { get; } = new HappyReaderDatabase();
 		public static Func<bool> ShowNSFWImages { get; set; } = () => true;
+		public static JsonSerializerSettings SerialiserSettings { get; set; } = new JsonSerializerSettings(){TypeNameHandling = TypeNameHandling.Objects};
 
 		static StaticMethods()
 		{

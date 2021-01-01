@@ -35,25 +35,22 @@ namespace Happy_Reader.ViewModel
 		private readonly MainWindowViewModel _mainViewModel;
 		private NamedFunction _dbFunction = new NamedFunction(x => x.VisualNovels, "All", false);
 		private Func<IEnumerable<ListedVN>, IEnumerable<ListedVN>> _ordering = lvn => lvn.OrderByDescending(x => x.ReleaseDate);
-		private CustomVnFilter _selectedFilter;
 		private bool _isBlacklisted;
 
 		public ObservableCollection<NamedFunction> History { get; } = new ObservableCollection<NamedFunction>();
 
 		public CoreSettings CSettings => StaticHelpers.CSettings;
-		public ObservableCollection<CustomVnFilter> VnFilters { get; }
-		public CustomVnFilter PermanentFilter { get; }
 		public CustomVnFilter SelectedFilter
 		{
-			get => _selectedFilter;
+			get => FiltersViewModel.CustomFilter;
 			set
 			{
-				if (_selectedFilter == value) return;
-				_selectedFilter = value;
-				Task.Run(() => ChangeFilter(_selectedFilter));
-
+				if (FiltersViewModel.CustomFilter == value) return;
+				FiltersViewModel.CustomFilter = value;
+				Task.Run(() => ChangeFilter(FiltersViewModel.CustomFilter));
 			}
 		}
+		[NotNull] public FiltersViewModel FiltersViewModel { get; }
 		public PausableUpdateList<VNTile> ListedVNs { get; set; } = new PausableUpdateList<VNTile>();
 		public ListedVN[] AllResults { get; private set; }
 		public string ReplyText
@@ -91,13 +88,10 @@ namespace Happy_Reader.ViewModel
 			set { _vndbConnectionStatus = value; OnPropertyChanged(); }
 		}
 
-		public View.MainWindow MainWindow(DependencyObject element) => (View.MainWindow) Window.GetWindow(element);
-
-		public VNTabViewModel(MainWindowViewModel mainWindowViewModel, ObservableCollection<CustomVnFilter> vnFilters, CustomVnFilter permanentFilter)
+		public VNTabViewModel(MainWindowViewModel mainWindowViewModel)
 		{
 			_mainViewModel = mainWindowViewModel;
-			VnFilters = vnFilters;
-			PermanentFilter = permanentFilter;
+			FiltersViewModel = new FiltersViewModel();
 		}
 
 		public async Task Initialize()
@@ -191,12 +185,8 @@ namespace Happy_Reader.ViewModel
 				var vns = _dbFunction.SelectAndInvoke(LocalDatabase);
 				OnPropertyChanged(nameof(SelectedFunctionIndex));
 				if (!_dbFunction.AlwaysIncludeBlacklisted && !IsBlacklisted) vns = vns.Where(vn => !(vn.UserVN?.Blacklisted ?? false));
-				var filterFunc = PermanentFilter.GetFunction();
+				var filterFunc = FiltersViewModel.PermanentFilter.GetFunction();
 				var filteredResults = vns.Where(vn => filterFunc(vn));
-				/*var preFilteredResults = _ordering(vns).ToArray();
-				/*
-				var filterResults = LocalDatabase.VisualNovels.Where(PermanentFilter.GetFunction()).Select(x => x.VNID).ToArray();
-				AllResults = _ordering(preFilteredResults.Where(x => filterResults.Contains(x.VNID))).Select(x => x.VNID).ToArray();*/
 				AllResults = _ordering(filteredResults).ToArray();
 				var firstPage = AllResults.Take(PageSize).ToArray();
 				return firstPage;
