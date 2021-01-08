@@ -7,7 +7,8 @@
              mc:Ignorable="d" 
              d:DesignHeight="500" d:DesignWidth="400">
 	<d:UserControl.DataContext>
-		<viewModel:FiltersViewModel></viewModel:FiltersViewModel>
+		<!--We set a concrete class here just for design purposes -->
+		<viewModel:FiltersViewModel/>
 	</d:UserControl.DataContext>
 	<Grid>
 		<Grid.RowDefinitions>
@@ -63,7 +64,7 @@
 				</ComboBox>
 				<CheckBox Grid.Column="0" Content="OR Group" VerticalAlignment="Top" Margin="5,27,5,0" IsChecked="{Binding NewFilterOrGroup}" Grid.ColumnSpan="2" />
 				<CheckBox Grid.Column="1" Content="Exclude"  VerticalAlignment="Top" Margin="5,27,5,0" IsChecked="{Binding NewFilter.Exclude}" />
-				<TabControl Grid.ColumnSpan="2" Grid.Column="0" Margin="0,47,0,25" SelectedIndex="{Binding SelectedFilterIndex, Mode=OneWay}" MaxHeight="200">
+				<TabControl x:Name="VnFilterValues" Grid.ColumnSpan="2" Grid.Column="0" Margin="0,47,0,25" SelectedIndex="{Binding SelectedFilterIndex, Mode=OneWay}" MaxHeight="200">
 					<TabItem Visibility="Collapsed" Header="Length" >
 						<ComboBox ItemsSource="{Binding LengthTypes, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag">
 							<ComboBox.ItemContainerStyle>
@@ -134,6 +135,14 @@
 						<TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
 					</TabItem>
 					<TabItem Visibility="Collapsed" Content="Has Anime" Header="Traits"/>
+					<TabItem Visibility="Collapsed" Header="Suggestion Score Over">
+						<TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
+					</TabItem>
+				</TabControl>
+				<TabControl x:Name="CharacterFilterValues" Visibility="Hidden" Grid.ColumnSpan="2" Grid.Column="0" Margin="0,47,0,25" SelectedIndex="{Binding SelectedFilterIndex, Mode=OneWay}" MaxHeight="200">
+					<TabItem Visibility="Collapsed" Header="Trait ID">
+						<TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
+					</TabItem>
 					<TabItem Visibility="Collapsed" Header="Suggestion Score Over">
 						<TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
 					</TabItem>

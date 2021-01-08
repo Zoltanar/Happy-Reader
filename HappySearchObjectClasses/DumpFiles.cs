@@ -77,7 +77,7 @@ namespace Happy_Apps_Core
 
 			public override bool InCollection(IEnumerable<int> idCollection, out int match)
 			{
-				match = idCollection.FirstOrDefault(id => GetTrait(id)?.Parents.Contains(ID) ?? false);
+				match = idCollection.FirstOrDefault(id => id == ID || (GetTrait(id)?.Parents.Contains(ID) ?? false));
 				return match != default;
 			}
 

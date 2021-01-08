@@ -113,7 +113,7 @@ namespace Happy_Reader.View.Tabs
 		private async void BrowseHistory(object sender, SelectionChangedEventArgs e)
 		{
 			if (!_userInteractionHistory || e.AddedItems.Count == 0) return;
-			var item = e.AddedItems.Cast<NamedFunction>().First();
+			var item = e.AddedItems.Cast<NamedFunction<ListedVN>>().First();
 			if (item.Selected)
 			{
 				return;

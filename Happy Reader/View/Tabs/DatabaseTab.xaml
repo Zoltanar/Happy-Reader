@@ -28,7 +28,7 @@
 				<ColumnDefinition Width="*"/>
 				<ColumnDefinition Width="Auto"/>
 			</Grid.ColumnDefinitions>
-			<ListBox x:Name="VisualNovelItems" ItemsSource="{Binding ListedVNs}" 
+			<ListBox Grid.Column="0" x:Name="VisualNovelItems" ItemsSource="{Binding ListedVNs}" 
 			         ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
 			         ScrollViewer.ScrollChanged="ScrollViewer_OnScrollChanged"
 			         VirtualizingStackPanel.VirtualizationMode="Recycling" 
@@ -54,7 +54,7 @@
 					</ItemsPanelTemplate>
 				</ListBox.ItemsPanel>
 			</ListBox>
-			<view:FiltersPane x:Name="FiltersPane" Grid.Row="0" Grid.Column="1" Visibility="Collapsed" MinWidth="250" DataContext="{Binding FiltersViewModel}"/>
+			<view:FiltersPane x:Name="FiltersPane" Grid.Column="1" Visibility="Collapsed" MinWidth="250" DataContext="{Binding FiltersViewModel}"/>
 		</Grid>
         <Label Content="Search:" HorizontalAlignment="Left" VerticalContentAlignment="Center" Grid.Row="1" Margin="161,0,0,0"/>
         <TextBox x:Name="SearchTexBox" Margin="214,0,321,0" TextWrapping="Wrap" VerticalContentAlignment="Center" PreviewKeyUp="SearchForVN" Height="30" VerticalAlignment="Stretch" Grid.Row="1"/>

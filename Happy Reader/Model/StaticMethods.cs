@@ -29,6 +29,8 @@ namespace Happy_Reader
 		public static readonly string ProxiesJson = Path.Combine(StaticHelpers.StoredDataFolder, "proxies.json");
 		public static readonly string CustomFiltersJson = Path.Combine(StaticHelpers.StoredDataFolder, "customfilters.json");
 		public static readonly string PermanentFilterJson = Path.Combine(StaticHelpers.StoredDataFolder, "filters.json");
+		public static readonly string CustomCharacterFiltersJson = Path.Combine(StaticHelpers.StoredDataFolder, "CustomCharacterFilters.json");
+		public static readonly string PermanentCharacterFilterJson = Path.Combine(StaticHelpers.StoredDataFolder, "PermanentCharacterFilter.json");
 		public static readonly string GuiSettingsJson = Path.Combine(StaticHelpers.StoredDataFolder, "guisettings.json");
 		public static readonly string TranslatorSettingsJson = Path.Combine(StaticHelpers.StoredDataFolder, "translatorsettings.json");
 		public static readonly GuiSettings GuiSettings;

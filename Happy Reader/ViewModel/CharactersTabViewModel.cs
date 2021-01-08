@@ -27,14 +27,14 @@ namespace Happy_Reader.ViewModel
 		private string _replyText;
 		private Brush _replyColor;
 		private const int PageSize = 100;
-		private Func<VisualNovelDatabase, IEnumerable<CharacterItem>> _dbFunction = x => x.Characters;
+		private NamedFunction<CharacterItem> _dbFunction = new NamedFunction<CharacterItem>(db => db.Characters, "All", false);
 		private Func<IEnumerable<CharacterItem>, IEnumerable<CharacterItem>> _ordering = chars => chars.OrderByDescending(x => x.VisualNovelSortingDate);
 
 		public PausableUpdateList<CharacterTile> CharacterTiles { get; set; } = new PausableUpdateList<CharacterTile>();
 		public int[] AllResults { get; private set; }
 
 		public IEnumerable<ListedProducer> ProducerList => LocalDatabase?.Producers?.AsEnumerable();
-
+		
 		public bool HideTraits { get; set; } = true; 
 		public string ReplyText
 		{
@@ -47,6 +47,24 @@ namespace Happy_Reader.ViewModel
 			set { _replyColor = value; OnPropertyChanged(); }
 		}
 		public Action ScrollToTop { get; set; }
+
+		public CharacterFiltersViewModel FiltersViewModel { get; }
+
+		public CustomCharacterFilter SelectedFilter
+		{
+			get => FiltersViewModel.CustomFilter;
+			set
+			{
+				if (FiltersViewModel.CustomFilter == value) return;
+				FiltersViewModel.CustomFilter = value;
+				Task.Run(() => ChangeFilter(FiltersViewModel.CustomFilter));
+			}
+		}
+
+		public CharactersTabViewModel()
+		{
+			FiltersViewModel = new CharacterFiltersViewModel();
+		}
 
 		public async Task Initialize(MainWindowViewModel mainViewModel)
 		{
@@ -82,13 +100,14 @@ namespace Happy_Reader.ViewModel
 		{
 			var watch = Stopwatch.StartNew();
 			if (resetOrder) ResetOrdering();
-			ScrollToTop();
+			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
+			Application.Current.Dispatcher.Invoke(ScrollToTop);
 			await Task.Run(() =>
 		 {
 			 _finalPage = false;
-			 if (showAll) _dbFunction = x => x.Characters;
+			 if (showAll) _dbFunction = new NamedFunction<CharacterItem>(db => db.Characters, "All", false);
 			 _characterTilePage = 1;
-			 var characters = _dbFunction.Invoke(LocalDatabase);
+			 var characters = _dbFunction.SelectAndInvoke(LocalDatabase);
 			 var preFilteredResults = _ordering(characters);
 			 Func<CharacterItem, bool> filter = c => c.ImageId != null && c.HasFullReleaseDate && c.Gender == "f";
 			 AllResults = preFilteredResults.Where(filter).Select(c => c.ID).ToArray();
@@ -130,19 +149,20 @@ namespace Happy_Reader.ViewModel
 				SetReplyText($"Found no results for '{text}'", VndbConnection.MessageSeverity.Normal);
 				return;
 			}
-			_dbFunction = db => db.Characters.WithKeyIn(characters);
+			_dbFunction = new NamedFunction<CharacterItem>(db => db.Characters.WithKeyIn(characters), $"Search: '{text}'", true);
 			await RefreshCharacterTiles();
 		}
 
 		public async Task ShowForProducer(ListedProducer vnProducer)
 		{
-			_dbFunction = db => db.Characters.Where(c => c.Producer?.ID == vnProducer.ID);
+			_dbFunction = new NamedFunction<CharacterItem>(db => db.Characters.Where(c => c.Producer?.ID == vnProducer.ID), $"Producer: {vnProducer}", true);
 			await RefreshCharacterTiles();
 		}
 
 		public async Task ShowForVisualNovel(CharacterVN visualNovel)
 		{
-			_dbFunction = db => db.Characters.Where(c => c.CharacterVN?.VNId == visualNovel.VNId);
+			var vn = LocalDatabase.VisualNovels[visualNovel.VNId];
+			_dbFunction = new NamedFunction<CharacterItem>(db => db.Characters.Where(c => c.CharacterVN?.VNId == visualNovel.VNId), $"VN: {vn}", true);
 			await RefreshCharacterTiles();
 		}
 
@@ -156,40 +176,40 @@ namespace Happy_Reader.ViewModel
 			filter.AndFilters.Add(new VnFilter(VnFilterType.Label, UserVN.LabelKind.Playing, true));
 			filter.AndFilters.Add(new VnFilter(VnFilterType.ReleaseStatus, ReleaseStatusEnum.Released));
 			var function = filter.GetFunction();
-			_dbFunction = db => db.GetCharactersWithTrait(trait.ID).Where(c => c.VisualNovel != null && function(c.VisualNovel));
+			_dbFunction = new NamedFunction<CharacterItem>(db => db.GetCharactersWithTrait(trait.ID).Where(c => c.VisualNovel != null && function(c.VisualNovel)),"Filtered", true);
 			await RefreshCharacterTiles();
 		}
 
 		public async Task ShowForStaffWithAlias(int aliasId)
 		{
-			_dbFunction = db =>
+			var staff = LocalDatabase.StaffAliases[aliasId];
+			var aliasIds = LocalDatabase.StaffAliases.Where(c => c.StaffID == staff.StaffID).Select(sa => sa.AliasID).ToList();
+			var keys = LocalDatabase.VnStaffs.Where(s => aliasIds.Contains(s.AliasID)).Select(s => s.VNID).Distinct().ToList();
+			var characters = LocalDatabase.CharacterVNs.WithKeyIn(keys).Select(cvn => cvn.CharacterId).ToArray();
+			_dbFunction = new NamedFunction<CharacterItem>(db =>
 			{
-				var staff = db.StaffAliases[aliasId];
-				var aliasIds = db.StaffAliases.Where(c => c.StaffID == staff.StaffID).Select(sa => sa.AliasID).ToList();
-				var keys = db.VnStaffs.Where(s => aliasIds.Contains(s.AliasID)).Select(s => s.VNID).Distinct().ToList();
-				var characters = db.CharacterVNs.WithKeyIn(keys).Select(cvn => cvn.CharacterId).ToArray();
 				return db.Characters.WithKeyIn(characters);
-			};
+			}, $"Staff: {staff}", true);
 			await RefreshCharacterTiles();
 		}
 		public async Task ShowForSeiyuuWithAlias(int aliasId)
 		{
-			_dbFunction = db =>
+			var staff = LocalDatabase.StaffAliases[aliasId];
+			var aliasIds = LocalDatabase.StaffAliases.Where(c => c.StaffID == staff.StaffID).Select(sa => sa.AliasID).ToArray();
+			var keys = LocalDatabase.VnSeiyuus.Where(s => aliasIds.Contains(s.AliasID)).Select(s => s.CharacterID).Distinct().ToArray();
+			_dbFunction = new NamedFunction<CharacterItem>(db =>
 			{
-				var staff = db.StaffAliases[aliasId];
-				var aliasIds = db.StaffAliases.Where(c => c.StaffID == staff.StaffID).Select(sa => sa.AliasID).ToArray();
-				var keys = db.VnSeiyuus.Where(s => aliasIds.Contains(s.AliasID)).Select(s => s.CharacterID).Distinct().ToArray();
 				return db.Characters.WithKeyIn(keys);
-			};
+			}, $"Seiyuu: {staff}", true);
 			await RefreshCharacterTiles();
 		}
 
 		public async Task ShowWithTrait(DumpFiles.WrittenTrait trait)
 		{
-			_dbFunction = db =>
+			_dbFunction = new NamedFunction<CharacterItem>(db =>
 			{
 				return db.Characters.Where(c=>c.DbTraits.Any(t=>trait.AllIDs.Contains(t.TraitId)));
-			};
+			}, $"Trait: {trait}", true);
 			await RefreshCharacterTiles();
 		}
 
@@ -216,6 +236,12 @@ namespace Happy_Reader.ViewModel
 		{
 			_ordering = chars => chars.OrderByDescending(ch => ch.VisualNovelSortingDate);
 			await RefreshCharacterTiles(resetOrder: false);
+		}
+
+		public async Task ChangeFilter(CustomCharacterFilter item)
+		{
+			_dbFunction = new NamedFunction<CharacterItem>(db => db.Characters.Where(item.GetFunction()), item.Name, false);
+			await RefreshCharacterTiles();
 		}
 	}
 }

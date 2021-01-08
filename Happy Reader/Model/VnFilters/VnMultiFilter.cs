@@ -2,22 +2,29 @@
 using System.Collections.Generic;
 using System.Linq;
 using Happy_Apps_Core.Database;
+using Newtonsoft.Json;
 
 namespace Happy_Reader
 {
-	public class VnMultiFilter : IFilter<ListedVN>
+	public class VnMultiFilter : IFilter<ListedVN, VnFilterType>
 	{
 		/// <summary>
 		/// True if it represents an OR group, false if it represents an AND group
 		/// </summary>
 		public bool IsOrGroup { get; set; }
 
-		public List<IFilter<ListedVN>> Filters { get; set; }
+		public List<IFilter<ListedVN, VnFilterType>> Filters { get; set; }
+
+		[JsonIgnore] public VnFilterType Type { get => VnFilterType.Multi; set => throw new NotSupportedException(); }
+
+		[JsonIgnore] public bool Exclude { get => false; set => throw new NotSupportedException(); }
+
+		[JsonIgnore] public object Value { set => throw new NotSupportedException(); }
 
 		/// <summary>
 		/// Create custom filter
 		/// </summary>
-		public VnMultiFilter(bool isOrGroup, ICollection<IFilter<ListedVN>> filters)
+		public VnMultiFilter(bool isOrGroup, ICollection<IFilter<ListedVN, VnFilterType>> filters)
 		{
 			IsOrGroup = isOrGroup;
 			Filters = filters.ToList();
@@ -39,7 +46,7 @@ namespace Happy_Reader
 			return result + string.Join("; ", Filters);
 		}
 
-		public IFilter<ListedVN> GetCopy()
+		public IFilter<ListedVN, VnFilterType> GetCopy()
 		{
 			var filter = new VnMultiFilter(IsOrGroup, Filters);
 			return filter;

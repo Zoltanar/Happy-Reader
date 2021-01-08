@@ -7,6 +7,7 @@ see vnid 26052 shows relations twice.
 save tabs open, color tabs
 warn if an instance is already running (maybe show database file for opening instance)
 launch title from VN context menu
+usergames: search by text
 
 add blacklistedproducers to user
 change order of load to load dumpfiles>filters>vndb>games>proxies>entries>connection

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,7 +13,9 @@ namespace Happy_Reader.View
 	{
 
 		// ReSharper disable once NotAccessedField.Local
-		private FiltersViewModel ViewModel => (FiltersViewModel) DataContext;
+		//private FiltersViewModelBase<TFilter, T, TType> ViewModel => (FiltersViewModelBase<TFilter,T,TType>) DataContext;
+
+		private IFiltersViewModel ViewModel => (IFiltersViewModel)DataContext;
 
 		public FiltersPane()
 		{
@@ -23,8 +26,11 @@ namespace Happy_Reader.View
 		{
 			if (e.Key != Key.Delete) return;
 			ListBox listBox = (ListBox)sender;
-			var list = (IList<IFilter<ListedVN>>)listBox.ItemsSource;
-			foreach (IFilter<ListedVN> item in listBox.SelectedItems.Cast<IFilter<ListedVN>>().ToArray()) list.Remove(item);
+			var list = (System.Collections.IList)listBox.ItemsSource;
+			var selected = listBox.SelectedItems;
+			System.Array array = new object[selected.Count];
+			selected.CopyTo(array,0);
+			foreach (var item in array) list.Remove(item);
 			var parent = listBox.FindParent<GroupBox>();
 			if (parent == PermanentFilterGroupBox) ViewModel.SavePermanentFilter();
 		}
@@ -33,9 +39,7 @@ namespace Happy_Reader.View
 		{
 			var parent = ((DependencyObject)sender).FindParent<GroupBox>();
 			var isPermanent = parent == PermanentFilterGroupBox;
-			var filter = isPermanent ? ViewModel.PermanentFilter : ViewModel.CustomFilter;
-			filter.SaveOrGroup();
-			if(isPermanent) ViewModel.SavePermanentFilter();
+			ViewModel.SaveOrGroup(isPermanent);
 		}
 
 		private void DeleteCustomFilter(object sender, RoutedEventArgs e)

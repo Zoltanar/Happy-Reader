@@ -134,23 +134,30 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Database\Log.cs" />
-    <Compile Include="Model\CustomVnFilter.cs" />
+    <Compile Include="Model\VnFilters\CustomFilter.cs" />
+    <Compile Include="Model\VnFilters\CustomVnFilter.cs" />
     <Compile Include="Model\GuiSettings.cs" />
     <Compile Include="Model\Jisho.cs" />
     <Compile Include="Model\PageLink.cs" />
     <Compile Include="Model\TranslationResults.cs" />
     <Compile Include="Model\TranslatorSettings.cs" />
-    <Compile Include="Model\VnFilters\DefaultFilterCollectionBuilder.cs" />
     <Compile Include="Model\VnFilters\IFilter.cs" />
     <Compile Include="Model\VnFilters\VnFilter.cs" />
     <Compile Include="Model\VnFilters\VnFilterType.cs" />
     <Compile Include="Model\VnFilters\VnMultiFilter.cs" />
+    <Compile Include="Model\VnFilters\CharacterFilter.cs" />
+    <Compile Include="ViewModel\CharacterFiltersViewModel.cs" />
+    <Compile Include="Model\VnFilters\CharacterFilterType.cs" />
+    <Compile Include="Model\VnFilters\CharacterMultiFilter.cs" />
     <Compile Include="ViewModel\CharactersTabViewModel.cs" />
     <Compile Include="ViewModel\CommandHandler.cs" />
+    <Compile Include="Model\VnFilters\CustomCharacterFilter.cs" />
     <Compile Include="ViewModel\DisplayEntry.cs" />
     <Compile Include="ViewModel\DisplayLog.cs" />
     <Compile Include="ViewModel\EntriesTabViewModel.cs" />
     <Compile Include="ViewModel\FiltersViewModel.cs" />
+    <Compile Include="ViewModel\FiltersViewModelBase.cs" />
+    <Compile Include="ViewModel\IFiltersViewModel.cs" />
     <Compile Include="ViewModel\NamedFunction.cs" />
     <Compile Include="ViewModel\ProducersTabViewModel.cs" />
     <Compile Include="ViewModel\SettingsViewModel.cs" />

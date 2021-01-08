@@ -34,7 +34,8 @@ namespace Happy_Reader
 		[Description("Has Anime")]
 		HasAnime = 17,
 		[Description("Suggestion Score")]
-		SuggestionScore
+		SuggestionScore = 18,
+		Multi = 19
 #pragma warning restore 1591
 	}
 }

@@ -87,5 +87,15 @@ namespace Happy_Reader.View.Tabs
 			var producer = (ListedProducer)item;
 			return producer.Name.ToLowerInvariant().Contains(input.ToLowerInvariant());
 		}
+
+		private void ShowFilters(object sender, RoutedEventArgs e)
+		{
+			if (FiltersPane.CharacterFilterValues.Visibility == Visibility.Hidden)
+			{
+				FiltersPane.CharacterFilterValues.Visibility = Visibility.Visible;
+				FiltersPane.VnFilterValues.Visibility = Visibility.Hidden;
+			}
+			FiltersPane.Visibility = FiltersPane.Visibility == Visibility.Collapsed ? Visibility.Visible : Visibility.Collapsed;
+		}
 	}
 }

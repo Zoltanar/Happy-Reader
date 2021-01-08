@@ -7,11 +7,11 @@ using JetBrains.Annotations;
 
 namespace Happy_Reader.ViewModel
 {
-	public class NamedFunction : INotifyPropertyChanged
+	public class NamedFunction<T> : INotifyPropertyChanged
 	{
-		private static NamedFunction _lastSelected;
+		private static NamedFunction<T> _lastSelected;
 		private bool _selected;
-		public Func<VisualNovelDatabase, IEnumerable<ListedVN>> Function { get; }
+		public Func<VisualNovelDatabase, IEnumerable<T>> Function { get; }
 		public string Name { get; }
 		public bool AlwaysIncludeBlacklisted { get; }
 		public bool Selected
@@ -29,14 +29,14 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 		
-		public NamedFunction(Func<VisualNovelDatabase, IEnumerable<ListedVN>> function, string name,bool alwaysIncludeBlacklisted)
+		public NamedFunction(Func<VisualNovelDatabase, IEnumerable<T>> function, string name,bool alwaysIncludeBlacklisted)
 		{
 			Function = function;
 			Name = name;
 			AlwaysIncludeBlacklisted = alwaysIncludeBlacklisted;
 		}
 
-		public IEnumerable<ListedVN> SelectAndInvoke(VisualNovelDatabase localDatabase)
+		public IEnumerable<T> SelectAndInvoke(VisualNovelDatabase localDatabase)
 		{
 			if (_lastSelected != null) _lastSelected.Selected = false;
 			Selected = true;
