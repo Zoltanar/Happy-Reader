@@ -1,10 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Happy_Apps_Core.Database;
 using Happy_Reader.ViewModel;
 
 namespace Happy_Reader.View
@@ -13,9 +9,7 @@ namespace Happy_Reader.View
 	{
 
 		// ReSharper disable once NotAccessedField.Local
-		//private FiltersViewModelBase<TFilter, T, TType> ViewModel => (FiltersViewModelBase<TFilter,T,TType>) DataContext;
-
-		private IFiltersViewModel ViewModel => (IFiltersViewModel)DataContext;
+		private FiltersViewModelBase ViewModel => (FiltersViewModelBase)DataContext;
 
 		public FiltersPane()
 		{

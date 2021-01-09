@@ -1,10 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using System.Linq;
-using Happy_Apps_Core.Database;
 
 namespace Happy_Reader
 {
-	public class CustomVnFilter : CustomFilter<ListedVN, VnFilterType>
+	public class CustomVnFilter : CustomFilterBase
 	{
 		/// <summary>
 		/// Create a custom filter with copies of filters from an existing filter.
@@ -13,9 +12,9 @@ namespace Happy_Reader
 		{
 			OriginalFilter = existingVnFilter;
 			Name = existingVnFilter.Name;
-			AndFilters = new ObservableCollection<IFilter<ListedVN, VnFilterType>>();
+			AndFilters = new ObservableCollection<IFilter>();
 			foreach (var filter in existingVnFilter.AndFilters) AndFilters.Add(filter.GetCopy());
-			OrFilters = new ObservableCollection<IFilter<ListedVN, VnFilterType>>();
+			OrFilters = new ObservableCollection<IFilter>();
 			foreach (var filter in existingVnFilter.OrFilters) OrFilters.Add(filter.GetCopy());
 			OnPropertyChanged();
 		}
@@ -28,12 +27,6 @@ namespace Happy_Reader
 			Name = "Custom Filter";
 		}
 
-		public CustomVnFilter(string name, IFilter<ListedVN, VnFilterType> singleFilter)
-		{
-			Name = name;
-			AndFilters = new ObservableCollection<IFilter<ListedVN, VnFilterType>> { singleFilter };
-		}
-
 		public override void SaveOrGroup()
 		{
 			if (!OrFilters.Any()) return;
@@ -42,7 +35,7 @@ namespace Happy_Reader
 			OrFilters.Clear();
 		}
 
-		public override CustomFilter<ListedVN, VnFilterType> GetCopy()
+		public override CustomFilterBase GetCopy()
 		{
 			return new CustomVnFilter(this);
 		}

@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace Happy_Reader
 {
-	public class CharacterFilter : IFilter<CharacterItem, CharacterFilterType>
+	public class CharacterFilter : IFilter
 	{
 		private CharacterFilterType _type;
 		private string _typeName;
@@ -15,7 +15,7 @@ namespace Happy_Reader
 #pragma warning disable 1591
 
 		[JsonIgnore]
-		public CharacterFilterType Type
+		private CharacterFilterType Type
 		{
 			get => _type;
 			set
@@ -26,6 +26,7 @@ namespace Happy_Reader
 			}
 		}
 
+		[UsedImplicitly]
 		public string TypeName
 		{
 			get => _typeName;
@@ -47,10 +48,9 @@ namespace Happy_Reader
 			}
 		}
 
-		[JsonIgnore]
-		public int IntValue { get; set; }
-		[JsonIgnore]
-		public object Value
+		[JsonIgnore] private int IntValue { get; set; }
+
+		[JsonIgnore] public object Value
 		{
 			set
 			{
@@ -117,11 +117,7 @@ namespace Happy_Reader
 			Exclude = false;
 		}
 
-		/// <summary>
-		/// Gets function that determines if vn matches filter.
-		/// </summary>
-		/// <returns></returns>
-		public Func<CharacterItem, bool> GetFunction()
+		private Func<CharacterItem, bool> GetFunction()
 		{
 			switch (Type)
 			{
@@ -133,6 +129,11 @@ namespace Happy_Reader
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
+		}
+
+		Func<object, bool> IFilter.GetFunction()
+		{
+			return i => GetFunction()((CharacterItem)i);
 		}
 
 		[CanBeNull] private Func<double, bool> _intFunc;
@@ -171,7 +172,7 @@ namespace Happy_Reader
 			}
 		}
 
-		public IFilter<CharacterItem, CharacterFilterType> GetCopy()
+		public IFilter GetCopy()
 		{
 			var filter = new CharacterFilter(Type, 0, Exclude) { StringValue = StringValue };
 			return filter;

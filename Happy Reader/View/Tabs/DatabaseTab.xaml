@@ -6,7 +6,7 @@
              xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
              xmlns:controls="clr-namespace:System.Windows.Controls;assembly=DotNetProjects.Input.Toolkit"
              xmlns:view="clr-namespace:Happy_Reader.View"
-             mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModel:VNTabViewModel}"
+             mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModel:DatabaseViewModelBase}"
              Loaded="OnLoaded" d:DesignWidth="800" d:DesignHeight="600">
     <UserControl.Resources>
         <Style TargetType="Button">
@@ -28,7 +28,7 @@
 				<ColumnDefinition Width="*"/>
 				<ColumnDefinition Width="Auto"/>
 			</Grid.ColumnDefinitions>
-			<ListBox Grid.Column="0" x:Name="VisualNovelItems" ItemsSource="{Binding ListedVNs}" 
+			<ListBox Grid.Column="0" x:Name="VisualNovelItems" ItemsSource="{Binding Tiles}" 
 			         ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
 			         ScrollViewer.ScrollChanged="ScrollViewer_OnScrollChanged"
 			         VirtualizingStackPanel.VirtualizationMode="Recycling" 
@@ -89,7 +89,7 @@
         </ComboBox>
         <Label Foreground="{Binding ReplyColor}" Content="{Binding ReplyText}" Margin="214,0,125,0" VerticalAlignment="Stretch" VerticalContentAlignment="Center" Grid.Row="3"/>
         <TextBlock Grid.Row="3" Width="120" Background="Aquamarine" HorizontalAlignment="Right" TextAlignment="Right" Padding="5">
-			<Run Text="{Binding ListedVNs.Count, Mode=OneWay}"/>
+			<Run Text="{Binding Tiles.Count, Mode=OneWay}"/>
 			<Run Text="/"/>
 			<Run Text="{Binding AllResults.Length, Mode=OneWay}"/>
 			<Run Text="Items."/>

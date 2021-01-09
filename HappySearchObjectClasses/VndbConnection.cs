@@ -32,7 +32,6 @@ namespace Happy_Apps_Core
 		/// string is text to be passed, bool is true if query, false if response
 		/// </summary>
 		private readonly Action<string, bool> _advancedAction;
-		private readonly Action<List<int>> _refreshListOnAddAction;
 		private readonly Action<APIStatus> _changeStatusAction;
 		[NotNull] private readonly Action<string, MessageSeverity> _textAction;
 		[NotNull] private readonly Func<bool> _askForNonSslAction;
@@ -48,13 +47,11 @@ namespace Happy_Apps_Core
 		public VndbConnection(
 			[NotNull] Action<string, MessageSeverity> textAction,
 			Action<string, bool> advancedModeAction,
-			Action<List<int>> refreshListOnAddAction,
 			Func<bool> askForNonSsl,
 			Action<APIStatus> changeStatusAction = null)
 		{
 			_textAction = textAction;
 			_advancedAction = advancedModeAction;
-			_refreshListOnAddAction = refreshListOnAddAction;
 			_askForNonSslAction = askForNonSsl;
 			_changeStatusAction = changeStatusAction;
 		}
@@ -316,14 +313,13 @@ namespace Happy_Apps_Core
 				_textAction($"Wait until {ActiveQuery.ActionName} is done.", MessageSeverity.Error);
 				return false;
 			}
-			ActiveQuery = new ApiQuery(featureName, refreshList, additionalMessage, _refreshListOnAddAction);
+			ActiveQuery = new ApiQuery(featureName, additionalMessage);
 			_textAction($"Running {featureName}...", MessageSeverity.Normal);
 			return true;
 		}
 
 		private void EndQuery()
 		{
-			ActiveQuery.RunActionOnAdd();
 			ActiveQuery.Completed = true;
 			_textAction(ActiveQuery.CompletedMessage, ActiveQuery.CompletedMessageSeverity);
 			_changeStatusAction?.Invoke(_status);
@@ -529,10 +525,6 @@ namespace Happy_Apps_Core
 			var result = await TryQueryInner(query, errorMessage);
 			while (result == QueryResult.Throttled)
 			{
-				if (ActiveQuery.RefreshList)
-				{
-					await Task.Run(ActiveQuery.RunActionOnAdd);
-				}
 				_changeStatusAction?.Invoke(_status);
 				await Task.Delay(_throttleWaitTime);
 				_status = APIStatus.Ready;

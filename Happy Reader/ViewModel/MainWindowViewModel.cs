@@ -586,7 +586,7 @@ namespace Happy_Reader.ViewModel
 			{
 				tile.UserGame.OnPropertyChanged(nameof(Database.UserGame.Image));
 			}
-			foreach (var tile in DatabaseViewModel.ListedVNs)
+			foreach (var tile in DatabaseViewModel.Tiles.OfType<VNTile>())
 			{
 				tile.UpdateImageBinding();
 			}

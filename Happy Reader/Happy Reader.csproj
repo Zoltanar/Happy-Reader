@@ -152,12 +152,12 @@
     <Compile Include="ViewModel\CharactersTabViewModel.cs" />
     <Compile Include="ViewModel\CommandHandler.cs" />
     <Compile Include="Model\VnFilters\CustomCharacterFilter.cs" />
+    <Compile Include="ViewModel\DatabaseViewModelBase.cs" />
     <Compile Include="ViewModel\DisplayEntry.cs" />
     <Compile Include="ViewModel\DisplayLog.cs" />
     <Compile Include="ViewModel\EntriesTabViewModel.cs" />
     <Compile Include="ViewModel\FiltersViewModel.cs" />
     <Compile Include="ViewModel\FiltersViewModelBase.cs" />
-    <Compile Include="ViewModel\IFiltersViewModel.cs" />
     <Compile Include="ViewModel\NamedFunction.cs" />
     <Compile Include="ViewModel\ProducersTabViewModel.cs" />
     <Compile Include="ViewModel\SettingsViewModel.cs" />

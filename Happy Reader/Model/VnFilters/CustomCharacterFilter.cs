@@ -1,10 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using System.Linq;
-using Happy_Apps_Core;
 
 namespace Happy_Reader
 {
-	public class CustomCharacterFilter : CustomFilter<CharacterItem, CharacterFilterType>
+	public class CustomCharacterFilter : CustomFilterBase
 	{
 		/// <summary>
 		/// Create a custom filter with copies of filters from an existing filter.
@@ -13,9 +12,9 @@ namespace Happy_Reader
 		{
 			OriginalFilter = existingFilter;
 			Name = existingFilter.Name;
-			AndFilters = new ObservableCollection<IFilter<CharacterItem, CharacterFilterType>>();
+			AndFilters = new ObservableCollection<IFilter>();
 			foreach (var filter in existingFilter.AndFilters) AndFilters.Add(filter.GetCopy());
-			OrFilters = new ObservableCollection<IFilter<CharacterItem, CharacterFilterType>>();
+			OrFilters = new ObservableCollection<IFilter>();
 			foreach (var filter in existingFilter.OrFilters) OrFilters.Add(filter.GetCopy());
 			OnPropertyChanged();
 		}
@@ -28,12 +27,6 @@ namespace Happy_Reader
 			Name = "Custom Filter";
 		}
 
-		public CustomCharacterFilter(string name, IFilter<CharacterItem, CharacterFilterType> singleFilter)
-		{
-			Name = name;
-			AndFilters = new ObservableCollection<IFilter<CharacterItem, CharacterFilterType>> { singleFilter };
-		}
-
 		public override void SaveOrGroup()
 		{
 			if (!OrFilters.Any()) return;
@@ -42,6 +35,6 @@ namespace Happy_Reader
 			OrFilters.Clear();
 		}
 
-		public override CustomFilter<CharacterItem, CharacterFilterType> GetCopy() => new CustomCharacterFilter(this);
+		public override CustomFilterBase GetCopy() => new CustomCharacterFilter(this);
 	}
 }

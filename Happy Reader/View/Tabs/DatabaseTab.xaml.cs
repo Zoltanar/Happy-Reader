@@ -5,13 +5,14 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Happy_Apps_Core.Database;
+using Happy_Reader.View.Tiles;
 using Happy_Reader.ViewModel;
 
 namespace Happy_Reader.View.Tabs
 {
 	public partial class DatabaseTab : UserControl
 	{
-		public VNTabViewModel ViewModel { get; private set; }
+		public DatabaseViewModelBase<ListedVN> ViewModel { get; private set; }
 		private MainWindow _mainWindow;
 		private bool _userInteractionHistory;
 		private bool _loaded;
@@ -23,7 +24,7 @@ namespace Happy_Reader.View.Tabs
 			if (!(e.VerticalChange > 0)) return;
 			var loc = e.VerticalOffset + e.ViewportHeight * 2;
 			if (loc < e.ExtentHeight) return;
-			ViewModel.AddListedVNPage();
+			ViewModel.AddPage();
 		}
 
 		private async void ShowAll(object sender, RoutedEventArgs e)
@@ -34,7 +35,7 @@ namespace Happy_Reader.View.Tabs
 		private async void SearchForVN(object sender, KeyEventArgs e)
 		{
 			if (e.Key != Key.Enter) return;
-			await ViewModel.SearchForVN(((TextBox)sender).Text);
+			await ViewModel.SearchForItem(((TextBox)sender).Text);
 		}
 
 		private void OnLoaded(object sender, RoutedEventArgs e)
@@ -48,7 +49,7 @@ namespace Happy_Reader.View.Tabs
 
 		private void VNTileDoubleClicked(object sender, MouseButtonEventArgs e)
 		{
-			var item = VisualNovelItems.SelectedItem as Tiles.VNTile;
+			var item = VisualNovelItems.SelectedItem as VNTile;
 			var vn = (ListedVN)item?.DataContext;
 			if (vn == null) return;
 			_mainWindow.OpenVNPanel(vn);

@@ -14,21 +14,21 @@ using Newtonsoft.Json;
 
 namespace Happy_Reader.ViewModel
 {
-	public abstract class FiltersViewModelBase<TFilter,T, TType> : IFiltersViewModel where TFilter : CustomFilter<T,TType>, new() where TType : Enum
+	public abstract class FiltersViewModelBase : INotifyPropertyChanged
 	{
 		public event PropertyChangedEventHandler PropertyChanged;
-		private TFilter _customFilter;
+		private CustomFilterBase _customFilter;
 		private int _selectedFilterIndex;
 		public abstract string PermanentFilterJsonFile { get; }
 		public abstract string CustomFiltersJsonFile { get; }
-		public ObservableCollection<TFilter> Filters { get; private set; }
-		public TFilter PermanentFilter { get; set; }
-		public TFilter CustomFilter
+		public ObservableCollection<CustomFilterBase> Filters { get; private set; }
+		public CustomFilterBase PermanentFilter { get; set; }
+		public CustomFilterBase CustomFilter
 		{
 			get => _customFilter;
 			set
 			{
-				_customFilter = (TFilter) (value == null ? new TFilter() : value.GetCopy());
+				_customFilter = value == null ? GetNewFilter() : value.GetCopy();
 				OnPropertyChanged();
 			}
 		}
@@ -47,16 +47,15 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 
-		public abstract IFilter<T, TType> NewFilter { get; }
-		public ComboBoxItem[] FilterTypes => StaticMethods.GetEnumValues(typeof(TType));
+		public abstract IFilter NewFilter { get; }
+		public abstract ComboBoxItem[] FilterTypes { get; }
 		public ComboBoxItem[] LengthTypes { get; } = StaticMethods.GetEnumValues(typeof(LengthFilterEnum));
 		public ComboBoxItem[] ReleaseTypes { get; } = StaticMethods.GetEnumValues(typeof(ReleaseStatusEnum));
 		public ComboBoxItem[] Labels { get; } = StaticMethods.GetEnumValues(typeof(UserVN.LabelKind));
 		public ComboBoxItem[] GameOwnedStatus { get; } = StaticMethods.GetEnumValues(typeof(OwnedStatus));
 
 		public string SaveFilterError { get; set; }
-
-
+		
 		protected FiltersViewModelBase()
 		{
 			SelectedFilterIndex = 0;
@@ -67,6 +66,8 @@ namespace Happy_Reader.ViewModel
 			AddToPermanentFilterCommand = new CommandHandler(AddToPermanentFilter, true);
 			SaveCustomFilterCommand = new CommandHandler(SaveCustomFilter, true);
 		}
+
+		public abstract CustomFilterBase GetNewFilter();
 
 		public void SaveCustomFilter()
 		{
@@ -88,7 +89,7 @@ namespace Happy_Reader.ViewModel
 				else
 				{
 					Filters.Add(CustomFilter);
-					CustomFilter = new TFilter();
+					CustomFilter = GetNewFilter();
 				}
 				SaveFilters();
 				SaveFilterError = "Filter saved.";
@@ -105,7 +106,7 @@ namespace Happy_Reader.ViewModel
 			{
 				var result = MessageBox.Show($"Delete existing filter: {CustomFilter.Name}?", "Happy Reader", MessageBoxButton.OKCancel);
 				if (result == MessageBoxResult.Cancel) return;
-				var indexOfFilter = Filters.IndexOf((TFilter) CustomFilter.OriginalFilter);
+				var indexOfFilter = Filters.IndexOf(CustomFilter.OriginalFilter);
 				if (indexOfFilter == -1)
 				{
 					SaveFilterError = "Failed to find filter in collection.";
@@ -113,7 +114,7 @@ namespace Happy_Reader.ViewModel
 				}
 				Filters.RemoveAt(indexOfFilter);
 				CustomFilter = Filters.Count == 1
-					? new TFilter()
+					? GetNewFilter()
 					: indexOfFilter > 0 ? Filters[indexOfFilter - 1] : Filters[indexOfFilter + 1];
 				SaveFilters();
 				SaveFilterError = "Filter removed.";
@@ -145,7 +146,7 @@ namespace Happy_Reader.ViewModel
 				if (File.Exists(PermanentFilterJsonFile))
 				{
 					var text = File.ReadAllText(PermanentFilterJsonFile);
-					PermanentFilter = JsonConvert.DeserializeObject<TFilter>(text, StaticMethods.SerialiserSettings);
+					PermanentFilter = JsonConvert.DeserializeObject<CustomFilterBase>(text, StaticMethods.SerialiserSettings);
 				}
 			}
 			catch (Exception ex)
@@ -153,7 +154,7 @@ namespace Happy_Reader.ViewModel
 				StaticHelpers.Logger.ToFile(ex);
 			}
 			if (PermanentFilter != null) return;
-			PermanentFilter = new TFilter();
+			PermanentFilter = GetNewFilter();
 		}
 
 		public void SavePermanentFilter()
@@ -170,7 +171,7 @@ namespace Happy_Reader.ViewModel
 				if (File.Exists(CustomFiltersJsonFile))
 				{
 					var text = File.ReadAllText(CustomFiltersJsonFile);
-					Filters = JsonConvert.DeserializeObject<ObservableCollection<TFilter>>(text, StaticMethods.SerialiserSettings);
+					Filters = JsonConvert.DeserializeObject<ObservableCollection<CustomFilterBase>>(text, StaticMethods.SerialiserSettings);
 				}
 			}
 			catch (Exception ex)
@@ -178,7 +179,7 @@ namespace Happy_Reader.ViewModel
 				StaticHelpers.Logger.ToFile(ex);
 			}
 			if (Filters != null) return;
-			Filters = new ObservableCollection<TFilter>();
+			Filters = new ObservableCollection<CustomFilterBase>();
 			SaveFilters();
 		}
 

@@ -6,16 +6,14 @@ using Newtonsoft.Json;
 
 namespace Happy_Reader
 {
-	public class VnMultiFilter : IFilter<ListedVN, VnFilterType>
+	public class VnMultiFilter : IFilter
 	{
 		/// <summary>
 		/// True if it represents an OR group, false if it represents an AND group
 		/// </summary>
 		public bool IsOrGroup { get; set; }
 
-		public List<IFilter<ListedVN, VnFilterType>> Filters { get; set; }
-
-		[JsonIgnore] public VnFilterType Type { get => VnFilterType.Multi; set => throw new NotSupportedException(); }
+		public List<IFilter> Filters { get; set; }
 
 		[JsonIgnore] public bool Exclude { get => false; set => throw new NotSupportedException(); }
 
@@ -24,17 +22,13 @@ namespace Happy_Reader
 		/// <summary>
 		/// Create custom filter
 		/// </summary>
-		public VnMultiFilter(bool isOrGroup, ICollection<IFilter<ListedVN, VnFilterType>> filters)
+		public VnMultiFilter(bool isOrGroup, ICollection<IFilter> filters)
 		{
 			IsOrGroup = isOrGroup;
 			Filters = filters.ToList();
 		}
 		
-		/// <summary>
-		/// Gets function that determines if vn matches filter.
-		/// </summary>
-		/// <returns></returns>
-		public Func<ListedVN, bool> GetFunction()
+		public Func<object, bool> GetFunction()
 		{
 			if (IsOrGroup) return vn => Filters.Any(f => f.GetFunction()(vn));
 			return vn => Filters.All(f => f.GetFunction()(vn));
@@ -46,7 +40,7 @@ namespace Happy_Reader
 			return result + string.Join("; ", Filters);
 		}
 
-		public IFilter<ListedVN, VnFilterType> GetCopy()
+		public IFilter GetCopy()
 		{
 			var filter = new VnMultiFilter(IsOrGroup, Filters);
 			return filter;

@@ -52,12 +52,12 @@ namespace Happy_Reader.ViewModel
 
 		public CustomCharacterFilter SelectedFilter
 		{
-			get => FiltersViewModel.CustomFilter;
+			get => (CustomCharacterFilter) FiltersViewModel.CustomFilter;
 			set
 			{
 				if (FiltersViewModel.CustomFilter == value) return;
 				FiltersViewModel.CustomFilter = value;
-				Task.Run(() => ChangeFilter(FiltersViewModel.CustomFilter));
+				Task.Run(() => ChangeFilter((CustomCharacterFilter) FiltersViewModel.CustomFilter));
 			}
 		}
 
@@ -168,7 +168,7 @@ namespace Happy_Reader.ViewModel
 
 		public async Task ShowFiltered()
 		{
-			var trait = DumpFiles.GetTrait(StaticHelpers.CSettings.AlertTraitIDs.First()); //todo use csettings properly
+			var trait = DumpFiles.GetTrait(CSettings.AlertTraitIDs.First()); //todo use csettings properly
 			var filter = new CustomVnFilter();
 			filter.AndFilters.Add(new VnFilter(VnFilterType.Blacklisted, null, true));
 			filter.AndFilters.Add(new VnFilter(VnFilterType.Label, UserVN.LabelKind.Finished, true));
@@ -240,7 +240,7 @@ namespace Happy_Reader.ViewModel
 
 		public async Task ChangeFilter(CustomCharacterFilter item)
 		{
-			_dbFunction = new NamedFunction<CharacterItem>(db => db.Characters.Where(item.GetFunction()), item.Name, false);
+			_dbFunction = new NamedFunction<CharacterItem>(db => db.Characters.Where(i=> item.GetFunction()(i)), item.Name, false);
 			await RefreshCharacterTiles();
 		}
 	}

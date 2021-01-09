@@ -8,7 +8,7 @@
              d:DesignHeight="500" d:DesignWidth="400">
 	<d:UserControl.DataContext>
 		<!--We set a concrete class here just for design purposes -->
-		<viewModel:FiltersViewModel/>
+		<viewModel:FiltersViewModelBase/>
 	</d:UserControl.DataContext>
 	<Grid>
 		<Grid.RowDefinitions>
@@ -52,6 +52,7 @@
 					<ColumnDefinition Width="118*"/>
 					<ColumnDefinition Width="125*"/>
 				</Grid.ColumnDefinitions>
+				<!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
 				<ComboBox ItemsSource="{Binding FilterTypes}" 
 				          SelectedIndex="{Binding SelectedFilterIndex, Mode=TwoWay}" SelectedValue="{Binding NewFilter.Type}" 
 				          SelectedValuePath="Tag" VerticalAlignment="Top" Grid.ColumnSpan="3" >
@@ -113,9 +114,11 @@
 					<TabItem Visibility="Collapsed" Header="Tags">
 						<UniformGrid Rows="2" Columns="2">
 							<Label Content="Tag ID"/>
+							<!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
 							<TextBox Text="{Binding NewFilter.StringValue, Mode=OneWayToSource}"/>
 							<Label Content="Score Required"/>
 							<TextBox Text="{Binding NewFilter.AdditionalInt, Mode=OneWayToSource, Converter={StaticResource StringToNullableIntConverter}}"/>
+							<!-- ReSharper restore Xaml.BindingWithContextNotResolved -->
 						</UniformGrid>
 					</TabItem>
 					<TabItem Visibility="Collapsed" Content="Traits" Header="Traits"/>
