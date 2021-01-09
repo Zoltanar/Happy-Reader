@@ -31,12 +31,13 @@ namespace Happy_Reader.View.Tabs
 		private void ChangeFileLocationClick(object sender, RoutedEventArgs e)
 		{
 			var dialog = new OpenFileDialog();
-			string directory = Path.GetDirectoryName(_viewModel.FilePath);
-			while (!Directory.Exists(directory))
+			var directory = new DirectoryInfo(Path.GetDirectoryName(_viewModel.FilePath) ?? Environment.CurrentDirectory);
+			Debug.Assert(directory != null, nameof(directory) + " != null");
+			while (!directory.Exists)
 			{
-				directory = directory == null ? Environment.CurrentDirectory : Directory.GetParent(directory).FullName;
+				directory = directory.Parent ?? new DirectoryInfo(Environment.CurrentDirectory);
 			}
-			dialog.InitialDirectory = directory;
+			dialog.InitialDirectory = directory.FullName;
 			var result = dialog.ShowDialog();
 			if (result ?? false) _viewModel.ChangeFilePath(dialog.FileName);
 		}

@@ -56,8 +56,8 @@
 			</ListBox>
 			<view:FiltersPane x:Name="FiltersPane" Grid.Column="1" Visibility="Collapsed" MinWidth="250" DataContext="{Binding FiltersViewModel}"/>
 		</Grid>
-        <Label Content="Search:" HorizontalAlignment="Left" VerticalContentAlignment="Center" Grid.Row="1" Margin="161,0,0,0"/>
-        <TextBox x:Name="SearchTexBox" Margin="214,0,321,0" TextWrapping="Wrap" VerticalContentAlignment="Center" PreviewKeyUp="SearchForVN" Height="30" VerticalAlignment="Stretch" Grid.Row="1"/>
+        <Label Content="Search:" HorizontalAlignment="Left" VerticalContentAlignment="Center" Grid.Row="1" Margin="0"/>
+        <TextBox x:Name="SearchTexBox" Margin="65,0,321,0" TextWrapping="Wrap" VerticalContentAlignment="Center" PreviewKeyUp="SearchForVN" Height="30" VerticalAlignment="Stretch" Grid.Row="1"/>
         <CheckBox Content="Blacklisted" Margin="0,0,44,0" IsChecked="{Binding IsBlacklisted}" VerticalContentAlignment="Center" Height="30" VerticalAlignment="Stretch" Grid.Row="1" RenderTransformOrigin="-0.092,0.6" HorizontalAlignment="Right" Width="76"/>
         <ComboBox HorizontalAlignment="Right" Margin="0,0,125,0" Width="191" Grid.Row="1" SelectedIndex="0" VerticalContentAlignment="Center">
             <ComboBoxItem Content="Sort by Release Date" Selected="SortByRelease"/>
@@ -67,7 +67,7 @@
             <ComboBoxItem Content="Sort by Title" Selected="SortByTitle"/>
         </ComboBox>
         <Button Content="Reset" HorizontalAlignment="Right" Margin="0,0,0,1" Width="39" Click="ShowAll" Grid.Row="1" Height="30" VerticalAlignment="Stretch"/>
-        <controls:AutoCompleteBox Height="30" Grid.Row="2" FilterMode="Custom" ItemsSource="{Binding ProducerList}" ValueMemberPath="Name" ItemFilter="ProducerBoxFilter" KeyUp="SelectProducerOnKey" MouseUp="ProducerItemClicked" Margin="214,0,321,0"/>
+        <controls:AutoCompleteBox Height="30" Grid.Row="2" FilterMode="Custom" ItemsSource="{Binding ProducerList}" ValueMemberPath="Name" ItemFilter="ProducerBoxFilter" KeyUp="SelectProducerOnKey" MouseUp="ProducerItemClicked" Margin="65,0,321,0"/>
         <Button Content="Suggested" Click="ShowSuggested" Height="30" Grid.Row="2" HorizontalAlignment="Right" Width="76" Margin="0,0,44,0"/>
         <Button Content="Filters" Click="ShowFilters" Height="30" Grid.Row="2" HorizontalAlignment="Right" Width="39"/>
         <ComboBox ItemsSource="{Binding FiltersViewModel.Filters}" SelectedItem="{Binding SelectedFilter}" Height="30" Grid.Row="2" VerticalAlignment="Stretch" Margin="0,0,125,0" HorizontalAlignment="Right" Width="191" MaxDropDownHeight="720">
@@ -88,17 +88,12 @@
             </ComboBox.ItemTemplate>
         </ComboBox>
         <Label Foreground="{Binding ReplyColor}" Content="{Binding ReplyText}" Margin="214,0,125,0" VerticalAlignment="Stretch" VerticalContentAlignment="Center" Grid.Row="3"/>
-        <Border HorizontalAlignment="Left" Height="60" Grid.Row="1" VerticalAlignment="Top" Width="144" Grid.RowSpan="2" BorderBrush="Black" BorderThickness="1" Background="{Binding VndbConnectionBackground, Mode=OneWay}" >
-            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{Binding VndbConnectionForeground, Mode=OneWay}" 
-			           Text="{Binding VndbConnectionStatus, Mode=OneWay}" 
-			           TextAlignment="Center" TextWrapping="Wrap"/>
-        </Border>
         <TextBlock Grid.Row="3" Width="120" Background="Aquamarine" HorizontalAlignment="Right" TextAlignment="Right" Padding="5">
 			<Run Text="{Binding ListedVNs.Count, Mode=OneWay}"/>
 			<Run Text="/"/>
 			<Run Text="{Binding AllResults.Length, Mode=OneWay}"/>
 			<Run Text="Items."/>
         </TextBlock>
-        <Label Content="Producer:" HorizontalAlignment="Left" VerticalContentAlignment="Center" Grid.Row="2" Margin="149,0,0,0"/>
+        <Label Content="Producer:" HorizontalAlignment="Left" VerticalContentAlignment="Center" Grid.Row="2" Margin="0"/>
     </Grid>
 </UserControl>

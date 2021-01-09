@@ -136,7 +136,7 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged(nameof(DisplayGame));
 			}
 		}
-
+		
 		public MainWindowViewModel()
 		{
 			Application.Current.Exit += ExitProcedures;

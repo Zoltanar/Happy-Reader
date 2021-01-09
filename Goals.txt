@@ -8,6 +8,7 @@ save tabs open, color tabs
 warn if an instance is already running (maybe show database file for opening instance)
 launch title from VN context menu
 usergames: search by text
+user stats tab: approx time played
 
 add blacklistedproducers to user
 change order of load to load dumpfiles>filters>vndb>games>proxies>entries>connection

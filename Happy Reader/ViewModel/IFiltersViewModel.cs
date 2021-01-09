@@ -7,7 +7,6 @@ namespace Happy_Reader.ViewModel
 {
 	public interface IFiltersViewModel : INotifyPropertyChanged
 	{
-		event PropertyChangedEventHandler PropertyChanged;
 		string PermanentFilterJsonFile { get; }
 		string CustomFiltersJsonFile { get; }
 		ICommand AddToCustomFilterCommand { get; set; }

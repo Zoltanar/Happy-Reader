@@ -16,8 +16,8 @@
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="TabItem">
-						<Border Name="Border" Padding="0,2,0,0" Background="LightBlue" Margin="-2,-2,0,0" Width="100" Height="50">
-							<ContentPresenter x:Name="ContentSite" VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Header" />
+						<Border Name="Border" Padding="0" Background="LightBlue" Margin="-2,-2,0,0" Width="100" Height="50">
+							<ContentPresenter x:Name="ContentSite" VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Header" TextBlock.TextAlignment="Center" />
 						</Border>
 						<ControlTemplate.Triggers>
 							<Trigger Property="IsSelected" Value="True">
@@ -161,13 +161,19 @@
 		</TabControl>
 		<Grid Grid.Row="1" Grid.Column="0" Background="LightSkyBlue" Height="20">
 			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="100"/>
 				<ColumnDefinition Width="Auto"/>
 				<ColumnDefinition Width="Auto"/>
 				<ColumnDefinition Width="*"/>
 			</Grid.ColumnDefinitions>
-			<Label Grid.Column="0" Foreground="Black" Content="{Binding DisplayUser}" Padding="5,0,25,0" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"/>
-			<Label Grid.Column="1" Foreground="Black" Content="{Binding DisplayGame}" Padding="5,0" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"/>
-			<Label Grid.Column="2" Foreground="Black" Content="{Binding StatusText}" Padding="0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"/>
+				<TextBlock Grid.Column="0"
+				           Foreground="{Binding DatabaseViewModel.VndbConnectionForeground, Mode=OneWay}" 
+				           Background="{Binding DatabaseViewModel.VndbConnectionBackground, Mode=OneWay}" 
+				           Text="{Binding DatabaseViewModel.VndbConnectionStatus, Mode=OneWay}" 
+				           TextAlignment="Center" TextWrapping="Wrap"/>
+			<Label Grid.Column="1" Foreground="Black" Content="{Binding DisplayUser}" Padding="5,0,25,0" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"/>
+			<Label Grid.Column="2" Foreground="Black" Content="{Binding DisplayGame}" Padding="5,0" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"/>
+			<Label Grid.Column="3" Foreground="Black" Content="{Binding StatusText}" Padding="0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"/>
 		</Grid>
 	</Grid>
 </Window>

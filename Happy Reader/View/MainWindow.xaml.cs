@@ -146,11 +146,8 @@ namespace Happy_Reader.View
 				Content = new VNTab(vn, userGame),
 				DataContext = (object)userGame ?? vn
 			};
-			var headerBinding =
-				new Binding(userGame != null ? nameof(UserGame.DisplayName) : nameof(ListedVN.Title))
-				{
-					Source = tabItem.DataContext
-				};
+			var headerBinding = new Binding(userGame != null ? nameof(UserGame.DisplayName) : nameof(ListedVN.Title))
+			{ Source = tabItem.DataContext };
 			AddTabItem(tabItem, headerBinding);
 		}
 
@@ -181,16 +178,30 @@ namespace Happy_Reader.View
 			AddTabItem(tabItem, headerBinding);
 		}
 
-		private void AddTabItem(TabItem tabItem, Binding headerBinding)
+		private void AddTabItem(TabItem tabItem, BindingBase headerBinding)
 		{
 			var headerTextBlock = new TextBlock
 			{
 				Text = (string)tabItem.Header,
 				TextWrapping = TextWrapping.Wrap,
-				TextAlignment = TextAlignment.Center
+				TextAlignment = TextAlignment.Center,
+				VerticalAlignment = VerticalAlignment.Center,
+				HorizontalAlignment = HorizontalAlignment.Center
 			};
 			if (headerBinding != null) headerTextBlock.SetBinding(TextBlock.TextProperty, headerBinding);
-			var header = new Grid();
+			var header = new Grid
+			{
+				Background = tabItem.Content switch
+				{
+					VNTab _ => Brushes.HotPink,
+					UserGameTab _ => Brushes.DarkKhaki,
+					_ => Brushes.IndianRed
+				},
+				Width = 100,
+				Height = 50,
+				VerticalAlignment = VerticalAlignment.Stretch,
+				HorizontalAlignment = HorizontalAlignment.Stretch
+			};
 			header.Children.Add(headerTextBlock);
 			tabItem.MouseDown += TabMiddleClick;
 			tabItem.Header = header;
@@ -206,7 +217,7 @@ namespace Happy_Reader.View
 				new PropertyGroupDescription(groupName),
 				new SortDescription(groupName, ListSortDirection.Ascending),
 				new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.VN)}.{nameof(ListedVN.Title)}", ListSortDirection.Ascending));
-			ToggleUserGameGroups(groupName,1,false,true);
+			ToggleUserGameGroups(groupName, 1, false, true);
 		}
 
 		private void GroupByReleaseMonth(object sender, RoutedEventArgs e)
@@ -292,7 +303,7 @@ namespace Happy_Reader.View
 				var expanders = StaticMethods.GetVisualChildren<Expander>(GameFiles);
 				for (int index = 0; index < expanders.Count; index++)
 				{
-					expanders[index].IsExpanded = (fromStart ? index >= count != expanded : index >=  expanders.Count - count == expanded);
+					expanders[index].IsExpanded = (fromStart ? index >= count != expanded : index >= expanders.Count - count == expanded);
 				}
 			}, DispatcherPriority.ContextIdle);
 		}
@@ -337,9 +348,9 @@ namespace Happy_Reader.View
 			var hitTest = VisualTreeHelper.HitTest(list, new Point(5, 5/*e.VerticalOffset*/));
 			if (hitTest == null)
 			{
-					ScrollLabel.Text = string.Empty;
-					ScrollBorder.Visibility = Visibility.Hidden;
-					return;
+				ScrollLabel.Text = string.Empty;
+				ScrollBorder.Visibility = Visibility.Hidden;
+				return;
 			}
 			var lbi = GetVisualItemOfType<ListBoxItem>(hitTest.VisualHit, list);
 			var tile = lbi?.DataContext as UserGameTile;
@@ -354,7 +365,7 @@ namespace Happy_Reader.View
 				return;
 			}
 			string textForLabel;
-			if(groupDescription == null) textForLabel = $"Game: {game.DisplayName}";
+			if (groupDescription == null) textForLabel = $"Game: {game.DisplayName}";
 			else
 			{
 				string groupName;
@@ -372,7 +383,7 @@ namespace Happy_Reader.View
 						ScrollLabel.Text = string.Empty;
 						return;
 					}
-					groupName = gi.ToString()?.Replace($"{gi.GetType()}: ","").Trim();
+					groupName = gi.ToString()?.Replace($"{gi.GetType()}: ", "").Trim();
 				}
 
 				textForLabel = $"Group: {groupName}";
@@ -391,7 +402,7 @@ namespace Happy_Reader.View
 			_scrollLabelTimer.Stop();
 		}
 
-		private T GetVisualItemOfType<T>( object originalSource, object parent) where T : DependencyObject
+		private T GetVisualItemOfType<T>(object originalSource, object parent) where T : DependencyObject
 		{
 			if (!(originalSource is DependencyObject depObj)) return null;
 			// go up the visual hierarchy until we find the list view item the click came from  
