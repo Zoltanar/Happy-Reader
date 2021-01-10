@@ -132,11 +132,11 @@
 			<TabItem Header="Visual Novels" Style="{StaticResource DatabaseTabItem}">
 				<tabs:DatabaseTab DataContext="{Binding DatabaseViewModel}"/>
 			</TabItem>
+			<TabItem Header="Characters" Style="{StaticResource DatabaseTabItem}">
+				<tabs:DatabaseTab DataContext="{Binding CharactersViewModel}"/>
+			</TabItem>
 			<TabItem Header="Producers" Style="{StaticResource DatabaseTabItem}">
 				<tabs:ProducersTab DataContext="{Binding ProducersViewModel}"/>
-			</TabItem>
-			<TabItem Header="Characters" Style="{StaticResource DatabaseTabItem}">
-				<tabs:CharactersTab DataContext="{Binding CharactersViewModel}"/>
 			</TabItem>
 			<TabItem Header="Info/Settings">
 				<tabs:SettingsTab DataContext="{Binding SettingsViewModel}"/>

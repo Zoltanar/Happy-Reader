@@ -1,5 +1,8 @@
-﻿namespace Happy_Reader
+﻿using JetBrains.Annotations;
+
+namespace Happy_Reader
 {
+	[UsedImplicitly]
 	public class PageLink
 	{
 		public string Label { get; set; }

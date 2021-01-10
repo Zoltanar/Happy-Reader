@@ -10,58 +10,76 @@ using Happy_Reader.View.Tiles;
 
 namespace Happy_Reader.ViewModel
 {
-	public class VNTabViewModel : DatabaseViewModelBase<ListedVN>
+	public class VNTabViewModel : DatabaseViewModelBase
 	{
-		protected override Func<VisualNovelDatabase, DACollection<int, ListedVN>> GetAll => db => db.VisualNovels;
-		protected override Func<ListedVN, UserControl> GetTile => VNTile.FromListedVN;
-		protected override NamedFunction<ListedVN> DbFunction { get; set; } = new NamedFunction<ListedVN>(x => x.VisualNovels, "All", false);
-		protected override Func<IEnumerable<ListedVN>, IEnumerable<ListedVN>> Ordering { get; set; } = lvn => lvn.OrderByDescending(x => x.ReleaseDate);
-		protected override Func<ListedVN, bool> IsBlacklistedFunction => vn => vn.UserVN?.Blacklisted ?? false;
-		protected override Func<ListedVN, ListedProducer> GetProducer => vn => vn.Producer;
-		protected override Func<ListedVN, SuggestionScoreObject> GetSuggestion => vn => vn.Suggestion;
-		protected override Func<string, Func<ListedVN, bool>> SearchByText => VisualNovelDatabase.SearchForVN;
+		protected override Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> GetAll => db => db.VisualNovels;
+		protected override Func<IDataItem<int>, UserControl> GetTile => i => VNTile.FromListedVN((ListedVN)i);
+		protected override NamedFunction DbFunction { get; set; } = new(x => x.VisualNovels, "All", false);
+		protected override Func<IEnumerable<IDataItem<int>>, IEnumerable<IDataItem<int>>> Ordering { get; set; } = lvn => lvn.OrderByDescending(i => ((ListedVN)i).ReleaseDate);
+
+		protected override IEnumerable<IDataItem<int>> GetAllWithKeyIn(VisualNovelDatabase db, int[] keys) => db.VisualNovels.WithKeyIn(keys);
+
+		protected override Func<IDataItem<int>, bool> IsBlacklistedFunction => i => ((ListedVN)i).UserVN?.Blacklisted ?? false;
+		protected override Func<IDataItem<int>, ListedProducer> GetProducer => i => ((ListedVN)i).Producer;
+		public override async Task Initialize()
+		{
+			MainViewModel.StatusText = "Loading VN Database...";
+			await Task.Run(() => StaticHelpers.LocalDatabase = new VisualNovelDatabase(StaticHelpers.DatabaseFile, true));
+			OnPropertyChanged(nameof(ProducerList));
+			MainViewModel.SetUser(CSettings.UserID);
+			MainViewModel.StatusText = "Opening VNDB Connection...";
+			await Task.Run(() =>
+			{
+				StaticHelpers.Conn = new VndbConnection(SetReplyText, MainViewModel.VndbAdvancedAction, AskForNonSsl, ChangeConnectionStatus);
+				var password = StaticHelpers.LoadPassword();
+				StaticHelpers.Conn.Login(password != null
+					? new VndbConnection.LoginCredentials(StaticHelpers.ClientName, StaticHelpers.ClientVersion, CSettings.Username, password)
+					: new VndbConnection.LoginCredentials(StaticHelpers.ClientName, StaticHelpers.ClientVersion), false);
+			});
+			MainViewModel.StatusText = "Loading VN List...";
+			await RefreshTiles();
+		}
+
+		protected override Func<IDataItem<int>, double?> GetSuggestion => i => ((ListedVN)i).Suggestion?.Score;
+		protected override Func<string, Func<IDataItem<int>, bool>> SearchByText => t => i => VisualNovelDatabase.SearchForVN(t)((ListedVN)i);
 		public override FiltersViewModelBase FiltersViewModel { get; } = new FiltersViewModel();
 
 		public VNTabViewModel(MainWindowViewModel mainWindowViewModel) : base(mainWindowViewModel) { }
 
-		public override int[] GetRelatedTitles(ListedVN vn)
+		public override int[] GetRelatedTitles(IDataItem<int> item)
 		{
-			return vn.GetAllRelations().Select(v => v.ID).Concat(new[] { vn.VNID }).ToArray();
-		}
-
-		public override async Task SortByRecommended()
-		{
-			Ordering = lvn => lvn.OrderByDescending(vn => vn.Suggestion?.Score ?? 0d)
-				.ThenBy(vn => vn.UserVN == null ? 4 :
-					vn.UserVN.Labels.Contains(UserVN.LabelKind.WishlistHigh) ? 1 :
-					vn.UserVN.Labels.Contains(UserVN.LabelKind.WishlistMedium) ? 2 :
-					vn.UserVN.Labels.Contains(UserVN.LabelKind.WishlistLow) ? 3 : 4)
-				.ThenByDescending(x => x.ReleaseDate);
-			await RefreshTiles();
+			return ((ListedVN)item).GetAllRelations().Select(v => v.ID).Concat(new[] { item.Key }).ToArray();
 		}
 
 		public override async Task SortByMyScore()
 		{
-			Ordering = lvn => lvn.OrderByDescending(vn => vn.UserVN?.Vote).ThenByDescending(vn => vn.ReleaseDate);
+			Ordering = lvn => lvn.OrderByDescending(i => ((ListedVN)i).UserVN?.Vote).ThenByDescending(i => ((ListedVN)i).ReleaseDate);
 			await RefreshTiles();
 		}
 
 		public override async Task SortByRating()
 		{
-			Ordering = lvn => lvn.OrderByDescending(vn => vn.Rating).ThenByDescending(vn => vn.ReleaseDate);
+			Ordering = lvn => lvn.OrderByDescending(i => ((ListedVN)i).Rating).ThenByDescending(i => ((ListedVN)i).ReleaseDate);
 			await RefreshTiles();
 		}
 
 		public override async Task SortByReleaseDate()
 		{
-			Ordering = lvn => lvn.OrderByDescending(vn => vn.ReleaseDate);
+			Ordering = lvn => lvn.OrderByDescending(i => ((ListedVN)i).ReleaseDate);
 			await RefreshTiles();
 		}
 
-		public override async Task SortByTitle()
+		public override async Task SortByName()
 		{
-			Ordering = lvn => lvn.OrderBy(vn => vn.Title).ThenByDescending(vn => vn.ReleaseDate);
+			Ordering = lvn => lvn.OrderBy(i => ((ListedVN)i).Title).ThenByDescending(i => ((ListedVN)i).ReleaseDate);
 			await RefreshTiles();
+		}
+
+		private static bool AskForNonSsl()
+		{
+			var messageResult = System.Windows.Forms.MessageBox.Show(@"Connection to VNDB failed, do you wish to try without SSL?",
+				@"Connection Failed", System.Windows.Forms.MessageBoxButtons.YesNo);
+			return messageResult == System.Windows.Forms.DialogResult.Yes;
 		}
 	}
 }

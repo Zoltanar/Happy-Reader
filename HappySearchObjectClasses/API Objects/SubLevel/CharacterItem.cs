@@ -45,7 +45,6 @@ namespace Happy_Apps_Core
 		public string VisualNovelReleaseDate => VisualNovel?.ReleaseDateString;
 		public DateTime? VisualNovelSortingDate => VisualNovel?.ReleaseDate;
 		public ListedProducer Producer => VisualNovel?.Producer;
-		public bool HasFullReleaseDate => VisualNovel?.HasFullDate ?? false;
 		public IEnumerable<CharacterVN> VisualNovels => StaticHelpers.LocalDatabase.CharacterVNs.Where(cvn => cvn.CharacterId == ID);
 		public string ImageSource => StaticHelpers.GetImageSource(ImageId, ref _imageSourceSet, ref _imageSource);
 
@@ -70,6 +69,8 @@ namespace Happy_Apps_Core
 			command.AddParameter("@TraitScore", TraitScore);
 			return command;
 		}
+
+		public IDataItem<int> GetNew() => new CharacterItem();
 
 		public void LoadFromReader(IDataRecord reader)
 		{

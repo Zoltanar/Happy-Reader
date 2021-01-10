@@ -183,9 +183,6 @@
     <Compile Include="View\Tabs\ApiLogTab.xaml.cs">
       <DependentUpon>ApiLogTab.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View\Tabs\CharactersTab.xaml.cs">
-      <DependentUpon>CharactersTab.xaml</DependentUpon>
-    </Compile>
     <Compile Include="View\Tabs\EntriesTab.xaml.cs">
       <DependentUpon>EntriesTab.xaml</DependentUpon>
     </Compile>
@@ -275,10 +272,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\Tabs\ApiLogTab.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\Tabs\CharactersTab.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

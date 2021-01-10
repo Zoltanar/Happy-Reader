@@ -36,7 +36,7 @@ namespace Happy_Reader.View
 		/// <summary>
 		/// Filter to enable OK button.
 		/// </summary>
-		public Func<string, bool> Filter { get; set; } = s => true;
+		public Func<string, bool> Filter { get; set; } = _ => true;
 
 		private void OkClick(object sender, RoutedEventArgs e)
 		{

@@ -41,7 +41,7 @@ namespace Happy_Reader.View
 		private void CreateNotifyIcon()
 		{
 			var contextMenu = new ContextMenuStrip();
-			EventHandler open = (o, e) => Show();
+			EventHandler open = (_, _) => Show();
 			contextMenu.Items.Add(new ToolStripMenuItem("Open", null, open));
 			contextMenu.Items.Add(new ToolStripMenuItem("Exit", null, Exit));
 			// ReSharper disable once PossibleNullReferenceException
@@ -178,7 +178,7 @@ namespace Happy_Reader.View
 			AddTabItem(tabItem, headerBinding);
 		}
 
-		private void AddTabItem(TabItem tabItem, BindingBase headerBinding)
+		private void AddTabItem(HeaderedContentControl tabItem, BindingBase headerBinding)
 		{
 			var headerTextBlock = new TextBlock
 			{
@@ -193,8 +193,8 @@ namespace Happy_Reader.View
 			{
 				Background = tabItem.Content switch
 				{
-					VNTab _ => Brushes.HotPink,
-					UserGameTab _ => Brushes.DarkKhaki,
+					VNTab => Brushes.HotPink,
+					UserGameTab => Brushes.DarkKhaki,
 					_ => Brushes.IndianRed
 				},
 				Width = 100,
@@ -330,16 +330,15 @@ namespace Happy_Reader.View
 			Close();
 		}
 
-		public void SelectTab(Type type)
+		public void SelectTab(Type viewModelType)
 		{
-			var tab = MainTabControl.Items.OfType<TabItem>().FirstOrDefault(t => t.Content.GetType() == type);
-			MainTabControl.SelectedItem = tab ?? throw new ArgumentNullException(nameof(tab), $"Did not find tab of type {type}");
+			var tab = MainTabControl.Items.OfType<TabItem>().FirstOrDefault(t => (t.Content as FrameworkElement).DataContext.GetType() == viewModelType);
+			MainTabControl.SelectedItem = tab ?? throw new ArgumentNullException(nameof(tab), $"Did not find tab with ViewModel of type {viewModelType}");
 		}
 
 		private void ShowLabelOnScrollbar(object sender, ScrollChangedEventArgs e)
 		{
-			var list = sender as ListBox;
-			if (list == null)
+			if (!(sender is ListBox list))
 			{
 				ScrollLabel.Text = string.Empty;
 				ScrollBorder.Visibility = Visibility.Hidden;

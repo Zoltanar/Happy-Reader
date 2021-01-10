@@ -92,8 +92,7 @@ namespace Happy_Reader
 			if (indexOfSecondBracket == -1) return input;
 			int skip = 0;
 			while (input[skip] == input[indexOfSecondBracket + skip] && skip < indexOfSecondBracket) skip++;
-			if (skip != indexOfSecondBracket) return input;
-			return input.Substring(skip);
+			return skip != indexOfSecondBracket ? input : input.Substring(skip);
 		}
 
 		private static void SplitInputIntoParts(Translation item)
@@ -323,7 +322,7 @@ namespace Happy_Reader
 		/// Input string: おかあーさんとか、かあーさんとか
 		/// We don't remove the second entry because it stands on its own.
 		/// </example>
-		private static void RemoveSubEntries(IList<Entry> entriesWithProxies)
+		private static void RemoveSubEntries(ICollection<Entry> entriesWithProxies)
 		{
 			foreach (var entry in entriesWithProxies.ToList())
 			{
@@ -337,7 +336,7 @@ namespace Happy_Reader
 			}
 		}
 
-		private Dictionary<string, ProxiesWithCount> BuildProxiesList(HappyReaderDatabase data, string[] roles)
+		private Dictionary<string, ProxiesWithCount> BuildProxiesList(HappyReaderDatabase data, IEnumerable<string> roles)
 		{
 			var proxies = new Dictionary<string, ProxiesWithCount>();
 			foreach (var role in roles)
@@ -357,7 +356,7 @@ namespace Happy_Reader
 			return proxies;
 		}
 
-		private bool AssignProxy(Dictionary<string, ProxiesWithCount> proxies, Entry entry)
+		private bool AssignProxy(IReadOnlyDictionary<string, ProxiesWithCount> proxies, Entry entry)
 		{
 			var proxy = proxies[entry.RoleString].Proxies.Count == 0 ? null : proxies[entry.RoleString].Proxies.Dequeue();
 			proxies[entry.RoleString].Count++;
@@ -478,7 +477,7 @@ namespace Happy_Reader
 				sb.Replace(input, output);
 				var sbReplaced = sb.ToString();
 				if (sbOriginal == sbReplaced) return;
-				if (_logVerbose) StaticHelpers.Logger.Verbose($"Replace happened - Id {(entry != null ? entry.Id.ToString() : "N/A")}: '{input}' > '{output}'");
+				if (_logVerbose) StaticHelpers.Logger.Verbose($"Replace happened - Id {entry?.Id.ToString() ?? "N/A"}: '{input}' > '{output}'");
 				if (result.SaveEntries) result.AddEntryUsed(entry);
 			}
 			else sb.Replace(input, output);
@@ -501,7 +500,7 @@ namespace Happy_Reader
 				replaced = rgx.Replace(sbOriginal, output);
 				if (sbOriginal != replaced)
 				{
-					if (_logVerbose) StaticHelpers.Logger.Verbose($"Replace happened - Id {(entry != null ? entry.Id.ToString() : "N/A")} '{regexInput}' > '{output}'");
+					if (_logVerbose) StaticHelpers.Logger.Verbose($"Replace happened - Id {entry?.Id.ToString() ?? "N/A"} '{regexInput}' > '{output}'");
 					if (result.SaveEntries) result.AddEntryUsed(entry);
 				}
 			}

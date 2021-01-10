@@ -17,8 +17,10 @@ using JetBrains.Annotations;
 
 namespace Happy_Reader.ViewModel
 {
-	public abstract class DatabaseViewModelBase<T> : INotifyPropertyChanged where T : IDataItem<int>, new()
+	public abstract class DatabaseViewModelBase : INotifyPropertyChanged
 	{
+		public event PropertyChangedEventHandler PropertyChanged;
+
 		private const int PageSize = 50;
 		private int _currentPage;
 		private bool _finalPage;
@@ -27,22 +29,26 @@ namespace Happy_Reader.ViewModel
 		private Brush _vndbConnectionBackground;
 		private Brush _vndbConnectionForeground;
 		private string _vndbConnectionStatus;
-		private readonly MainWindowViewModel _mainViewModel;
-		protected abstract Func<VisualNovelDatabase, DACollection<int,T>> GetAll { get; }
-		protected abstract Func<T, bool> IsBlacklistedFunction { get; }
-		protected abstract Func<string, Func<T, bool>> SearchByText { get; }
-		protected abstract Func<T, ListedProducer> GetProducer { get; }
-		protected abstract Func<T, UserControl> GetTile { get; }
-		protected abstract NamedFunction<T> DbFunction { get; set; }
-		protected abstract Func<IEnumerable<T>, IEnumerable<T>> Ordering { get; set; }
+		protected readonly MainWindowViewModel MainViewModel;
+		protected abstract Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> GetAll { get; }
+		protected abstract IEnumerable<IDataItem<int>> GetAllWithKeyIn(VisualNovelDatabase db, int[] keys);
+		protected abstract Func<IDataItem<int>, bool> IsBlacklistedFunction { get; }
+		protected abstract Func<string, Func<IDataItem<int>, bool>> SearchByText { get; }
+		protected abstract Func<IDataItem<int>, ListedProducer> GetProducer { get; }
+		protected abstract Func<IDataItem<int>, UserControl> GetTile { get; }
+		protected abstract NamedFunction DbFunction { get; set; }
+		protected abstract Func<IEnumerable<IDataItem<int>>, IEnumerable<IDataItem<int>>> Ordering { get; set; }
 		public abstract FiltersViewModelBase FiltersViewModel { get; }
-		public PausableUpdateList<UserControl> Tiles { get; set; } = new PausableUpdateList<UserControl>();
+		public PausableUpdateList<UserControl> Tiles { get; set; } = new();
 		private bool _isBlacklisted;
 		private SuggestionScorer _suggestionScorer;
 		
-		public event PropertyChangedEventHandler PropertyChanged;
-		public ObservableCollection<NamedFunction<T>> History { get; } = new ObservableCollection<NamedFunction<T>>();
+		public ObservableCollection<NamedFunction> History { get; } = new();
 		public CoreSettings CSettings => StaticHelpers.CSettings;
+
+		public ListedProducer[] ProducerList => StaticHelpers.LocalDatabase?.Producers?.ToArray();
+		public bool BackEnabled => History.ToList().FindIndex(i => i.Selected) > 0;
+		public int SelectedFunctionIndex => History.ToList().FindIndex(i => i.Selected);
 
 		public CustomFilterBase SelectedFilter
 		{
@@ -55,7 +61,7 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 
-		public T[] AllResults { get; private set; }
+		public IDataItem<int>[] AllResults { get; private set; }
 
 		public string ReplyText
 		{
@@ -106,35 +112,14 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 
-		public ListedProducer[] ProducerList => StaticHelpers.LocalDatabase?.Producers?.ToArray();
-		public bool BackEnabled => History.ToList().FindIndex(i => i.Selected) > 0;
-		public int SelectedFunctionIndex => History.ToList().FindIndex(i => i.Selected);
-
-		protected DatabaseViewModelBase(MainWindowViewModel mainWindowViewModel) => _mainViewModel = mainWindowViewModel;
+		protected DatabaseViewModelBase(MainWindowViewModel mainWindowViewModel) => MainViewModel = mainWindowViewModel;
 
 		[NotifyPropertyChangedInvocator]
 		public void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-		public async Task Initialize()
-		{
-			_mainViewModel.StatusText = "Loading VN Database...";
-			await Task.Run(() => StaticHelpers.LocalDatabase = new VisualNovelDatabase(StaticHelpers.DatabaseFile, true));
-			OnPropertyChanged(nameof(ProducerList));
-			_mainViewModel.SetUser(CSettings.UserID);
-			_mainViewModel.StatusText = "Opening VNDB Connection...";
-			await Task.Run(() =>
-			{
-				StaticHelpers.Conn = new VndbConnection(SetReplyText, _mainViewModel.VndbAdvancedAction, AskForNonSsl, ChangeConnectionStatus);
-				var password = StaticHelpers.LoadPassword();
-				StaticHelpers.Conn.Login(password != null
-					? new VndbConnection.LoginCredentials(StaticHelpers.ClientName, StaticHelpers.ClientVersion, CSettings.Username, password)
-					: new VndbConnection.LoginCredentials(StaticHelpers.ClientName, StaticHelpers.ClientVersion), false);
-			});
-			_mainViewModel.StatusText = "Loading VN List...";
-			await RefreshTiles();
-		}
+		public abstract Task Initialize();
 
-		private void ChangeConnectionStatus(VndbConnection.APIStatus status)
+		protected void ChangeConnectionStatus(VndbConnection.APIStatus status)
 		{
 			Dispatcher.CurrentDispatcher.Invoke(() =>
 			{
@@ -238,13 +223,6 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 		
-		private bool AskForNonSsl()
-		{
-			var messageResult = System.Windows.Forms.MessageBox.Show(@"Connection to VNDB failed, do you wish to try without SSL?",
-				@"Connection Failed", System.Windows.Forms.MessageBoxButtons.YesNo);
-			return messageResult == System.Windows.Forms.DialogResult.Yes;
-		}
-
 		public void AddPage()
 		{
 			if (_finalPage) return;
@@ -272,15 +250,15 @@ namespace Happy_Reader.ViewModel
 				SetReplyText($"Found no results for '{text}'", VndbConnection.MessageSeverity.Normal);
 				return;
 			}
-			DbFunction = new NamedFunction<T>(db => GetAll(db).Where(i=> SearchByText(text)(i)), "Search By VN Name", true);
+			DbFunction = new NamedFunction(db => GetAll(db).Where(i=> SearchByText(text)(i)), "Search By VN Name", true);
 			await RefreshTiles();
 		}
 
 		public async Task ShowTagged(DumpFiles.WrittenTag tag)
 		{
 			var watch = Stopwatch.StartNew();
-			DbFunction = new NamedFunction<T>(
-				db => GetAll(db).WithKeyIn(db.Tags.Where(t => tag.AllIDs.Contains(t.TagId)).Select(x => x.VNID).Distinct().ToArray()),
+			DbFunction = new NamedFunction(
+				db => GetAllWithKeyIn(db, db.Tags.Where(t => tag.AllIDs.Contains(t.TagId)).Select(x => x.VNID).Distinct().ToArray()),
 				$"Tag {tag.Name}", false);
 			await RefreshTiles();
 			StaticHelpers.Logger.ToDebug($@"{nameof(ShowTagged)}: {watch.ElapsedMilliseconds}ms");
@@ -288,17 +266,17 @@ namespace Happy_Reader.ViewModel
 
 		public async Task ChangeFilter(CustomFilterBase item)
 		{
-			DbFunction = new NamedFunction<T>(db => GetAll(db).Where(i=> item.GetFunction()(i)), item.ToString(), false);
+			DbFunction = new NamedFunction(db => GetAll(db).Where(i=> item.GetFunction()(i)), item.ToString(), false);
 			await RefreshTiles();
 		}
 
 		public async Task<bool> ChangeVNStatus(ListedVN vn, HashSet<UserVN.LabelKind> labels) => await StaticHelpers.Conn.ChangeVNStatus(vn, labels);
 		public async Task<bool> ChangeVote(ListedVN vn, int? vote) => await StaticHelpers.Conn.ChangeVote(vn, vote);
 
-		public async Task ShowRelatedTitles(T item)
+		public async Task ShowRelatedTitles(IDataItem<int> item)
 		{
 			var vnIds = GetRelatedTitles(item);
-			DbFunction = new NamedFunction<T>(db => GetAll(db).WithKeyIn(vnIds),
+			DbFunction = new NamedFunction(db => GetAllWithKeyIn(db, vnIds),
 				$"Related to {item}", true);
 			await RefreshTiles();
 		}
@@ -306,37 +284,41 @@ namespace Happy_Reader.ViewModel
 		public async Task ShowForProducer(string producerName)
 		{
 			var lowerName = producerName.ToLowerInvariant();
-			DbFunction = new NamedFunction<T>(db => GetAll(db).Where(item => GetProducer(item)?.Name.ToLowerInvariant() == lowerName),
+			DbFunction = new NamedFunction(db => GetAll(db).Where(item => GetProducer(item)?.Name.ToLowerInvariant() == lowerName),
 				$"Producer {producerName}", true);
 			await RefreshTiles();
 		}
 
 		public async Task ShowForProducer(ListedProducer producer)
 		{
-			DbFunction = new NamedFunction<T>(db => GetAll(db).Where(item => GetProducer(item) == producer),
+			DbFunction = new NamedFunction(db => GetAll(db).Where(item => GetProducer(item) == producer),
 				$"Producer {producer.Name}", true);
 			await RefreshTiles();
 		}
 
 		public async Task ShowForCharacter(CharacterItem character)
 		{
-			DbFunction = new NamedFunction<T>(
-				db => GetAll(db).WithKeyIn(db.Characters[character.ID].VisualNovels.Select(cvn => cvn.VNId).ToArray()),
+			DbFunction = new NamedFunction(
+				db => GetAllWithKeyIn(db, db.Characters[character.ID].VisualNovels.Select(cvn => cvn.VNId).ToArray()),
 				$"Character {character.Name}", true);
 			await RefreshTiles();
 		}
 
-		protected abstract Func<T, SuggestionScoreObject> GetSuggestion { get; }
+		protected abstract Func<IDataItem<int>, double?> GetSuggestion { get; }
 
 		public async Task ShowSuggested()
 		{
-			var scoredKeys = StaticHelpers.LocalDatabase.VisualNovels.Select(v => v.VNID).ToArray();
-			DbFunction = new NamedFunction<T>(db => GetAll(db).WithKeyIn(scoredKeys), "Suggested", false);
-			Ordering = lvn => lvn.OrderByDescending(i => GetSuggestion(i)?.Score);
+			var scoredKeys = GetAll(StaticHelpers.LocalDatabase).Where(i=> GetSuggestion(i) >= 0d).Select(i=>i.Key).ToArray();
+			DbFunction = new NamedFunction(db => GetAllWithKeyIn(db,scoredKeys), "Suggested", false);
+			Ordering = lvn => lvn.OrderByDescending(i => GetSuggestion(i));
 			await RefreshTiles();
 		}
-
-		public abstract Task SortByRecommended();
+		
+		public async Task SortBySuggestion()
+		{
+			Ordering = chars => chars.OrderByDescending(ch => GetSuggestion(ch));
+			await RefreshTiles();
+		}
 
 		public abstract Task SortByMyScore();
 
@@ -344,30 +326,36 @@ namespace Happy_Reader.ViewModel
 
 		public abstract Task SortByReleaseDate();
 
-		public abstract Task SortByTitle();
+		public abstract Task SortByName();
+
+		public async Task SortByID()
+		{
+			Ordering = chars => chars.OrderByDescending(ch => ch.Key);
+			await RefreshTiles();
+		}
 
 		public async Task ShowAll()
 		{
-			DbFunction = new NamedFunction<T>(GetAll, "All", false);
+			DbFunction = new NamedFunction(GetAll, "All", false);
 			await RefreshTiles();
 		}
 
-		public async Task BrowseHistory(NamedFunction<T> item)
+		public async Task BrowseHistory(NamedFunction function)
 		{
-			if (DbFunction == item) return;
-			DbFunction = item;
+			if (DbFunction == function) return;
+			DbFunction = function;
 			await RefreshTiles();
 		}
 
-		public async Task ShowForStaffWithAlias(int aliasId)
+		public virtual async Task ShowForStaffWithAlias(int aliasId)
 		{
 			var staff = StaticHelpers.LocalDatabase.StaffAliases[aliasId];
-			DbFunction = new NamedFunction<T>(
+			DbFunction = new NamedFunction(
 				db =>
 				{
 					var aliasIds = db.StaffAliases.Where(c => c.StaffID == staff.StaffID).Select(sa=>sa.AliasID).ToArray();
 					var vns = db.VnStaffs.Where(vnStaff => aliasIds.Contains(vnStaff.AliasID)).Select(vnStaff => vnStaff.VNID).ToArray();
-					return GetAll(db).WithKeyIn(vns);
+					return GetAllWithKeyIn(db, vns);
 				},
 				$"Staff {staff}", true);
 			await RefreshTiles();
@@ -376,17 +364,17 @@ namespace Happy_Reader.ViewModel
 		public async Task ShowForSeiyuu(VnSeiyuu seiyuu)
 		{
 			var staff = StaticHelpers.LocalDatabase.StaffAliases[seiyuu.AliasID];
-			DbFunction = new NamedFunction<T>(
+			DbFunction = new NamedFunction(
 				db =>
 				{
 					var aliasIds = db.StaffAliases.Where(c => c.StaffID == staff.StaffID).Select(sa => sa.AliasID).ToArray();
 					var vns = db.VnSeiyuus.Where(vnSeiyuu => aliasIds.Contains(vnSeiyuu.AliasID)).Select(vnSeiyuu => vnSeiyuu.VNID).ToArray();
-					return GetAll(db).WithKeyIn(vns);
+					return GetAllWithKeyIn(db, vns);
 				},
 				$"Seiyuu {staff}", true);
 			await RefreshTiles();
 		}
 
-		public abstract int[] GetRelatedTitles(T vn);
+		public abstract int[] GetRelatedTitles(IDataItem<int> item);
 	}
 }

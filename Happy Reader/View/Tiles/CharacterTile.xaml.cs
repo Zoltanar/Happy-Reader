@@ -11,7 +11,6 @@ using System.Windows.Media.Imaging;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Reader.View.Converters;
-using Happy_Reader.View.Tabs;
 using Happy_Reader.ViewModel;
 using JetBrains.Annotations;
 
@@ -30,7 +29,7 @@ namespace Happy_Reader.View.Tiles
 		
 		[NotNull] private MainWindow MainWindow => (MainWindow)Window.GetWindow(this) ?? throw new ArgumentNullException(nameof(MainWindow));
 		private MainWindowViewModel MainViewModel => MainWindow.ViewModel;
-		private CharactersTabViewModel TabViewModel => this.FindParent<CharactersTab>()?.ViewModel ?? MainViewModel.CharactersViewModel;
+		private CharactersTabViewModel TabViewModel => MainViewModel.CharactersViewModel;
 		private VnMenuItem VnMenu => _vnMenu ??= new VnMenuItem(_viewModel.VisualNovel);
 
 		public static CharacterTile FromCharacterVN(CharacterVN cvn)
@@ -95,42 +94,42 @@ namespace Happy_Reader.View.Tiles
 		private async void ShowCharactersByProducer(object sender, RoutedEventArgs e)
 		{
 			if (_viewModel.Producer == null) throw new InvalidOperationException("Character does not have producer.");
-			MainWindow.SelectTab(typeof(CharactersTab));
+			MainWindow.SelectTab(typeof(CharactersTabViewModel));
 			await TabViewModel.ShowForProducer(_viewModel.Producer);
 		}
 
 		private async void ShowCharactersForVn(object sender, RoutedEventArgs e)
 		{
 			if (_viewModel.CharacterVN == null) throw new InvalidOperationException("Character does not have a visual novel.");
-			MainWindow.SelectTab(typeof(CharactersTab));
+			MainWindow.SelectTab(typeof(CharactersTabViewModel));
 			await TabViewModel.ShowForVisualNovel(_viewModel.CharacterVN);
 		}
 
 		private async void ShowVisualNovelsByProducer(object sender, RoutedEventArgs e)
 		{
 			if (_viewModel.Producer == null) throw new InvalidOperationException("Character does not have producer.");
-			MainWindow.SelectTab(typeof(DatabaseTab));
+			MainWindow.SelectTab(typeof(VNTabViewModel));
 			await MainViewModel.DatabaseViewModel.ShowForProducer(_viewModel.Producer);
 		}
 
 		private async void ShowVisualNovelsForCharacter(object sender, RoutedEventArgs e)
 		{
 			if (_viewModel.CharacterVN == null) throw new InvalidOperationException("Character does not have a visual novel.");
-			MainWindow.SelectTab(typeof(DatabaseTab));
+			MainWindow.SelectTab(typeof(VNTabViewModel));
 			await MainViewModel.DatabaseViewModel.ShowForCharacter(_viewModel);
 		}
 
 		private async void ShowVisualNovelsForSeiyuu(object sender, RoutedEventArgs e)
 		{
 			if (_viewModel.Seiyuu == null) throw new InvalidOperationException("Character does not have a Seiyuu.");
-			MainWindow.SelectTab(typeof(DatabaseTab));
+			MainWindow.SelectTab(typeof(VNTabViewModel));
 			await MainViewModel.DatabaseViewModel.ShowForSeiyuu(_viewModel.Seiyuu);
 		}
 
 		private async void ShowCharactersForSeiyuu(object sender, RoutedEventArgs e)
 		{
 			if (_viewModel.Seiyuu == null) throw new InvalidOperationException("Character does not have a Seiyuu.");
-			MainWindow.SelectTab(typeof(CharactersTab));
+			MainWindow.SelectTab(typeof(CharactersTabViewModel));
 			await TabViewModel.ShowForSeiyuuWithAlias(_viewModel.Seiyuu.AliasID);
 		}
 
@@ -138,7 +137,7 @@ namespace Happy_Reader.View.Tiles
 		{
 			var element = (FrameworkContentElement) sender;
 			var trait = (DumpFiles.WrittenTrait) element.Tag;
-			MainWindow.SelectTab(typeof(CharactersTab));
+			MainWindow.SelectTab(typeof(CharactersTabViewModel));
 			await TabViewModel.ShowWithTrait(trait);
 		}
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Happy_Apps_Core.Database;
 using Newtonsoft.Json;
 
 namespace Happy_Reader
@@ -15,14 +14,14 @@ namespace Happy_Reader
 
 		public List<IFilter> Filters { get; set; }
 
+		[JsonIgnore] public string StringValue { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 		[JsonIgnore] public bool Exclude { get => false; set => throw new NotSupportedException(); }
-
 		[JsonIgnore] public object Value { set => throw new NotSupportedException(); }
 
 		/// <summary>
 		/// Create custom filter
 		/// </summary>
-		public VnMultiFilter(bool isOrGroup, ICollection<IFilter> filters)
+		public VnMultiFilter(bool isOrGroup, IEnumerable<IFilter> filters)
 		{
 			IsOrGroup = isOrGroup;
 			Filters = filters.ToList();

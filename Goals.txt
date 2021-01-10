@@ -9,6 +9,9 @@ warn if an instance is already running (maybe show database file for opening ins
 launch title from VN context menu
 usergames: search by text
 user stats tab: approx time played
+display date of database update
+store custom filter in named function, so that it can be reset after modifying.
+add character filter: URT
 
 add blacklistedproducers to user
 change order of load to load dumpfiles>filters>vndb>games>proxies>entries>connection

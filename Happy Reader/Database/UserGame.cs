@@ -80,7 +80,7 @@ namespace Happy_Reader.Database
 		[NotMapped]
 		public TimeSpan TimeOpen
 		{
-			get => TimeSpan.FromTicks(TimeOpenDT.Ticks);
+			get => TimeSpan.FromTicks(TimeOpenDT.Ticks + (_runningTime?.ElapsedTicks ?? 0));
 			set => TimeOpenDT = new DateTime(value.Ticks);
 		}
 
@@ -207,9 +207,11 @@ namespace Happy_Reader.Database
 		public void SaveTimePlayed(bool notify)
 		{
 			_runningTime.Stop();
-			TimeOpen += _runningTime.Elapsed;
+			var timeToAdd = _runningTime.Elapsed;
+			_runningTime = null;
+			TimeOpen += timeToAdd;
 			Process = null;
-			var log = Log.NewTimePlayedLog(Id, _runningTime.Elapsed, notify);
+			var log = Log.NewTimePlayedLog(Id, timeToAdd, notify);
 			StaticMethods.Data.Logs.Add(log);
 			StaticMethods.Data.SaveChanges();
 		}

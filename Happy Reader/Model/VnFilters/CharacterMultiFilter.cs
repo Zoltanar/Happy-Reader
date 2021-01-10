@@ -18,17 +18,16 @@ namespace Happy_Reader
 		/// <summary>
 		/// Create custom filter
 		/// </summary>
-		public CharacterMultiFilter(bool isOrGroup, ICollection<IFilter> filters)
+		public CharacterMultiFilter(bool isOrGroup, IEnumerable<IFilter> filters)
 		{
 			IsOrGroup = isOrGroup;
 			Filters = filters.ToList();
 		}
 
+		[JsonIgnore] public string StringValue { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 		[JsonIgnore] public bool Exclude { get => false; set => throw new NotSupportedException(); }
-
 		[JsonIgnore] public object Value { set => throw new NotSupportedException(); }
-
-
+		
 		/// <summary>
 		/// Gets function that determines if vn matches filter.
 		/// </summary>
@@ -39,10 +38,7 @@ namespace Happy_Reader
 			return item => Filters.All(f => f.GetFunction()(item));
 		}
 
-		Func<object, bool> IFilter.GetFunction()
-		{
-			return (Func<object, bool>)GetFunction();
-		}
+		Func<object, bool> IFilter.GetFunction() => (Func<object, bool>)GetFunction();
 
 		public override string ToString()
 		{

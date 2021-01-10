@@ -42,7 +42,7 @@
 			        Visibility="{Binding IsOwned, Converter={StaticResource OwnedStatusToVisibilityConverter}}">
 				<TextBlock Foreground="White" TextAlignment="Center" Text="{Binding IsOwned, Converter={StaticResource OwnedStatusToTextConverter}}" />
 			</Border>
-			<Border Margin="145,101,10,255" Background="#AA000000" CornerRadius="5" Opacity="{Binding Suggestion, Converter={StaticResource NullableToOpacityConverter}}" HorizontalAlignment="Right">
+			<Border Margin="145,101,10,255" Background="#AA000000" CornerRadius="5" Opacity="{Binding Suggestion.Score, Converter={StaticResource DoubleNonZeroToOpacityConverter}}" HorizontalAlignment="Right">
 				<TextBlock Margin="0,0" Padding="10,0" HorizontalAlignment="Center" VerticalAlignment="Center">
 					<Run Text="{Binding Suggestion.TagScore, StringFormat=0.##, Mode=OneWay}" Foreground="Gold"></Run>
 					<Run Text="{Binding Suggestion.TraitScore, StringFormat=0.##, Mode=OneWay}" Foreground="DeepSkyBlue"></Run>

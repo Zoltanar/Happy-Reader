@@ -143,7 +143,7 @@ namespace Happy_Reader
 			}
 		}
 
-		public void SavePageLinks(List<PageLink> pageLinks)
+		public void SavePageLinks(IEnumerable<PageLink> pageLinks)
 		{
 			PageLinks = pageLinks.ToList();
 		}

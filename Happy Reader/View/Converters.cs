@@ -61,7 +61,7 @@ namespace Happy_Reader.View
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			return value is null || !(value is string tag) || string.IsNullOrWhiteSpace(tag) ? "No Tag" : tag;
+			return value is not string tag || string.IsNullOrWhiteSpace(tag) ? "No Tag" : tag;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => new NotSupportedException();
@@ -70,6 +70,19 @@ namespace Happy_Reader.View
 	public class NullableToOpacityConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => value == null ? 0 : 1;
+
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => new NotSupportedException();
+	}
+
+	/// <summary>
+	/// If number is non-zero, returns 1, else, return 0.
+	/// </summary>
+	public class DoubleNonZeroToOpacityConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			return value is double dValue && dValue != 0d ? 1 : 0;
+		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => new NotSupportedException();
 	}

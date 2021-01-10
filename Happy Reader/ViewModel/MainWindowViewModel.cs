@@ -151,7 +151,7 @@ namespace Happy_Reader.ViewModel
 			EntriesViewModel = new EntriesTabViewModel(() => UserGame);
 			TestViewModel = new TranslationTester(this);
 			DatabaseViewModel = new VNTabViewModel(this);
-			CharactersViewModel = new CharactersTabViewModel();
+			CharactersViewModel = new CharactersTabViewModel(this);
 			ProducersViewModel = new ProducersTabViewModel(this);
 			IthViewModel = new IthViewModel(this);
 			OutputWindow = new OutputWindow();
@@ -220,7 +220,7 @@ namespace Happy_Reader.ViewModel
 			});
 			await DatabaseViewModel.Initialize();
 			await ProducersViewModel.Initialize();
-			await CharactersViewModel.Initialize(this);
+			await CharactersViewModel.Initialize();
 			if (initialiseEntries)
 			{
 				StatusText = "Loading Cached Translations...";
@@ -445,7 +445,7 @@ namespace Happy_Reader.ViewModel
 				Clipboard.GetText,
 				() => Thread.Sleep(10),
 				5,
-				(ex) => ex is COMException comEx && (uint)comEx.ErrorCode == 0x800401D0); //0x800401D0 = CLIPBRD_E_CANT_OPEN
+				ex => ex is COMException comEx && (uint)comEx.ErrorCode == 0x800401D0); //0x800401D0 = CLIPBRD_E_CANT_OPEN
 			var timeSinceLast = DateTime.UtcNow - _lastUpdateTime;
 			if (timeSinceLast.TotalMilliseconds < 100 && _lastUpdateText == text) return;
 			Logger.Verbose($"Capturing clipboard from {cpOwner?.ProcessName ?? "??"}\t {DateTime.UtcNow:HH\\:mm\\:ss\\:fff}\ttimeSinceLast:{timeSinceLast.Milliseconds}\t{text}");
@@ -536,7 +536,7 @@ namespace Happy_Reader.ViewModel
 					}
 					UserGame.SetActiveProcess(process, HookedProcessOnExited);
 					TestViewModel.Game = UserGame.VN;
-					UserGame.MoveOutputWindow = (r) => OutputWindow.MoveByDifference(r);
+					UserGame.MoveOutputWindow = r => OutputWindow.MoveByDifference(r);
 					if (!UserGame.HookProcess) return;
 					while (!_loadingComplete) Thread.Sleep(25);
 					OutputWindow.SetLocation(UserGame.OutputRectangle);

@@ -4,6 +4,8 @@ namespace Happy_Reader
 {
 	public interface IFilter
 	{
+		public string StringValue { get; set; }
+
 		public bool Exclude { get; set; }
 
 		public object Value { set; }

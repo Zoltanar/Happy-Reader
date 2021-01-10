@@ -15,7 +15,7 @@ namespace Happy_Reader
 		public TranslationResults(bool saveEntriesUsed)
 		{
 			SaveEntries = saveEntriesUsed;
-			EntriesUsed = Enumerable.Range(0, 8).Select(s => new List<Entry>()).ToArray();
+			EntriesUsed = Enumerable.Range(0, 8).Select(_ => new List<Entry>()).ToArray();
 		}
 
 		public TranslationResults(string part)

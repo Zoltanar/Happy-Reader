@@ -4,15 +4,15 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
-using Happy_Reader.View.Tiles;
 using Happy_Reader.ViewModel;
 
 namespace Happy_Reader.View.Tabs
 {
 	public partial class DatabaseTab : UserControl
 	{
-		public DatabaseViewModelBase<ListedVN> ViewModel { get; private set; }
+		public DatabaseViewModelBase ViewModel { get; private set; }
 		private MainWindow _mainWindow;
 		private bool _userInteractionHistory;
 		private bool _loaded;
@@ -42,15 +42,20 @@ namespace Happy_Reader.View.Tabs
 		{
 			if (_loaded) return;
 			if (DesignerProperties.GetIsInDesignMode(this)) return;
-			ViewModel = (VNTabViewModel)DataContext;
+			ViewModel = (DatabaseViewModelBase)DataContext;
 			_mainWindow = (MainWindow)Window.GetWindow(this);
 			_loaded = true;
 		}
 
 		private void VNTileDoubleClicked(object sender, MouseButtonEventArgs e)
 		{
-			var item = VisualNovelItems.SelectedItem as VNTile;
-			var vn = (ListedVN)item?.DataContext;
+			var item = ((FrameworkElement)VisualNovelItems.SelectedItem).DataContext;
+			var vn = item switch
+			{
+				ListedVN iVn => iVn,
+				CharacterItem ch => StaticHelpers.LocalDatabase.VisualNovels[ch.CharacterVN.VNId],
+				_ => null
+			};
 			if (vn == null) return;
 			_mainWindow.OpenVNPanel(vn);
 		}
@@ -60,9 +65,14 @@ namespace Happy_Reader.View.Tabs
 			await ViewModel.ShowSuggested();
 		}
 
+		private async void SortByID(object sender, RoutedEventArgs e)
+		{
+			if (ViewModel != null) await ViewModel.SortByID();
+		}
+
 		private async void SortByRecommended(object sender, RoutedEventArgs e)
 		{
-			if (ViewModel != null) await ViewModel.SortByRecommended();
+			if (ViewModel != null) await ViewModel.SortBySuggestion();
 		}
 
 		private async void SortByMyScore(object sender, RoutedEventArgs e)
@@ -80,9 +90,9 @@ namespace Happy_Reader.View.Tabs
 			if (ViewModel != null) await ViewModel.SortByRating();
 		}
 
-		private async void SortByTitle(object sender, RoutedEventArgs e)
+		private async void SortByName(object sender, RoutedEventArgs e)
 		{
-			if (ViewModel != null) await ViewModel.SortByTitle();
+			if (ViewModel != null) await ViewModel.SortByName();
 		}
 
 		private bool ProducerBoxFilter(string input, object item)
@@ -114,7 +124,7 @@ namespace Happy_Reader.View.Tabs
 		private async void BrowseHistory(object sender, SelectionChangedEventArgs e)
 		{
 			if (!_userInteractionHistory || e.AddedItems.Count == 0) return;
-			var item = e.AddedItems.Cast<NamedFunction<ListedVN>>().First();
+			var item = e.AddedItems.Cast<NamedFunction>().First();
 			if (item.Selected)
 			{
 				return;
@@ -128,6 +138,11 @@ namespace Happy_Reader.View.Tabs
 
 		private void ShowFilters(object sender, RoutedEventArgs e)
 		{
+			if (ViewModel.FiltersViewModel is CharacterFiltersViewModel && FiltersPane.CharacterFilterValues.Visibility == Visibility.Hidden)
+			{
+				FiltersPane.CharacterFilterValues.Visibility = Visibility.Visible;
+				FiltersPane.VnFilterValues.Visibility = Visibility.Hidden;
+			}
 			FiltersPane.Visibility = FiltersPane.Visibility == Visibility.Collapsed ? Visibility.Visible : Visibility.Collapsed;
 		}
 	}

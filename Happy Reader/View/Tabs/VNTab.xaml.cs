@@ -59,7 +59,7 @@ namespace Happy_Reader.View.Tabs
 
 		private async void OnTagClick(object sender, MouseButtonEventArgs e)
 		{
-			_mainWindow.SelectTab(typeof(DatabaseTab));
+			_mainWindow.SelectTab(typeof(VNTabViewModel));
 			var tag = (DbTag)((Hyperlink)sender).Tag;
 			await ((MainWindowViewModel)_mainWindow.DataContext).DatabaseViewModel.ShowTagged(DumpFiles.GetTag(tag.TagId));
 		}
@@ -190,7 +190,7 @@ namespace Happy_Reader.View.Tabs
 			var element = sender as FrameworkElement;
 			if (!(element?.DataContext is VnStaff vnStaff)) return;
 			await _mainWindow.ViewModel.DatabaseViewModel.ShowForStaffWithAlias(vnStaff.AliasID);
-			_mainWindow.SelectTab(typeof(DatabaseTab));
+			_mainWindow.SelectTab(typeof(VNTabViewModel));
 		}
 
 		private async void ShowCharactersForStaff(object sender, RoutedEventArgs e)
@@ -198,7 +198,7 @@ namespace Happy_Reader.View.Tabs
 			var element = sender as FrameworkElement;
 			if (!(element?.DataContext is VnStaff vnStaff)) return;
 			await _mainWindow.ViewModel.CharactersViewModel.ShowForStaffWithAlias(vnStaff.AliasID);
-			_mainWindow.SelectTab(typeof(CharactersTab));
+			_mainWindow.SelectTab(typeof(CharactersTabViewModel));
 		}
 
 		private void RelationSelected(object sender, SelectionChangedEventArgs e)

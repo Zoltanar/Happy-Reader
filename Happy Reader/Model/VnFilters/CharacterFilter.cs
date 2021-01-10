@@ -15,7 +15,7 @@ namespace Happy_Reader
 #pragma warning disable 1591
 
 		[JsonIgnore]
-		private CharacterFilterType Type
+		public CharacterFilterType Type
 		{
 			get => _type;
 			set
@@ -126,6 +126,16 @@ namespace Happy_Reader
 					return ch => writtenTrait.InCollection(ch.DbTraits.Select(t => t.TraitId)) != Exclude;
 				case CharacterFilterType.TraitScore:
 					return ch => DoubleFunctionFromString(ch.TraitScore.GetValueOrDefault()) != Exclude;
+				case CharacterFilterType.Multi:
+					throw new InvalidOperationException();
+				case CharacterFilterType.Gender:
+					return ch => ch.Gender == StringValue != Exclude;
+				case CharacterFilterType.HasImage:
+					return ch => ch.ImageId != null != Exclude;
+				case CharacterFilterType.HasFullDate:
+					return ch => (ch.VisualNovel?.HasFullDate ?? false) != Exclude;
+				case CharacterFilterType.UserVN:
+					return ch => ch.VisualNovel?.UserVN != null != Exclude;
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
@@ -142,6 +152,7 @@ namespace Happy_Reader
 		{
 			if (_intFunc != null) return _intFunc(iValue);
 			var firstChar = StringValue[0];
+			// ReSharper disable once CompareOfFloatsByEqualityOperator
 			if (char.IsDigit(firstChar)) _intFunc = i => i == IntValue;
 			else
 			{
@@ -150,6 +161,7 @@ namespace Happy_Reader
 				{
 					'>' => i => i > functionIntValue,
 					'<' => i => i < functionIntValue,
+					// ReSharper disable once CompareOfFloatsByEqualityOperator
 					'=' => i => i == functionIntValue,
 					_ => throw new InvalidOperationException($"Invalid character for function filter: {firstChar}")
 				};
@@ -163,10 +175,17 @@ namespace Happy_Reader
 			var result = $"{(Exclude ? "Exclude" : "Include")}: {typeDesc}";
 			switch (Type)
 			{
+				case CharacterFilterType.Gender:
 				case CharacterFilterType.TraitScore:
 					return $"{result} {StringValue}";
 				case CharacterFilterType.Traits:
 					return $"{result} - {DumpFiles.GetTrait(IntValue).Name}";
+				case CharacterFilterType.Multi:
+					throw new InvalidOperationException();
+				case CharacterFilterType.UserVN:
+				case CharacterFilterType.HasImage:
+				case CharacterFilterType.HasFullDate:
+					return result;
 				default:
 					throw new ArgumentOutOfRangeException();
 			}

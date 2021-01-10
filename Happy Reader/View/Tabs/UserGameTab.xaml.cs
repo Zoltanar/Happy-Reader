@@ -60,16 +60,8 @@ namespace Happy_Reader.View.Tabs
 			var mainWindow = (MainWindow)Window.GetWindow(this);
 			Debug.Assert(mainWindow != null, nameof(mainWindow) + " != null");
 			var result = _viewModel.SaveVNID(VnidNameBox.Text.Length == 0 ? null : (int?)int.Parse(VnidNameBox.Text));
-			if (result)
-			{
-				mainWindow.OpenVNPanel(_viewModel.VN);
-			}
-			if (!result)
-			{
-
-				mainWindow.OpenUserGamePanel(_viewModel, priorVN);
-			}
-
+			if (result) mainWindow.OpenVNPanel(_viewModel.VN);
+			else mainWindow.OpenUserGamePanel(_viewModel, priorVN);
 		}
 
 		private void SaveHookCode(object sender, KeyEventArgs e)

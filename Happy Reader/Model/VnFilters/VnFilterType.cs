@@ -27,7 +27,7 @@ namespace Happy_Reader
 		HasFullDate = 12,
 		[Description("Game Owned")]
 		GameOwned = 13,
-		[Description("User-related Title")]
+		[Description("Is User-related")]
 		UserVN = 14,
 		[Description("Release Date")]
 		ReleaseDate = 15,

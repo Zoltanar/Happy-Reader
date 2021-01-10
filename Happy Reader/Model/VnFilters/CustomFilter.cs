@@ -45,7 +45,7 @@ namespace Happy_Reader
 		}
 		public Func<object, bool> GetFunction()
 		{
-			if (AndFilters.Count == 0) return vn => true;
+			if (AndFilters.Count == 0) return _ => true;
 			Func<object, bool>[] andFunctions = AndFilters.Select(filter => filter.GetFunction()).ToArray();
 			return item => andFunctions.All(x => x(item));
 		}

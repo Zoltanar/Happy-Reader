@@ -42,7 +42,18 @@ namespace Happy_Reader.ViewModel
 			get => _selectedFilterIndex;
 			set
 			{
-				_selectedFilterIndex = value;
+				_selectedFilterIndex = value;/*
+				switch (NewFilter)
+				{
+					case VnFilter vnFilter:
+						vnFilter.Type = (VnFilterType) FilterTypes[_selectedFilterIndex].Tag;
+						break;
+					case CharacterFilter characterFilter:
+						characterFilter.Type = (CharacterFilterType)FilterTypes[_selectedFilterIndex].Tag;
+						break;
+					default:
+						throw new NotSupportedException();
+				}*/
 				OnPropertyChanged();
 			}
 		}

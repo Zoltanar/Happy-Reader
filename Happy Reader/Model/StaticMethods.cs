@@ -35,9 +35,9 @@ namespace Happy_Reader
 		public static readonly string TranslatorSettingsJson = Path.Combine(StaticHelpers.StoredDataFolder, "translatorsettings.json");
 		public static readonly GuiSettings GuiSettings;
 		public static readonly TranslatorSettings TranslatorSettings;
-		public static HappyReaderDatabase Data { get; } = new HappyReaderDatabase();
+		public static HappyReaderDatabase Data { get; } = new ();
 		public static Func<bool> ShowNSFWImages { get; set; } = () => true;
-		public static JsonSerializerSettings SerialiserSettings { get; set; } = new JsonSerializerSettings(){TypeNameHandling = TypeNameHandling.Objects};
+		public static JsonSerializerSettings SerialiserSettings { get; } = new(){TypeNameHandling = TypeNameHandling.Objects};
 
 		static StaticMethods()
 		{
@@ -47,7 +47,7 @@ namespace Happy_Reader
 
 		public static string GetLocalizedTime(this DateTime dateTime)
 		{
-			bool isAmPm = GuiSettings.CultureInfo.DateTimeFormat.AMDesignator != String.Empty;
+			bool isAmPm = GuiSettings.CultureInfo.DateTimeFormat.AMDesignator != string.Empty;
 			return dateTime.ToString(isAmPm ? "hh:mm tt" : "HH:mm", GuiSettings.CultureInfo);
 		}
 		
@@ -80,7 +80,7 @@ namespace Happy_Reader
 			return children;
 		}
 
-		private static void GetVisualChildren<T>(DependencyObject current, Collection<T> children) where T : DependencyObject
+		private static void GetVisualChildren<T>(DependencyObject current, ICollection<T> children) where T : DependencyObject
 		{
 			if (current == null) return;
 			if (current.GetType() == typeof(T)) children.Add((T)current);

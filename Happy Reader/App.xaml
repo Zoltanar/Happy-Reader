@@ -11,6 +11,7 @@
 		<happyReader:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
 		<happyReader:RadioButtonCheckedConverter x:Key="RadioButtonCheckedConverter" />
 		<view:NullableToOpacityConverter x:Key="NullableToOpacityConverter" />
+		<view:DoubleNonZeroToOpacityConverter x:Key="DoubleNonZeroToOpacityConverter" />
 		<view:NullableToVisibilityConverter x:Key="NullableToVisibilityConverter" />
 		<view:NullableToBooleanConverter x:Key="NullableToBooleanConverter" />
 		<view:CharacterToBackBrushConverter x:Key="CharacterToBackBrushConverter" />

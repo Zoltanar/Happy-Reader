@@ -30,7 +30,7 @@ namespace Happy_Reader.View
 			var itemIndex = Items.IndexOf(ReleaseLinkItem);
 			foreach (var link in StaticMethods.GuiSettings.PageLinks ?? Array.Empty<PageLink>().AsEnumerable())
 			{
-				var menuItem = new MenuItem()
+				var menuItem = new MenuItem
 				{
 					Header = $"Search on {link.Label}",
 					Tag = link
@@ -145,7 +145,7 @@ namespace Happy_Reader.View
 			{
 				Title = $"{StaticHelpers.ClientName} - Enter Visual Novel Vote",
 				InputLabel = "Enter vote value from 10 to 100",
-				Filter = (s) => int.TryParse(s, out var vote) && vote >= 10 && vote <= 100,
+				Filter = s => int.TryParse(s, out var vote) && vote >= 10 && vote <= 100,
 			};
 			var result = inputWindow.ShowDialog();
 			if (result == true)
@@ -159,13 +159,13 @@ namespace Happy_Reader.View
 		private async void ShowRelatedTitles(object sender, RoutedEventArgs e)
 		{
 			await ViewModel.ShowRelatedTitles(VN);
-			MainWindow.SelectTab(typeof(Tabs.DatabaseTab));
+			MainWindow.SelectTab(typeof(VNTabViewModel));
 		}
 
 		private async void ShowTitlesByProducer(object sender, RoutedEventArgs e)
 		{
 			await ViewModel.ShowForProducer(VN.Producer);
-			MainWindow.SelectTab(typeof(Tabs.DatabaseTab));
+			MainWindow.SelectTab(typeof(VNTabViewModel));
 		}
 
 		private void CopyTitle(object sender, RoutedEventArgs e) => Clipboard.SetText(VN.Title);
