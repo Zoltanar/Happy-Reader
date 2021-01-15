@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Happy_Apps_Core;
+using Happy_Apps_Core.DataAccess;
 using Newtonsoft.Json;
 
 namespace Happy_Reader
@@ -32,14 +33,16 @@ namespace Happy_Reader
 		/// Gets function that determines if vn matches filter.
 		/// </summary>
 		/// <returns></returns>
-		public Func<CharacterItem, bool> GetFunction()
+		public Func<IDataItem<int>, bool> GetFunction()
 		{
-			if (IsOrGroup) return vn => Filters.Any(f => f.GetFunction()(vn));
-			return item => Filters.All(f => f.GetFunction()(item));
+			var functions = Filters.Select(f => f.GetFunction()).ToArray();
+			if (IsOrGroup)
+			{
+				return item => functions.Any(f => f(item));
+			}
+			return item => functions.All(f => f(item));
 		}
-
-		Func<object, bool> IFilter.GetFunction() => (Func<object, bool>)GetFunction();
-
+		
 		public override string ToString()
 		{
 			string result = IsOrGroup ? "OR Group: " : "AND Group: ";

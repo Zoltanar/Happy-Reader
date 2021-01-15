@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Linq;
 using Happy_Apps_Core;
+using Happy_Apps_Core.DataAccess;
 using Happy_Apps_Core.Database;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -13,7 +14,8 @@ namespace Happy_Reader
 		private VnFilterType _type;
 		private string _typeName;
 		private string _stringValue = "";
-#pragma warning disable 1591
+		[CanBeNull] private Func<double, bool> _intFunc;
+		[CanBeNull] private Func<DateTime, bool> _dateTimeFunc;
 
 		[JsonIgnore]
 		public VnFilterType Type
@@ -163,13 +165,15 @@ namespace Happy_Reader
 					throw new ArgumentOutOfRangeException();
 			}
 		}
+		
 
-		Func<object, bool> IFilter.GetFunction()
+		Func<IDataItem<int>, bool> IFilter.GetFunction()
 		{
-			return i => GetFunction()((ListedVN)i);
+			//we determine what the filter function is only once, rather than per-item
+			var func = GetFunction();
+			//can't seem to catch exception thrown here when casting.
+			return i => i is ListedVN vn && func(vn);
 		}
-		[CanBeNull] private Func<double, bool> _intFunc;
-		[CanBeNull] private Func<DateTime, bool> _dateTimeFunc;
 
 		private bool DateFunctionFromString(DateTime dtValue)
 		{
@@ -198,6 +202,7 @@ namespace Happy_Reader
 		{
 			if (_intFunc != null) return _intFunc(iValue);
 			var firstChar = StringValue[0];
+			// ReSharper disable once CompareOfFloatsByEqualityOperator
 			if (char.IsDigit(firstChar)) _intFunc = i => i == IntValue;
 			else
 			{

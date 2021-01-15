@@ -537,9 +537,9 @@ namespace Happy_Reader.ViewModel
 					UserGame.SetActiveProcess(process, HookedProcessOnExited);
 					TestViewModel.Game = UserGame.VN;
 					UserGame.MoveOutputWindow = r => OutputWindow.MoveByDifference(r);
+					OutputWindow.SetLocation(UserGame.OutputRectangle);
 					if (!UserGame.HookProcess) return;
 					while (!_loadingComplete) Thread.Sleep(25);
-					OutputWindow.SetLocation(UserGame.OutputRectangle);
 					SetIthUserGameParameters();
 				}
 				//todo catch more specific exception

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Happy_Apps_Core;
+using Happy_Apps_Core.DataAccess;
 using Happy_Apps_Core.Database;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -141,9 +142,12 @@ namespace Happy_Reader
 			}
 		}
 
-		Func<object, bool> IFilter.GetFunction()
+		Func<IDataItem<int>, bool> IFilter.GetFunction()
 		{
-			return i => GetFunction()((CharacterItem)i);
+			//we determine what the filter function is only once, rather than per-item
+			var func = GetFunction();
+			//can't seem to catch exception thrown here when casting.
+			return i => i is CharacterItem ch && func(ch);
 		}
 
 		[CanBeNull] private Func<double, bool> _intFunc;

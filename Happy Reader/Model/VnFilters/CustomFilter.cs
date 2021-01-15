@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Happy_Apps_Core.DataAccess;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 
@@ -43,10 +44,10 @@ namespace Happy_Reader
 			OrFilters.Clear();
 			foreach (var filter in customFilter.OrFilters) OrFilters.Add(filter.GetCopy());
 		}
-		public Func<object, bool> GetFunction()
+		public Func<IDataItem<int>, bool> GetFunction()
 		{
 			if (AndFilters.Count == 0) return _ => true;
-			Func<object, bool>[] andFunctions = AndFilters.Select(filter => filter.GetFunction()).ToArray();
+			Func<IDataItem<int>, bool>[] andFunctions = AndFilters.Select(filter => filter.GetFunction()).ToArray();
 			return item => andFunctions.All(x => x(item));
 		}
 

@@ -42,18 +42,7 @@ namespace Happy_Reader.ViewModel
 			get => _selectedFilterIndex;
 			set
 			{
-				_selectedFilterIndex = value;/*
-				switch (NewFilter)
-				{
-					case VnFilter vnFilter:
-						vnFilter.Type = (VnFilterType) FilterTypes[_selectedFilterIndex].Tag;
-						break;
-					case CharacterFilter characterFilter:
-						characterFilter.Type = (CharacterFilterType)FilterTypes[_selectedFilterIndex].Tag;
-						break;
-					default:
-						throw new NotSupportedException();
-				}*/
+				_selectedFilterIndex = value;
 				OnPropertyChanged();
 			}
 		}
@@ -197,7 +186,7 @@ namespace Happy_Reader.ViewModel
 		public void SaveFilters()
 		{
 			var text = JsonConvert.SerializeObject(Filters, Formatting.Indented, StaticMethods.SerialiserSettings);
-			File.WriteAllText(StaticMethods.CustomFiltersJson, text);
+			File.WriteAllText(CustomFiltersJsonFile, text);
 		}
 
 		public void SaveOrGroup(bool isPermanent)

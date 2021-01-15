@@ -1,4 +1,5 @@
 ﻿using System;
+using Happy_Apps_Core.DataAccess;
 
 namespace Happy_Reader
 {
@@ -13,7 +14,7 @@ namespace Happy_Reader
 		/// <summary>
 		/// Gets function that determines if item matches filter.
 		/// </summary>
-		Func<object, bool> GetFunction();
+		Func<IDataItem<int>, bool> GetFunction();
 
 		IFilter GetCopy();
 	}

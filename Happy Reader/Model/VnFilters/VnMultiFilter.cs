@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Happy_Apps_Core.DataAccess;
 using Newtonsoft.Json;
 
 namespace Happy_Reader
@@ -27,10 +28,14 @@ namespace Happy_Reader
 			Filters = filters.ToList();
 		}
 		
-		public Func<object, bool> GetFunction()
+		public Func<IDataItem<int>, bool> GetFunction()
 		{
-			if (IsOrGroup) return vn => Filters.Any(f => f.GetFunction()(vn));
-			return vn => Filters.All(f => f.GetFunction()(vn));
+			var functions = Filters.Select(f => f.GetFunction()).ToArray();
+			if (IsOrGroup)
+			{
+				return item => functions.Any(f => f(item));
+			}
+			return item => functions.All(f => f(item));
 		}
 
 		public override string ToString()
