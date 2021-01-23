@@ -98,13 +98,14 @@
 					</Border>
 					<Grid Margin="10,10,10,2" Height="23" VerticalAlignment="Bottom">
 						<Grid.ColumnDefinitions>
-							<ColumnDefinition/>
-							<ColumnDefinition/>
-							<ColumnDefinition/>
-							<ColumnDefinition/>
-							<ColumnDefinition/>
+							<ColumnDefinition Width="Auto"/>
+							<ColumnDefinition Width="*"/>
+							<ColumnDefinition Width="Auto"/>
+							<ColumnDefinition Width="Auto"/>
+							<ColumnDefinition Width="Auto" MinWidth="100"/>
 						</Grid.ColumnDefinitions>
-						<ComboBox Margin="0,2,2,2" Grid.Column="0" Grid.ColumnSpan="2" SelectedIndex="0" Padding="5,0" >
+						<Button Grid.Column="0" Content="Expand Groups" Click="ToggleExpandGroups" Margin="0,2,2,2"/>
+						<ComboBox Margin="0,2,2,2" Grid.Column="1" SelectedIndex="0" Padding="5,0" >
 							<ComboBoxItem Content="By Added" Selected="GroupByAdded" />
 							<ComboBoxItem Content="By Producer" Selected="GroupByProducer" />
 							<ComboBoxItem Content="By Release Month" Selected="GroupByReleaseMonth" />
@@ -113,6 +114,7 @@
 							<ComboBoxItem Content="By Time Played"  Selected="GroupByTimePlayed" />
 							<ComboBoxItem Content="By Tag"  Selected="GroupByTag" />
 							<ComboBoxItem Content="By VN Label"  Selected="GroupByVnLabel" />
+							<ComboBoxItem Content="By My VN Score"  Selected="GroupByVnScore" />
 						</ComboBox>
 						<CheckBox Margin="2" Grid.Column="2" Content="Show File Not Found" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsChecked="{Binding ShowFileNotFound}" />
 						<CheckBox Margin="2" Grid.Column="3" Content="Capture Clipboard" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"  IsChecked="{Binding CaptureClipboard}" />

@@ -71,5 +71,11 @@
 			<Setter Property="CornerRadius" Value="10"/>
 			<Setter Property="Background" Value="MediumPurple"/>
 		</Style>
+		<Style TargetType="Button">
+			<Setter Property="BorderThickness" Value="0"/>
+			<Setter Property="Background" Value="DarkSlateBlue"/>
+			<Setter Property="Foreground" Value="White"/>
+			<Setter Property="VerticalAlignment" Value="Stretch"/>
+		</Style>
 	</Application.Resources>
 </Application>

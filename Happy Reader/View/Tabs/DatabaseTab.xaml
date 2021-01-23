@@ -8,14 +8,6 @@
              xmlns:view="clr-namespace:Happy_Reader.View"
              mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModel:DatabaseViewModelBase}"
              Loaded="OnLoaded" d:DesignWidth="800" d:DesignHeight="600">
-	<UserControl.Resources>
-		<Style TargetType="Button">
-			<Setter Property="BorderThickness" Value="0"/>
-			<Setter Property="Background" Value="DarkSlateBlue"/>
-			<Setter Property="Foreground" Value="White"/>
-			<Setter Property="VerticalAlignment" Value="Stretch"/>
-		</Style>
-	</UserControl.Resources>
 	<Grid Background="#FFC9E1F5">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="*"/>

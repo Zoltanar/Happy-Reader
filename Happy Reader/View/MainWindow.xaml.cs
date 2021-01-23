@@ -279,6 +279,17 @@ namespace Happy_Reader.View
 				new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayName)}", ListSortDirection.Ascending));
 			ToggleUserGameGroups(groupName, 2, true, true);
 		}
+
+		private void GroupByVnScore(object sender, RoutedEventArgs e)
+		{
+			var groupName = $"{nameof(UserGame)}.{nameof(UserGame.VN)}.{nameof(ListedVN.UserVN)}.{nameof(UserVN.Vote)}";
+			var groupDescription = new PropertyGroupDescription(groupName, new UserVnToScoreConverter());
+			GroupUserGameItems(
+				groupDescription,
+				new SortDescription(groupName, ListSortDirection.Descending),
+				new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayName)}", ListSortDirection.Ascending));
+		}
+
 		private void GroupUserGameItems(GroupDescription groupDescription, params SortDescription[] sortDescriptions)
 		{
 			if (ViewModel == null) return;
@@ -292,18 +303,21 @@ namespace Happy_Reader.View
 				view.SortDescriptions.Add(sortDescription);
 			}
 		}
-
+		
 		private void ToggleUserGameGroups(string groupName, int count, bool expanded, bool fromStart)
 		{
 			Dispatcher.Invoke(() =>
 			{
 				var view = CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
 				Debug.Assert(view.GroupDescriptions != null, "view.GroupDescriptions != null");
-				if (!view.GroupDescriptions.Any(gd => gd is PropertyGroupDescription pgd && pgd.PropertyName == groupName)) return;
+				if (groupName != null && !view.GroupDescriptions.Any(gd => gd is PropertyGroupDescription pgd && pgd.PropertyName == groupName)) return;
 				var expanders = StaticMethods.GetVisualChildren<Expander>(GameFiles);
+				if (expanders.Count == 0) return;
+				if(groupName == null) expanded = !expanders[0].IsExpanded;
 				for (int index = 0; index < expanders.Count; index++)
 				{
-					expanders[index].IsExpanded = (fromStart ? index >= count != expanded : index >= expanders.Count - count == expanded);
+					//if groupName is null, we just toggle all groups to the inverse state of the first group.
+					expanders[index].IsExpanded = groupName == null ? expanded : (fromStart ? index >= count != expanded : index >= expanders.Count - count == expanded);
 				}
 			}, DispatcherPriority.ContextIdle);
 		}
@@ -332,7 +346,7 @@ namespace Happy_Reader.View
 
 		public void SelectTab(Type viewModelType)
 		{
-			var tab = MainTabControl.Items.OfType<TabItem>().FirstOrDefault(t => (t.Content as FrameworkElement).DataContext.GetType() == viewModelType);
+			var tab = MainTabControl.Items.OfType<TabItem>().FirstOrDefault(t => ((FrameworkElement) t.Content).DataContext.GetType() == viewModelType);
 			MainTabControl.SelectedItem = tab ?? throw new ArgumentNullException(nameof(tab), $"Did not find tab with ViewModel of type {viewModelType}");
 		}
 
@@ -371,7 +385,7 @@ namespace Happy_Reader.View
 				if (game != null)
 				{
 					var groupNameObject = groupDescription.GroupNameFromItem(tile, 0, System.Globalization.CultureInfo.CurrentCulture);
-					groupName = groupNameObject == DependencyProperty.UnsetValue ? "Other" : groupNameObject.ToString();
+					groupName = groupNameObject == null || groupNameObject == DependencyProperty.UnsetValue ? "Other" : groupNameObject.ToString();
 				}
 				else
 				{
@@ -413,6 +427,11 @@ namespace Happy_Reader.View
 				current = VisualTreeHelper.GetParent(current);
 			}
 			return null;
+		}
+
+		private void ToggleExpandGroups(object sender, RoutedEventArgs e)
+		{
+			ToggleUserGameGroups(null,0,true,true);
 		}
 	}
 }

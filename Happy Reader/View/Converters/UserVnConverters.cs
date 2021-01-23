@@ -38,10 +38,12 @@ namespace Happy_Reader.View.Converters
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if (value is null || value == DependencyProperty.UnsetValue) return "N/A";
-			UserVN.LabelKind label;
-			if (value is UserVN userVN) label = userVN.PriorityLabel;
-			else if (value is UserVN.LabelKind vLabel) label = vLabel;
-			else throw new NotSupportedException();
+			var label = value switch
+			{
+				UserVN userVN => userVN.PriorityLabel,
+				UserVN.LabelKind vLabel => vLabel,
+				_ => throw new NotSupportedException()
+			};
 			return label == default ? "N/A" : label.GetDescription();
 		}
 
@@ -61,6 +63,23 @@ namespace Happy_Reader.View.Converters
 				_ => throw new NotSupportedException()
 			};
 			return userVN?.Blacklisted ?? false ? Brushes.White : Brushes.Black;
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
+	}
+
+	public class UserVnToScoreConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			if (value is null || value == DependencyProperty.UnsetValue) return "N/A";
+			int? vote = value switch
+			{
+				UserVN userVN => userVN.Vote,
+				int vVote => vVote,
+				_ => throw new NotSupportedException()
+			};
+			return vote.HasValue ? $"Vote: {vote}" : "N/A";
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
