@@ -240,6 +240,7 @@ namespace Happy_Reader
 				TranslateStage4P1(sb, usefulEntriesWithProxies, entriesOnProxies);
 				foreach (var entry in usefulEntriesWithProxies)
 				{
+					foreach (var proxyMod in entry.AssignedProxy.ProxyMods) result.AddEntryUsed(proxyMod);
 					LogReplace(sb, entry.AssignedProxy.FullRoleString, entry.AssignedProxy.Entry.Input, result, entry);
 				}
 				StaticHelpers.Logger.Verbose($"Stage 4.2: {sb}");

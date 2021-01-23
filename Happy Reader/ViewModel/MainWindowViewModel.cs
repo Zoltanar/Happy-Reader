@@ -246,7 +246,7 @@ namespace Happy_Reader.ViewModel
 			if (initialiseIthVnr)
 			{
 				StatusText = "Initializing ITHVNR...";
-				IthViewModel.Initialize(RunTranslation, GetPreferredHookCode);
+				IthViewModel.Initialize(RunTranslation, GetPreferredHookCode, CtrlKeyIsHeld);
 			}
 			_monitor = GetAndStartMonitorThread();
 			_loadingComplete = true;
@@ -461,8 +461,7 @@ namespace Happy_Reader.ViewModel
 			try
 			{
 				if (TranslatePaused) return false;
-				bool blockTranslate = DispatchIfRequired(CtrlKeyIsHeld);
-				if (blockTranslate) return false;
+				if (CtrlKeyIsHeld()) return false;
 				Logger.Verbose($"{nameof(RunTranslation)} - {e}");
 				if (UserGame.Process == null) return false;
 				if ((sender as TextThread)?.IsConsole ?? false) return false;
@@ -592,6 +591,6 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 
-		private static bool CtrlKeyIsHeld() => Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl);
+		private static bool CtrlKeyIsHeld() => DispatchIfRequired(()=>Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl));
 	}
 }

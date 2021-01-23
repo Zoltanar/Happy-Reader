@@ -7,19 +7,18 @@ see vnid 26052 shows relations twice.
 save tabs open, color tabs
 warn if an instance is already running (maybe show database file for opening instance)
 launch title from VN context menu
-usergames: search by text
 user stats tab: approx time played
 display date of database update
 store custom filter in named function (instead of the custom filter's function), so that the named function can be reset after modifying the custom filter.
+usergames: search by text
+usergames: sort by my vn score
 button to reset position of output window
+make nohook parameter a saved setting and/or only use ithvnr on-demand.
 
-add blacklistedproducers to user
-change order of load to load dumpfiles>filters>vndb>games>proxies>entries>connection
 look at global hooks for managing infinite text, etc (https://github.com/gmamaladze/globalmousekeyhook)
 allow keeping time played for multiple games
 allow monitor to keep running always
 make monitor only have one instance.
-if notification window is already present, simply replace text and restart timer
 apply translate stage 4 to pre-romaji
 if response is error with id 'needlogin' show user that credentials are wrong
 
