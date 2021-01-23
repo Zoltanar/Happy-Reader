@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data.Entity;
 using System.Diagnostics;
@@ -30,19 +29,16 @@ namespace Happy_Reader.ViewModel
 {
 	public class MainWindowViewModel : INotifyPropertyChanged
 	{
-		private static readonly object HookLock = new object();
+		private static readonly object HookLock = new();
 
 		public event PropertyChangedEventHandler PropertyChanged;
 		public StaticMethods.NotificationEventHandler NotificationEvent;
-		private readonly RecentStringList _vndbQueriesList = new RecentStringList(50);
-		private readonly RecentStringList _vndbResponsesList = new RecentStringList(50);
-		private MultiLogger Logger => Happy_Apps_Core.StaticHelpers.Logger;
+		private readonly RecentStringList _vndbQueriesList = new(50);
+		private readonly RecentStringList _vndbResponsesList = new(50);
+		private static MultiLogger Logger => StaticHelpers.Logger;
 
 		public readonly OutputWindow OutputWindow;
 		private string _statusText;
-		private bool _captureClipboard;
-		private bool _showFileNotFound;
-		public ClipboardManager ClipboardManager;
 		private Thread _monitor;
 		private DateTime _lastUpdateTime = DateTime.MinValue;
 		private string _lastUpdateText;
@@ -64,30 +60,7 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 
-		public bool CaptureClipboard
-		{
-			get => _captureClipboard;
-			set
-			{
-				if (value) ClipboardManager.ClipboardChanged += ClipboardChanged;
-				else ClipboardManager.ClipboardChanged -= ClipboardChanged;
-				_captureClipboard = value;
-				OnPropertyChanged();
-			}
-		}
-
-		public bool ShowFileNotFound
-		{
-			get => _showFileNotFound;
-			set
-			{
-				if (value == _showFileNotFound) return;
-				_showFileNotFound = value;
-				LoadUserGames().RunSynchronously();
-				OnPropertyChanged();
-			}
-		}
-
+		[NotNull] public UserGamesViewModel UserGamesViewModel { get; }
 		[NotNull] public EntriesTabViewModel EntriesViewModel { get; }
 		[NotNull] public TranslationTester TestViewModel { get; }
 		[NotNull] public Translator Translator { get; }
@@ -110,8 +83,7 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 
-		public PausableUpdateList<DisplayLog> LogsList { get; } = new PausableUpdateList<DisplayLog>();
-		public ObservableCollection<UserGameTile> UserGameItems { get; } = new ObservableCollection<UserGameTile>();
+		public PausableUpdateList<DisplayLog> LogsList { get; } = new();
 		public string DisplayUser => $"User: {User?.ToString() ?? "(none)"}";
 		public string DisplayGame => $"Game: {UserGame?.ToString() ?? "(none)"}";
 
@@ -136,7 +108,9 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged(nameof(DisplayGame));
 			}
 		}
-		
+
+		public ClipboardManager ClipboardManager;
+
 		public MainWindowViewModel()
 		{
 			Application.Current.Exit += ExitProcedures;
@@ -148,6 +122,7 @@ namespace Happy_Reader.ViewModel
 			};
 			Translator = new Translator(StaticMethods.Data);
 			Translation.Translator = Translator;
+			UserGamesViewModel = new UserGamesViewModel(this);
 			EntriesViewModel = new EntriesTabViewModel(() => UserGame);
 			TestViewModel = new TranslationTester(this);
 			DatabaseViewModel = new VNTabViewModel(this);
@@ -193,26 +168,9 @@ namespace Happy_Reader.ViewModel
 			Logger.ToDebug($"[{nameof(MainWindowViewModel)}] Completed exit procedures, took {exitWatch.Elapsed}");
 		}
 
-		public UserGameTile AddGameFile(string file)
-		{
-			var userGame = StaticMethods.Data.UserGames.FirstOrDefault(x => x.FilePath == file);
-			if (userGame != null)
-			{
-				StatusText = $"This file has already been added. ({userGame.DisplayName})";
-				return null;
-			}
-			var vn = StaticMethods.ResolveVNForFile(file);
-			userGame = new UserGame(file, vn) { Id = StaticMethods.Data.UserGames.Max(x => x.Id) + 1 };
-			StaticMethods.Data.UserGames.Add(userGame);
-			StaticMethods.Data.SaveChanges();
-			StatusText = vn == null ? "File was added without VN." : $"File was added as {userGame.DisplayName}.";
-			return new UserGameTile(userGame);
-		}
-
 		public async Task Initialize(Stopwatch watch, RoutedEventHandler defaultUserGameGrouping, bool initialiseIthVnr, bool initialiseEntries, bool noApiTranslation, bool logVerbose)
 		{
 			StaticHelpers.Logger.LogVerbose = logVerbose;
-			CaptureClipboard = SettingsViewModel.TranslatorSettings.CaptureClipboardOnStart;
 			await Task.Run(() =>
 			{
 				StatusText = "Loading data from dump files...";
@@ -235,9 +193,7 @@ namespace Happy_Reader.ViewModel
 				StatusText = "Loading Entries...";
 				EntriesViewModel.SetEntries();
 			}
-			StatusText = "Loading User Games...";
-			await Task.Yield();
-			await LoadUserGames();
+			await UserGamesViewModel.Initialize();
 			LoadLogs();
 			SetLastPlayed();
 			defaultUserGameGrouping(null, null);
@@ -260,30 +216,6 @@ namespace Happy_Reader.ViewModel
 			monitor.SetApartmentState(ApartmentState.STA);
 			monitor.Start();
 			return monitor;
-		}
-
-		public async Task LoadUserGames()
-		{
-			UserGameItems.Clear();
-			IEnumerable<UserGame> orderedGames = null;
-			await Task.Run(() =>
-		 {
-			 StaticMethods.Data.UserGames.Load();
-			 foreach (var game in StaticMethods.Data.UserGames.Local)
-			 {
-				 if (game.VNID != null)
-				 {
-					 game.VN = LocalDatabase.VisualNovels[game.VNID.Value];
-					 //if game has vn and vn is not already marked as owned, this prevents overwriting CurrentlyOwned with PastOwned,
-					 //if multiple user games have the same VN but the later one has been deleted.
-					 if (game.VN != null && game.VN.IsOwned != OwnedStatus.CurrentlyOwned) game.VN.IsOwned = game.FileExists ? OwnedStatus.CurrentlyOwned : OwnedStatus.PastOwned;
-				 }
-			 }
-			 orderedGames = StaticMethods.Data.UserGames.Local.OrderBy(x => x.VNID ?? 0).ToList();
-			 if (!ShowFileNotFound) orderedGames = orderedGames.Where(og => og.FileExists);
-		 });
-			foreach (var game in orderedGames) { UserGameItems.Add(new UserGameTile(game)); }
-			OnPropertyChanged(nameof(UserGameItems));
 		}
 
 		public void LoadLogs()
@@ -415,21 +347,7 @@ namespace Happy_Reader.ViewModel
 		}
 
 		[NotifyPropertyChangedInvocator]
-		private void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-		public void RemoveUserGame(UserGameTile item)
-		{
-			UserGameItems.Remove(item);
-			StaticMethods.Data.UserGames.Remove(item.UserGame);
-			StaticMethods.Data.SaveChanges();
-			OnPropertyChanged(nameof(TestViewModel));
-		}
-
-		public void RemoveUserGame(UserGame item)
-		{
-			var tile = UserGameItems.Single(x => x.UserGame == item);
-			RemoveUserGame(tile);
-		}
+		public void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
 		public void ClipboardChanged(object sender, EventArgs e)
 		{
@@ -581,7 +499,7 @@ namespace Happy_Reader.ViewModel
 
 		public void RefreshActiveObjectImages()
 		{
-			foreach (var tile in UserGameItems)
+			foreach (var tile in UserGamesViewModel.UserGameItems)
 			{
 				tile.UserGame.OnPropertyChanged(nameof(Database.UserGame.Image));
 			}

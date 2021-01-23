@@ -59,7 +59,7 @@ namespace Happy_Reader.View.Tiles
 			var result = MessageBox.Show($"Are you sure you want to remove {UserGame.DisplayName}?", "Confirm", MessageBoxButton.YesNo);
 			if (result == MessageBoxResult.Yes)
 			{
-				MainViewModel.RemoveUserGame(this);
+				MainViewModel.UserGamesViewModel.RemoveUserGame(this);
 			}
 		}
 
@@ -74,7 +74,7 @@ namespace Happy_Reader.View.Tiles
 			UserGame.MergeTimePlayed(additionalTimePlayed);
 			foreach (var mergeTarget in mergeWindow.MergeResults)
 			{
-				MainViewModel.RemoveUserGame(mergeTarget.UserGame);
+				MainViewModel.UserGamesViewModel.RemoveUserGame(mergeTarget.UserGame);
 			}
 		}
 

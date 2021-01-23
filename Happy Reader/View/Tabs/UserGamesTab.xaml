@@ -1,0 +1,83 @@
+﻿<UserControl x:Class="Happy_Reader.View.Tabs.UserGamesTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" d:DataContext="{d:DesignInstance viewModel:UserGamesViewModel}">
+	<UserControl.Resources>
+		<Style x:Key="ContainerStyle" TargetType="{x:Type GroupItem}">
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="{x:Type GroupItem}">
+						<Expander IsExpanded="True">
+							<!--<d:Expander.DataContext><CollectionViewGroup/></d:Expander.DataContext>-->
+							<Expander.Header>
+								<TextBlock>
+									<TextBlock.Text>
+										<MultiBinding StringFormat="{}{0} ({1} Items)">
+											<!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
+											<Binding Path="Name" FallbackValue="Other"/>
+											<Binding Path="ItemCount" />
+											<!-- ReSharper restore Xaml.BindingWithContextNotResolved -->
+										</MultiBinding>
+									</TextBlock.Text>
+								</TextBlock>
+							</Expander.Header>
+							<ItemsPresenter />
+						</Expander>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+	</UserControl.Resources>
+	<Grid Background="#FFC9E1F5" AllowDrop="True" Drop="DropFileOnGamesTab">
+		<ListBox x:Name="GameFiles" ItemsSource="{Binding UserGameItems}" Margin="10,10,10,30" 
+						         ScrollViewer.VerticalScrollBarVisibility="Visible" 
+						         ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+						         ScrollViewer.ScrollChanged="ShowLabelOnScrollbar">
+			<ListBox.GroupStyle>
+				<GroupStyle ContainerStyle="{StaticResource ContainerStyle}"/>
+			</ListBox.GroupStyle>
+			<ListBox.ItemsPanel>
+				<ItemsPanelTemplate>
+					<WrapPanel />
+				</ItemsPanelTemplate>
+			</ListBox.ItemsPanel>
+			<ListBox.ItemContainerStyle>
+				<Style TargetType="{x:Type ListBoxItem}">
+					<Setter Property="HorizontalContentAlignment" Value="Left"/>
+					<Setter Property="VerticalContentAlignment" Value="Center"/>
+				</Style>
+			</ListBox.ItemContainerStyle>
+		</ListBox>
+		<Border x:Name="ScrollBorder" Margin="30,25" HorizontalAlignment="Right" VerticalAlignment="Top" BorderThickness="2" BorderBrush="CornflowerBlue" CornerRadius="2" Background="AliceBlue">
+			<TextBlock x:Name="ScrollLabel" Padding="5,0"/>
+		</Border>
+		<Grid Margin="10,10,10,2" Height="23" VerticalAlignment="Bottom">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto" MinWidth="100"/>
+			</Grid.ColumnDefinitions>
+			<Button Grid.Column="0" Content="Expand Groups" Click="ToggleExpandGroups" Margin="0,2,2,2"/>
+			<ComboBox Margin="0,2,2,2" Grid.Column="1" SelectedIndex="0" Padding="5,0" >
+				<ComboBoxItem Content="By Added" Selected="GroupByAdded" />
+				<ComboBoxItem Content="By Producer" Selected="GroupByProducer" />
+				<ComboBoxItem Content="By Release Month" Selected="GroupByReleaseMonth" />
+				<ComboBoxItem Content="By Name" Selected="GroupByName" />
+				<ComboBoxItem Content="By Last Played"  Selected="GroupByLastPlayed" />
+				<ComboBoxItem Content="By Time Played"  Selected="GroupByTimePlayed" />
+				<ComboBoxItem Content="By Tag"  Selected="GroupByTag" />
+				<ComboBoxItem Content="By VN Label"  Selected="GroupByVnLabel" />
+				<ComboBoxItem Content="By My VN Score"  Selected="GroupByVnScore" />
+			</ComboBox>
+			<CheckBox Margin="2" Grid.Column="2" Content="Show File Not Found" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Checked="ToggleButton_OnChecked" Unchecked="ToggleButton_OnChecked" />
+			<CheckBox Margin="2" Grid.Column="3" Content="Capture Clipboard" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"  IsChecked="{Binding CaptureClipboard}" />
+			<TextBlock Margin="2,2,0,2" Grid.Column="4" Text="{Binding UserGameItems.Count, StringFormat={}{0} Items.}" Background="Aquamarine" TextAlignment="Center" />
+		</Grid>
+	</Grid>
+</UserControl>
