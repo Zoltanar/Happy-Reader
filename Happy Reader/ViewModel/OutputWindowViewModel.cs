@@ -21,7 +21,7 @@ namespace Happy_Reader.ViewModel
 		private DateTime _lastTranslated;
 		private Func<string> _getSelectedText;
 		private FlowDocument _flowDocument;
-		private readonly RecentItemList<Translation> _translations = new RecentItemList<Translation>(10);
+		private readonly RecentItemList<Translation> _translations = new(10);
 
 		private MainWindow MainWindow => (MainWindow) Application.Current.MainWindow;
 		private MainWindowViewModel MainViewModel => (MainWindowViewModel) MainWindow.DataContext;
@@ -49,6 +49,7 @@ namespace Happy_Reader.ViewModel
 				UpdateOutput();
 			}
 		}
+		public bool DisableCombine { get; set; }
 		public ICommand AddEntryCommand { get; set; }
 		public ICommand AskJishoCommand { get; set; }
 		public ICommand AskJishoNotificationCommand { get; set; }
@@ -110,10 +111,16 @@ namespace Happy_Reader.ViewModel
 		public void AddTranslation(Translation translation)
 		{
 			var last = _translations.Items.Count == 0 ? null : _translations.Items[0];
-			var timeSinceLast = (DateTime.UtcNow - _lastTranslated).TotalMilliseconds;
-			if (last != null && (
-				(timeSinceLast < 1000 && last.IsCharacterOnly && !translation.IsCharacterOnly)
-				|| timeSinceLast < 100))
+			var combine = false;
+			if (DisableCombine) DisableCombine = false;
+			else
+			{
+				var timeSinceLast = (DateTime.UtcNow - _lastTranslated).TotalMilliseconds;
+				if (last != null && (
+					(timeSinceLast < 1000 && last.IsCharacterOnly && !translation.IsCharacterOnly)
+					|| timeSinceLast < 100)) combine = true;
+			}
+			if (combine)
 			{
 				var combined = new Translation(last, translation);
 				combined.SetParagraphs();

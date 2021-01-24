@@ -48,6 +48,7 @@ namespace Happy_Reader.ViewModel
 		private bool _loadingComplete;
 		private bool _closing;
 		private bool _finalizing;
+		private WinAPI.HookProcedureHandle _globalHook;
 
 		public string StatusText
 		{
@@ -70,6 +71,7 @@ namespace Happy_Reader.ViewModel
 		[NotNull] public IthViewModel IthViewModel { get; }
 		[NotNull] public SettingsViewModel SettingsViewModel { get; }
 		[NotNull] public ApiLogViewModel ApiLogViewModel { get; }
+		public OutputWindowViewModel OutputWindowViewModel => (OutputWindowViewModel)OutputWindow.DataContext;
 
 		public bool TranslatePaused
 		{
@@ -78,7 +80,7 @@ namespace Happy_Reader.ViewModel
 			{
 				_translatePaused = value;
 				if (IthViewModel.HookManager != null) IthViewModel.HookManager.Paused = value;
-				((OutputWindowViewModel)OutputWindow.DataContext).OnPropertyChanged(nameof(OutputWindowViewModel.TranslatePaused));
+				OutputWindowViewModel.OnPropertyChanged(nameof(OutputWindowViewModel.TranslatePaused));
 				IthViewModel.OnPropertyChanged(null);
 			}
 		}
@@ -208,6 +210,17 @@ namespace Happy_Reader.ViewModel
 			_loadingComplete = true;
 			StatusText = "Loading complete.";
 			NotificationEvent(this, $"Took {watch.Elapsed.ToSeconds()}.", "Loading Complete");
+		}
+
+		private bool GlobalMouseClick(MouseEventExtArgs args)
+		{
+			//On global mouse click, when a game is hooked and left button is pressed, disable combining output.
+			//By default, when the output window receives multiple messages in a short time, it combines them (this helps when ITHVNR captures text from a single line in multiple parts).
+			//If the user progresses through the messages faster than the mentioned short time, they would be erroneously combined.
+			//this prevents that from occurring, assuming that every time the user left clicks the mouse, a new line is shown.
+			if (args.Button != MouseButton.Left || !args.IsMouseButtonDown || !args.Clicked || UserGame == null || !UserGame.HookProcess || UserGame.Process == null) return true;
+			OutputWindowViewModel.DisableCombine = true;
+			return true;
 		}
 
 		private Thread GetAndStartMonitorThread()
@@ -363,7 +376,7 @@ namespace Happy_Reader.ViewModel
 				Clipboard.GetText,
 				() => Thread.Sleep(10),
 				5,
-				ex => ex is COMException comEx && (uint)comEx.ErrorCode == 0x800401D0); //0x800401D0 = CLIPBRD_E_CANT_OPEN
+				ex => ex is COMException comEx && (uint)comEx.ErrorCode == WinAPIConstants.CLIPBRD_E_CANT_OPEN);
 			var timeSinceLast = DateTime.UtcNow - _lastUpdateTime;
 			if (timeSinceLast.TotalMilliseconds < 100 && _lastUpdateText == text) return;
 			Logger.Verbose($"Capturing clipboard from {cpOwner?.ProcessName ?? "??"}\t {DateTime.UtcNow:HH\\:mm\\:ss\\:fff}\ttimeSinceLast:{timeSinceLast.Milliseconds}\t{text}");
@@ -456,6 +469,7 @@ namespace Happy_Reader.ViewModel
 					UserGame.MoveOutputWindow = r => OutputWindow.MoveByDifference(r);
 					OutputWindow.SetLocation(UserGame.OutputRectangle);
 					if (!UserGame.HookProcess) return;
+					_globalHook = WinAPI.HookMouseEvents(GlobalMouseClick);
 					while (!_loadingComplete) Thread.Sleep(25);
 					SetIthUserGameParameters();
 				}
@@ -484,6 +498,7 @@ namespace Happy_Reader.ViewModel
 			UserGame.OutputRectangle = OutputWindow.GetRectangle();
 			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			Application.Current.Dispatcher.Invoke(() => OutputWindow.Hide());
+			_globalHook?.Dispose();
 			UserGame = null;
 			//restart monitor
 			if (_monitor != null && _monitor.IsAlive) return;
@@ -509,6 +524,6 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 
-		private static bool CtrlKeyIsHeld() => DispatchIfRequired(()=>Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl));
+		private static bool CtrlKeyIsHeld() => DispatchIfRequired(() => Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl));
 	}
 }

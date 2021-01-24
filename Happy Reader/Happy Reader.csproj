@@ -146,6 +146,7 @@
     <Compile Include="Model\VnFilters\VnFilterType.cs" />
     <Compile Include="Model\VnFilters\VnMultiFilter.cs" />
     <Compile Include="Model\VnFilters\CharacterFilter.cs" />
+    <Compile Include="MouseEventExtArgs.cs" />
     <Compile Include="ViewModel\CharacterFiltersViewModel.cs" />
     <Compile Include="Model\VnFilters\CharacterFilterType.cs" />
     <Compile Include="Model\VnFilters\CharacterMultiFilter.cs" />
@@ -255,6 +256,7 @@
       <DependentUpon>VnMenuItem.xaml</DependentUpon>
     </Compile>
     <Compile Include="WinAPI.cs" />
+    <Compile Include="WinAPIConstants.cs" />
     <Page Include="View\FiltersPane.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -440,7 +442,6 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

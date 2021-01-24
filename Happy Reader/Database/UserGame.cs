@@ -25,11 +25,14 @@ namespace Happy_Reader.Database
 		public static readonly SortedList<DateTime, long> LastGamesPlayed = new SortedList<DateTime, long>();
 		public static Encoding[] Encodings => IthVnrViewModel.Encodings;
 
+		public event PropertyChangedEventHandler PropertyChanged;
+
 		private Stopwatch _runningTime;
 		private Process _process;
 		private ListedVN _vn;
 		private bool _vnGot;
-
+		private NativeMethods.RECT? _locationOnMoveStart;
+		
 		public UserGame(string file, ListedVN vn)
 		{
 			FilePath = file;
@@ -200,10 +203,6 @@ namespace Happy_Reader.Database
 		[NotMapped]
 		public Action<NativeMethods.RECT> MoveOutputWindow { get; set; }
 		
-		private NativeMethods.RECT? _locationOnMoveStart;
-
-		public event PropertyChangedEventHandler PropertyChanged;
-
 		public void SaveTimePlayed(bool notify)
 		{
 			_runningTime.Stop();
