@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Happy_Reader.ViewModel;
@@ -10,18 +12,45 @@ namespace Happy_Reader.View
 {
 	public partial class OutputWindow
 	{
+		private enum SettingViewState
+		{
+			Off = 0,
+			Mini = 1,
+			Full = 2
+		}
+
 		private readonly GridLength _settingsColumnLength;
 		private OutputWindowViewModel _viewModel;
+		private SettingViewState _settingsState = 0;
+		private bool _isResizing;
+		private System.Windows.Point _startPosition;
 
-		public bool SettingsOn { get; set; }
+		public bool SettingsOn
+		{
+			get => _settingsState != SettingViewState.Off;
+			// ReSharper disable once ValueParameterNotUsed
+			set
+			{
+				//cycle backwards through enum.
+				_settingsState = _settingsState switch
+				{
+					SettingViewState.Off => SettingViewState.Full,
+					SettingViewState.Mini => SettingViewState.Off,
+					SettingViewState.Full => SettingViewState.Mini,
+					_ => _settingsState
+				};
+				UpdateSettingToggles();
+			}
+		}
+
 		public bool FullScreenOn { get; set; }
 
 		public OutputWindow()
 		{
 			InitializeComponent();
 			_settingsColumnLength = SettingsColumn.Width;
-			var tColor = ((SolidColorBrush) StaticMethods.TranslatorSettings.TranslationColor).Color;
-			var darkerColor = System.Windows.Media.Color.FromRgb((byte) (tColor.R * 0.75), (byte) (tColor.G * 0.75), (byte) (tColor.B * 0.75));
+			var tColor = ((SolidColorBrush)StaticMethods.TranslatorSettings.TranslationColor).Color;
+			var darkerColor = System.Windows.Media.Color.FromRgb((byte)(tColor.R * 0.75), (byte)(tColor.G * 0.75), (byte)(tColor.B * 0.75));
 			var dropShadowEffect = new System.Windows.Media.Effects.DropShadowEffect
 			{
 				Color = darkerColor
@@ -30,7 +59,18 @@ namespace Happy_Reader.View
 			_viewModel = (OutputWindowViewModel)DataContext;
 		}
 
-
+		private void UpdateSettingToggles()
+		{
+			SettingsColumn.Width = _settingsState == SettingViewState.Mini ? new GridLength(45) : _settingsColumnLength;
+			OpacityLabel.Visibility = _settingsState == SettingViewState.Mini ? Visibility.Collapsed : Visibility.Visible;
+			foreach (var toggleButton in SettingsPanel.Children.OfType<ContentControl>())
+			{
+				var value = toggleButton.Tag as string;
+				if (string.IsNullOrWhiteSpace(value)) continue;
+				var parts = value.Split(',');
+				toggleButton.Content =  parts[_settingsState == SettingViewState.Mini ? 0 : 1];
+			}
+		}
 
 		public void AddTranslation(Translation translation)
 		{
@@ -51,8 +91,7 @@ namespace Happy_Reader.View
 				Height = rectangle.Height;
 			});
 		}
-
-
+		
 		private void DragOnMouseButton(object sender, MouseButtonEventArgs e)
 		{
 			try { DragMove(); }
@@ -64,7 +103,7 @@ namespace Happy_Reader.View
 		private void OutputWindow_OnLoaded(object sender, RoutedEventArgs e)
 		{
 			_viewModel = (OutputWindowViewModel)DataContext;
-			_viewModel.Initialize(() =>OutputTextBox.Selection.Text, OutputTextBox.Document);
+			_viewModel.Initialize(() => OutputTextBox.Selection.Text, OutputTextBox.Document);
 		}
 
 		private void ShowSettingsOnMouseHover(object sender, MouseEventArgs e)
@@ -88,10 +127,7 @@ namespace Happy_Reader.View
 			Application.Current.Dispatcher.Invoke(() => result = new Rectangle((int)Left, (int)Top, (int)Width, (int)Height));
 			return result;
 		}
-
-		private bool _isResizing;
-		private System.Windows.Point _startPosition;
-
+		
 		private void Resizer_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 		{
 			if (!Mouse.Capture(Resizer)) return;

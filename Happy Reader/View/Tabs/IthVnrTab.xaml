@@ -7,93 +7,105 @@
              xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
              d:DataContext="{d:DesignInstance viewModel:IthViewModel}"
              Loaded="IthVnrTab_OnLoaded" d:DesignHeight="348" d:DesignWidth="593">
-    <UserControl.Resources>
-        <Style TargetType="ToggleButton">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type ToggleButton}">
-                        <Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="Border" Padding="5" Background="SaddleBrown" >
-                            <Viewbox>
-                                <ContentPresenter x:Name="contentPresenter" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
-                            </Viewbox>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsChecked" Value="true">
-                                <Setter Property="Background" TargetName="Border" Value="DarkRed"/>
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="true">
-                                <Setter Property="BorderThickness" TargetName="Border" Value="1"/>
-                                <Setter Property="BorderBrush" TargetName="Border" Value="Black"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style TargetType="Button">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Background" Value="SaddleBrown"/>
-            <Setter Property="BorderThickness" Value="0"/>
-        </Style>
-    </UserControl.Resources>
-    <Grid Background="Bisque">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <!-- row 0 -->
-        <UniformGrid Columns="5" Grid.Row="0" Height="70">
-            <Button Margin="5" Content="Turn Off" Click="FinalizeButton"/>
-            <Button Margin="5" Content="Turn On"  Click="InitializeButton"/>
-            <ToggleButton Margin="5" Content="Merge By Hook Code"  IsChecked="{Binding MergeByHookCode}"/>
-            <ToggleButton Margin="5" Content="Global Pause"        IsChecked="{Binding Paused}" />
-            <ToggleButton Margin="5" Content="Show Latest Thread"  IsChecked="{Binding HookManager.ShowLatestThread}" />
-            <Button Margin="5" Content="Attach To Process" Click="OpenProcessExplorer"/>
-            <Button Margin="5" Content="Clear Others"      Command="{Binding ClearOtherThreadsCommand}"/>
-            <Button Margin="5" Content="Pause Others"      Command="{Binding PauseOtherThreadsCommand}" />
-            <Button Margin="5" Content="Unpause Others"    Command="{Binding UnpauseOtherThreadsCommand}" />
-            <Button Margin="5" Content="Don't Post Others" Command="{Binding DontPostOthersCommand}"/>
-        </UniformGrid>
-        <!-- row 1 -->
-        <ComboBox Grid.Row="1" Margin="5,5,0,5" x:Name="ProcessComboBox" ItemsSource="{Binding DisplayProcesses}" SelectedItem="{Binding SelectedProcess, Mode=TwoWay}"  HorizontalAlignment="Left"  Width="120">
+	<UserControl.Resources>
+		<Style TargetType="ButtonBase" x:Key="ButtonBaseStyle">
+			<Setter Property="Foreground" Value="White"/>
+			<Setter Property="Background" Value="SaddleBrown"/>
+			<Setter Property="Height" Value="17"/>
+			<Setter Property="BorderThickness" Value="0"/>
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="{x:Type ButtonBase}" >
+						<Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Padding="2,0" Background="{TemplateBinding Background}" >
+							<TextBlock Name="ContentPresenter" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{TemplateBinding Content}"/>
+						</Border>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+			<Style.Triggers>
+				<Trigger Property="IsMouseOver" Value="True">
+					<Setter Property="FontWeight" Value="Bold"/>
+					<Setter Property="Background" Value="SandyBrown"/>
+				</Trigger>
+			</Style.Triggers>
+		</Style>
+		<Style TargetType="ToggleButton" BasedOn="{StaticResource ButtonBaseStyle}">
+			<Style.Triggers>
+				<Trigger Property="IsChecked" Value="True">
+					<Setter Property="Background" Value="DarkRed"/>
+				</Trigger>
+				<MultiTrigger>
+					<MultiTrigger.Conditions>
+						<Condition Property="IsMouseOver" Value="True"/>
+						<Condition Property="IsChecked" Value="True"/>
+					</MultiTrigger.Conditions>
+					<MultiTrigger.Setters>
+						<Setter Property="Background" Value="PaleVioletRed"/>
+					</MultiTrigger.Setters>
+				</MultiTrigger>
+			</Style.Triggers>
+		</Style>
+		<Style TargetType="Button" BasedOn="{StaticResource ButtonBaseStyle}"/>
+	</UserControl.Resources>
+	<Grid Background="Bisque">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="30"/>
+			<RowDefinition Height="*"/>
+		</Grid.RowDefinitions>
+		<!-- row 0 -->
+		<UniformGrid Columns="4" Grid.Row="0" Height="82">
+			<Button Margin="5" Content="Turn Off" Click="FinalizeButton"/>
+			<Button Margin="5" Content="Turn On"  Click="InitializeButton"/>
+			<ToggleButton Margin="5" Content="Merge By Hook Code"  IsChecked="{Binding MergeByHookCode}"/>
+			<ToggleButton Margin="5" Content="Global Pause"        IsChecked="{Binding Paused}" />
+			<ToggleButton Margin="5" Content="Show Latest Thread"  IsChecked="{Binding HookManager.ShowLatestThread}" />
+			<Button Margin="5" Content="Attach To Process" Click="OpenProcessExplorer"/>
+			<Button Margin="5" Content="Clear Others"      Command="{Binding ClearOtherThreadsCommand}"/>
+			<Button Margin="5" Content="Pause Others"      Command="{Binding PauseOtherThreadsCommand}" />
+			<Button Margin="5" Content="Unpause Others"    Command="{Binding UnpauseOtherThreadsCommand}" />
+			<Button Margin="5" Content="Don't Post Others" Command="{Binding DontPostOthersCommand}"/>
+			<Button Margin="5" Content="Show Output Window" Click="ShowOutputWindow"/>
+			<Button Margin="5" Content="Reset Output Window" Click="ResetOutputWindow"/>
+		</UniformGrid>
+		<!-- row 1 -->
+		<ComboBox Grid.Row="1" Margin="5,5,0,5" x:Name="ProcessComboBox" ItemsSource="{Binding DisplayProcesses}" SelectedItem="{Binding SelectedProcess, Mode=TwoWay}"  HorizontalAlignment="Left"  Width="120">
 			<ComboBox.ItemContainerStyle>
-		        <Style TargetType="{x:Type ComboBoxItem}">
-			        <Setter Property="HorizontalContentAlignment" Value="Left"/>
-			        <Setter Property="VerticalContentAlignment" Value="Center"/>
-		        </Style>
-	        </ComboBox.ItemContainerStyle>
+				<Style TargetType="{x:Type ComboBoxItem}">
+					<Setter Property="HorizontalContentAlignment" Value="Left"/>
+					<Setter Property="VerticalContentAlignment" Value="Center"/>
+				</Style>
+			</ComboBox.ItemContainerStyle>
 		</ComboBox>
-        <TextBox  Grid.Row="1" Margin="130,5,5,5" TextWrapping="Wrap" Text="Enter command here..." KeyUp="EnterCommand"/>
-        <!-- row 2 -->
-        <ComboBox ItemsSource="{Binding DisplayThreads}" SelectedItem="{Binding SelectedTextThread, Mode=TwoWay}" Grid.Row="2" Margin="5,0,239,0" SelectionChanged="TextThreadChanged">
-	        <ComboBox.ItemContainerStyle>
-		        <Style TargetType="{x:Type ComboBoxItem}">
-			        <Setter Property="HorizontalContentAlignment" Value="Left"/>
-			        <Setter Property="VerticalContentAlignment" Value="Center"/>
-		        </Style>
-	        </ComboBox.ItemContainerStyle>
-          </ComboBox>
-			<CheckBox Grid.Row="2" Content="Posting" Margin="0,0,171,0" IsChecked="{Binding SelectedTextThread.IsPosting}" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="63"/>
-        <CheckBox Grid.Row="2" Content="Paused" Margin="0,0,103,0" IsChecked="{Binding SelectedTextThread.IsPaused}" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="63"/>
-        <ComboBox ItemsSource="{Binding Encodings}" DisplayMemberPath="EncodingName" SelectedItem="{Binding PrefEncoding, Mode=TwoWay}" Grid.Row="2" Margin="0,0,10,0" SelectionChanged="EncodingChanged" HorizontalAlignment="Right" Width="88">
-	        <ComboBox.ItemContainerStyle>
-		        <Style TargetType="{x:Type ComboBoxItem}">
-			        <Setter Property="HorizontalContentAlignment" Value="Left"/>
-			        <Setter Property="VerticalContentAlignment" Value="Center"/>
-		        </Style>
-	        </ComboBox.ItemContainerStyle>
+		<TextBox  Grid.Row="1" Margin="130,5,5,5" TextWrapping="Wrap" Text="Enter command here..." KeyUp="EnterCommand"/>
+		<!-- row 2 -->
+		<ComboBox ItemsSource="{Binding DisplayThreads}" SelectedItem="{Binding SelectedTextThread, Mode=TwoWay}" Grid.Row="2" Margin="5,0,239,0" SelectionChanged="TextThreadChanged">
+			<ComboBox.ItemContainerStyle>
+				<Style TargetType="{x:Type ComboBoxItem}">
+					<Setter Property="HorizontalContentAlignment" Value="Left"/>
+					<Setter Property="VerticalContentAlignment" Value="Center"/>
+				</Style>
+			</ComboBox.ItemContainerStyle>
 		</ComboBox>
-        <!--row 3 -->
-        <UniformGrid Grid.Row="3" Rows="1">
-            <Button Margin="5" Content="Clear Text"     Command="{Binding ClearThreadCommand}"/>
-            <Button Margin="5" Content="Set Default Hook"  Command="{Binding SetDefaultHookCommand}"/>
-            <Button Margin="5" Content="Set Hook Code"  Command="{Binding SetHookCodeCommand}"/>
-        </UniformGrid>
-        <!--row 4 -->
+		<CheckBox Grid.Row="2" Content="Posting" Margin="0,0,171,0" IsChecked="{Binding SelectedTextThread.IsPosting}" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="63"/>
+		<CheckBox Grid.Row="2" Content="Paused" Margin="0,0,103,0" IsChecked="{Binding SelectedTextThread.IsPaused}" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="63"/>
+		<ComboBox ItemsSource="{Binding Encodings}" DisplayMemberPath="EncodingName" SelectedItem="{Binding PrefEncoding, Mode=TwoWay}" Grid.Row="2" Margin="0,0,10,0" SelectionChanged="EncodingChanged" HorizontalAlignment="Right" Width="88">
+			<ComboBox.ItemContainerStyle>
+				<Style TargetType="{x:Type ComboBoxItem}">
+					<Setter Property="HorizontalContentAlignment" Value="Left"/>
+					<Setter Property="VerticalContentAlignment" Value="Center"/>
+				</Style>
+			</ComboBox.ItemContainerStyle>
+		</ComboBox>
+		<!--row 3 -->
+		<UniformGrid Grid.Row="3" Rows="1">
+			<Button Margin="5" Content="Clear Text"     Command="{Binding ClearThreadCommand}"/>
+			<Button Margin="5" Content="Set Default Hook"  Command="{Binding SetDefaultHookCommand}"/>
+			<Button Margin="5" Content="Set Hook Code"  Command="{Binding SetHookCodeCommand}"/>
+		</UniformGrid>
+		<!--row 4 -->
 		<TextBox x:Name="MainTextBox" Text="{Binding SelectedTextThread.Text, Mode=OneWay}" Margin="5" Grid.Row="4" IsReadOnly="True" TextWrapping="Wrap" SelectionChanged="MainTextBox_OnSelectionChanged" VerticalScrollBarVisibility="Auto" TextChanged="MainTextBox_OnTextChanged" Background="{Binding MainTextBoxBackground}" />
-    </Grid>
+	</Grid>
 </UserControl>

@@ -89,5 +89,15 @@ namespace Happy_Reader.View.Tabs
 		{
 			MainTextBox.ScrollToEnd();
 		}
+
+		private void ShowOutputWindow(object sender, RoutedEventArgs e)
+		{
+			StaticMethods.MainWindow.ViewModel.OutputWindow.Show();
+		}
+
+		private void ResetOutputWindow(object sender, RoutedEventArgs e)
+		{
+			StaticMethods.MainWindow.ViewModel.OutputWindow.SetLocation(StaticMethods.OutputWindowStartPosition);
+		}
 	}
 }

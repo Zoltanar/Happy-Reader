@@ -11,104 +11,128 @@
         Topmost="True" 
         Loaded="OutputWindow_OnLoaded"
         ResizeMode="CanResizeWithGrip">
-    <Window.DataContext>
-        <viewModel:OutputWindowViewModel/>
-    </Window.DataContext>
-    <Window.Background>
-        <SolidColorBrush Color="Black" Opacity="{Binding Value, ElementName=OpacitySlider}"/>
-    </Window.Background>
-    <Window.Resources>
-        <Style TargetType="{x:Type ToggleButton}">
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ToggleButton">
-                        <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsChecked" Value="True">
-                    <Setter Property="BorderBrush" Value="Gold" />
-                    <Setter Property="BorderThickness" Value="1.5" />
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-        <Style TargetType="CheckBox">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Height" Value="18"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="VerticalAlignment" Value="Top"/>
-            <Setter Property="FontSize" Value="10"/>
-        </Style>
-    </Window.Resources>
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition x:Name="SettingsColumn" Width="88"/>
-            <ColumnDefinition Width="22"/>
-        </Grid.ColumnDefinitions>
-        <Label Grid.Column="0" Content="{Binding IdText}" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5" Padding="0" Foreground="White"/>
-        <RichTextBox Grid.Column="0"  Foreground="GreenYellow" x:Name="OutputTextBox" HorizontalContentAlignment="Center" IsReadOnly="True"
+	<Window.DataContext>
+		<viewModel:OutputWindowViewModel/>
+	</Window.DataContext>
+	<Window.Background>
+		<SolidColorBrush Color="Black" Opacity="{Binding Value, ElementName=OpacitySlider}"/>
+	</Window.Background>
+	<Window.Resources>
+		<Style TargetType="{x:Type ToggleButton}" x:Key="SettingsButtonStyle">
+			<Setter Property="Height" Value="24"/>
+			<Setter Property="Background" Value="Transparent"/>
+			<Setter Property="Foreground" Value="White"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="ToggleButton">
+						<Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
+							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+						</Border>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+			<Style.Triggers>
+				<Trigger Property="IsChecked" Value="True">
+					<Setter Property="BorderBrush" Value="Gold" />
+					<Setter Property="BorderThickness" Value="1.5" />
+				</Trigger>
+			</Style.Triggers>
+		</Style>
+		<Style TargetType="{x:Type ToggleButton}" x:Key="MiniIconStyle">
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="ToggleButton">
+						<Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
+							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" ContentStringFormat=""/>
+						</Border>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+			<Setter Property="Background" Value="LightBlue" />
+			<Setter Property="Foreground" Value="Black" />
+			<Style.Triggers>
+				<Trigger Property="IsChecked" Value="True">
+					<Setter Property="BorderBrush" Value="Gold" />
+					<Setter Property="BorderThickness" Value="1.5" />
+				</Trigger>
+			</Style.Triggers>
+		</Style>
+		<Style TargetType="CheckBox">
+			<Setter Property="Foreground" Value="White"/>
+			<Setter Property="Height" Value="18"/>
+			<Setter Property="VerticalContentAlignment" Value="Center"/>
+			<Setter Property="VerticalAlignment" Value="Top"/>
+			<Setter Property="FontSize" Value="10"/>
+		</Style>
+	</Window.Resources>
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition/>
+			<ColumnDefinition x:Name="SettingsColumn" Width="88"/>
+			<ColumnDefinition Width="22"/>
+		</Grid.ColumnDefinitions>
+		<Label Grid.Column="0" Content="{Binding IdText}" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5" Padding="0" Foreground="White"/>
+		<RichTextBox Grid.Column="0"  Foreground="GreenYellow" x:Name="OutputTextBox" HorizontalContentAlignment="Center" IsReadOnly="True"
                      VerticalContentAlignment="Center" Background="{x:Null}" FontSize="22"  BorderBrush="Transparent" AutoWordSelection="False">
-            <RichTextBox.Effect>
-                <DropShadowEffect/>
-            </RichTextBox.Effect>
-            <RichTextBox.ContextMenu>
-                <ContextMenu>
-                    <MenuItem Header="Add Entry For Text" Command="{Binding AddEntryCommand}" />
-                    <MenuItem Header="Ask Jisho" Command="{Binding AskJishoNotificationCommand}" />
-                    <MenuItem Header="Ask Jisho (Browser)" Command="{Binding AskJishoCommand}" />
-                    <MenuItem Command="ApplicationCommands.Copy" />
-                    <MenuItem Command="ApplicationCommands.Cut" />
-                    <MenuItem Command="ApplicationCommands.Paste" />
-                </ContextMenu>
-            </RichTextBox.ContextMenu>
-        </RichTextBox>
-        <Grid Column="1" Margin="5,5,0,0" MouseEnter="ShowSettingsOnMouseHover" MouseLeave="HideSettingsOnMouseLeave">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
-                <ColumnDefinition Width="18"/>
-            </Grid.ColumnDefinitions>
-            <DockPanel Grid.Column="0" LastChildFill="True">
-                <Button DockPanel.Dock="Top" Content="Close" Click="CloseButton_Click" Height="22" Background="Transparent" BorderBrush="DarkRed" BorderThickness="2" Foreground="White" MouseLeftButtonDown="DragOnMouseButton" />
-                <CheckBox DockPanel.Dock="Top" Content="Fullscreen" IsChecked="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=view:OutputWindow}, Path=FullScreenOn}" />
-                <CheckBox DockPanel.Dock="Top" Content="Original" IsChecked="{Binding OriginalOn}" />
-                <CheckBox DockPanel.Dock="Top" Content="Romaji" IsChecked="{Binding RomajiOn}" />
-                <CheckBox DockPanel.Dock="Top" Content="Paused" IsChecked="{Binding TranslatePaused}" />
-                <ToggleButton DockPanel.Dock="Top" IsChecked="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=view:OutputWindow}, Path=SettingsOn}" Background="Transparent">
-                    <TextBlock Text="Click To Toggle Settings" TextWrapping="Wrap" Foreground="White"   />
-                </ToggleButton>
-            </DockPanel>
-            <Slider Grid.Column="1" Name="OpacitySlider" Orientation="Vertical" Value="0.6" Minimum="0.2" Maximum="1" Margin="0,0,0,17"/>
-        </Grid>
-        <ToggleButton x:Name="SettingsButton" Grid.Column="0" Content="Settings" Margin="0,5,0,0" VerticalAlignment="Top" HorizontalAlignment="Right" 
-                      Width="54" Height="24" IsChecked="True" Background="Transparent" Foreground="White" 
+			<RichTextBox.Effect>
+				<DropShadowEffect/>
+			</RichTextBox.Effect>
+			<RichTextBox.ContextMenu>
+				<ContextMenu>
+					<MenuItem Header="Add Entry For Text" Command="{Binding AddEntryCommand}" />
+					<MenuItem Header="Ask Jisho" Command="{Binding AskJishoNotificationCommand}" />
+					<MenuItem Header="Ask Jisho (Browser)" Command="{Binding AskJishoCommand}" />
+					<MenuItem Command="ApplicationCommands.Copy" />
+					<MenuItem Command="ApplicationCommands.Cut" />
+					<MenuItem Command="ApplicationCommands.Paste" />
+				</ContextMenu>
+			</RichTextBox.ContextMenu>
+		</RichTextBox>
+		<Grid Column="1" Margin="5,5,0,0" MouseEnter="ShowSettingsOnMouseHover" MouseLeave="HideSettingsOnMouseLeave" >
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="18"/>
+				<ColumnDefinition/>
+			</Grid.ColumnDefinitions>
+			<DockPanel Grid.Column="1" x:Name="SettingsPanel" LastChildFill="True">
+				<ToggleButton Style="{StaticResource SettingsButtonStyle}" Tag="S,Settings" DockPanel.Dock="Top" Content="Settings" IsChecked="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=view:OutputWindow}, Path=SettingsOn}"/>
+				<ToggleButton Style="{StaticResource MiniIconStyle}" Tag="FS,Fullscreen" DockPanel.Dock="Top" Content="Fullscreen" IsChecked="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=view:OutputWindow}, Path=FullScreenOn}" />
+				<ToggleButton Style="{StaticResource MiniIconStyle}" Tag="字,Original" DockPanel.Dock="Top" Content="Original" IsChecked="{Binding OriginalOn}" />
+				<ToggleButton Style="{StaticResource MiniIconStyle}" Tag="Ro,Romaji" DockPanel.Dock="Top" Content="Romaji" IsChecked="{Binding RomajiOn}" />
+				<ToggleButton Style="{StaticResource MiniIconStyle}" Tag="⏸,Paused" DockPanel.Dock="Top" Content="Paused" IsChecked="{Binding TranslatePaused}" />
+				<Button DockPanel.Dock="Top" Tag="❌,Close" Content="Close" Click="CloseButton_Click" Height="22" Background="Transparent" FontWeight="Bold" BorderBrush="DarkRed" BorderThickness="2" Foreground="White" MouseLeftButtonDown="DragOnMouseButton" />
+				<DockPanel>
+					<Slider Name="OpacitySlider" Orientation="Vertical" Value="0.6" Minimum="0.1" Maximum="1" />
+					<TextBlock Text="Opacity" DockPanel.Dock="Right" Foreground="White" TextAlignment="Center" x:Name="OpacityLabel"/>
+				</DockPanel>
+			</DockPanel>
+		</Grid>
+		<ToggleButton x:Name="SettingsButton" Grid.Column="0" Content="Settings" Margin="0,5,0,0" VerticalAlignment="Top" HorizontalAlignment="Right" 
+                      Width="65" IsChecked="True"  Style="{StaticResource SettingsButtonStyle}"
                       MouseEnter="ShowSettingsOnMouseHover" MouseLeave="HideSettingsOnMouseLeave" Visibility="Collapsed"/>
-        <Label Grid.Column="2" Content="Drag Me" Foreground="White" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MouseLeftButtonDown="DragOnMouseButton" Padding="0">
-            <Label.Background >
-                <SolidColorBrush Color="#66000000" Opacity="{Binding Value, ElementName=OpacitySlider}"/>
-            </Label.Background>
-            <Label.LayoutTransform>
-                <RotateTransform Angle="90"/>
-            </Label.LayoutTransform>
-        </Label>
-        <ResizeGrip x:Name="Resizer" Grid.Column="0" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="17"
+		<Label Grid.Column="2" Content="Drag Me" Foreground="White" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MouseLeftButtonDown="DragOnMouseButton" Padding="0">
+			<Label.Background >
+				<SolidColorBrush Color="#66000000" Opacity="{Binding Value, ElementName=OpacitySlider}"/>
+			</Label.Background>
+			<Label.LayoutTransform>
+				<RotateTransform Angle="90"/>
+			</Label.LayoutTransform>
+		</Label>
+		<ResizeGrip x:Name="Resizer" Grid.Column="0" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="17"
                 PreviewMouseLeftButtonDown="Resizer_PreviewMouseLeftButtonDown" PreviewMouseMove="Resizer_PreviewMouseMove" PreviewMouseLeftButtonUp="Resizer_PreviewMouseLeftButtonUp">
-            <ResizeGrip.RenderTransform>
-                <RotateTransform Angle="180"/>
-            </ResizeGrip.RenderTransform>
-            <ResizeGrip.Style>
-                <Style TargetType="ResizeGrip">
-                    <Style.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter  Property="Opacity" Value="1.0"/>
-                            <Setter Property="Cursor" Value="SizeNWSE"/>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </ResizeGrip.Style>
-        </ResizeGrip>
-    </Grid>
+			<ResizeGrip.RenderTransform>
+				<RotateTransform Angle="180"/>
+			</ResizeGrip.RenderTransform>
+			<ResizeGrip.Style>
+				<Style TargetType="ResizeGrip">
+					<Style.Triggers>
+						<Trigger Property="IsMouseOver" Value="True">
+							<Setter  Property="Opacity" Value="1.0"/>
+							<Setter Property="Cursor" Value="SizeNWSE"/>
+						</Trigger>
+					</Style.Triggers>
+				</Style>
+			</ResizeGrip.Style>
+		</ResizeGrip>
+	</Grid>
 </Window>

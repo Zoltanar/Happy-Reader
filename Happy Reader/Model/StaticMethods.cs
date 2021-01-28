@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -14,6 +15,7 @@ using System.Management;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Happy_Apps_Core.Database;
+using Happy_Reader.View;
 using Newtonsoft.Json;
 using FontFamily = System.Windows.Media.FontFamily;
 using StaticHelpers = Happy_Apps_Core.StaticHelpers;
@@ -35,9 +37,12 @@ namespace Happy_Reader
 		public static readonly string TranslatorSettingsJson = Path.Combine(StaticHelpers.StoredDataFolder, "translatorsettings.json");
 		public static readonly GuiSettings GuiSettings;
 		public static readonly TranslatorSettings TranslatorSettings;
+		public static readonly JsonSerializerSettings SerialiserSettings = new() { TypeNameHandling = TypeNameHandling.Objects };
+		public static readonly Rectangle OutputWindowStartPosition = new(20, 20, 400, 200);
+
 		public static HappyReaderDatabase Data { get; } = new ();
 		public static Func<bool> ShowNSFWImages { get; set; } = () => true;
-		public static JsonSerializerSettings SerialiserSettings { get; } = new(){TypeNameHandling = TypeNameHandling.Objects};
+		public static MainWindow MainWindow => (MainWindow) Application.Current.MainWindow;
 
 		static StaticMethods()
 		{

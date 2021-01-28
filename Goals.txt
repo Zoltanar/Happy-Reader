@@ -11,12 +11,11 @@ user stats tab: approx time played
 display date of database update
 store custom filter in named function (instead of the custom filter's function), so that the named function can be reset after modifying the custom filter.
 usergames: search by text
-button to reset position of output window
 make nohook parameter a saved setting and/or only use ithvnr on-demand.
 CachedTranslations: keep track of how often something is translated and remove from cache if not used recently or originally cached too long ago.
-OutputWindow: create mini buttons for settings.
 OutputWindow/UserGame: Output Window location should be relative on game window, so that when game window launches elsewhere, output window follows.
 VN Context menu: view titles with same staff, group by type
+IthVnrTab: Color code threads with info on post/pause status
 
 look at global hooks for managing infinite text, etc (https://github.com/gmamaladze/globalmousekeyhook)
 allow keeping time played for multiple games

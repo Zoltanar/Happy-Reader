@@ -70,7 +70,7 @@ namespace Happy_Reader.Database
 		{
 			get
 			{
-				if (string.IsNullOrEmpty(OutputWindow)) return new Rectangle(20, 20, 400, 200);
+				if (string.IsNullOrEmpty(OutputWindow)) return StaticMethods.OutputWindowStartPosition;
 				List<int> parts = OutputWindow.Split(',').Select(int.Parse).ToList();
 				return new Rectangle(parts[0], parts[1], parts[2], parts[3]);
 			}
