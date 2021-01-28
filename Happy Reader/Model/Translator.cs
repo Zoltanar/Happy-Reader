@@ -372,19 +372,31 @@ namespace Happy_Reader
 			return true;
 		}
 
-		private void TranslateStage4P1(StringBuilder sb, IReadOnlyCollection<Entry> entriesWithProxies, IEnumerable<Entry> entriesOnProxies)
+		private void TranslateStage4P1(StringBuilder sb, IReadOnlyCollection<Entry> entriesWithProxies, ICollection<Entry> entriesOnProxies)
 		{
-			foreach (var entry in entriesOnProxies)
+			bool matchFound;
+			int loopCount = 0;
+			do
 			{
-				var input = Stage4P1InputRegex.Replace(entry.Input, @"\[\[$1#(\d+)]]");
-				var matches = Regex.Matches(sb.ToString(), input).Cast<Match>().Select(x => int.Parse(x.Groups[1].Value)).Distinct();
-				foreach (int match in matches)
+				matchFound = false;
+				loopCount++;
+				foreach (var entry in entriesOnProxies)
 				{
-					entriesWithProxies.Single(x => x.AssignedProxy.Id == match && x.AssignedProxy.Role == entry.RoleString).AssignedProxy.ProxyMods.Add(entry);
+					var input = Stage4P1InputRegex.Replace(entry.Input, @"\[\[$1#(\d+)]]");
+					var matches = Regex.Matches(sb.ToString(), input).Cast<Match>().Select(x => int.Parse(x.Groups[1].Value)).Distinct().ToList();
+					if (matches.Count == 0) continue;
+					foreach (int match in matches)
+					{
+						entriesWithProxies.Single(x => x.AssignedProxy.Id == match && x.AssignedProxy.Role == entry.RoleString).AssignedProxy.ProxyMods.Add(entry);
+					}
+					var output = Stage4P1OutputRegex.Replace(entry.Output, @"[[$1#$$1]]");
+					LogReplaceRegex(sb, input, output, null, entry);
+					matchFound = true;
 				}
-				var output = Stage4P1OutputRegex.Replace(entry.Output, @"[[$1#$$1]]");
-				LogReplaceRegex(sb, input, output, null, entry);
+				//something could have gone wrong causing infinite loop
+				if (loopCount > 100) break; 
 			}
+			while (matchFound);
 			StaticHelpers.Logger.Verbose($"Stage 4.1: {sb}");
 		}
 

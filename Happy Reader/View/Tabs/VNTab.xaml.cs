@@ -24,6 +24,7 @@ namespace Happy_Reader.View.Tabs
 			InitializeComponent();
 			_viewModel = vn;
 			DataContext = vn;
+			TileBox.Children.Add(VNTile.FromListedVN(vn));
 			if (userGame == null) return;
 			var tabItem = new TabItem
 			{
@@ -73,7 +74,6 @@ namespace Happy_Reader.View.Tabs
 			if (_viewModel.Tags.Any()) LoadTags(_viewModel);
 			LoadScreenshots();
 			StaffTab.Visibility = _viewModel.Staff.Any() ? Visibility.Visible : Visibility.Collapsed;
-			ImageBox.MaxHeight = ImageBox.Source.Height;
 			LoadRelations();
 			LoadAnime();
 			_loaded = true;

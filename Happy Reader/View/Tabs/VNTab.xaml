@@ -29,7 +29,7 @@
 	<Grid ScrollViewer.VerticalScrollBarVisibility="Auto">
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="*"/>
-			<ColumnDefinition Width="320"/>
+			<ColumnDefinition Width="Auto"/>
 		</Grid.ColumnDefinitions>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
@@ -122,14 +122,7 @@
 			</Grid>
 			<TextBox Grid.Row="1" Text="{Binding Description}" TextWrapping="Wrap" Margin="0" Padding="5" Background="LightGray" Name="DescBox"/>
 		</Grid>
-		<Image x:Name="ImageBox" Grid.Row="0" Source="{Binding ., Converter={StaticResource VnOrScreenToImagePathConverter}}" Margin="5" Grid.Column="1"/>
-		<Border Grid.Row="0" Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Right" Padding="5" Background="Black" CornerRadius="5" Margin="5">
-			<Label VerticalContentAlignment="Top" HorizontalContentAlignment="Right"  VerticalAlignment="Top" HorizontalAlignment="Right" Padding="0" Background="Black">
-				<Hyperlink Click="ID_OnClick">
-					<Run Text="{Binding VNID}"/>
-				</Hyperlink>
-			</Label>
-		</Border>
+		<Grid x:Name="TileBox" Grid.Row="0" Grid.Column="1"/>
 		<TabControl Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="0" x:Name="TabControl">
 			<TabItem x:Name="ScreenshotsTab" Header="Screenshots">
 				<view:AspectRatioLayoutDecorator x:Name="ScreensBox" Margin="5">
