@@ -137,11 +137,8 @@ namespace Happy_Apps_Core
 			try
 			{
 				var field = value.GetType().GetField(value.ToString());
-				var attribute = Attribute.GetCustomAttribute(field, typeof(TypeConverterAttribute));
-				var tcAttr = attribute is TypeConverterAttribute typeConverterAttribute
-					? typeConverterAttribute
-					: null;
-				var type = tcAttr == null ? null : Type.GetType(tcAttr.ConverterTypeName);
+				var attribute = Attribute.GetCustomAttribute(field, typeof(TypeConverterAttribute)) as TypeConverterAttribute;
+				var type = attribute == null ? null : Type.GetType(attribute.ConverterTypeName);
 				return type;
 			}
 			catch (Exception ex)

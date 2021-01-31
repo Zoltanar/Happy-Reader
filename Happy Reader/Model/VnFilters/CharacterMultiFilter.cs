@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Happy_Apps_Core;
 using Happy_Apps_Core.DataAccess;
+using Happy_Apps_Core.Database;
 using Newtonsoft.Json;
 
 namespace Happy_Reader
@@ -28,7 +28,8 @@ namespace Happy_Reader
 		[JsonIgnore] public string StringValue { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 		[JsonIgnore] public bool Exclude { get => false; set => throw new NotSupportedException(); }
 		[JsonIgnore] public object Value { set => throw new NotSupportedException(); }
-		
+		[JsonIgnore] public bool IsGlobal => Filters.Any(f => f.IsGlobal);
+
 		/// <summary>
 		/// Gets function that determines if vn matches filter.
 		/// </summary>
@@ -42,7 +43,25 @@ namespace Happy_Reader
 			}
 			return item => functions.All(f => f(item));
 		}
-		
+
+		public Func<VisualNovelDatabase, HashSet<int>> GetGlobalFunction(Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> getAllFunc)
+		{
+			return db =>
+			{
+				var result = new HashSet<int>();
+				Action<IEnumerable<int>> unionOrIntersect = IsOrGroup ? result.UnionWith : result.IntersectWith;
+				foreach (var filter in Filters.Where(f => f.IsGlobal))
+				{
+					unionOrIntersect(filter.GetGlobalFunction(getAllFunc)(db));
+				}
+				foreach (var filter in Filters.Where(f => !f.IsGlobal))
+				{
+					unionOrIntersect(getAllFunc(db).Where(filter.GetFunction()).Select(i => i.Key));
+				}
+				return result;
+			};
+		}
+
 		public override string ToString()
 		{
 			string result = IsOrGroup ? "OR Group: " : "AND Group: ";

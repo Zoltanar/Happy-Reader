@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Happy_Apps_Core;
 using Happy_Apps_Core.DataAccess;
@@ -50,6 +51,11 @@ namespace Happy_Reader
 		}
 
 		[JsonIgnore] private int IntValue { get; set; }
+
+		/// <summary>
+		/// There are currently no global character filters.
+		/// </summary>
+		[JsonIgnore] public bool IsGlobal => false;
 
 		[JsonIgnore] public object Value
 		{
@@ -140,6 +146,12 @@ namespace Happy_Reader
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
+		}
+
+		public Func<VisualNovelDatabase, HashSet<int>> GetGlobalFunction(Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> getAllFunc)
+		{
+			//currently, no character filters are global
+			throw new InvalidOperationException();
 		}
 
 		Func<IDataItem<int>, bool> IFilter.GetFunction()

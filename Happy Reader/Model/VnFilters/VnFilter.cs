@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Happy_Apps_Core;
@@ -104,6 +105,8 @@ namespace Happy_Reader
 		public int? AdditionalInt { get; set; }
 #pragma warning restore 1591
 
+		[JsonIgnore] public bool IsGlobal => Type == VnFilterType.Staff; //when more global filters are added, this should be changed to a switch pattern.
+
 		/// <summary>
 		/// Create custom filter
 		/// </summary>
@@ -163,10 +166,17 @@ namespace Happy_Reader
 					return vn => DoubleFunctionFromString(vn.Suggestion.Score) != Exclude;
 				case VnFilterType.Staff:
 					return vn => StaticHelpers.LocalDatabase.VnHasStaff(vn.VNID, IntValue) != Exclude;
+				// ReSharper disable once RedundantCaseLabel
 				case VnFilterType.Multi:
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
+		}
+
+		public Func<VisualNovelDatabase, HashSet<int>> GetGlobalFunction(Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> getAllFunc)
+		{
+			if (Type != VnFilterType.Staff) throw new InvalidOperationException($"Filter type {Type} should use per-item function.");
+			return db => db.GetVnsWithStaff(IntValue);
 		}
 
 
@@ -271,6 +281,7 @@ namespace Happy_Reader
 					return $"{result} - {DumpFiles.GetTrait(IntValue).Name}";
 				case VnFilterType.Staff:
 					return $"{result} - {StaticHelpers.LocalDatabase.StaffAliases[StaticHelpers.LocalDatabase.StaffItems[IntValue].AliasID]}";
+				// ReSharper disable once RedundantCaseLabel
 				case VnFilterType.Multi:
 				default:
 					throw new ArgumentOutOfRangeException();

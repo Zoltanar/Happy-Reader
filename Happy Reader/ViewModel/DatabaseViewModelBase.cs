@@ -191,8 +191,7 @@ namespace Happy_Reader.ViewModel
 				var items = DbFunction.SelectAndInvoke(StaticHelpers.LocalDatabase);
 				OnPropertyChanged(nameof(SelectedFunctionIndex));
 				if (!DbFunction.AlwaysIncludeBlacklisted && !IsBlacklisted) items = items.Where(item => !IsBlacklistedFunction(item));
-				var filterFunc = FiltersViewModel.PermanentFilter.GetFunction();
-				var filteredResults = items.Where(vn => filterFunc(vn));
+				var filteredResults = items.Intersect(FiltersViewModel.PermanentFilter.GetAllResults(StaticHelpers.LocalDatabase, GetAll, GetAllWithKeyIn));
 				AllResults = Ordering(filteredResults).ToArray();
 				var firstPage = AllResults.Take(PageSize).ToArray();
 				return firstPage;
@@ -266,7 +265,7 @@ namespace Happy_Reader.ViewModel
 
 		public async Task ChangeFilter(CustomFilterBase item)
 		{
-			DbFunction = new NamedFunction(db => GetAll(db).Where(i=> item.GetFunction()(i)), item.ToString(), false);
+			DbFunction = new NamedFunction(db => item.GetAllResults(db, GetAll, GetAllWithKeyIn), item.ToString(), false);
 			await RefreshTiles();
 		}
 

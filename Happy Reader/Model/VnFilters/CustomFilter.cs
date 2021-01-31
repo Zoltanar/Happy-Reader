@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Happy_Apps_Core.DataAccess;
+using Happy_Apps_Core.Database;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 
@@ -44,11 +46,35 @@ namespace Happy_Reader
 			OrFilters.Clear();
 			foreach (var filter in customFilter.OrFilters) OrFilters.Add(filter.GetCopy());
 		}
-		public Func<IDataItem<int>, bool> GetFunction()
+
+		public IEnumerable<IDataItem<int>> GetAllResults(
+			VisualNovelDatabase database, 
+			Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> getAllFunc,
+			Func<VisualNovelDatabase, int[], IEnumerable<IDataItem<int>>> getAllWithKeyFunc)
+		{
+			var results = ProcessGlobalFilters(database, getAllFunc);
+			var items = getAllWithKeyFunc(database, results);
+			var finalResults = items.Where(GetFunction());
+			return finalResults;
+		}
+
+		private Func<IDataItem<int>, bool> GetFunction()
 		{
 			if (AndFilters.Count == 0) return _ => true;
-			Func<IDataItem<int>, bool>[] andFunctions = AndFilters.Select(filter => filter.GetFunction()).ToArray();
+			Func<IDataItem<int>, bool>[] andFunctions = AndFilters.Where(f=>!f.IsGlobal).Select(filter => filter.GetFunction()).ToArray();
 			return item => andFunctions.All(x => x(item));
+		}
+
+		private int[] ProcessGlobalFilters(VisualNovelDatabase database, Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> getAllFunc)
+		{
+			var globalFilters = AndFilters.Where(f => f.IsGlobal).ToList();
+			if (globalFilters.Count == 0) return getAllFunc(database).Select(i => i.Key).ToArray();
+			var result = getAllFunc(database).Select(i=>i.Key);
+			foreach (var filter in globalFilters)
+			{
+				result = result.Intersect(filter.GetGlobalFunction(getAllFunc)(database));
+			}
+			return result.ToArray();
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
