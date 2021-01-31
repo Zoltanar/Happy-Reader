@@ -12,6 +12,8 @@ namespace Happy_Reader.View.Tabs
 {
 	public partial class UserGameTab : UserControl
 	{
+		private static readonly Regex DigitRegex = new(@"\d");
+
 		private readonly UserGame _viewModel;
 		private readonly bool _isForVN;
 
@@ -57,11 +59,9 @@ namespace Happy_Reader.View.Tabs
 		{
 			if (e.Key != Key.Enter) return;
 			var priorVN = _viewModel.VN;
-			var mainWindow = (MainWindow)Window.GetWindow(this);
-			Debug.Assert(mainWindow != null, nameof(mainWindow) + " != null");
 			var result = _viewModel.SaveVNID(VnidNameBox.Text.Length == 0 ? null : (int?)int.Parse(VnidNameBox.Text));
-			if (result) mainWindow.OpenVNPanel(_viewModel.VN);
-			else mainWindow.OpenUserGamePanel(_viewModel, priorVN);
+			if (result) StaticMethods.MainWindow.OpenVNPanel(_viewModel.VN);
+			else StaticMethods.MainWindow.OpenUserGamePanel(_viewModel, priorVN);
 		}
 
 		private void SaveHookCode(object sender, KeyEventArgs e)
@@ -69,8 +69,6 @@ namespace Happy_Reader.View.Tabs
 			if (e.Key != Key.Enter) return;
 			_viewModel.SaveHookCode(HookCodeBox.Text, null);
 		}
-
-		private static readonly Regex DigitRegex = new Regex(@"\d");
 
 		private void DigitsOnly(object sender, TextCompositionEventArgs e)
 		{

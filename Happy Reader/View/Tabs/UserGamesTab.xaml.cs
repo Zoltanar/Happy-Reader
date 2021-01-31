@@ -23,14 +23,6 @@ namespace Happy_Reader.View.Tabs
 		private readonly DispatcherTimer _scrollLabelTimer;
 
 		private UserGamesViewModel ViewModel => (UserGamesViewModel)DataContext; 
-		public MainWindowViewModel MainViewModel
-		{
-			get
-			{
-				Debug.Assert(Application.Current.MainWindow != null, "Application.Current.MainWindow != null");
-				return ((MainWindowViewModel)Application.Current.MainWindow.DataContext);
-			}
-		}
 
 		public UserGamesTab()
 		{
@@ -43,13 +35,13 @@ namespace Happy_Reader.View.Tabs
 			string file = (e.Data.GetData(DataFormats.FileDrop) as string[])?.First();
 			if (string.IsNullOrWhiteSpace(file))
 			{
-				MainViewModel.StatusText = "Dragged item was not a file.";
+				StaticMethods.MainWindow.ViewModel.StatusText = "Dragged item was not a file.";
 				return;
 			}
 			var ext = Path.GetExtension(file);
 			if (!ext.Equals(".exe", StringComparison.OrdinalIgnoreCase))
 			{
-				MainViewModel.StatusText = "Dragged file isn't an executable.";
+				StaticMethods.MainWindow.ViewModel.StatusText = "Dragged file isn't an executable.";
 				return;
 			}
 			var titledImage = ViewModel.AddGameFile(file);

@@ -15,8 +15,7 @@ namespace Happy_Reader.View.Tabs
 
 		private void AddEntries_Click(object sender, RoutedEventArgs e)
 		{
-			Debug.Assert(Application.Current.MainWindow != null, "Application.Current.MainWindow != null");
-			((MainWindow) Application.Current.MainWindow).CreateAddEntriesTab(Array.Empty<Entry>());
+			StaticMethods.MainWindow.CreateAddEntriesTab(Array.Empty<Entry>());
 		}
 
 		private void ClickDeleteButton(object sender, RoutedEventArgs e)

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,7 +14,6 @@ namespace Happy_Reader.View.Tabs
 {
 	public partial class VNTab : UserControl
 	{
-		private MainWindow _mainWindow;
 		private bool _loaded;
 
 		private readonly ListedVN _viewModel;
@@ -50,7 +48,7 @@ namespace Happy_Reader.View.Tabs
 				foreach (var tag in @group.OrderBy(x => x.Print()))
 				{
 					var link = new Hyperlink(new Run(tag.Print())) { Tag = tag };
-					if (_mainWindow.ViewModel.DatabaseViewModel.SuggestionScorer?.IdTags?.Contains(tag.TagId) ?? false) link.FontWeight = FontWeights.Bold;
+					if (StaticMethods.MainWindow.ViewModel.DatabaseViewModel.SuggestionScorer?.IdTags?.Contains(tag.TagId) ?? false) link.FontWeight = FontWeights.Bold;
 					link.PreviewMouseLeftButtonDown += OnTagClick;
 					allInlines.Add(link);
 				}
@@ -60,15 +58,14 @@ namespace Happy_Reader.View.Tabs
 
 		private async void OnTagClick(object sender, MouseButtonEventArgs e)
 		{
-			_mainWindow.SelectTab(typeof(VNTabViewModel));
+			StaticMethods.MainWindow.SelectTab(typeof(VNTabViewModel));
 			var tag = (DbTag)((Hyperlink)sender).Tag;
-			await ((MainWindowViewModel)_mainWindow.DataContext).DatabaseViewModel.ShowTagged(DumpFiles.GetTag(tag.TagId));
+			await StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ShowTagged(DumpFiles.GetTag(tag.TagId));
 		}
 
 		private void VNPanel_OnLoaded(object sender, RoutedEventArgs e)
 		{
 			if (_loaded) return;
-			_mainWindow = (MainWindow)Window.GetWindow(this);
 			LoadAliases();
 			LoadCharacters();
 			if (_viewModel.Tags.Any()) LoadTags(_viewModel);
@@ -179,26 +176,21 @@ namespace Happy_Reader.View.Tabs
 			else scrollViewer.LineRight();
 			e.Handled = true;
 		}
-
-		private void ID_OnClick(object sender, RoutedEventArgs e)
-		{
-			Process.Start($"https://vndb.org/v{_viewModel.VNID}");
-		}
-
+		
 		private async void ShowVNsForStaff(object sender, RoutedEventArgs e)
 		{
 			var element = sender as FrameworkElement;
 			if (!(element?.DataContext is VnStaff vnStaff)) return;
-			await _mainWindow.ViewModel.DatabaseViewModel.ShowForStaffWithAlias(vnStaff.AliasID);
-			_mainWindow.SelectTab(typeof(VNTabViewModel));
+			await StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ShowForStaffWithAlias(vnStaff.AliasID);
+			StaticMethods.MainWindow.SelectTab(typeof(VNTabViewModel));
 		}
 
 		private async void ShowCharactersForStaff(object sender, RoutedEventArgs e)
 		{
 			var element = sender as FrameworkElement;
 			if (!(element?.DataContext is VnStaff vnStaff)) return;
-			await _mainWindow.ViewModel.CharactersViewModel.ShowForStaffWithAlias(vnStaff.AliasID);
-			_mainWindow.SelectTab(typeof(CharactersTabViewModel));
+			await StaticMethods.MainWindow.ViewModel.CharactersViewModel.ShowForStaffWithAlias(vnStaff.AliasID);
+			StaticMethods.MainWindow.SelectTab(typeof(CharactersTabViewModel));
 		}
 
 		private void RelationSelected(object sender, SelectionChangedEventArgs e)
@@ -208,7 +200,7 @@ namespace Happy_Reader.View.Tabs
 			var relationElement = e.AddedItems.OfType<TextBlock>().FirstOrDefault();
 			if (!(relationElement?.Tag is RelationsItem relation)) return;
 			var vn = StaticHelpers.LocalDatabase.VisualNovels[relation.ID];
-			if (vn != null) _mainWindow.OpenVNPanel(vn);
+			if (vn != null) StaticMethods.MainWindow.OpenVNPanel(vn);
 		}
 	}
 }

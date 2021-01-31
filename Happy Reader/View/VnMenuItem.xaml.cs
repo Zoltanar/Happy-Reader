@@ -8,20 +8,14 @@ using System.Windows.Controls;
 using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
 using Happy_Reader.ViewModel;
-using JetBrains.Annotations;
 using StaticHelpers = Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Reader.View
 {
 	public partial class VnMenuItem : ItemsControl
 	{
-		private static readonly Regex MinusRegex = new Regex(@"[-－]");
+		private static readonly Regex MinusRegex = new(@"[-－]");
 
-		[NotNull]
-		private MainWindow MainWindow => (MainWindow)Application.Current.MainWindow ?? throw new InvalidOperationException();
-
-		private MainWindowViewModel MainViewModel => MainWindow.ViewModel;
-		private VNTabViewModel ViewModel => MainViewModel.DatabaseViewModel;
 		private ListedVN VN => (ListedVN)DataContext;
 		public VnMenuItem(ListedVN vn)
 		{
@@ -121,7 +115,7 @@ namespace Happy_Reader.View
 				if (VN.UserVN?.Labels?.Contains(UserVN.LabelKind.Voted) ?? false) labelsToSet.Add(UserVN.LabelKind.Voted);
 				labelsToSet.UnionWith(labels);
 			}
-			var success = await ViewModel.ChangeVNStatus(VN, labelsToSet);
+			var success = await StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ChangeVNStatus(VN, labelsToSet);
 			if (success)
 			{
 				VN.OnPropertyChanged(null);
@@ -135,7 +129,7 @@ namespace Happy_Reader.View
 			var remove = menuItem.IsChecked;
 			var header = menuItem.Header.ToString();
 			var voteValue = remove ? null : header == "None" ? (int?)null : int.Parse(header);
-			var success = await ViewModel.ChangeVote(VN, voteValue);
+			var success = await StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ChangeVote(VN, voteValue);
 			if (success) VN.OnPropertyChanged(null);
 		}
 
@@ -151,21 +145,21 @@ namespace Happy_Reader.View
 			if (result == true)
 			{
 				var voteValue = int.Parse(inputWindow.InputText);
-				var success = await ViewModel.ChangeVote(VN, voteValue);
+				var success = await StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ChangeVote(VN, voteValue);
 				if (success) VN.OnPropertyChanged(null);
 			}
 		}
 
 		private async void ShowRelatedTitles(object sender, RoutedEventArgs e)
 		{
-			await ViewModel.ShowRelatedTitles(VN);
-			MainWindow.SelectTab(typeof(VNTabViewModel));
+			await StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ShowRelatedTitles(VN);
+			StaticMethods.MainWindow.SelectTab(typeof(VNTabViewModel));
 		}
 
 		private async void ShowTitlesByProducer(object sender, RoutedEventArgs e)
 		{
-			await ViewModel.ShowForProducer(VN.Producer);
-			MainWindow.SelectTab(typeof(VNTabViewModel));
+			await StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ShowForProducer(VN.Producer);
+			StaticMethods.MainWindow.SelectTab(typeof(VNTabViewModel));
 		}
 
 		private void CopyTitle(object sender, RoutedEventArgs e) => Clipboard.SetText(VN.Title);
@@ -185,7 +179,7 @@ namespace Happy_Reader.View
 		{
 			var cvns = StaticHelpers.LocalDatabase.CharacterVNs[VN.VNID].ToList();
 			var characterEntries = cvns.SelectMany(GetEntriesFromCharacter).Distinct(Entry.ValueComparer).ToArray();
-			MainWindow.CreateAddEntriesTab(characterEntries);
+			StaticMethods.MainWindow.CreateAddEntriesTab(characterEntries);
 		}
 
 		private static List<Entry> GetEntriesFromCharacter(CharacterVN cvn)
@@ -243,14 +237,15 @@ namespace Happy_Reader.View
 			string message;
 			try
 			{
-				var translation = MainViewModel.Translator.Translate(MainViewModel.User, null, VN.KanjiTitle, false, false);
+				var translation = StaticMethods.MainWindow.ViewModel.Translator.Translate(
+					StaticMethods.MainWindow.ViewModel.User, null, VN.KanjiTitle, false, false);
 				message = translation.Output;
 			}
 			catch (Exception ex)
 			{
 				message = ex.Message;
 			}
-			MainViewModel.NotificationEvent(this, message, $"Translated Title for {VN.Title}");
+			StaticMethods.MainWindow.ViewModel.NotificationEvent(this, message, $"Translated Title for {VN.Title}");
 		}
 	}
 }

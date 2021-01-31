@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
 using Happy_Reader.Database;
@@ -22,14 +21,12 @@ namespace Happy_Reader.ViewModel
 		private Func<string> _getSelectedText;
 		private FlowDocument _flowDocument;
 		private readonly RecentItemList<Translation> _translations = new(10);
-
-		private MainWindow MainWindow => (MainWindow) Application.Current.MainWindow;
-		private MainWindowViewModel MainViewModel => (MainWindowViewModel) MainWindow.DataContext;
+		
 		public string IdText { get; set; }
 		public bool TranslatePaused
 		{
-			get => MainViewModel?.TranslatePaused ?? false;
-			set => MainViewModel.TranslatePaused = value;
+			get => StaticMethods.MainWindow.ViewModel?.TranslatePaused ?? false;
+			set => StaticMethods.MainWindow.ViewModel.TranslatePaused = value;
 		}
 		public bool OriginalOn
 		{
@@ -94,10 +91,10 @@ namespace Happy_Reader.ViewModel
 				Input = input,
 				Output = output.Replace(" ", ""),
 				SeriesSpecific = true,
-				GameId = MainViewModel.UserGame?.VNID,
+				GameId = StaticMethods.MainWindow.ViewModel.UserGame?.VNID,
 				Type = EntryType.Name
 			};
-			MainWindow.CreateAddEntriesTab(new List<Entry> { entry });
+			StaticMethods.MainWindow.CreateAddEntriesTab(new List<Entry> { entry });
 		}
 		
 		public void UpdateOutput()

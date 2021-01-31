@@ -16,6 +16,7 @@ CachedTranslations: keep track of how often something is translated and remove f
 OutputWindow/UserGame: Output Window location should be relative on game window, so that when game window launches elsewhere, output window follows.
 VN Context menu: view titles with same staff, group by type
 IthVnrTab: Color code threads with info on post/pause status
+ITHVNR: Keep list of hooks instead of only a single one.
 
 look at global hooks for managing infinite text, etc (https://github.com/gmamaladze/globalmousekeyhook)
 allow keeping time played for multiple games

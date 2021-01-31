@@ -13,7 +13,6 @@ namespace Happy_Reader.View.Tabs
 	public partial class DatabaseTab : UserControl
 	{
 		public DatabaseViewModelBase ViewModel { get; private set; }
-		private MainWindow _mainWindow;
 		private bool _userInteractionHistory;
 		private bool _loaded;
 
@@ -43,7 +42,6 @@ namespace Happy_Reader.View.Tabs
 			if (_loaded) return;
 			if (DesignerProperties.GetIsInDesignMode(this)) return;
 			ViewModel = (DatabaseViewModelBase)DataContext;
-			_mainWindow = (MainWindow)Window.GetWindow(this);
 			_loaded = true;
 		}
 
@@ -57,7 +55,7 @@ namespace Happy_Reader.View.Tabs
 				_ => null
 			};
 			if (vn == null) return;
-			_mainWindow.OpenVNPanel(vn);
+			StaticMethods.MainWindow.OpenVNPanel(vn);
 		}
 
 		private async void ShowSuggested(object sender, RoutedEventArgs e)

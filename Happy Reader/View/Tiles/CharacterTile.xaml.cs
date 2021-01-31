@@ -12,7 +12,6 @@ using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Reader.View.Converters;
 using Happy_Reader.ViewModel;
-using JetBrains.Annotations;
 
 namespace Happy_Reader.View.Tiles
 {
@@ -27,9 +26,6 @@ namespace Happy_Reader.View.Tiles
 		private VnMenuItem _vnMenu;
 		private bool _loaded;
 		
-		[NotNull] private MainWindow MainWindow => (MainWindow)Window.GetWindow(this) ?? throw new ArgumentNullException(nameof(MainWindow));
-		private MainWindowViewModel MainViewModel => MainWindow.ViewModel;
-		private CharactersTabViewModel TabViewModel => MainViewModel.CharactersViewModel;
 		private VnMenuItem VnMenu => _vnMenu ??= new VnMenuItem(_viewModel.VisualNovel);
 
 		public static CharacterTile FromCharacterVN(CharacterVN cvn)
@@ -94,51 +90,51 @@ namespace Happy_Reader.View.Tiles
 		private async void ShowCharactersByProducer(object sender, RoutedEventArgs e)
 		{
 			if (_viewModel.Producer == null) throw new InvalidOperationException("Character does not have producer.");
-			MainWindow.SelectTab(typeof(CharactersTabViewModel));
-			await TabViewModel.ShowForProducer(_viewModel.Producer);
+			StaticMethods.MainWindow.SelectTab(typeof(CharactersTabViewModel));
+			await StaticMethods.MainWindow.ViewModel.CharactersViewModel.ShowForProducer(_viewModel.Producer);
 		}
 
 		private async void ShowCharactersForVn(object sender, RoutedEventArgs e)
 		{
 			if (_viewModel.CharacterVN == null) throw new InvalidOperationException("Character does not have a visual novel.");
-			MainWindow.SelectTab(typeof(CharactersTabViewModel));
-			await TabViewModel.ShowForVisualNovel(_viewModel.CharacterVN);
+			StaticMethods.MainWindow.SelectTab(typeof(CharactersTabViewModel));
+			await StaticMethods.MainWindow.ViewModel.CharactersViewModel.ShowForVisualNovel(_viewModel.CharacterVN);
 		}
 
 		private async void ShowVisualNovelsByProducer(object sender, RoutedEventArgs e)
 		{
 			if (_viewModel.Producer == null) throw new InvalidOperationException("Character does not have producer.");
-			MainWindow.SelectTab(typeof(VNTabViewModel));
-			await MainViewModel.DatabaseViewModel.ShowForProducer(_viewModel.Producer);
+			StaticMethods.MainWindow.SelectTab(typeof(VNTabViewModel));
+			await StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ShowForProducer(_viewModel.Producer);
 		}
 
 		private async void ShowVisualNovelsForCharacter(object sender, RoutedEventArgs e)
 		{
 			if (_viewModel.CharacterVN == null) throw new InvalidOperationException("Character does not have a visual novel.");
-			MainWindow.SelectTab(typeof(VNTabViewModel));
-			await MainViewModel.DatabaseViewModel.ShowForCharacter(_viewModel);
+			StaticMethods.MainWindow.SelectTab(typeof(VNTabViewModel));
+			await StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ShowForCharacter(_viewModel);
 		}
 
 		private async void ShowVisualNovelsForSeiyuu(object sender, RoutedEventArgs e)
 		{
 			if (_viewModel.Seiyuu == null) throw new InvalidOperationException("Character does not have a Seiyuu.");
-			MainWindow.SelectTab(typeof(VNTabViewModel));
-			await MainViewModel.DatabaseViewModel.ShowForSeiyuu(_viewModel.Seiyuu);
+			StaticMethods.MainWindow.SelectTab(typeof(VNTabViewModel));
+			await StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ShowForSeiyuu(_viewModel.Seiyuu);
 		}
 
 		private async void ShowCharactersForSeiyuu(object sender, RoutedEventArgs e)
 		{
 			if (_viewModel.Seiyuu == null) throw new InvalidOperationException("Character does not have a Seiyuu.");
-			MainWindow.SelectTab(typeof(CharactersTabViewModel));
-			await TabViewModel.ShowForSeiyuuWithAlias(_viewModel.Seiyuu.AliasID);
+			StaticMethods.MainWindow.SelectTab(typeof(CharactersTabViewModel));
+			await StaticMethods.MainWindow.ViewModel.CharactersViewModel.ShowForSeiyuuWithAlias(_viewModel.Seiyuu.AliasID);
 		}
 
 		private async void ShowCharactersWithTrait(object sender, EventArgs args)
 		{
 			var element = (FrameworkContentElement) sender;
 			var trait = (DumpFiles.WrittenTrait) element.Tag;
-			MainWindow.SelectTab(typeof(CharactersTabViewModel));
-			await TabViewModel.ShowWithTrait(trait);
+			StaticMethods.MainWindow.SelectTab(typeof(CharactersTabViewModel));
+			await StaticMethods.MainWindow.ViewModel.CharactersViewModel.ShowWithTrait(trait);
 		}
 
 		private void OpenVnSubmenu(object sender, RoutedEventArgs e)

@@ -183,7 +183,7 @@ namespace Happy_Reader
 				case CharacterFilterType.TraitScore:
 					return $"{result} {StringValue}";
 				case CharacterFilterType.Traits:
-					return $"{result} - {DumpFiles.GetTrait(IntValue).Name}";
+					return $"{result} - {DumpFiles.GetTrait(IntValue)}";
 				case CharacterFilterType.Multi:
 					throw new InvalidOperationException();
 				case CharacterFilterType.UserVN:
