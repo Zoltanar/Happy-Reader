@@ -136,11 +136,6 @@ namespace Happy_Reader.View.Tabs
 
 		private void ShowFilters(object sender, RoutedEventArgs e)
 		{
-			if (ViewModel.FiltersViewModel is CharacterFiltersViewModel && FiltersPane.CharacterFilterValues.Visibility == Visibility.Hidden)
-			{
-				FiltersPane.CharacterFilterValues.Visibility = Visibility.Visible;
-				FiltersPane.VnFilterValues.Visibility = Visibility.Hidden;
-			}
 			FiltersPane.Visibility = FiltersPane.Visibility == Visibility.Collapsed ? Visibility.Visible : Visibility.Collapsed;
 		}
 	}

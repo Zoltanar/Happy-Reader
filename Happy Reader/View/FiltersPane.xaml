@@ -50,7 +50,8 @@
 				</Grid.ColumnDefinitions>
 				<!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
 				<ComboBox ItemsSource="{Binding FilterTypes}" SelectedIndex="{Binding SelectedFilterIndex, Mode=TwoWay}" SelectedValue="{Binding NewFilter.Type}" 
-				          SelectedValuePath="Tag" VerticalAlignment="Top" Grid.ColumnSpan="3" >
+				          SelectedValuePath="Tag" VerticalAlignment="Top" Grid.ColumnSpan="3"
+				          SelectionChanged="FilterTypeChanged">
 					<ComboBox.ItemContainerStyle>
 						<Style TargetType="{x:Type ComboBoxItem}">
 							<Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -60,90 +61,7 @@
 				</ComboBox>
 				<CheckBox Grid.Column="0" Content="OR Group" VerticalAlignment="Top" Margin="5,27,5,0" IsChecked="{Binding NewFilterOrGroup}" Grid.ColumnSpan="2" />
 				<CheckBox Grid.Column="1" Content="Exclude"  VerticalAlignment="Top" Margin="5,27,5,0" IsChecked="{Binding NewFilter.Exclude}" />
-				<TabControl x:Name="VnFilterValues" Grid.ColumnSpan="2" Grid.Column="0" Margin="0,47,0,25" SelectedIndex="{Binding SelectedFilterIndex, Mode=OneWay}" MaxHeight="200">
-					<TabItem Visibility="Collapsed" Header="Length" >
-						<ComboBox ItemsSource="{Binding LengthTypes, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag">
-							<ComboBox.ItemContainerStyle>
-								<Style TargetType="{x:Type ComboBoxItem}">
-									<Setter Property="HorizontalContentAlignment" Value="Left"/>
-									<Setter Property="VerticalContentAlignment" Value="Center"/>
-								</Style>
-							</ComboBox.ItemContainerStyle>
-						</ComboBox>
-					</TabItem>
-					<TabItem Visibility="Collapsed" Header="Release Date">
-						<ComboBox ItemsSource="{Binding ReleaseTypes, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag">
-							<ComboBox.ItemContainerStyle>
-								<Style TargetType="{x:Type ComboBoxItem}">
-									<Setter Property="HorizontalContentAlignment" Value="Left"/>
-									<Setter Property="VerticalContentAlignment" Value="Center"/>
-								</Style>
-							</ComboBox.ItemContainerStyle>
-						</ComboBox>
-					</TabItem>
-					<TabItem Visibility="Collapsed" Header="Blacklisted">
-						<CheckBox Content="Blacklisted" IsChecked="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
-					</TabItem>
-					<TabItem Visibility="Collapsed" Header="Voted">
-						<CheckBox Content="Voted" IsChecked="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
-					</TabItem>
-					<TabItem Visibility="Collapsed" Header="By Favorite Producer">
-						<CheckBox Content="By Favorite Producer" IsChecked="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
-					</TabItem>
-					<TabItem Visibility="Collapsed" Header="Label">
-						<ComboBox ItemsSource="{Binding Labels, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag">
-							<ComboBox.ItemContainerStyle>
-								<Style TargetType="{x:Type ComboBoxItem}">
-									<Setter Property="HorizontalContentAlignment" Value="Left"/>
-									<Setter Property="VerticalContentAlignment" Value="Center"/>
-								</Style>
-							</ComboBox.ItemContainerStyle>
-						</ComboBox>
-					</TabItem>
-					<TabItem Visibility="Collapsed" Header="Language">
-						<TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
-					</TabItem>
-					<TabItem Visibility="Collapsed" Header="Original Language">
-						<TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
-					</TabItem>
-					<TabItem Visibility="Collapsed" Header="Tags">
-						<UniformGrid Rows="2" Columns="2">
-							<Label Content="Tag ID"/>
-							<TextBox Text="{Binding NewFilter.StringValue, Mode=OneWayToSource}"/>
-							<Label Content="Score Required"/>
-							<!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
-							<TextBox Text="{Binding NewFilter.AdditionalInt, Mode=OneWayToSource, Converter={StaticResource StringToNullableIntConverter}}"/>
-						</UniformGrid>
-					</TabItem>
-					<TabItem Visibility="Collapsed" Content="Traits" Header="Traits"/>
-					<TabItem Visibility="Collapsed" Content="Has Full Date" Header="Has Full Date"/>
-					<TabItem Visibility="Collapsed" Header="Is Game Owned">
-						<ComboBox ItemsSource="{Binding GameOwnedStatus, Mode=OneWay}" SelectedValue="{Binding NewFilter.Value, Mode=OneWayToSource}" SelectedValuePath="Tag">
-							<ComboBox.ItemContainerStyle>
-								<Style TargetType="{x:Type ComboBoxItem}">
-									<Setter Property="HorizontalContentAlignment" Value="Left"/>
-									<Setter Property="VerticalContentAlignment" Value="Center"/>
-								</Style>
-							</ComboBox.ItemContainerStyle>
-						</ComboBox>
-					</TabItem>
-					<TabItem Visibility="Collapsed" Content="User-related Title" Header="User-related Title"/>
-					<TabItem Visibility="Collapsed" Header="Release Date">
-						<TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
-					</TabItem>
-					<TabItem Visibility="Collapsed" Content="Has Anime" Header="Traits"/>
-					<TabItem Visibility="Collapsed" Header="Suggestion Score Over">
-						<TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
-					</TabItem>
-				</TabControl>
-				<TabControl x:Name="CharacterFilterValues" Visibility="Hidden" Grid.ColumnSpan="2" Grid.Column="0" Margin="0,47,0,25" SelectedIndex="{Binding SelectedFilterIndex, Mode=OneWay}" MaxHeight="200">
-					<TabItem Visibility="Collapsed" Header="Trait ID">
-						<TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
-					</TabItem>
-					<TabItem Visibility="Collapsed" Header="Suggestion Score Over">
-						<TextBox Text="{Binding NewFilter.Value, Mode=OneWayToSource}"/>
-					</TabItem>
-				</TabControl>
+				<Grid x:Name="FilterValuesGrid" Grid.ColumnSpan="2" Grid.Column="0" Margin="0,47,0,25" MaxHeight="200"/>
 				<Button Grid.Column="0" Content="Add To Custom Filter"    VerticalAlignment="Bottom" Margin="5,0" Command="{Binding AddToCustomFilterCommand}"/>
 				<Button Grid.Column="1" Content="Add To Permanent Filter" VerticalAlignment="Bottom" Margin="5,0" Command="{Binding AddToPermanentFilterCommand}"/>
 			</Grid>

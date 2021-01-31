@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -169,13 +170,19 @@ namespace Happy_Reader
 		public static ComboBoxItem[] GetEnumValues(Type enumType)
 		{
 			var result = Enum.GetValues(enumType);
-			return result.Length == 0 ? new ComboBoxItem[0] : result.Cast<Enum>().Select(x => new ComboBoxItem
+			return result.Length == 0 ? new ComboBoxItem[0] : result.Cast<Enum>().Where(t=> !AttributeIsDefined(t,typeof(NotMappedAttribute))).Select(x => new ComboBoxItem
 			{
 				Content = x.GetDescription(),
 				Tag = x,
 				HorizontalContentAlignment = HorizontalAlignment.Left,
 				VerticalContentAlignment = VerticalAlignment.Center
 			}).ToArray();
+		}
+
+		public static bool AttributeIsDefined(object value, Type attributeType)
+		{
+			var field = value.GetType().GetField(value.ToString());
+			return Attribute.IsDefined(field, attributeType);
 		}
 
 		//todo make this an externally loaded list

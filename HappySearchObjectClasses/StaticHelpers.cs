@@ -115,8 +115,8 @@ namespace Happy_Apps_Core
 			if (value == null) return "N/A";
 			try
 			{
-				FieldInfo field = value.GetType().GetField(value.ToString());
-				Attribute attribute = Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute));
+				var field = value.GetType().GetField(value.ToString());
+				var attribute = Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute));
 				return attribute is DescriptionAttribute descriptionAttribute
 					? descriptionAttribute.Description
 					: value.ToString();
@@ -125,6 +125,29 @@ namespace Happy_Apps_Core
 			{
 				Logger.ToFile(ex);
 				return value.ToString();
+			}
+		}
+
+		/// <summary>
+		/// Gets conversion type for Enum value if available.
+		/// </summary>
+		public static Type GetConvertType(this Enum value)
+		{
+			if (value == null) return null;
+			try
+			{
+				var field = value.GetType().GetField(value.ToString());
+				var attribute = Attribute.GetCustomAttribute(field, typeof(TypeConverterAttribute));
+				var tcAttr = attribute is TypeConverterAttribute typeConverterAttribute
+					? typeConverterAttribute
+					: null;
+				var type = tcAttr == null ? null : Type.GetType(tcAttr.ConverterTypeName);
+				return type;
+			}
+			catch (Exception ex)
+			{
+				Logger.ToFile(ex);
+				return null;
 			}
 		}
 

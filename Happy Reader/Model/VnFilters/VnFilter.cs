@@ -161,11 +161,14 @@ namespace Happy_Reader
 					return vn => vn.HasAnime != Exclude;
 				case VnFilterType.SuggestionScore:
 					return vn => DoubleFunctionFromString(vn.Suggestion.Score) != Exclude;
+				case VnFilterType.Staff:
+					return vn => StaticHelpers.LocalDatabase.VnHasStaff(vn.VNID, IntValue) != Exclude;
+				case VnFilterType.Multi:
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
 		}
-		
+
 
 		Func<IDataItem<int>, bool> IFilter.GetFunction()
 		{
@@ -266,6 +269,9 @@ namespace Happy_Reader
 					return result;
 				case VnFilterType.Traits:
 					return $"{result} - {DumpFiles.GetTrait(IntValue).Name}";
+				case VnFilterType.Staff:
+					return $"{result} - {StaticHelpers.LocalDatabase.StaffAliases[StaticHelpers.LocalDatabase.StaffItems[IntValue].AliasID]}";
+				case VnFilterType.Multi:
 				default:
 					throw new ArgumentOutOfRangeException();
 			}

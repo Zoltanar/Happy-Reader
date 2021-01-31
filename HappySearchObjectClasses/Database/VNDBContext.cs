@@ -227,6 +227,28 @@ where TraitId = @TraitId";
 			}
 		}
 
+		public bool VnHasStaff(int vnid, int staffId)
+		{
+			Connection.Open();
+			try
+			{
+				var sql = @"select 1 from VnStaffs where VnStaffs.VNID = @VNID and VnStaffs.AID IN 
+(select AliasID from StaffAliass join StaffItems on StaffAliass.StaffID = StaffItems.ID where StaffItems.ID = @StaffId) 
+limit 1;";
+
+			using var command = Connection.CreateCommand();
+			command.CommandText = sql;
+			command.AddParameter("@StaffId", staffId);
+			command.AddParameter("@VNID", vnid);
+			using var reader = command.ExecuteReader();
+			return reader.HasRows;
+			}
+			finally
+			{
+				Connection.Close();
+			}
+		}
+
 		private void Seed()
 		{
 			Connection.Open();
