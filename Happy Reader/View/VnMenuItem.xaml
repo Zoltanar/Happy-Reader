@@ -32,6 +32,7 @@
 	</MenuItem>
 	<Separator/>
 	<MenuItem x:Name="ShowRelatedTitlesItem" Header="Show Related Titles" Click="ShowRelatedTitles" />
+	<MenuItem x:Name="ShowByStaffItem" Header="Show By Staff" />
 	<MenuItem Header="Show Titles By Producer" Click="ShowTitlesByProducer" />
 	<MenuItem x:Name="AddProducerToFavoritesItem" Header="Add Producer to Favorites" Click="AddProducerToFavoritesItem_OnClick"/>
 	<Separator/>

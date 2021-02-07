@@ -63,6 +63,7 @@ namespace Happy_Reader.View
 			//clearing previous
 			foreach (MenuItem item in Labels.Items) item.IsChecked = false;
 			foreach (MenuItem item in VoteMenu.Items) item.IsChecked = false;
+			ShowByStaffItem.Items.Clear();
 			//set new
 			Labels.IsChecked = VN.UserVN?.Labels.Any(l => l != UserVN.LabelKind.Voted) ?? false;
 			VoteMenu.IsChecked = VN.UserVN?.Vote > 0;
@@ -91,6 +92,33 @@ namespace Happy_Reader.View
 				ShowRelatedTitlesItem.IsEnabled = false;
 				ShowRelatedTitlesItem.ToolTip = @"There are no related titles.";
 			}
+			if (!VN.Staff.Any())
+			{
+				ShowByStaffItem.IsEnabled = false;
+				ShowByStaffItem.ToolTip = @"There are no staff credits.";
+			}
+			else
+			{
+				var grouped = VN.Staff.GroupBy(s => s.RoleDetail).OrderBy(g => g.Key).ToList();
+				foreach (var group in grouped)
+				{
+					var menuItem = new MenuItem() { Header = group.Key, Tag = group };
+					menuItem.Click += ShowByStaff;
+					ShowByStaffItem.Items.Add(menuItem);
+				}
+			}
+		}
+
+		private async void ShowByStaff(object sender, RoutedEventArgs e)
+		{
+			var menuItem = (MenuItem)sender;
+			var tag = menuItem.Header;
+			var group = (IEnumerable<VnStaff>)menuItem.Header;
+			var staff = group.Select(s => s.AliasID).ToList();
+			var databaseViewModel = StaticMethods.MainWindow.ViewModel.DatabaseViewModel;
+			if (staff.Count == 1) await databaseViewModel.ShowForStaffWithAlias(staff.First());
+			else await databaseViewModel.ShowForStaffWithAlias($"{tag} ({staff.Count}) for {StaticHelpers.TruncateString(VN.Title, 15)}", staff);
+			StaticMethods.MainWindow.SelectTab(typeof(VNTabViewModel));
 		}
 
 		private async void ChangeLabel(object sender, RoutedEventArgs e)

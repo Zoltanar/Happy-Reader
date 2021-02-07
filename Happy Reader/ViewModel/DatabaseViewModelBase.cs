@@ -346,6 +346,20 @@ namespace Happy_Reader.ViewModel
 			await RefreshTiles();
 		}
 
+		public virtual async Task ShowForStaffWithAlias(string searchHeader, ICollection<int> aliasIds)
+		{
+			var staffIds = aliasIds.Select(a=> StaticHelpers.LocalDatabase.StaffAliases[a].StaffID).ToList();
+			var allAliasIds = StaticHelpers.LocalDatabase.StaffAliases.Where(sa => staffIds.Contains(sa.StaffID)).Select(sa=>sa.AliasID).ToArray();
+			DbFunction = new NamedFunction(
+				db =>
+				{
+					var vns = db.VnStaffs.Where(vnStaff => allAliasIds.Contains(vnStaff.AliasID)).Select(vnStaff => vnStaff.VNID).ToArray();
+					return GetAllWithKeyIn(db, vns);
+				},
+				searchHeader, true);
+			await RefreshTiles();
+		}
+
 		public virtual async Task ShowForStaffWithAlias(int aliasId)
 		{
 			var staff = StaticHelpers.LocalDatabase.StaffAliases[aliasId];
