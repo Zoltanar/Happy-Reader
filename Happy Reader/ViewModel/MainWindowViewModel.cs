@@ -469,7 +469,7 @@ namespace Happy_Reader.ViewModel
 					UserGame.MoveOutputWindow = r => OutputWindow.MoveByDifference(r);
 					OutputWindow.SetLocation(UserGame.OutputRectangle);
 					if (!UserGame.HookProcess) return;
-					_globalHook = WinAPI.HookMouseEvents(GlobalMouseClick);
+					if(SettingsViewModel.GuiSettings.HookGlobalMouse) _globalHook = WinAPI.HookMouseEvents(GlobalMouseClick);
 					while (!_loadingComplete) Thread.Sleep(25);
 					SetIthUserGameParameters();
 				}

@@ -13,6 +13,7 @@ namespace Happy_Reader
 		private bool _contentTags;
 		private bool _sexualTags;
 		private bool _technicalTags;
+		private bool _hookGlobalMouse;
 		private string _culture;
 		private CultureInfo _cultureInfo = CultureInfo.DefaultThreadCurrentCulture ?? CultureInfo.CurrentCulture;
 		private string _localeEmulatorPath;
@@ -85,6 +86,17 @@ namespace Happy_Reader
 			}
 		}
 
+		public bool HookGlobalMouse
+		{
+			get => _hookGlobalMouse;
+			set
+			{
+				if (_hookGlobalMouse == value) return;
+				_hookGlobalMouse = value;
+				if (Loaded) Save();
+			}
+		}
+
 		public string Culture
 		{
 			get => _culture;
@@ -142,7 +154,7 @@ namespace Happy_Reader
 				if (Loaded) Save();
 			}
 		}
-
+		
 		public void SavePageLinks(IEnumerable<PageLink> pageLinks)
 		{
 			PageLinks = pageLinks.ToList();
