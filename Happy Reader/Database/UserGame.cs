@@ -51,7 +51,6 @@ namespace Happy_Reader.Database
 		public int? VNID { get; set; }
 		public string FilePath { get; set; }
 		public string HookCode { get; set; }
-		public string DefaultHookFull { get; set; }
 		public bool MergeByHookCode { get; set; }
 		public string ProcessName { get; set; }
 		public string Tag { get; set; }
@@ -269,10 +268,9 @@ namespace Happy_Reader.Database
 			return VN != null;
 		}
 
-		public void SaveHookCode(string hookCode, string fullHook)
+		public void SaveHookCode(string hookCode)
 		{
 			HookCode = string.IsNullOrWhiteSpace(hookCode) ? null : hookCode.Trim();
-			DefaultHookFull = fullHook;
 			StaticMethods.Data.SaveChanges();
 			OnPropertyChanged(nameof(HookCode));
 		}

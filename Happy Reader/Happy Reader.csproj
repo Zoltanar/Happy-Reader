@@ -228,6 +228,9 @@
     <Compile Include="View\Tabs\UserGamesTab.xaml.cs">
       <DependentUpon>UserGamesTab.xaml</DependentUpon>
     </Compile>
+    <Compile Include="View\TextThreadPanel.xaml.cs">
+      <DependentUpon>TextThreadPanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\Theme.cs" />
     <Compile Include="View\Tiles\UserGameTile.xaml.cs">
       <DependentUpon>UserGameTile.xaml</DependentUpon>
@@ -336,6 +339,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\Tabs\UserGamesTab.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\TextThreadPanel.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

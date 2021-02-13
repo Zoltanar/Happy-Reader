@@ -62,7 +62,6 @@
             <Label Style="{StaticResource Row0Label}" Content="Tag" />
 			<Label Style="{StaticResource Row0Label}" Content="VNID" />
             <Label Style="{StaticResource Row0Label}" Content="Hook Code" />
-            <Label Style="{StaticResource Row0Label}" Content="Default Hook Full" />
             <Label Style="{StaticResource Row0Label}" Content="Encoding" />
             <Label Style="{StaticResource Row0Label}" Content="Launch Path" />
             <CheckBox Style="{StaticResource UniformCheckbox}" Content="Hook to Process" IsChecked="{Binding HookProcess}" />
@@ -74,7 +73,6 @@
             <TextBox Style="{StaticResource Row1TextBox}" x:Name="TagBox" Text="{Binding Tag}" KeyUp="SaveTag" />
 			<TextBox Style="{StaticResource Row1TextBox}" x:Name="VnidNameBox" Text="{Binding VNID}" KeyUp="SaveVNID" PreviewTextInput="DigitsOnly" />
             <TextBox Style="{StaticResource Row1TextBox}" x:Name="HookCodeBox" Text="{Binding HookCode}" KeyUp="SaveHookCode" />
-            <TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding DefaultHookFull}" />
             <ComboBox ItemsSource="{Binding Encodings}" DisplayMemberPath="EncodingName" SelectedItem="{Binding PrefEncoding}" />
             <TextBox Style="{StaticResource Row1TextBox}" x:Name="LaunchPathBox" Text="{Binding LaunchPath}" KeyUp="SaveLaunchPath" />
 			<CheckBox Style="{StaticResource UniformCheckbox}" Content="Merge By Hook Code" IsChecked="{Binding MergeByHookCode}"/>

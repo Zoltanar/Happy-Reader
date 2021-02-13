@@ -112,7 +112,7 @@ namespace Happy_Reader
 					}
 					else
 					{
-						if (currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => AllSeparators.Contains(c))));
+						if (currentPart.Length > 0) item.Parts.Add((currentPart, !string.IsNullOrWhiteSpace(currentPart) && !currentPart.All(c => AllSeparators.Contains(c))));
 						item.Parts.Add((@char.ToString(), false));
 					}
 					currentPart = "";
@@ -122,7 +122,7 @@ namespace Happy_Reader
 				currentPart += @char;
 				index++;
 			}
-			if (currentPart.Length > 0) item.Parts.Add((currentPart, !currentPart.All(c => AllSeparators.Contains(c))));
+			if (currentPart.Length > 0) item.Parts.Add((currentPart, !string.IsNullOrWhiteSpace(currentPart) && !currentPart.All(c => AllSeparators.Contains(c))));
 		}
 
 		private void SetEntries([NotNull] User user, ListedVN game)
@@ -359,15 +359,21 @@ namespace Happy_Reader
 
 		private bool AssignProxy(IReadOnlyDictionary<string, ProxiesWithCount> proxies, Entry entry)
 		{
+			var proxyParts = entry.RoleString.Split('.');
+			var mainProxy = proxyParts[0];
 			var proxy = proxies[entry.RoleString].Proxies.Count == 0 ? null : proxies[entry.RoleString].Proxies.Dequeue();
-			proxies[entry.RoleString].Count++;
+			if (proxy == null)
+			{
+				if(proxyParts.Any()) proxy = proxies[mainProxy].Proxies.Count == 0 ? null : proxies[mainProxy].Proxies.Dequeue();
+			}
+			proxies[mainProxy].Count++;
 			if (proxy == null)
 			{
 				StaticHelpers.Logger.ToFile("No proxy available, won't proxy-translate.");
 				throw new Exception("Error - no proxy available.");
 			}
-			proxy.FullRoleString = $"[[{entry.RoleString}#{proxies[entry.RoleString].Count}]]";
-			proxy.Id = proxies[entry.RoleString].Count;
+			proxy.FullRoleString = $"[[{mainProxy}#{proxies[mainProxy].Count}]]";
+			proxy.Id = proxies[mainProxy].Count;
 			entry.AssignedProxy = proxy;
 			return true;
 		}
@@ -387,7 +393,11 @@ namespace Happy_Reader
 					if (matches.Count == 0) continue;
 					foreach (int match in matches)
 					{
-						entriesWithProxies.Single(x => x.AssignedProxy.Id == match && x.AssignedProxy.Role == entry.RoleString).AssignedProxy.ProxyMods.Add(entry);
+						entriesWithProxies.Single(x =>
+						{
+							var mainProxyPart = x.AssignedProxy.Role.Split('.')[0];
+							return x.AssignedProxy.Id == match && mainProxyPart == entry.RoleString;
+						}).AssignedProxy.ProxyMods.Add(entry);
 					}
 					var output = Stage4P1OutputRegex.Replace(entry.Output, @"[[$1#$$1]]");
 					LogReplaceRegex(sb, input, output, null, entry);

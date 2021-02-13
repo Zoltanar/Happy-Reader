@@ -4,7 +4,7 @@ allow changing direction of text in output window (down to up) and horizontal al
 setting to switch between vote scores of 10-100 and 1-10.
 databasedumpreader: auto clear previous dumps 
 see vnid 26052 shows relations twice.
-save tabs open, color tabs
+save tabs open
 warn if an instance is already running (maybe show database file for opening instance)
 launch title from VN context menu
 user stats tab: approx time played
@@ -14,9 +14,10 @@ usergames: search by text
 make nohook parameter a saved setting and/or only use ithvnr on-demand.
 CachedTranslations: keep track of how often something is translated and remove from cache if not used recently or originally cached too long ago.
 OutputWindow/UserGame: Output Window location should be relative on game window, so that when game window launches elsewhere, output window follows.
-VN Context menu: view titles with same staff, group by type
-IthVnrTab: Color code threads with info on post/pause status
-ITHVNR: Keep list of hooks instead of only a single one.
+show written tag description on tooltip
+save output window menu state (full/mini/hidden)
+translation: gendered proxies, update automatic name import (m.f, m.m)
+
 
 look at global hooks for managing infinite text, etc (https://github.com/gmamaladze/globalmousekeyhook)
 allow keeping time played for multiple games

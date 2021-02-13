@@ -14,6 +14,7 @@ using Happy_Reader.Database;
 using System.Linq.Expressions;
 using System.Management;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using Happy_Apps_Core.Database;
 using Happy_Reader.View;
@@ -262,6 +263,21 @@ namespace Happy_Reader
 				processFileName = process.MainModule.FileName;
 			}
 			return processFileName;
+		}
+
+		public static bool CtrlKeyIsHeld() => DispatchIfRequired(() => Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl));
+
+		public static void DispatchIfRequired(Action action, TimeSpan timeout)
+		{
+			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
+			if (Application.Current.Dispatcher.CheckAccess()) action();
+			else Application.Current.Dispatcher.Invoke(action, timeout);
+		}
+
+		private static T DispatchIfRequired<T>(Func<T> action)
+		{
+			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
+			return Application.Current.Dispatcher.CheckAccess() ? action() : Application.Current.Dispatcher.Invoke(action);
 		}
 	}
 }

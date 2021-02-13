@@ -1,6 +1,9 @@
 ﻿using System;
-using System.Text;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using Happy_Reader.View;
 using IthVnrSharpLib;
 
 namespace Happy_Reader.ViewModel
@@ -10,30 +13,39 @@ namespace Happy_Reader.ViewModel
 	{
 		// ReSharper disable once NotAccessedField.Local
 		private readonly MainWindowViewModel _mainViewModel;
+		public override bool IsPaused => StaticMethods.CtrlKeyIsHeld();
+
+		public override TextThread SelectedTextThread
+		{
+			get
+			{
+				var result = Application.Current.Dispatcher.Invoke(() =>
+				{
+					var selectedItem = Selector.SelectedItem as FrameworkElement;
+					var selectedItemTag = selectedItem?.Tag;
+					return selectedItemTag as TextThread;
+				});
+				return result;
+			}
+			set
+			{
+				if (value == null) return;
+				Application.Current.Dispatcher.Invoke(() => Selector.SelectedItem = DisplayThreads.First(t => t.Tag == value));
+			}
+		}
+
 		public override bool MergeByHookCode
 		{
 			get => HookManager?.MergeByHookCode ?? false;
 			set
 			{
-				if(_mainViewModel?.UserGame != null) _mainViewModel.UserGame.MergeByHookCode = value;
-				if(HookManager != null) HookManager.MergeByHookCode = value;
+				if (_mainViewModel?.UserGame != null) _mainViewModel.UserGame.MergeByHookCode = value;
+				if (HookManager != null) HookManager.MergeByHookCode = value;
 				OnPropertyChanged();
 			}
 		}
 
-		public override Encoding PrefEncoding
-		{
-			get => SelectedTextThread?.PrefEncoding ?? Encoding.Unicode;
-			set
-			{
-				if (SelectedTextThread != null) SelectedTextThread.PrefEncoding = value;
-				if (_mainViewModel?.UserGame != null) _mainViewModel.UserGame.PrefEncoding = value;
-				OnPropertyChanged();
-			}
-		}
-		
 		public ICommand SetHookCodeCommand { get; }
-		public ICommand SetDefaultHookCommand { get; }
 
 		public bool Paused
 		{
@@ -41,15 +53,37 @@ namespace Happy_Reader.ViewModel
 			set => _mainViewModel.TranslatePaused = value;
 		}
 
+		public Selector Selector { get; set; }
+
 		public IthViewModel(MainWindowViewModel mainViewModel)
 		{
 			_mainViewModel = mainViewModel;
 			SetHookCodeCommand = new IthCommandHandler(SetHookCode);
-			SetDefaultHookCommand = new IthCommandHandler(SetDefaultHook);
 		}
 
-		public void SetHookCode() => _mainViewModel.UserGame?.SaveHookCode(SelectedTextThread.HookCode, SelectedTextThread.HookFull);
-		public void SetDefaultHook() => _mainViewModel.UserGame?.SaveHookCode(null, SelectedTextThread.HookFull);
+		public override void AddNewThreadToDisplayCollection(TextThread textThread)
+		{
+			Application.Current.Dispatcher.Invoke(() =>
+			{
+				var displayThread = new TextThreadPanel(textThread, this) { Tag = textThread };
+				DisplayThreads.Add(displayThread);
+			});
+			OnPropertyChanged(nameof(DisplayThreads));
+		}
 
+		public void SetHookCode() => _mainViewModel.UserGame?.SaveHookCode(SelectedTextThread.HookCode);
+
+		public override void AddGameThread(GameTextThread gameTextThread)
+		{
+			gameTextThread.GameId = _mainViewModel.UserGame.Id;
+			StaticMethods.Data.GameThreads.Add(gameTextThread);
+			//can be overridden to save a new game text thread to persistent data storage
+		}
+
+		protected override void SaveGameTextThreads()
+		{
+			StaticMethods.Data.SaveChanges();
+			//can be overridden to save game text threads to persistant data storage
+		}
 	}
 }

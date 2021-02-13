@@ -2,8 +2,9 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
+using IthVnrSharpLib;
+using StaticHelpers = Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Reader.Database
 {
@@ -16,6 +17,7 @@ namespace Happy_Reader.Database
 		public virtual DbSet<UserGame> UserGames { get; set; }
 		public virtual DbSet<HRGoogleTranslate.GoogleTranslation> CachedTranslations { get; set; }
 		public virtual DbSet<Log> Logs { get; set; }
+		public virtual DbSet<GameTextThread> GameThreads { get; set; }
 
 		protected override void OnModelCreating(DbModelBuilder modelBuilder) { }
 

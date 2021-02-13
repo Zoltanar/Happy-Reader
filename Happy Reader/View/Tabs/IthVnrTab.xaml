@@ -51,7 +51,6 @@
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="30"/>
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
@@ -80,32 +79,23 @@
 			</ComboBox.ItemContainerStyle>
 		</ComboBox>
 		<TextBox  Grid.Row="1" Margin="130,5,5,5" TextWrapping="Wrap" Text="Enter command here..." KeyUp="EnterCommand"/>
-		<!-- row 2 -->
-		<ComboBox ItemsSource="{Binding DisplayThreads}" SelectedItem="{Binding SelectedTextThread, Mode=TwoWay}" Grid.Row="2" Margin="5,0,239,0" SelectionChanged="TextThreadChanged">
-			<ComboBox.ItemContainerStyle>
-				<Style TargetType="{x:Type ComboBoxItem}">
-					<Setter Property="HorizontalContentAlignment" Value="Left"/>
-					<Setter Property="VerticalContentAlignment" Value="Center"/>
-				</Style>
-			</ComboBox.ItemContainerStyle>
-		</ComboBox>
-		<CheckBox Grid.Row="2" Content="Posting" Margin="0,0,171,0" IsChecked="{Binding SelectedTextThread.IsPosting}" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="63"/>
-		<CheckBox Grid.Row="2" Content="Paused" Margin="0,0,103,0" IsChecked="{Binding SelectedTextThread.IsPaused}" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="63"/>
-		<ComboBox ItemsSource="{Binding Encodings}" DisplayMemberPath="EncodingName" SelectedItem="{Binding PrefEncoding, Mode=TwoWay}" Grid.Row="2" Margin="0,0,10,0" SelectionChanged="EncodingChanged" HorizontalAlignment="Right" Width="88">
-			<ComboBox.ItemContainerStyle>
-				<Style TargetType="{x:Type ComboBoxItem}">
-					<Setter Property="HorizontalContentAlignment" Value="Left"/>
-					<Setter Property="VerticalContentAlignment" Value="Center"/>
-				</Style>
-			</ComboBox.ItemContainerStyle>
-		</ComboBox>
 		<!--row 3 -->
-		<UniformGrid Grid.Row="3" Rows="1">
+		<UniformGrid Grid.Row="2" Rows="1">
 			<Button Margin="5" Content="Clear Text"     Command="{Binding ClearThreadCommand}"/>
-			<Button Margin="5" Content="Set Default Hook"  Command="{Binding SetDefaultHookCommand}"/>
 			<Button Margin="5" Content="Set Hook Code"  Command="{Binding SetHookCodeCommand}"/>
 		</UniformGrid>
 		<!--row 4 -->
-		<TextBox x:Name="MainTextBox" Text="{Binding SelectedTextThread.Text, Mode=OneWay}" Margin="5" Grid.Row="4" IsReadOnly="True" TextWrapping="Wrap" SelectionChanged="MainTextBox_OnSelectionChanged" VerticalScrollBarVisibility="Auto" TextChanged="MainTextBox_OnTextChanged" Background="{Binding MainTextBoxBackground}" />
+		<!--todo reorganize buttons -->
+		<ListBox x:Name="ThreadSelector" ItemsSource="{Binding DisplayThreads}" Margin="5" Grid.Row="3"
+		         ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto" 
+						 ScrollViewer.CanContentScroll="False"
+		         Background="{Binding MainTextBoxBackground}">
+			<ListBox.ItemContainerStyle>
+				<Style TargetType="{x:Type ListBoxItem}">
+					<Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+					<Setter Property="VerticalContentAlignment" Value="Top"/>
+				</Style>
+			</ListBox.ItemContainerStyle>
+		</ListBox>
 	</Grid>
 </UserControl>

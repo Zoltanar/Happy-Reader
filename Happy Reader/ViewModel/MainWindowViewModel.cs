@@ -151,6 +151,7 @@ namespace Happy_Reader.ViewModel
 			var exitWatch = Stopwatch.StartNew();
 			Logger.ToDebug($"[{nameof(MainWindowViewModel)}] Starting exit procedures...");
 			_finalizing = true;
+			if (UserGame?.Process != null && UserGame.HookProcess) HookedProcessOnExited(sender, args);
 			var ithFinalize = new Thread(() => IthViewModel.Finalize(null, null)) { IsBackground = true };
 			ithFinalize.Start();
 			bool terminated = ithFinalize.Join(5000); //false if timed out
@@ -204,7 +205,7 @@ namespace Happy_Reader.ViewModel
 			if (initialiseIthVnr)
 			{
 				StatusText = "Initializing ITHVNR...";
-				IthViewModel.Initialize(RunTranslation, GetPreferredHookCode, CtrlKeyIsHeld);
+				IthViewModel.Initialize(RunTranslation, GetPreferredHookCode);
 			}
 			_monitor = GetAndStartMonitorThread();
 			_loadingComplete = true;
@@ -338,7 +339,7 @@ namespace Happy_Reader.ViewModel
 						if (UserGame?.Process != null) return true;
 						if (gameProcess.HasExited) continue;
 						if (!userGame.FilePath.Equals(processFileName, StringComparison.InvariantCultureIgnoreCase)) continue;
-						DispatchIfRequired(() => HookUserGame(userGame, gameProcess, false), TimeSpan.FromSeconds(10));
+						StaticMethods.DispatchIfRequired(() => HookUserGame(userGame, gameProcess, false), TimeSpan.FromSeconds(10));
 						return true;
 					}
 				}
@@ -364,7 +365,7 @@ namespace Happy_Reader.ViewModel
 
 		public void ClipboardChanged(object sender, EventArgs e)
 		{
-			if (TranslatePaused || CtrlKeyIsHeld()) return;
+			if (TranslatePaused || StaticMethods.CtrlKeyIsHeld()) return;
 			if (UserGame?.Process == null) return;
 			var cpOwner = StaticMethods.GetClipboardOwner();
 			var b1 = cpOwner == null;
@@ -392,7 +393,7 @@ namespace Happy_Reader.ViewModel
 			try
 			{
 				if (TranslatePaused) return false;
-				if (CtrlKeyIsHeld()) return false;
+				if (StaticMethods.CtrlKeyIsHeld()) return false;
 				Logger.Verbose($"{nameof(RunTranslation)} - {e}");
 				if (UserGame.Process == null) return false;
 				if ((sender as TextThread)?.IsConsole ?? false) return false;
@@ -403,7 +404,7 @@ namespace Happy_Reader.ViewModel
 					//todo report error
 					return false;
 				}
-				DispatchIfRequired(() => OutputWindow.AddTranslation(translation), new TimeSpan(0, 0, 5));
+				StaticMethods.DispatchIfRequired(() => OutputWindow.AddTranslation(translation), new TimeSpan(0, 0, 5));
 			}
 			catch (Exception ex)
 			{
@@ -411,19 +412,6 @@ namespace Happy_Reader.ViewModel
 				return false;
 			}
 			return true;
-		}
-
-		private static void DispatchIfRequired(Action action, TimeSpan timeout)
-		{
-			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
-			if (Application.Current.Dispatcher.CheckAccess()) action();
-			else Application.Current.Dispatcher.Invoke(action, timeout);
-		}
-
-		private static T DispatchIfRequired<T>(Func<T> action)
-		{
-			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
-			return Application.Current.Dispatcher.CheckAccess() ? action() : Application.Current.Dispatcher.Invoke(action);
 		}
 
 		public void VndbAdvancedAction(string text, bool isQuery)
@@ -469,7 +457,7 @@ namespace Happy_Reader.ViewModel
 					UserGame.MoveOutputWindow = r => OutputWindow.MoveByDifference(r);
 					OutputWindow.SetLocation(UserGame.OutputRectangle);
 					if (!UserGame.HookProcess) return;
-					if(SettingsViewModel.GuiSettings.HookGlobalMouse) _globalHook = WinAPI.HookMouseEvents(GlobalMouseClick);
+					if (SettingsViewModel.GuiSettings.HookGlobalMouse) _globalHook = WinAPI.HookMouseEvents(GlobalMouseClick);
 					while (!_loadingComplete) Thread.Sleep(25);
 					SetIthUserGameParameters();
 				}
@@ -488,9 +476,9 @@ namespace Happy_Reader.ViewModel
 		{
 			IthViewModel.MergeByHookCode = UserGame.MergeByHookCode;
 			IthViewModel.PrefEncoding = UserGame.PrefEncoding;
+			IthViewModel.GameTextThreads = StaticMethods.Data.GameThreads.Where(t => t.GameId == UserGame.Id).ToArray();
 			IthViewModel.Commands?.ProcessCommand($"/P{UserGame.Process.Id}", 0);
-			if (!string.IsNullOrWhiteSpace(UserGame.HookCode))
-				IthViewModel.Commands?.ProcessCommand(UserGame.HookCode, UserGame.Process.Id);
+			if (!string.IsNullOrWhiteSpace(UserGame.HookCode)) IthViewModel.Commands?.ProcessCommand(UserGame.HookCode, UserGame.Process.Id);
 		}
 
 		private void HookedProcessOnExited(object sender, EventArgs eventArgs)
@@ -501,14 +489,14 @@ namespace Happy_Reader.ViewModel
 			_globalHook?.Dispose();
 			UserGame = null;
 			//restart monitor
-			if (_monitor != null && _monitor.IsAlive) return;
+			if (_finalizing || _monitor != null && _monitor.IsAlive) return;
 			_monitor = GetAndStartMonitorThread();
 		}
 
 		// ReSharper disable UnusedTupleComponentInReturnValue
-		public (string HookCode, string HookFull, Encoding PrefEncoding) GetPreferredHookCode(uint processId)
+		public (string HookCode, Encoding PrefEncoding) GetPreferredHookCode(uint processId)
 		{
-			return processId != UserGame?.Process?.Id ? (null, null, null) : (UserGame.HookCode, UserGame.DefaultHookFull, UserGame.PrefEncoding);
+			return processId != UserGame?.Process?.Id ? (null, null) : (UserGame.HookCode, UserGame.PrefEncoding);
 		}
 		// ReSharper restore UnusedTupleComponentInReturnValue
 
@@ -523,7 +511,5 @@ namespace Happy_Reader.ViewModel
 				tile.UpdateImageBinding();
 			}
 		}
-
-		private static bool CtrlKeyIsHeld() => DispatchIfRequired(() => Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl));
 	}
 }
