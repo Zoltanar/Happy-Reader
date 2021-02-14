@@ -61,11 +61,10 @@ namespace Happy_Reader.View
 			Stopwatch watch = Stopwatch.StartNew();
 			ViewModel.ClipboardManager = new ClipboardManager(this);
 			var commandLineArgs = Environment.GetCommandLineArgs();
-			var noHook = commandLineArgs.Contains("-nh");
 			var noEntries = commandLineArgs.Contains("-ne");
 			var noTranslation = commandLineArgs.Contains("-nt");
 			var logVerbose = commandLineArgs.Contains("-lv");
-			await ViewModel.Initialize(watch, UserGamesTabItem.GroupByAdded, !noHook, !noEntries, noTranslation, logVerbose);
+			await ViewModel.Initialize(watch, UserGamesTabItem.GroupByAdded, !noEntries, noTranslation, logVerbose);
 		}
 
 		public void ShowLogNotification([NotNull] Log message)

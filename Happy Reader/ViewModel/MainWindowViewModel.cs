@@ -173,7 +173,7 @@ namespace Happy_Reader.ViewModel
 			Logger.ToDebug($"[{nameof(MainWindowViewModel)}] Completed exit procedures, took {exitWatch.Elapsed}");
 		}
 
-		public async Task Initialize(Stopwatch watch, RoutedEventHandler defaultUserGameGrouping, bool initialiseIthVnr, bool initialiseEntries, bool noApiTranslation, bool logVerbose)
+		public async Task Initialize(Stopwatch watch, RoutedEventHandler defaultUserGameGrouping, bool initialiseEntries, bool noApiTranslation, bool logVerbose)
 		{
 			StaticHelpers.Logger.LogVerbose = logVerbose;
 			await Task.Run(() =>
@@ -204,7 +204,7 @@ namespace Happy_Reader.ViewModel
 			defaultUserGameGrouping(null, null);
 			TestViewModel.Initialize();
 			OnPropertyChanged(nameof(TestViewModel));
-			if (initialiseIthVnr)
+			if (SettingsViewModel.GuiSettings.HookIthVnr)
 			{
 				StatusText = "Initializing ITHVNR...";
 				IthViewModel.Initialize(RunTranslation, GetPreferredHookCode, out var errorMessage);

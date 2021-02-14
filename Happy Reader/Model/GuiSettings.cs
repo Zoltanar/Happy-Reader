@@ -14,6 +14,7 @@ namespace Happy_Reader
 		private bool _sexualTags;
 		private bool _technicalTags;
 		private bool _hookGlobalMouse;
+		private bool _hookIthVnr;
 		private string _culture;
 		private CultureInfo _cultureInfo = CultureInfo.DefaultThreadCurrentCulture ?? CultureInfo.CurrentCulture;
 		private string _localeEmulatorPath;
@@ -93,6 +94,17 @@ namespace Happy_Reader
 			{
 				if (_hookGlobalMouse == value) return;
 				_hookGlobalMouse = value;
+				if (Loaded) Save();
+			}
+		}
+
+		public bool HookIthVnr
+		{
+			get => _hookIthVnr;
+			set
+			{
+				if (_hookIthVnr == value) return;
+				_hookIthVnr = value;
 				if (Loaded) Save();
 			}
 		}

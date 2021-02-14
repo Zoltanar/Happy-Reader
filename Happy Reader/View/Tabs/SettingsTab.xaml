@@ -62,6 +62,7 @@
 				<CheckBox Content="Show Sexual Tags" IsChecked="{Binding SexualTags}"/>
 				<CheckBox Content="Show Technical Tags" IsChecked="{Binding TechnicalTags}"/>
 				<CheckBox Content="Show NSFW Images" IsChecked="{Binding NSFWImages}" Click="OnNsfwToggle"/>
+				<CheckBox Content="Use ITHVNR" IsChecked="{Binding HookIthVnr}" />
 				<CheckBox Content="Hook Global Mouse Events" IsChecked="{Binding HookGlobalMouse}" ToolTip="If enabled, text in output window should not be combined when a mouse click happens in between text lines, useful when clicking through text rapidly.This feature can result in some slow performance when enabled."/>
 				<view:LabeledTextBox LabelWidth="120" Label="Locale Emulator Path:" Text="{Binding LocaleEmulatorPath}" ToolTip="Path to locale emulator executable (LEProc.exe)"/>
 				<!--<view:LabeledTextBox LabelWidth="120" Label="Extra Page Link:" Text="{Binding ExtraPageLink}" ToolTip="A link that can be visited when right clicking a VN tile, for searching purposes (%s is replaced by original title)"/>-->

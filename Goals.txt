@@ -11,11 +11,9 @@
 0 - display date of database update
 0 - store custom filter in named function (instead of the custom filter's function), so that the named function can be reset after modifying the custom filter.
 0 - usergames: search by text
-0 - make nohook parameter a saved setting and/or only use ithvnr on-demand.
 0 - CachedTranslations: keep track of how often something is translated and remove from cache if not used recently or originally cached too long ago.
 0 - OutputWindow/UserGame: Output Window location should be relative on game window, so that when game window launches elsewhere, output window follows.
 0 - show written tag description on tooltip
-0 - save output window menu state (full/mini/hidden)
 0 - translation: gendered proxies, update automatic name import (m.f, m.m)
 0 - ithvnr: new thread if all text is latin, default to not posting
 

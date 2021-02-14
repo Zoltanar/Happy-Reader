@@ -12,37 +12,22 @@ namespace Happy_Reader.View
 {
 	public partial class OutputWindow
 	{
-		private enum SettingViewState
-		{
-			Off = 0,
-			Mini = 1,
-			Full = 2
-		}
-
 		private readonly GridLength _settingsColumnLength;
 		private OutputWindowViewModel _viewModel;
-		private SettingViewState _settingsState = 0;
 		private bool _isResizing;
+		private bool _settingsOn = true;
 		private System.Windows.Point _startPosition;
 
 		public bool SettingsOn
 		{
-			get => _settingsState != SettingViewState.Off;
-			// ReSharper disable once ValueParameterNotUsed
+			get => _settingsOn;
 			set
 			{
-				//cycle backwards through enum.
-				_settingsState = _settingsState switch
-				{
-					SettingViewState.Off => SettingViewState.Full,
-					SettingViewState.Mini => SettingViewState.Off,
-					SettingViewState.Full => SettingViewState.Mini,
-					_ => _settingsState
-				};
+				if (_settingsOn == value) return;
+				_settingsOn = value;
 				UpdateSettingToggles();
 			}
 		}
-
 		public bool FullScreenOn { get; set; }
 
 		public OutputWindow()
@@ -56,19 +41,19 @@ namespace Happy_Reader.View
 				Color = darkerColor
 			};
 			OutputTextBox.Effect = dropShadowEffect;
-			_viewModel = (OutputWindowViewModel)DataContext;
 		}
-
+		
 		private void UpdateSettingToggles()
 		{
-			SettingsColumn.Width = _settingsState == SettingViewState.Mini ? new GridLength(45) : _settingsColumnLength;
-			OpacityLabel.Visibility = _settingsState == SettingViewState.Mini ? Visibility.Collapsed : Visibility.Visible;
+			StaticMethods.MainWindow.ViewModel.SettingsViewModel.TranslatorSettings.SettingsViewState = SettingsOn;
+			SettingsColumn.Width = SettingsOn ? _settingsColumnLength : new GridLength(22);
+			OpacityLabel.Visibility = SettingsOn ? Visibility.Visible : Visibility.Collapsed;
 			foreach (var toggleButton in SettingsPanel.Children.OfType<ContentControl>())
 			{
 				var value = toggleButton.Tag as string;
 				if (string.IsNullOrWhiteSpace(value)) continue;
 				var parts = value.Split(',');
-				toggleButton.Content =  parts[_settingsState == SettingViewState.Mini ? 0 : 1];
+				toggleButton.Content = parts[SettingsOn ? 1 : 0];
 			}
 		}
 
@@ -91,7 +76,7 @@ namespace Happy_Reader.View
 				Height = rectangle.Height;
 			});
 		}
-		
+
 		private void DragOnMouseButton(object sender, MouseButtonEventArgs e)
 		{
 			try { DragMove(); }
@@ -104,20 +89,7 @@ namespace Happy_Reader.View
 		{
 			_viewModel = (OutputWindowViewModel)DataContext;
 			_viewModel.Initialize(() => OutputTextBox.Selection.Text, OutputTextBox.Document);
-		}
-
-		private void ShowSettingsOnMouseHover(object sender, MouseEventArgs e)
-		{
-			if (SettingsOn) return;
-			SettingsColumn.Width = _settingsColumnLength;
-			SettingsButton.Visibility = Visibility.Hidden;
-		}
-
-		private void HideSettingsOnMouseLeave(object sender, MouseEventArgs e)
-		{
-			if (SettingsOn) return;
-			SettingsColumn.Width = new GridLength(0);
-			SettingsButton.Visibility = Visibility.Visible;
+			SettingsOn = StaticMethods.MainWindow.ViewModel.SettingsViewModel.TranslatorSettings.SettingsViewState;
 		}
 
 		public Rectangle GetRectangle()
@@ -127,7 +99,7 @@ namespace Happy_Reader.View
 			Application.Current.Dispatcher.Invoke(() => result = new Rectangle((int)Left, (int)Top, (int)Width, (int)Height));
 			return result;
 		}
-		
+
 		private void Resizer_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 		{
 			if (!Mouse.Capture(Resizer)) return;

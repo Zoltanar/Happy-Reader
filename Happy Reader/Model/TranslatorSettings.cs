@@ -16,6 +16,7 @@ namespace Happy_Reader
 		private string _originalTextFont;
 		private string _romajiTextFont;
 		private string _translatedTextFont;
+		private bool _settingsViewState = true;
 
 		public bool GoogleUseCredential
 		{
@@ -51,7 +52,7 @@ namespace Happy_Reader
 		}
 
 		//todo make editable
-		public HashSet<string> UntouchedStrings { get; set; } = new HashSet<string>{"","\r\n"};
+		public HashSet<string> UntouchedStrings { get; set; } = new() {"","\r\n"};
 
 		public string OriginalTextFont
 		{
@@ -94,6 +95,17 @@ namespace Happy_Reader
 					StaticHelpers.Logger.ToFile($"Did not find font with name '{value}'");
 				}
 				_translatedTextFont = value;
+				if (Loaded) Save();
+			}
+		}
+		
+		public bool SettingsViewState
+		{
+			get => _settingsViewState;
+			set
+			{
+				if (_settingsViewState == value) return;
+				_settingsViewState = value;
 				if (Loaded) Save();
 			}
 		}
