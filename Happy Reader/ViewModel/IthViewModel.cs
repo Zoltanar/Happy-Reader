@@ -60,9 +60,10 @@ namespace Happy_Reader.ViewModel
 			_mainViewModel = mainViewModel;
 			SetHookCodeCommand = new IthCommandHandler(SetHookCode);
 		}
-
+		
 		public override void AddNewThreadToDisplayCollection(TextThread textThread)
 		{
+			if (Application.Current == null) return;
 			Application.Current.Dispatcher.Invoke(() =>
 			{
 				var displayThread = new TextThreadPanel(textThread, this) { Tag = textThread };

@@ -12,7 +12,7 @@ namespace Happy_Reader.View
 
 		public TextThread ViewModel => (TextThread)DataContext;
 		public IthVnrViewModel IthViewModel { get; }
-		
+
 		[UsedImplicitly]
 		public TextThreadPanel()
 		{
@@ -32,7 +32,7 @@ namespace Happy_Reader.View
 
 		private void MainTextBox_OnTextChanged(object sender, TextChangedEventArgs e)
 		{
-			if(ViewModel.IsDisplay) MainTextBox.ScrollToEnd();
+			if (ViewModel.IsDisplay) MainTextBox.ScrollToEnd();
 		}
 
 		private void OutputSelectedText(object sender, ElapsedEventArgs e)
@@ -63,7 +63,15 @@ namespace Happy_Reader.View
 		private void DisplayToggled(object sender, RoutedEventArgs e)
 		{
 			MainTextBox.Visibility = ViewModel.IsDisplay ? Visibility.Visible : Visibility.Collapsed;
-			if(ViewModel.IsDisplay) ViewModel.OnPropertyChanged(nameof(ViewModel.Text));
+			if (ViewModel.IsDisplay) ViewModel.OnPropertyChanged(nameof(ViewModel.Text));
+		}
+
+		private void StopHideThread(object sender, RoutedEventArgs e)
+		{
+			ViewModel.IsDisplay = false;
+			ViewModel.IsPosting = false;
+			ViewModel.IsPaused = true;
+			DisplayToggled(sender, e);
 		}
 	}
 }

@@ -62,12 +62,12 @@
 			<ToggleButton Margin="5" Content="Global Pause"        IsChecked="{Binding Paused}" />
 			<ToggleButton Margin="5" Content="Show Latest Thread"  IsChecked="{Binding HookManager.ShowLatestThread}" />
 			<Button Margin="5" Content="Attach To Process" Click="OpenProcessExplorer"/>
-			<Button Margin="5" Content="Clear Others"      Command="{Binding ClearOtherThreadsCommand}"/>
-			<Button Margin="5" Content="Pause Others"      Command="{Binding PauseOtherThreadsCommand}" />
-			<Button Margin="5" Content="Unpause Others"    Command="{Binding UnpauseOtherThreadsCommand}" />
-			<Button Margin="5" Content="Don't Post Others" Command="{Binding DontPostOthersCommand}"/>
 			<Button Margin="5" Content="Show Output Window" Click="ShowOutputWindow"/>
 			<Button Margin="5" Content="Reset Output Window" Click="ResetOutputWindow"/>
+			<Button Margin="5" Content="Toggle Display Others"    Command="{Binding ToggleDisplayOthersCommand}" />
+			<Button Margin="5" Content="Toggle Post Others" Command="{Binding TogglePostOthersCommand}"/>
+			<Button Margin="5" Content="Toggle Pause Others"      Command="{Binding TogglePauseOthersCommand}" />
+			<Button Margin="5" Content="Clear Others"      Command="{Binding ClearOtherThreadsCommand}"/>
 		</UniformGrid>
 		<!-- row 1 -->
 		<ComboBox Grid.Row="1" Margin="5,5,0,5" x:Name="ProcessComboBox" ItemsSource="{Binding DisplayProcesses}" SelectedItem="{Binding SelectedProcess, Mode=TwoWay}"  HorizontalAlignment="Left"  Width="120">
@@ -85,7 +85,6 @@
 			<Button Margin="5" Content="Set Hook Code"  Command="{Binding SetHookCodeCommand}"/>
 		</UniformGrid>
 		<!--row 4 -->
-		<!--todo reorganize buttons -->
 		<ListBox x:Name="ThreadSelector" ItemsSource="{Binding DisplayThreads}" Margin="5" Grid.Row="3"
 		         ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto" 
 						 ScrollViewer.CanContentScroll="False"

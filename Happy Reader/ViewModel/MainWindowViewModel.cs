@@ -11,6 +11,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
@@ -205,7 +207,8 @@ namespace Happy_Reader.ViewModel
 			if (initialiseIthVnr)
 			{
 				StatusText = "Initializing ITHVNR...";
-				IthViewModel.Initialize(RunTranslation, GetPreferredHookCode);
+				IthViewModel.Initialize(RunTranslation, GetPreferredHookCode, out var errorMessage);
+				if (!string.IsNullOrWhiteSpace(errorMessage)) IthViewModel.DisplayThreads.Add(new TextBlock(new Run(errorMessage)));
 			}
 			_monitor = GetAndStartMonitorThread();
 			_loadingComplete = true;
