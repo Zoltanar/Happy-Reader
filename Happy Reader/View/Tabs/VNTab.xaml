@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:view="clr-namespace:Happy_Reader.View"
              xmlns:database="clr-namespace:Happy_Apps_Core.Database;assembly=Happy_Apps_Core"
+             xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
              mc:Ignorable="d mc" 
              d:DesignHeight="600" d:DesignWidth="800" 
              d:DataContext="{d:DesignInstance database:ListedVN}"
@@ -21,6 +22,9 @@
 			<Setter Property="Padding" Value="0" />
 		</Style>
 		<CollectionViewSource x:Key="StaffBoxItems" Source="{Binding Path=Staff}">
+			<CollectionViewSource.SortDescriptions>
+				<componentModel:SortDescription PropertyName="RoleDetail" Direction="Ascending"/>
+			</CollectionViewSource.SortDescriptions>
 			<CollectionViewSource.GroupDescriptions>
 				<PropertyGroupDescription PropertyName="RoleDetail" />
 			</CollectionViewSource.GroupDescriptions>

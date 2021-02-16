@@ -112,12 +112,12 @@ namespace Happy_Reader.View
 		private async void ShowByStaff(object sender, RoutedEventArgs e)
 		{
 			var menuItem = (MenuItem)sender;
-			var tag = menuItem.Header;
-			var group = (IEnumerable<VnStaff>)menuItem.Header;
+			var staffType = menuItem.Header;
+			var group = (IEnumerable<VnStaff>)menuItem.Tag;
 			var staff = group.Select(s => s.AliasID).ToList();
 			var databaseViewModel = StaticMethods.MainWindow.ViewModel.DatabaseViewModel;
 			if (staff.Count == 1) await databaseViewModel.ShowForStaffWithAlias(staff.First());
-			else await databaseViewModel.ShowForStaffWithAlias($"{tag} ({staff.Count}) for {StaticHelpers.TruncateString(VN.Title, 15)}", staff);
+			else await databaseViewModel.ShowForStaffWithAlias($"{staffType} ({staff.Count}) for {StaticHelpers.TruncateString(VN.Title, 15)}", staff);
 			StaticMethods.MainWindow.SelectTab(typeof(VNTabViewModel));
 		}
 
