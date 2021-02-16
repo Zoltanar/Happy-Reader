@@ -18,6 +18,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Happy_Apps_Core.Database;
 using Happy_Reader.View;
+using Happy_Reader.ViewModel;
 using Newtonsoft.Json;
 using FontFamily = System.Windows.Media.FontFamily;
 using StaticHelpers = Happy_Apps_Core.StaticHelpers;
@@ -35,27 +36,20 @@ namespace Happy_Reader
 		public static readonly string PermanentFilterJson = Path.Combine(StaticHelpers.StoredDataFolder, "filters.json");
 		public static readonly string CustomCharacterFiltersJson = Path.Combine(StaticHelpers.StoredDataFolder, "CustomCharacterFilters.json");
 		public static readonly string PermanentCharacterFilterJson = Path.Combine(StaticHelpers.StoredDataFolder, "PermanentCharacterFilter.json");
-		public static readonly string GuiSettingsJson = Path.Combine(StaticHelpers.StoredDataFolder, "guisettings.json");
-		public static readonly string TranslatorSettingsJson = Path.Combine(StaticHelpers.StoredDataFolder, "translatorsettings.json");
-		public static readonly GuiSettings GuiSettings;
-		public static readonly TranslatorSettings TranslatorSettings;
+		public static readonly string AllSettingsJson = Path.Combine(StaticHelpers.StoredDataFolder, "HR_Settings.json");
 		public static readonly JsonSerializerSettings SerialiserSettings = new() { TypeNameHandling = TypeNameHandling.Objects };
 		public static readonly Rectangle OutputWindowStartPosition = new(20, 20, 400, 200);
 
 		public static HappyReaderDatabase Data { get; } = new ();
 		public static Func<bool> ShowNSFWImages { get; set; } = () => true;
-		public static MainWindow MainWindow => (MainWindow) Application.Current.MainWindow;
-
-		static StaticMethods()
-		{
-			GuiSettings = SettingsJsonFile.Load<GuiSettings>(GuiSettingsJson);
-			TranslatorSettings = SettingsJsonFile.Load<TranslatorSettings>(TranslatorSettingsJson);
-		}
+		public static MainWindow MainWindow => (MainWindow)Application.Current.MainWindow;
+		public static SettingsViewModel Settings => MainWindow.ViewModel.SettingsViewModel;
 
 		public static string GetLocalizedTime(this DateTime dateTime)
 		{
-			bool isAmPm = GuiSettings.CultureInfo.DateTimeFormat.AMDesignator != string.Empty;
-			return dateTime.ToString(isAmPm ? "hh:mm tt" : "HH:mm", GuiSettings.CultureInfo);
+			var culture = Settings.GuiSettings.CultureInfo;
+			bool isAmPm = culture.DateTimeFormat.AMDesignator != string.Empty;
+			return dateTime.ToString(isAmPm ? "hh:mm tt" : "HH:mm", culture);
 		}
 		
 		public static T FindParent<T>(this DependencyObject child) where T : DependencyObject
@@ -187,7 +181,7 @@ namespace Happy_Reader
 		}
 
 		//todo make this an externally loaded list
-		public static HashSet<string> ExcludedNamesForVNResolve = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+		public static HashSet<string> ExcludedNamesForVNResolve = new(StringComparer.OrdinalIgnoreCase)
 		{
 			"data",
 			"windows-i686",

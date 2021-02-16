@@ -16,6 +16,7 @@
 0 - show written tag description on tooltip
 0 - translation: gendered proxies, update automatic name import (m.f, m.m)
 0 - ithvnr: new thread if all text is latin, default to not posting
+0 - translation: report max text length error output window
 
 
 look at global hooks for managing infinite text, etc (https://github.com/gmamaladze/globalmousekeyhook)

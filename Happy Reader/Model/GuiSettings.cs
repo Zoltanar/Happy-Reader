@@ -141,8 +141,7 @@ namespace Happy_Reader
 			}
 		}
 
-		public string About =>
-			$"{StaticHelpers.ClientName} {StaticHelpers.ClientVersion} for VNDB API version {StaticHelpers.APIVersion}";
+		public string About => $"{StaticHelpers.ClientName} {StaticHelpers.ClientVersion}";
 
 		public string LocaleEmulatorPath
 		{

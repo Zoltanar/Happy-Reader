@@ -34,18 +34,11 @@ namespace Happy_Reader.View
 		{
 			InitializeComponent();
 			_settingsColumnLength = SettingsColumn.Width;
-			var tColor = ((SolidColorBrush)StaticMethods.TranslatorSettings.TranslationColor).Color;
-			var darkerColor = System.Windows.Media.Color.FromRgb((byte)(tColor.R * 0.75), (byte)(tColor.G * 0.75), (byte)(tColor.B * 0.75));
-			var dropShadowEffect = new System.Windows.Media.Effects.DropShadowEffect
-			{
-				Color = darkerColor
-			};
-			OutputTextBox.Effect = dropShadowEffect;
 		}
 		
 		private void UpdateSettingToggles()
 		{
-			StaticMethods.MainWindow.ViewModel.SettingsViewModel.TranslatorSettings.SettingsViewState = SettingsOn;
+			StaticMethods.Settings.TranslatorSettings.SettingsViewState = SettingsOn;
 			SettingsColumn.Width = SettingsOn ? _settingsColumnLength : new GridLength(22);
 			OpacityLabel.Visibility = SettingsOn ? Visibility.Visible : Visibility.Collapsed;
 			foreach (var toggleButton in SettingsPanel.Children.OfType<ContentControl>())
@@ -89,7 +82,14 @@ namespace Happy_Reader.View
 		{
 			_viewModel = (OutputWindowViewModel)DataContext;
 			_viewModel.Initialize(() => OutputTextBox.Selection.Text, OutputTextBox.Document);
-			SettingsOn = StaticMethods.MainWindow.ViewModel.SettingsViewModel.TranslatorSettings.SettingsViewState;
+			SettingsOn = StaticMethods.Settings.TranslatorSettings.SettingsViewState;
+			var tColor = ((SolidColorBrush)StaticMethods.Settings.TranslatorSettings.TranslationColor).Color;
+			var darkerColor = System.Windows.Media.Color.FromRgb((byte)(tColor.R * 0.75), (byte)(tColor.G * 0.75), (byte)(tColor.B * 0.75));
+			var dropShadowEffect = new System.Windows.Media.Effects.DropShadowEffect
+			{
+				Color = darkerColor
+			};
+			OutputTextBox.Effect = dropShadowEffect;
 		}
 
 		public Rectangle GetRectangle()

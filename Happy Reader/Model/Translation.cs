@@ -13,14 +13,17 @@ namespace Happy_Reader
 	public class Translation
 	{
 		public static Translator Translator { get; set; }
-		internal readonly List<(string Part, bool Translate)> Parts = new List<(string Part, bool Translate)>();
-		private readonly List<TranslationResults> _partResults = new List<TranslationResults>();
-		private readonly List<Entry> _entriesUsedStageOne = new List<Entry>();
+		internal readonly List<(string Part, bool Translate)> Parts = new();
+		private readonly List<TranslationResults> _partResults = new();
+		private readonly List<Entry> _entriesUsedStageOne = new();
 		public readonly string[] Results = new string[8];
 		public readonly string Original;
 		public readonly string Romaji;
 		public string Output => Results[7];
-		public bool IsCharacterOnly { get; }
+		public bool IsCharacterOnly { get; } //todo change this
+		public Paragraph OriginalBlock { get; private set; }
+		public Paragraph RomajiBlock { get; private set; }
+		public Paragraph TranslatedBlock { get; private set; }
 
 		public Translation(string original, bool translate)
 		{
@@ -41,31 +44,6 @@ namespace Happy_Reader
 			IsCharacterOnly = Original.IndexOfAny(new[] { '「', '」' }) < 0 && Original.Length < 10;
 		}
 		
-		public IEnumerable<Entry> GetEntriesUsed()
-		{
-			return _partResults.Where(pr=>pr.EntriesUsed != null)
-				.SelectMany(pr => pr.EntriesUsed.SelectMany(eu=>eu))
-				.Concat(_entriesUsedStageOne).Distinct();
-		}
-
-		private static void GetRomaji(StringBuilder romajiSb)
-		{
-			Translator.ReplacePreRomaji(romajiSb);
-			Kakasi.JapaneseToRomaji(romajiSb);
-			Translator.ReplacePostRomaji(romajiSb);
-		}
-
-		private Translation(string original, string romaji, string[] results)
-		{
-			Original = original;
-			Romaji = romaji;
-			for (int stage = 0; stage < Results.Length; stage++)
-			{
-				Results[stage] = results[stage];
-			}
-			IsCharacterOnly = Original.StartsWith("【") && Original.EndsWith("】") && Original.Length < 10;
-		}
-
 
 		public Translation(Translation first, Translation second)
 		{
@@ -76,6 +54,20 @@ namespace Happy_Reader
 				Results[stage] = $"{first.Results[stage]} {second.Results[stage]}";
 			}
 			IsCharacterOnly = false;
+		}
+
+		public IEnumerable<Entry> GetEntriesUsed()
+		{
+			return _partResults.Where(pr => pr.EntriesUsed != null)
+				.SelectMany(pr => pr.EntriesUsed.SelectMany(eu => eu))
+				.Concat(_entriesUsedStageOne).Distinct();
+		}
+
+		private static void GetRomaji(StringBuilder romajiSb)
+		{
+			Translator.ReplacePreRomaji(romajiSb);
+			Kakasi.JapaneseToRomaji(romajiSb);
+			Translator.ReplacePostRomaji(romajiSb);
 		}
 
 		public void TranslateParts(bool saveEntriesUsed)
@@ -108,29 +100,25 @@ namespace Happy_Reader
 				StaticHelpers.Logger.ToFile(ex.Message);
 			}
 		}
-
-		public Paragraph OriginalBlock { get; private set; }
-		public Paragraph RomajiBlock { get; private set; }
-		public Paragraph TranslatedBlock { get; private set; }
-
+		
 		public void SetParagraphs()
 		{
 			var originalP = new Paragraph(new Run(Original));
-			originalP.Inlines.FirstInline.Foreground = StaticMethods.TranslatorSettings.OriginalColor;
-			SetFont(originalP, StaticMethods.TranslatorSettings.OriginalTextFont);
+			originalP.Inlines.FirstInline.Foreground = StaticMethods.Settings.TranslatorSettings.OriginalColor;
+			SetFont(originalP, StaticMethods.Settings.TranslatorSettings.OriginalTextFont);
 			OriginalBlock = originalP;
 			if (!string.IsNullOrWhiteSpace(Romaji) && !Romaji.Equals(Original))
 			{
 				var romajiP = new Paragraph(new Run(Romaji));
-				romajiP.Inlines.FirstInline.Foreground = StaticMethods.TranslatorSettings.RomajiColor;
-				SetFont(romajiP, StaticMethods.TranslatorSettings.RomajiTextFont);
+				romajiP.Inlines.FirstInline.Foreground = StaticMethods.Settings.TranslatorSettings.RomajiColor;
+				SetFont(romajiP, StaticMethods.Settings.TranslatorSettings.RomajiTextFont);
 				RomajiBlock = romajiP;
 			}
 			if (!string.IsNullOrWhiteSpace(Output) && !Output.Equals(Original))
 			{
 				var translatedP = new Paragraph(new Run(Output));
-				translatedP.Inlines.FirstInline.Foreground = StaticMethods.TranslatorSettings.TranslationColor;
-				SetFont(translatedP, StaticMethods.TranslatorSettings.TranslatedTextFont);
+				translatedP.Inlines.FirstInline.Foreground = StaticMethods.Settings.TranslatorSettings.TranslationColor;
+				SetFont(translatedP, StaticMethods.Settings.TranslatorSettings.TranslatedTextFont);
 				TranslatedBlock = translatedP;
 			}
 		}
@@ -152,7 +140,7 @@ namespace Happy_Reader
 			{
 				block.Margin = new Thickness(0);
 				block.TextAlignment = TextAlignment.Center;
-				block.FontSize = StaticMethods.TranslatorSettings.FontSize;
+				block.FontSize = StaticMethods.Settings.TranslatorSettings.FontSize;
 			}
 			var spacer = new Paragraph(new Run("￣￣￣"));
 			spacer.Inlines.FirstInline.Foreground = Brushes.White;

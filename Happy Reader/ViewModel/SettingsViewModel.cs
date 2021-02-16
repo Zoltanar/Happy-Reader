@@ -2,17 +2,17 @@
 
 namespace Happy_Reader.ViewModel
 {
-	public class SettingsViewModel
+	public class SettingsViewModel : SettingsJsonFile
 	{
-		public CoreSettings CoreSettings { get; }
-		public GuiSettings GuiSettings { get; }
-		public TranslatorSettings TranslatorSettings { get; }
+		public CoreSettings CoreSettings { get; set; }
+		public GuiSettings GuiSettings { get; set; }
+		public TranslatorSettings TranslatorSettings { get; set; }
 
-		public SettingsViewModel(CoreSettings coreSettings, GuiSettings guiSettings, TranslatorSettings translatorSettings)
+		public SettingsViewModel()
 		{
-			CoreSettings = coreSettings;
-			GuiSettings = guiSettings;
-			TranslatorSettings = translatorSettings;
+			CoreSettings = new CoreSettings();
+			GuiSettings = new GuiSettings();
+			TranslatorSettings = new TranslatorSettings();
 		}
 	}
 }

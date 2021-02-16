@@ -36,30 +36,41 @@ namespace Happy_Apps_Core
 		public static readonly string StoredDataFolder = Path.Combine(AppDataFolder, "Stored Data");
 		public static readonly string LogsFolder = Path.Combine(AppDataFolder, "Logs");
 		public static readonly string ImagesFolder = Path.Combine(StoredDataFolder, "vndb-img\\");
-		public static readonly string CoreSettingsJson = Path.Combine(StoredDataFolder, "coresettings.json");
 		public static readonly string DatabaseFile = Path.Combine(StoredDataFolder, "Happy-Apps.sqlite");
 		#endregion
 
 		public const string ClientName = "Happy Reader";
 		public const string ClientVersion = "2.1.0";
-		public const string APIVersion = "2020-07-09";
 		private const string PasswordRegistryKey = "SOFTWARE\\" + ClientName;
 		private const string PasswordRegistryCipherValueName = "Data1";
 		private const string PasswordRegistryEntropyValueName = "Data2";
-		private static readonly Dictionary<string, bool> FlagExistsDictionary = new Dictionary<string, bool>();
-		
-		public static readonly CoreSettings CSettings;
+		private static readonly Dictionary<string, bool> FlagExistsDictionary = new ();
+
+		public static VisualNovelDatabase LocalDatabase;
 		public static readonly MultiLogger Logger;
 		public static VndbConnection Conn;
+		private static CoreSettings _cSettings;
+
+		public static CoreSettings CSettings
+		{
+			get
+			{
+				if (_cSettings == null) throw new ArgumentNullException(nameof(_cSettings), $"{nameof(CoreSettings)} must be initialized first.");
+				return _cSettings;
+			}
+			set
+			{
+				if (_cSettings != null) throw new InvalidOperationException( $"{nameof(CoreSettings)} must only be set once.");
+				_cSettings = value;
+			}
+		}
 
 		static StaticHelpers()
 		{
 			Directory.CreateDirectory(StoredDataFolder);
 			Logger = new MultiLogger(LogsFolder);
-			CSettings = SettingsJsonFile.Load<CoreSettings>(CoreSettingsJson);
 		}
 
-		public static VisualNovelDatabase LocalDatabase;
 
 		public static bool VNIsByFavoriteProducer(ListedVN vn)
 		{
@@ -146,22 +157,6 @@ namespace Happy_Apps_Core
 				Logger.ToFile(ex);
 				return null;
 			}
-		}
-
-		/// <summary>
-		/// Convert number of bytes to human-readable formatted string, rounded to 1 decimal place. (e.g 79.4KB)
-		/// </summary>
-		/// <param name="byteCount">Number of bytes</param>
-		/// <returns>Formatted string</returns>
-		public static string BytesToString(int byteCount)
-		{
-			string[] suf = { "B", "KB", "MB", "GB" }; //int.MaxValue is in gigabyte range.
-			if (byteCount == 0)
-				return "0" + suf[0];
-			long bytes = Math.Abs(byteCount);
-			int place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
-			double num = Math.Round(bytes / Math.Pow(1024, place), 1);
-			return (Math.Sign(byteCount) * num) + suf[place];
 		}
 
 		//public static DateTime StringToDate()
@@ -256,37 +251,6 @@ namespace Happy_Apps_Core
 			return value.Length <= maxChars ? value : value.Substring(0, maxChars - 3) + "...";
 		}
 
-		public static DateTime Epoch { get; } = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-
-		/// <summary>
-		///     Convert DateTime to UnixTimestamp.
-		/// </summary>
-		/// <param name="dateTime">DateTime to be converted</param>
-		/// <returns>UnixTimestamp (double)</returns>
-		public static double ToUnixTimestamp(this DateTime dateTime)
-		{
-			return (dateTime - Epoch).TotalSeconds;
-		}
-
-		/// <summary>
-		/// Convert DateTime to UnixTimestamp, if date time is null, returns null.
-		/// </summary>
-		/// <param name="dateTime">DateTime to be converted</param>
-		/// <returns>UnixTimestamp (int)</returns>
-		public static int? ToUnixTimestamp(this DateTime? dateTime)
-		{
-			if (!dateTime.HasValue) return null;
-			return (int)ToUnixTimestamp(dateTime.Value);
-		}
-
-		/// <summary>
-		/// Convert Unix Timestamp to date time, if timestamp is null, returns null.
-		/// </summary>
-		public static DateTime? UnixTimestampToDateTime(this int? timestamp)
-		{
-			if (!timestamp.HasValue) return null;
-			return Epoch.AddSeconds(timestamp.Value);
-		}
 		public static string ToSeconds(this TimeSpan time) => $"{(int)(time.TotalSeconds):N0}.{time.Milliseconds} seconds";
 		
 		/// <summary>

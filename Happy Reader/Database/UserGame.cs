@@ -339,7 +339,7 @@ namespace Happy_Reader.Database
 
 		public Process StartProcessThroughLocaleEmulator()
 		{
-			var proxyPath = StaticMethods.GuiSettings.LocaleEmulatorPath;
+			var proxyPath = StaticMethods.Settings.GuiSettings.LocaleEmulatorPath;
 			var args = $"\"{FilePath}\"";
 			return StartProcess(proxyPath, args, true);
 		}

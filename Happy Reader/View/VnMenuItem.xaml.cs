@@ -22,7 +22,7 @@ namespace Happy_Reader.View
 			InitializeComponent();
 			DataContext = vn;
 			var itemIndex = Items.IndexOf(ReleaseLinkItem);
-			foreach (var link in StaticMethods.GuiSettings.PageLinks ?? Array.Empty<PageLink>().AsEnumerable())
+			foreach (var link in StaticMethods.Settings.GuiSettings.PageLinks ?? Array.Empty<PageLink>().AsEnumerable())
 			{
 				var menuItem = new MenuItem
 				{

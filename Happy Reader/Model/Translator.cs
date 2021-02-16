@@ -34,7 +34,7 @@ namespace Happy_Reader
 
 		public Translator(HappyReaderDatabase data) => _data = data;
 
-		public void SetCache(bool noApiTranslation, bool logVerbose)
+		public void SetCache(bool noApiTranslation, bool logVerbose, TranslatorSettings translatorSettings)
 		{
 			_logVerbose = logVerbose;
 			var cachedTranslations = _data.CachedTranslations.Local;
@@ -42,9 +42,9 @@ namespace Happy_Reader
 				cachedTranslations.ToDictionary(x => x.Input),
 				cachedTranslations,
 				Kakasi.JapaneseToRomaji,
-				StaticMethods.TranslatorSettings.GoogleCredentialPath,
-				StaticMethods.TranslatorSettings.FreeUserAgent,
-				StaticMethods.TranslatorSettings.UntouchedStrings,
+				translatorSettings.GoogleCredentialPath,
+				translatorSettings.FreeUserAgent,
+				translatorSettings.UntouchedStrings,
 				noApiTranslation,
 				logVerbose);
 		}
@@ -65,7 +65,7 @@ namespace Happy_Reader
 			}
 			input = input.Replace("\r", "");
 			if (string.IsNullOrWhiteSpace(input)) return new Translation(input, false);
-			if (input.Length > StaticMethods.TranslatorSettings.MaxClipboardSize) return null; //todo report error
+			if (input.Length > StaticMethods.Settings.TranslatorSettings.MaxClipboardSize) return null; //todo report error
 			input = input.Replace("\r\n", "");
 			if (string.IsNullOrWhiteSpace(input)) return new Translation(input, false);
 			lock (TranslateLock)
@@ -453,7 +453,7 @@ namespace Happy_Reader
 		private static void TranslateStageFive(StringBuilder sb, TranslationResults result)
 		{
 			result.SetStage(5);
-			if (StaticMethods.TranslatorSettings.GoogleUseCredential) GoogleTranslate.Translate(sb);
+			if (StaticMethods.Settings.TranslatorSettings.GoogleUseCredential) GoogleTranslate.Translate(sb);
 			else GoogleTranslate.TranslateFree(sb);
 			StaticHelpers.Logger.Verbose($"Stage 5: {sb}");
 			result[5] = sb.ToString();

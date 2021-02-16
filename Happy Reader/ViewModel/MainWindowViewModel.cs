@@ -118,7 +118,8 @@ namespace Happy_Reader.ViewModel
 		public MainWindowViewModel()
 		{
 			Application.Current.Exit += ExitProcedures;
-			SettingsViewModel = new SettingsViewModel(CSettings, StaticMethods.GuiSettings, StaticMethods.TranslatorSettings);
+			SettingsViewModel = Happy_Apps_Core.SettingsJsonFile.Load<SettingsViewModel>(StaticMethods.AllSettingsJson);
+			CSettings = SettingsViewModel.CoreSettings;
 			ApiLogViewModel = new ApiLogViewModel
 			{
 				VndbQueries = _vndbQueriesList.Items,
@@ -190,7 +191,7 @@ namespace Happy_Reader.ViewModel
 				await Task.Run(() =>
 				{
 					var cacheLoadWatch = Stopwatch.StartNew();
-					Translator.SetCache(noApiTranslation, logVerbose);
+					Translator.SetCache(noApiTranslation, logVerbose, SettingsViewModel.TranslatorSettings);
 					StaticHelpers.Logger.ToDebug($"Loaded cached translations in {cacheLoadWatch.ElapsedMilliseconds} ms");
 				});
 				StatusText = "Populating Proxies...";
@@ -419,7 +420,7 @@ namespace Happy_Reader.ViewModel
 
 		public void VndbAdvancedAction(string text, bool isQuery)
 		{
-			if (!StaticMethods.GuiSettings.AdvancedMode) return;
+			if (!SettingsViewModel.GuiSettings.AdvancedMode) return;
 			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			Application.Current.Dispatcher.Invoke(() => (isQuery ? _vndbQueriesList : _vndbResponsesList).AddWithId(text));
 		}
