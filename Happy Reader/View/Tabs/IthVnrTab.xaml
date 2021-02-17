@@ -16,7 +16,7 @@
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type ButtonBase}" >
-						<Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Padding="2,0" Background="{TemplateBinding Background}" >
+						<Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Padding="2,0" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" >
 							<TextBlock Name="ContentPresenter" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{TemplateBinding Content}"/>
 						</Border>
 					</ControlTemplate>
@@ -29,7 +29,12 @@
 				</Trigger>
 			</Style.Triggers>
 		</Style>
-		<Style TargetType="ToggleButton" BasedOn="{StaticResource ButtonBaseStyle}">
+		<Style TargetType="ButtonBase" x:Key="GeneralButtonStyle" BasedOn="{StaticResource ButtonBaseStyle}">
+			<Setter Property="FontWeight" Value="Bold"/>
+		</Style>
+		<Style TargetType="ToggleButton" x:Key="GeneralToggleStyle" BasedOn="{StaticResource GeneralButtonStyle}">
+			<Setter Property="BorderBrush" Value="Black"/>
+			<Setter Property="BorderThickness" Value="1.5"/>
 			<Style.Triggers>
 				<Trigger Property="IsChecked" Value="True">
 					<Setter Property="Background" Value="DarkRed"/>
@@ -56,14 +61,14 @@
 		</Grid.RowDefinitions>
 		<!-- row 0 -->
 		<UniformGrid Columns="4" Grid.Row="0" Height="82">
-			<Button Margin="5" Content="Turn Off" Click="FinalizeButton"/>
-			<Button Margin="5" Content="Turn On"  Click="InitializeButton"/>
-			<ToggleButton Margin="5" Content="Merge By Hook Code"  IsChecked="{Binding MergeByHookCode}"/>
-			<ToggleButton Margin="5" Content="Global Pause"        IsChecked="{Binding Paused}" />
-			<ToggleButton Margin="5" Content="Show Latest Thread"  IsChecked="{Binding HookManager.ShowLatestThread}" />
-			<Button Margin="5" Content="Attach To Process" Click="OpenProcessExplorer"/>
-			<Button Margin="5" Content="Show Output Window" Click="ShowOutputWindow"/>
-			<Button Margin="5" Content="Reset Output Window" Click="ResetOutputWindow"/>
+			<Button Margin="5" Content="Turn Off" Style="{StaticResource GeneralButtonStyle}" Click="FinalizeButton"/>
+			<Button Margin="5" Content="Turn On"  Style="{StaticResource GeneralButtonStyle}"  Click="InitializeButton"/>
+			<Button Margin="5" Content="Show Output Window" Style="{StaticResource GeneralButtonStyle}" Click="ShowOutputWindow"/>
+			<Button Margin="5" Content="Reset Output Window" Style="{StaticResource GeneralButtonStyle}" Click="ResetOutputWindow"/>
+			<ToggleButton Margin="5" Content="Merge By Hook Code" Style="{StaticResource GeneralToggleStyle}" IsChecked="{Binding MergeByHookCode}"/>
+			<ToggleButton Margin="5" Content="Global Pause" Style="{StaticResource GeneralToggleStyle}" IsChecked="{Binding Paused}" />
+			<ToggleButton Margin="5" Content="Show Latest Thread" Style="{StaticResource GeneralToggleStyle}" IsChecked="{Binding HookManager.ShowLatestThread}" />
+			<Button Margin="5" Content="Attach To Process" Style="{StaticResource GeneralButtonStyle}" Click="OpenProcessExplorer"/>
 			<Button Margin="5" Content="Toggle Display Others"    Command="{Binding ToggleDisplayOthersCommand}" />
 			<Button Margin="5" Content="Toggle Post Others" Command="{Binding TogglePostOthersCommand}"/>
 			<Button Margin="5" Content="Toggle Pause Others"      Command="{Binding TogglePauseOthersCommand}" />

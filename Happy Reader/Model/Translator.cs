@@ -20,10 +20,10 @@ namespace Happy_Reader
 		private static readonly char[] Separators = "『「」』…".ToCharArray();
 		private static readonly char[] InclusiveSeparators = "。？".ToCharArray();
 		private static readonly char[] AllSeparators = Separators.Concat(InclusiveSeparators).ToArray();
-		private static readonly Regex LatinOnlyRegex = new Regex(@"^[a-zA-Z0-9:/\\\\r\\n .!?,;()_$^""]+$");
-		private static readonly Regex Stage4P1InputRegex = new Regex(@"\[\[(.+?)]]");
-		private static readonly Regex Stage4P1OutputRegex = new Regex(@"^.*?\[\[(.+)]].*?$");
-		private static readonly Dictionary<string, Regex> RegexDict = new Dictionary<string, Regex>();
+		private static readonly Regex LatinOnlyRegex = new(@"^[a-zA-Z0-9:\/\\\r\n .!?,;@()_$^""]+$");
+		private static readonly Regex Stage4P1InputRegex = new (@"\[\[(.+?)]]");
+		private static readonly Regex Stage4P1OutputRegex = new (@"^.*?\[\[(.+)]].*?$");
+		private static readonly Dictionary<string, Regex> RegexDict = new ();
 
 		private readonly HappyReaderDatabase _data;
 		private User _lastUser;

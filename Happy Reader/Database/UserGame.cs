@@ -161,6 +161,7 @@ namespace Happy_Reader.Database
 				return _image;
 			}
 		}
+
 		[NotMapped]
 		public Encoding PrefEncoding
 		{

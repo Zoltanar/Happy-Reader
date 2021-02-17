@@ -39,11 +39,24 @@ namespace Happy_Reader
 		public static readonly string AllSettingsJson = Path.Combine(StaticHelpers.StoredDataFolder, "HR_Settings.json");
 		public static readonly JsonSerializerSettings SerialiserSettings = new() { TypeNameHandling = TypeNameHandling.Objects };
 		public static readonly Rectangle OutputWindowStartPosition = new(20, 20, 400, 200);
+		private static SettingsViewModel _settings;
 
 		public static HappyReaderDatabase Data { get; } = new ();
 		public static Func<bool> ShowNSFWImages { get; set; } = () => true;
 		public static MainWindow MainWindow => (MainWindow)Application.Current.MainWindow;
-		public static SettingsViewModel Settings => MainWindow.ViewModel.SettingsViewModel;
+		public static SettingsViewModel Settings
+		{
+			get
+			{
+				if (_settings == null) throw new ArgumentNullException(nameof(_settings), $"{nameof(SettingsViewModel)} must be initialized first.");
+				return _settings;
+			}
+			set
+			{
+				if (_settings != null) throw new InvalidOperationException($"{nameof(SettingsViewModel)} must only be set once.");
+				_settings = value;
+			}
+		}
 
 		public static string GetLocalizedTime(this DateTime dateTime)
 		{

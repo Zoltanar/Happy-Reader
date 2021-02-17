@@ -232,11 +232,12 @@ namespace Happy_Reader.View
 			}
 			else
 			{
+				var roleString = character.Gender == "f" ? "m.f" : "m";
 				for (int i = 0; i < outputParts.Length; i++)
 				{
 					var entry = new Entry
 					{
-						RoleString = "m",
+						RoleString = roleString,
 						Input = inputParts[i],
 						Output = outputParts[i],
 						GameId = cvn.VNId,

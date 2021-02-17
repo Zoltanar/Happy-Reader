@@ -14,8 +14,6 @@
 0 - CachedTranslations: keep track of how often something is translated and remove from cache if not used recently or originally cached too long ago.
 0 - OutputWindow/UserGame: Output Window location should be relative on game window, so that when game window launches elsewhere, output window follows.
 0 - show written tag description on tooltip
-0 - translation: gendered proxies, update automatic name import (m.f, m.m)
-0 - ithvnr: new thread if all text is latin, default to not posting
 0 - translation: report max text length error output window
 
 

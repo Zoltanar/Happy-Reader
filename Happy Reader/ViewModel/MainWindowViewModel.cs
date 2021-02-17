@@ -119,6 +119,7 @@ namespace Happy_Reader.ViewModel
 		{
 			Application.Current.Exit += ExitProcedures;
 			SettingsViewModel = Happy_Apps_Core.SettingsJsonFile.Load<SettingsViewModel>(StaticMethods.AllSettingsJson);
+			StaticMethods.Settings = SettingsViewModel;
 			CSettings = SettingsViewModel.CoreSettings;
 			ApiLogViewModel = new ApiLogViewModel
 			{
@@ -208,7 +209,7 @@ namespace Happy_Reader.ViewModel
 			if (SettingsViewModel.GuiSettings.HookIthVnr)
 			{
 				StatusText = "Initializing ITHVNR...";
-				IthViewModel.Initialize(RunTranslation, GetPreferredHookCode, out var errorMessage);
+				IthViewModel.Initialize(RunTranslation, out var errorMessage);
 				if (!string.IsNullOrWhiteSpace(errorMessage)) IthViewModel.DisplayThreads.Add(new TextBlock(new Run(errorMessage)));
 			}
 			_monitor = GetAndStartMonitorThread();
@@ -496,14 +497,7 @@ namespace Happy_Reader.ViewModel
 			if (_finalizing || _monitor != null && _monitor.IsAlive) return;
 			_monitor = GetAndStartMonitorThread();
 		}
-
-		// ReSharper disable UnusedTupleComponentInReturnValue
-		public (string HookCode, Encoding PrefEncoding) GetPreferredHookCode(uint processId)
-		{
-			return processId != UserGame?.Process?.Id ? (null, null) : (UserGame.HookCode, UserGame.PrefEncoding);
-		}
-		// ReSharper restore UnusedTupleComponentInReturnValue
-
+		
 		public void RefreshActiveObjectImages()
 		{
 			foreach (var tile in UserGamesViewModel.UserGameItems)
