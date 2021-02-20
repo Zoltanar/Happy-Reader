@@ -90,6 +90,10 @@ namespace Happy_Reader
 						_stringValue = dateValue.ToString("yyyyMMdd");
 						IntValue = int.Parse(_stringValue);
 						break;
+					case DumpFiles.ItemWithParents dumpItemValue:
+						IntValue = dumpItemValue.ID;
+						_stringValue = IntValue.ToString();
+						break;
 					default:
 						IntValue = 0;
 						_stringValue = value?.ToString();

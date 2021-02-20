@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
+using Happy_Apps_Core;
 
 namespace Happy_Reader
 {
@@ -7,7 +8,7 @@ namespace Happy_Reader
 	{
 		[Description("Suggestion Score"), TypeConverter(typeof(string))]
 		TraitScore = 1,
-		[TypeConverter(typeof(string))]
+		[TypeConverter(typeof(DumpFiles.WrittenTrait))]
 		Traits = 2,
 		[NotMapped]
 		Multi = 3,

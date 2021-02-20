@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -305,8 +306,15 @@ namespace Happy_Apps_Core
 
 		public static WrittenTrait GetTrait(int traitId) => _plainTraits.TryGetValue(traitId, out var trait) ? trait : null;
 
+		public static WrittenTrait[] GetTraitsForRoot(RootTrait root) => _plainTraits.Values.Where(t => t.TopmostParent == (int)root).ToArray();
+
 		public static WrittenTag GetTag(string name) => _plainTags.Values.FirstOrDefault(x => x.Name == name);
 
 		public static WrittenTag GetTag(int tagId) => _plainTags.TryGetValue(tagId, out var tag) ? tag : null;
+
+		public static IEnumerable GetAllTags()
+		{
+			return _plainTags.Values;
+		}
 	}
 }

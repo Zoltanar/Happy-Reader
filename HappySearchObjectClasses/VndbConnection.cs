@@ -183,14 +183,14 @@ namespace Happy_Apps_Core
 		private void Open(bool printCertificates)
 		{
 			Logger.ToFile($"Attempting to open connection to {VndbHost}:{VndbPortTLS}");
-			var retries = 0;
+			var attempts = 0;
 			var certs = GetCertificates(printCertificates);
-			while (retries < 5)
+			while (attempts < 5)
 			{
 				try
 				{
-					retries++;
-					Logger.ToFile($"Trying for the {retries}'th time...");
+					attempts++;
+					Logger.ToFile($"Attempt number {attempts}...");
 					_tcpClient = new TcpClient();
 					_tcpClient.Connect(VndbHost, VndbPortTLS);
 					Logger.ToFile("TCP Client connection made...");
@@ -200,7 +200,7 @@ namespace Happy_Apps_Core
 					Logger.ToFile("SSL Stream authenticated...");
 					if (!CheckRemoteCertificate(printCertificates, sslStream.RemoteCertificate)) return;
 					_stream = sslStream;
-					Logger.ToFile($"Connected after {retries} tries.");
+					Logger.ToFile($"Connected after {attempts} attempts.");
 					break;
 				}
 				catch (SocketException e)
@@ -215,7 +215,7 @@ namespace Happy_Apps_Core
 				}
 			}
 			if (_stream != null && _stream.CanRead) return;
-			Logger.ToFile($"Failed to connect after {retries} tries.");
+			Logger.ToFile($"Failed to connect after {attempts} attempts.");
 			_status = APIStatus.Error;
 			AskForNonSsl();
 		}
@@ -255,19 +255,19 @@ namespace Happy_Apps_Core
 			Logger.ToFile($"Attempting to open connection to {VndbHost}:{VndbPort} without SSL");
 			_status = APIStatus.Closed;
 			var complete = false;
-			var retries = 0;
-			while (!complete && retries < 5)
+			var attempts = 0;
+			while (!complete && attempts < 5)
 			{
 				try
 				{
-					retries++;
-					Logger.ToFile($"Trying for the {retries}'th time...");
+					attempts++;
+					Logger.ToFile($"Attempt number {attempts}...");
 					_tcpClient = new TcpClient();
 					_tcpClient.Connect(VndbHost, VndbPort);
 					Logger.ToFile("TCP Client connection made...");
 					_stream = _tcpClient.GetStream();
 					Logger.ToFile("Stream received...");
-					Logger.ToFile($"Connected after {retries} tries.");
+					Logger.ToFile($"Connected after {attempts} attempts.");
 					complete = true;
 				}
 				catch (IOException e)
@@ -276,7 +276,7 @@ namespace Happy_Apps_Core
 				}
 			}
 			if (_stream != null && _stream.CanRead) return;
-			Logger.ToFile($"Failed to connect after {retries} tries.");
+			Logger.ToFile($"Failed to connect after {attempts} attempts.");
 			_status = APIStatus.Error;
 		}
 

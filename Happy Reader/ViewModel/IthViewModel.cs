@@ -76,15 +76,14 @@ namespace Happy_Reader.ViewModel
 
 		public override void AddGameThread(GameTextThread gameTextThread)
 		{
+			if (_mainViewModel.UserGame == null) return;
 			gameTextThread.GameId = _mainViewModel.UserGame.Id;
 			StaticMethods.Data.GameThreads.Add(gameTextThread);
-			//can be overridden to save a new game text thread to persistent data storage
 		}
 
 		protected override void SaveGameTextThreads()
 		{
 			StaticMethods.Data.SaveChanges();
-			//can be overridden to save game text threads to persistant data storage
 		}
 	}
 }

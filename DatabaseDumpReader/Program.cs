@@ -10,7 +10,6 @@ namespace DatabaseDumpReader
 	public static class Program
 	{
 		private static readonly string DumpFolder = Path.Combine(StaticHelpers.AppDataFolder, "Database Dumps");
-		private static readonly int UserId = StaticHelpers.CSettings.UserID;
 		private const string LatestDbDumpUrl = "https://dl.vndb.org/dump/vndb-db-latest.tar.zst";
 		private const string LatestVoteDumpUrl = "https://dl.vndb.org/dump/vndb-votes-latest.gz";
 		private const int UpToDateDays = 1;
@@ -25,12 +24,13 @@ namespace DatabaseDumpReader
 		/// <returns></returns>
 		private static int Main(string[] args)
 		{
-			if (args.Length > 1) throw new ArgumentException("Must pass 1 argument, Path to folder with DB Dump, or no arguments, to use default path.");
-			var dumpFolder = args.Length > 0 ? args[0] : DumpFolder;
-			var userId = args.Length > 1 ? Convert.ToInt32(args[1]) : UserId;
 			try
 			{
-				return (int)Run(dumpFolder, userId);
+				if (args.Length != 1) throw new ArgumentException("Must pass 1 argument: Path to Settings file.");
+				var dumpFolder = args.Length > 0 ? args[0] : DumpFolder;
+				var cSettings = args[1];
+				StaticHelpers.CSettings = SettingsJsonFile.Load<SettingsViewModel>(cSettings).CoreSettings;
+				return (int)Run(dumpFolder, StaticHelpers.CSettings.UserID);
 			}
 			catch (Exception ex)
 			{

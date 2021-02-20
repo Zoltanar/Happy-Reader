@@ -14,7 +14,8 @@ namespace Happy_Reader.View
 
 		// ReSharper disable once NotAccessedField.Local
 		private FiltersViewModelBase ViewModel => (FiltersViewModelBase)DataContext;
-
+		private AutoCompleteBox _traitOrTagControl;
+		
 		public FiltersPane()
 		{
 			InitializeComponent();
@@ -48,8 +49,8 @@ namespace Happy_Reader.View
 		private void FilterTypeChanged(object sender, SelectionChangedEventArgs e)
 		{
 			if (ViewModel.SelectedFilterIndex < 0) return;
-			var value = (Enum)ViewModel.FilterTypes[ViewModel.SelectedFilterIndex].Tag;
 			FilterValuesGrid.Children.Clear();
+			var value = (Enum)ViewModel.FilterTypes[ViewModel.SelectedFilterIndex].Tag;
 			var type = value.GetConvertType();
 			if (type == null) return;
 			FrameworkElement control;
@@ -62,7 +63,6 @@ namespace Happy_Reader.View
 					ItemsSource = StaticMethods.GetEnumValues(type), 
 					SelectedIndex = 0,
 					SelectedValuePath = nameof(Tag)
-
 				};
 				bindingProperty = Selector.SelectedValueProperty;
 			}
@@ -80,10 +80,53 @@ namespace Happy_Reader.View
 					bindingProperty = TextBox.TextProperty;
 					control.PreviewTextInput += NumberValidationTextBox;
 				}
+				else if (type == typeof(DumpFiles.WrittenTag))
+				{
+					_traitOrTagControl = new AutoCompleteBox() { ItemFilter = TraitOrTagBoxFilter, ItemsSource = DumpFiles.GetAllTags() };
+					control = _traitOrTagControl;
+					bindingProperty = AutoCompleteBox.SelectedItemProperty;
+				}
+				else if (type == typeof(DumpFiles.WrittenTrait))
+				{
+					_traitOrTagControl = new AutoCompleteBox()
+					{
+						ItemFilter = TraitOrTagBoxFilter,
+						HorizontalAlignment = HorizontalAlignment.Stretch,
+						Margin = new Thickness(130 + 5, 2, 2, 2),
+					};
+					var rootControl = new ComboBox
+					{
+						ItemsSource = StaticMethods.GetEnumValues(typeof(DumpFiles.RootTrait)),
+						SelectedIndex = 0,
+						SelectedValuePath = nameof(Tag),
+						HorizontalAlignment = HorizontalAlignment.Left,
+						Width = 130,
+					};
+
+					rootControl.SelectionChanged += RootControl_SelectionChanged;
+					FilterValuesGrid.Children.Add(rootControl);
+					control = _traitOrTagControl;
+					bindingProperty = AutoCompleteBox.SelectedItemProperty;
+				}
 				else control = new TextBlock(new System.Windows.Documents.Run(type.ToString()));
 			}
 			if(bindingProperty != null) control.SetBinding(bindingProperty, valueBinding);
 			FilterValuesGrid.Children.Add(control);
+		}
+		
+		private void RootControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		{
+			if (e.AddedItems.Count == 0) return;
+			var selectedTraitRoot = (DumpFiles.RootTrait)((ComboBoxItem)e.AddedItems[0]).Tag;
+			_traitOrTagControl.ItemsSource = DumpFiles.GetTraitsForRoot(selectedTraitRoot);
+		}
+		
+		private bool TraitOrTagBoxFilter(string input, object item)
+		{
+			//Short input is not filtered to prevent excessive loading times
+			if (input.Length <= 2) return false;
+			var trait = (DumpFiles.ItemWithParents)item;
+			return trait.Name.ToLowerInvariant().Contains(input.ToLowerInvariant());
 		}
 
 		private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)

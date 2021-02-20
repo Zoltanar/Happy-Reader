@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
+using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 
 namespace Happy_Reader
@@ -27,9 +28,9 @@ namespace Happy_Reader
 		Language = 8,
 		[Description("Original Language"), TypeConverter(typeof(string))]
 		OriginalLanguage = 9,
-		[TypeConverter(typeof(int))]
+		[TypeConverter(typeof(DumpFiles.WrittenTag))]
 		Tags = 10,
-		[TypeConverter(typeof(int))]
+		[TypeConverter(typeof(DumpFiles.WrittenTrait))]
 		Traits = 11,
 		[Description("Has Full Date"), TypeConverter(typeof(bool))]
 		HasFullDate = 12,

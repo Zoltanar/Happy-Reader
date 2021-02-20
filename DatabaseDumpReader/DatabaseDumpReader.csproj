@@ -105,6 +105,7 @@
     <Compile Include="DumpItems\ProducerRelease.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SettingsViewModel.cs" />
     <Compile Include="UserLabel.cs" />
     <Compile Include="UserVn.cs" />
     <Compile Include="UserVnLabel.cs" />
