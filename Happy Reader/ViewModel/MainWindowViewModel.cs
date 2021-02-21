@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -136,6 +136,8 @@ namespace Happy_Reader.ViewModel
 			ProducersViewModel = new ProducersTabViewModel(this);
 			IthViewModel = new IthViewModel(this);
 			OutputWindow = new OutputWindow();
+			UserGame.MoveOutputWindow = r => OutputWindow.MoveByDifference(r);
+			OutputWindow.InitialiseWindowForGame = InitialiseOutputWindowForGame;
 			Log.AddToList += AddLogToList;
 		}
 
@@ -459,8 +461,6 @@ namespace Happy_Reader.ViewModel
 					}
 					UserGame.SetActiveProcess(process, HookedProcessOnExited);
 					TestViewModel.Game = UserGame.VN;
-					UserGame.MoveOutputWindow = r => OutputWindow.MoveByDifference(r);
-					OutputWindow.SetLocation(UserGame.OutputRectangle);
 					if (!UserGame.HookProcess) return;
 					if (SettingsViewModel.GuiSettings.HookGlobalMouse) _globalHook = WinAPI.HookMouseEvents(GlobalMouseClick);
 					while (!_loadingComplete) Thread.Sleep(25);
@@ -477,6 +477,24 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 
+		private void InitialiseOutputWindowForGame()
+		{
+
+			if (OutputWindow.InitialisedWindowLocation) return;
+			UserGame.Process.Refresh();
+			var success = NativeMethods.GetWindowRect(UserGame.Process.MainWindowHandle, out var windowLocation);
+			if(!success) OutputWindow.SetLocation(StaticMethods.OutputWindowStartPosition);
+			else
+			{
+				var outputWindowLocation = new Rectangle(
+					new System.Drawing.Point(windowLocation.Left + UserGame.OutputRectangle.X,
+						windowLocation.Top + UserGame.OutputRectangle.Y),
+					UserGame.OutputRectangle.Size);
+				OutputWindow.SetLocation(outputWindowLocation);
+			}
+			OutputWindow.InitialisedWindowLocation = true;
+		}
+
 		private void SetIthUserGameParameters()
 		{
 			IthViewModel.MergeByHookCode = UserGame.MergeByHookCode;
@@ -488,7 +506,21 @@ namespace Happy_Reader.ViewModel
 
 		private void HookedProcessOnExited(object sender, EventArgs eventArgs)
 		{
-			UserGame.OutputRectangle = OutputWindow.GetRectangle();
+			if (Application.Current == null) return;
+			OutputWindow.InitialisedWindowLocation = false;
+			if(UserGame == null || UserGame.WindowLocation.IsEmpty) { }
+			else
+			{
+				Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
+				Application.Current.Dispatcher.Invoke(() =>
+				{
+					var outputRectangle = OutputWindow.GetRectangle();
+					var newRect = new Rectangle(
+						new System.Drawing.Point(outputRectangle.X - UserGame.WindowLocation.Left, outputRectangle.Y - UserGame.WindowLocation.Top),
+							outputRectangle.Size);
+					UserGame.OutputRectangle = newRect;
+				});
+			}
 			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			Application.Current.Dispatcher.Invoke(() => OutputWindow.Hide());
 			_globalHook?.Dispose();

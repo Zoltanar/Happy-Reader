@@ -201,7 +201,10 @@ namespace Happy_Reader.Database
 		}
 
 		[NotMapped]
-		public Action<NativeMethods.RECT> MoveOutputWindow { get; set; }
+		public NativeMethods.RECT WindowLocation { get; set; }
+
+		[NotMapped]
+		public static Action<NativeMethods.RECT> MoveOutputWindow { get; set; }
 		
 		public void SaveTimePlayed(bool notify)
 		{
@@ -298,6 +301,8 @@ namespace Happy_Reader.Database
 			Process = process;
 			Process.EnableRaisingEvents = true;
 			_windowHook = new WinAPI.WindowHook(process);
+			var success = NativeMethods.GetWindowRect(_process.MainWindowHandle, out var location);
+			if (success) WindowLocation = location;
 			_windowHook.OnWindowMinimizeStart += WindowIsMinimised;
 			_windowHook.OnWindowMinimizeEnd += WindowsIsRestored;
 			_windowHook.OnWindowMoveSizeStart += WindowMoveStarts;
@@ -318,13 +323,16 @@ namespace Happy_Reader.Database
 			if (MoveOutputWindow == null) return;
 			var success = NativeMethods.GetWindowRect(windowPointer, out var newLocation);
 			if (!success || !_locationOnMoveStart.HasValue) return;
+			WindowLocation = newLocation;
 			var diff = newLocation - _locationOnMoveStart.Value;
 			MoveOutputWindow?.Invoke(diff);
 			_locationOnMoveStart = null;
 		}
-
+		
 		private void WindowsIsRestored(IntPtr windowPointer)
 		{
+			var success = NativeMethods.GetWindowRect(windowPointer, out var location);
+			if (success) WindowLocation = location;
 			Logger.ToDebug($"Restored {DisplayName}, starting running time at {_runningTime.Elapsed}");
 			_runningTime.Start();
 			OnPropertyChanged(nameof(RunningStatus));

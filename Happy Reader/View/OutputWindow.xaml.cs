@@ -50,8 +50,13 @@ namespace Happy_Reader.View
 			}
 		}
 
+		public bool InitialisedWindowLocation { get; set; }
+
+		public Action InitialiseWindowForGame { get; set; }
+
 		public void AddTranslation(Translation translation)
 		{
+			if (!InitialisedWindowLocation) InitialiseWindowForGame?.Invoke();
 			if (!IsVisible) Show();
 			_viewModel.AddTranslation(translation);
 			_viewModel.UpdateOutput();
