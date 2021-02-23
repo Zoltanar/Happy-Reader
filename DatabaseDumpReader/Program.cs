@@ -27,8 +27,8 @@ namespace DatabaseDumpReader
 			try
 			{
 				if (args.Length != 1) throw new ArgumentException("Must pass 1 argument: Path to Settings file.");
-				var dumpFolder = args.Length > 0 ? args[0] : DumpFolder;
-				var cSettings = args[1];
+				var dumpFolder = DumpFolder;
+				var cSettings = args[0];
 				StaticHelpers.CSettings = SettingsJsonFile.Load<SettingsViewModel>(cSettings).CoreSettings;
 				return (int)Run(dumpFolder, StaticHelpers.CSettings.UserID);
 			}
