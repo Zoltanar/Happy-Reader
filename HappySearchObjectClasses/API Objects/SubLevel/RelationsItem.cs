@@ -10,7 +10,7 @@ namespace Happy_Apps_Core
 		public string Original { get; set; }
 		public bool Official { get; set; }
 
-		public static readonly Dictionary<string, string> RelationDict = new Dictionary<string, string>
+		public static readonly Dictionary<string, string> RelationDict = new()
 		{
 			{"seq", "Sequel"},
 			{"preq", "Prequel"},
@@ -24,7 +24,7 @@ namespace Happy_Apps_Core
 			{"orig", "Original Game"}
 		};
 
-		public static readonly Dictionary<string, string> Relation2Dict = new Dictionary<string, string>
+		public static readonly Dictionary<string, string> Relation2Dict = new()
 		{
 			{"seq", "Prequel/Sequel"},
 			{"preq", "Prequel/Sequel"},

@@ -406,11 +406,7 @@ namespace Happy_Reader.ViewModel
 				if ((sender as TextThread)?.IsConsole ?? false) return false;
 				TestViewModel.OriginalText = e.Text;
 				var translation = Translator.Translate(User, UserGame?.VN, e.Text, false, UserGame?.RemoveRepetition ?? false);
-				if (string.IsNullOrWhiteSpace(translation?.Output))
-				{
-					//todo report error
-					return false;
-				}
+				if (string.IsNullOrWhiteSpace(translation?.Output)) return false;
 				StaticMethods.DispatchIfRequired(() => OutputWindow.AddTranslation(translation), new TimeSpan(0, 0, 5));
 			}
 			catch (Exception ex)
@@ -483,7 +479,7 @@ namespace Happy_Reader.ViewModel
 			if (OutputWindow.InitialisedWindowLocation) return;
 			UserGame.Process.Refresh();
 			var success = NativeMethods.GetWindowRect(UserGame.Process.MainWindowHandle, out var windowLocation);
-			if(!success) OutputWindow.SetLocation(StaticMethods.OutputWindowStartPosition);
+			if (!success) OutputWindow.SetLocation(StaticMethods.OutputWindowStartPosition);
 			else
 			{
 				var outputWindowLocation = new Rectangle(
@@ -508,7 +504,7 @@ namespace Happy_Reader.ViewModel
 		{
 			if (Application.Current == null) return;
 			OutputWindow.InitialisedWindowLocation = false;
-			if(UserGame == null || UserGame.WindowLocation.IsEmpty) { }
+			if (UserGame == null || UserGame.WindowLocation.IsEmpty) { }
 			else
 			{
 				Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
@@ -529,7 +525,7 @@ namespace Happy_Reader.ViewModel
 			if (_finalizing || _monitor != null && _monitor.IsAlive) return;
 			_monitor = GetAndStartMonitorThread();
 		}
-		
+
 		public void RefreshActiveObjectImages()
 		{
 			foreach (var tile in UserGamesViewModel.UserGameItems)

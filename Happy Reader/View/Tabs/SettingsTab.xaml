@@ -93,9 +93,9 @@
 						<ColumnDefinition Width="53"/>
 						<ColumnDefinition Width="53"/>
 					</Grid.ColumnDefinitions>
-					<Label Grid.Column="0" Content="Max Clipboard Capture Size:"/>
-					<Slider Grid.Column="1" Name="ClipboardSizeSlider" Value="{Binding MaxClipboardSize, Mode=OneWay}" Minimum="0" Maximum="1000" Foreground="White" IsSnapToTickEnabled="True" Thumb.DragCompleted="SetClipboardSize"/>
-					<TextBox Grid.Column="2" Text="{Binding ElementName=ClipboardSizeSlider, Path=Value}" Foreground="White" Style="{StaticResource NoBorderTextBox}"/>
+					<Label Grid.Column="0" Content="Max Input Capture Size:"/>
+					<Slider Grid.Column="1" Name="MaxInputSizeSlider" Value="{Binding MaxOutputSize, Mode=OneWay}" Minimum="0" Maximum="1000" Foreground="White" IsSnapToTickEnabled="True" Thumb.DragCompleted="SetMaxInputSize"/>
+					<TextBox Grid.Column="2" Text="{Binding ElementName=MaxInputSizeSlider, Path=Value}" Foreground="White" Style="{StaticResource NoBorderTextBox}"/>
 				</Grid>
 				<view:LabeledTextBox LabelWidth="120" Label="Original Text Font:" Text="{Binding OriginalTextFont}"/>
 				<view:LabeledTextBox LabelWidth="120" Label="Romaji Text Font:" Text="{Binding RomajiTextFont}"/>

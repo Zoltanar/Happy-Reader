@@ -65,13 +65,14 @@ namespace Happy_Reader.View
 		{
 			if (!(ProcessGrid.SelectedItem is ProcessInfo item)) return; //todo return error
 			uint pid = (uint)item.Id;
-			var result = _ithViewModel.VnrProxy.Host_InjectByPID(pid);
+			var result = _ithViewModel.VnrProxy.Host_InjectByPID(pid, out var errorMessage);
 			if (result)
 			{
 				var result2 = _ithViewModel.VnrProxy.Host_HijackProcess(pid);
-				if (!result2) { }
+				if (!result2) _ithViewModel.HookManager.ConsoleOutput("Failed to hijack process.", true);
 				//RefreshThreadWithPID(pid, true);
 			}
+			else _ithViewModel.HookManager.ConsoleOutput($"Failed to inject process: {errorMessage}", true);
 			Close();
 		}
 

@@ -17,11 +17,11 @@ namespace Happy_Reader.ViewModel
 		private bool _originalOn;
 		private bool _romajiOn = true;
 		private int _translationCounter;
-		private DateTime _lastTranslated;
+		private DateTime _lastOutputTime;
 		private Func<string> _getSelectedText;
 		private FlowDocument _flowDocument;
 		private readonly RecentItemList<Translation> _translations = new(10);
-		
+
 		public string IdText { get; set; }
 		public bool TranslatePaused
 		{
@@ -60,7 +60,7 @@ namespace Happy_Reader.ViewModel
 
 		private void AskJisho()
 		{
-			var input =  _getSelectedText();
+			var input = _getSelectedText();
 			Process.Start($"http://jisho.org/search/{input}");
 		}
 
@@ -96,11 +96,11 @@ namespace Happy_Reader.ViewModel
 			};
 			StaticMethods.MainWindow.CreateAddEntriesTab(new List<Entry> { entry });
 		}
-		
+
 		public void UpdateOutput()
 		{
 			_flowDocument.Blocks.Clear();
-			_flowDocument.Blocks.AddRange(_translations.Items.SelectMany(x => x.GetBlocks(_originalOn, _romajiOn)));
+			_flowDocument.Blocks.AddRange(_translations.Items.SelectMany(t => t.GetBlocks(_originalOn, _romajiOn)));
 			IdText = $"TL Count: {_translationCounter}";
 			OnPropertyChanged(nameof(IdText));
 		}
@@ -108,11 +108,21 @@ namespace Happy_Reader.ViewModel
 		public void AddTranslation(Translation translation)
 		{
 			var last = _translations.Items.Count == 0 ? null : _translations.Items[0];
+			//remove error messages.
+			if (last?.IsError ?? false) _translations.Items.Remove(last);
+			if (translation.IsError)
+			{
+				translation.SetParagraphs();
+				_translations.Add(translation);
+				_lastOutputTime = DateTime.UtcNow;
+				_translationCounter++;
+				return;
+			}
 			var combine = false;
 			if (DisableCombine) DisableCombine = false;
 			else
 			{
-				var timeSinceLast = (DateTime.UtcNow - _lastTranslated).TotalMilliseconds;
+				var timeSinceLast = (DateTime.UtcNow - _lastOutputTime).TotalMilliseconds;
 				if (last != null && (
 					(timeSinceLast < 1000 && last.IsCharacterOnly && !translation.IsCharacterOnly)
 					|| timeSinceLast < 100)) combine = true;
@@ -131,7 +141,7 @@ namespace Happy_Reader.ViewModel
 					_translations.Add(translation);
 				}
 			}
-			_lastTranslated = DateTime.UtcNow;
+			_lastOutputTime = DateTime.UtcNow;
 			_translationCounter++;
 		}
 

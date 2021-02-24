@@ -24,6 +24,8 @@ namespace Happy_Reader
 		public Paragraph OriginalBlock { get; private set; }
 		public Paragraph RomajiBlock { get; private set; }
 		public Paragraph TranslatedBlock { get; private set; }
+		public Paragraph ErrorBlock { get; private set; }
+		public bool IsError { get; private set; }
 
 		public Translation(string original, bool translate)
 		{
@@ -103,6 +105,14 @@ namespace Happy_Reader
 		
 		public void SetParagraphs()
 		{
+			if (IsError)
+			{
+				var errorP = new Paragraph(new Run(Original));
+				errorP.Inlines.FirstInline.Foreground = StaticMethods.Settings.TranslatorSettings.ErrorColor;
+				SetFont(errorP, StaticMethods.Settings.TranslatorSettings.TranslatedTextFont);
+				ErrorBlock = errorP;
+				return;
+			}
 			var originalP = new Paragraph(new Run(Original));
 			originalP.Inlines.FirstInline.Foreground = StaticMethods.Settings.TranslatorSettings.OriginalColor;
 			SetFont(originalP, StaticMethods.Settings.TranslatorSettings.OriginalTextFont);
@@ -133,7 +143,8 @@ namespace Happy_Reader
 		public List<Paragraph> GetBlocks(bool original, bool romaji)
 		{
 			var blocks = new List<Paragraph>();
-			if (original) blocks.Add(OriginalBlock);
+			if(IsError) blocks.Add(ErrorBlock);
+			if (original && OriginalBlock != null) blocks.Add(OriginalBlock);
 			if (romaji && RomajiBlock != null) blocks.Add(RomajiBlock);
 			if (TranslatedBlock != null) blocks.Add(TranslatedBlock);
 			foreach (Paragraph block in blocks)
@@ -151,6 +162,12 @@ namespace Happy_Reader
 			blocks.Add(spacer);
 			return blocks;
 		}
+
+		public static Translation Error(string message)
+		{
+			return new(message, false) { IsError = true };
+		}
+
 	}
 }
 

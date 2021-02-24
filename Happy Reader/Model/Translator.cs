@@ -16,14 +16,14 @@ namespace Happy_Reader
 	{
 		//TODO add regex to all stages
 
-		private static readonly object TranslateLock = new object();
+		private static readonly object TranslateLock = new();
 		private static readonly char[] Separators = "『「」』…".ToCharArray();
 		private static readonly char[] InclusiveSeparators = "。？".ToCharArray();
 		private static readonly char[] AllSeparators = Separators.Concat(InclusiveSeparators).ToArray();
 		private static readonly Regex LatinOnlyRegex = new(@"^[a-zA-Z0-9:\/\\\r\n .!?,;@()_$^""]+$");
-		private static readonly Regex Stage4P1InputRegex = new (@"\[\[(.+?)]]");
-		private static readonly Regex Stage4P1OutputRegex = new (@"^.*?\[\[(.+)]].*?$");
-		private static readonly Dictionary<string, Regex> RegexDict = new ();
+		private static readonly Regex Stage4P1InputRegex = new(@"\[\[(.+?)]]");
+		private static readonly Regex Stage4P1OutputRegex = new(@"^.*?\[\[(.+)]].*?$");
+		private static readonly Dictionary<string, Regex> RegexDict = new();
 
 		private readonly HappyReaderDatabase _data;
 		private User _lastUser;
@@ -56,22 +56,27 @@ namespace Happy_Reader
 				int loopCount = 0;
 				while (true)
 				{
-					if(loopCount > 1000) throw new ArgumentException($"Loop executed {loopCount} times, likely to be stuck.");
+					if (loopCount > 1000) throw new ArgumentException($"Loop executed {loopCount} times, likely to be stuck.");
 					var before = input;
 					input = ReduceRepeatedString(before);
 					if (input == before) break;
 					loopCount++;
 				}
 			}
-			input = input.Replace("\r", "");
-			if (string.IsNullOrWhiteSpace(input)) return new Translation(input, false);
-			if (input.Length > StaticMethods.Settings.TranslatorSettings.MaxClipboardSize) return null; //todo report error
 			input = input.Replace("\r\n", "");
-			if (string.IsNullOrWhiteSpace(input)) return new Translation(input, false);
+			input = input.Replace("\r", "");
+			if (string.IsNullOrWhiteSpace(input))
+			{
+				return Translation.Error("Input was empty.");
+			}
+			if (input.Length > StaticMethods.Settings.TranslatorSettings.MaxOutputSize)
+			{
+				return Translation.Error($"Exceeded maximum output size ({input.Length}/{StaticMethods.Settings.TranslatorSettings.MaxOutputSize})");
+			}
 			lock (TranslateLock)
 			{
 				if (user != _lastUser || game != _lastGame || RefreshEntries) SetEntries(user, game);
-				if (LatinOnlyRegex.IsMatch(input)) return new Translation(input, false);
+				if (LatinOnlyRegex.IsMatch(input)) return Translation.Error("Input was Latin only.");
 				var item = new Translation(input, true);
 				SplitInputIntoParts(item);
 				item.TranslateParts(saveEntriesUsed);
@@ -364,7 +369,7 @@ namespace Happy_Reader
 			var proxy = proxies[entry.RoleString].Proxies.Count == 0 ? null : proxies[entry.RoleString].Proxies.Dequeue();
 			if (proxy == null)
 			{
-				if(proxyParts.Any()) proxy = proxies[mainProxy].Proxies.Count == 0 ? null : proxies[mainProxy].Proxies.Dequeue();
+				if (proxyParts.Any()) proxy = proxies[mainProxy].Proxies.Count == 0 ? null : proxies[mainProxy].Proxies.Dequeue();
 			}
 			proxies[mainProxy].Count++;
 			if (proxy == null)
@@ -404,7 +409,7 @@ namespace Happy_Reader
 					matchFound = true;
 				}
 				//something could have gone wrong causing infinite loop
-				if (loopCount > 100) break; 
+				if (loopCount > 100) break;
 			}
 			while (matchFound);
 			StaticHelpers.Logger.Verbose($"Stage 4.1: {sb}");

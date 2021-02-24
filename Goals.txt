@@ -3,7 +3,6 @@
 0 - allow changing direction of text in output window (down to up) and horizontal alignment
 0 - setting to switch between vote scores of 10-100 and 1-10.
 0 - databasedumpreader: auto clear previous dumps 
-0 - see vnid 26052 shows relations twice.
 1 - save tabs open
 0 - warn if an instance is already running (maybe show database file for opening instance)
 0 - launch title from VN context menu
@@ -13,7 +12,6 @@
 0 - usergames: search by text
 0 - CachedTranslations: keep track of how often something is translated and remove from cache if not used recently or originally cached too long ago.
 0 - show written tag description on tooltip
-0 - translation: report max text length error output window
 
 
 look at global hooks for managing infinite text, etc (https://github.com/gmamaladze/globalmousekeyhook)

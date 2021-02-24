@@ -14,9 +14,9 @@ namespace Happy_Reader.View.Tabs
 
 		public SettingsTab() => InitializeComponent();
 		
-		private void SetClipboardSize(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
+		private void SetMaxInputSize(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
 		{
-			ViewModel.TranslatorSettings.MaxClipboardSize = (int)((Slider)e.Source).Value;
+			ViewModel.TranslatorSettings.MaxOutputSize = (int)((Slider)e.Source).Value;
 		}
 
 		private void PasswordChanged(object sender, KeyEventArgs e)

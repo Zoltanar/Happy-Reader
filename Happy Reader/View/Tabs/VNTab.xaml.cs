@@ -105,7 +105,7 @@ namespace Happy_Reader.View.Tabs
 				var elementList = new List<object> { titleString, "--------------" };
 				foreach (var relation in allRelations.OrderBy(c => c.ID))
 				{
-					var tb = new TextBlock { Text = relation.Print2(), Tag = relation };
+					var tb = new TextBlock { Text = relation.Print(), Tag = relation };
 					elementList.Add(tb);
 				}
 				RelationsCombobox.ItemsSource = elementList;
