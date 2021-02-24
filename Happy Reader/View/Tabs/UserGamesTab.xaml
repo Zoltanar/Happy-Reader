@@ -58,6 +58,7 @@
 		<Grid Margin="10,10,10,2" Height="23" VerticalAlignment="Bottom">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
 				<ColumnDefinition Width="*"/>
 				<ColumnDefinition Width="Auto"/>
 				<ColumnDefinition Width="Auto" MinWidth="100"/>
@@ -74,8 +75,9 @@
 				<ComboBoxItem Content="By VN Label"  Selected="GroupByVnLabel" />
 				<ComboBoxItem Content="By My VN Score"  Selected="GroupByVnScore" />
 			</ComboBox>
-			<CheckBox Margin="2" Grid.Column="2" Content="Show File Not Found" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Checked="ToggleButton_OnChecked" Unchecked="ToggleButton_OnChecked" />
-			<TextBlock Margin="2,2,0,2" Grid.Column="3" Text="{Binding UserGameItems.Count, StringFormat={}{0} Items.}" Background="Aquamarine" TextAlignment="Center" />
+			<TextBox x:Name="SearchTextBox" TextChanged="SearchTextBox_OnTextChanged" Margin="2" Grid.Column="2" TextAlignment="Left" />
+			<CheckBox Margin="2" Grid.Column="3" Content="Show File Not Found" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Checked="ToggleButton_OnChecked" Unchecked="ToggleButton_OnChecked" />
+			<TextBlock Margin="2,2,0,2" Grid.Column="4" Text="{Binding UserGameItems.Count, StringFormat={}{0} Items.}" Background="Aquamarine" TextAlignment="Center" />
 		</Grid>
 	</Grid>
 </UserControl>

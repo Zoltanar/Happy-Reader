@@ -22,7 +22,7 @@ namespace Happy_Reader.View.Tabs
 	{
 		private readonly DispatcherTimer _scrollLabelTimer;
 
-		private UserGamesViewModel ViewModel => (UserGamesViewModel)DataContext; 
+		private UserGamesViewModel ViewModel => (UserGamesViewModel)DataContext;
 
 		public UserGamesTab()
 		{
@@ -247,9 +247,26 @@ namespace Happy_Reader.View.Tabs
 
 		private async void ToggleButton_OnChecked(object sender, RoutedEventArgs e)
 		{
-			var tb = (ToggleButton) sender;
+			var tb = (ToggleButton)sender;
 			var state = tb.IsChecked ?? false;
 			await ViewModel.LoadUserGames(state);
+		}
+
+		private bool FilterUserGames(object obj)
+		{
+			if (SearchTextBox.Text.Length < 3) return true;
+			var searchTerm = SearchTextBox.Text.ToLowerInvariant();
+			var userGame = ((UserGameTile)obj).UserGame;
+			return (userGame.DisplayName.ToLowerInvariant().Contains(searchTerm)) ||
+						 (userGame.VN != null && VisualNovelDatabase.SearchForVN(searchTerm)(userGame.VN)) ||
+						 (userGame.VN?.Producer?.Name.ToLowerInvariant().Contains(searchTerm) ?? false);
+		}
+
+		private void SearchTextBox_OnTextChanged(object sender, TextChangedEventArgs e)
+		{
+			var view = CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
+			if (SearchTextBox.Text.Length < 3 && view.Filter != null) view.Filter = null;
+			else if (SearchTextBox.Text.Length >= 3) view.Filter = FilterUserGames;
 		}
 	}
 }

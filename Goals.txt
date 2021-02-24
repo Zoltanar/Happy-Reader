@@ -9,7 +9,6 @@
 0 - user stats tab: approx time played
 0 - display date of database update
 0 - store custom filter in named function (instead of the custom filter's function), so that the named function can be reset after modifying the custom filter.
-0 - usergames: search by text
 0 - CachedTranslations: keep track of how often something is translated and remove from cache if not used recently or originally cached too long ago.
 0 - show written tag description on tooltip
 
