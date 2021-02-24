@@ -112,7 +112,7 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged(nameof(DisplayGame));
 			}
 		}
-
+		
 		public ClipboardManager ClipboardManager;
 
 		public MainWindowViewModel()
@@ -121,6 +121,7 @@ namespace Happy_Reader.ViewModel
 			SettingsViewModel = Happy_Apps_Core.SettingsJsonFile.Load<SettingsViewModel>(StaticMethods.AllSettingsJson);
 			StaticMethods.Settings = SettingsViewModel;
 			CSettings = SettingsViewModel.CoreSettings;
+			SettingsViewModel.TranslatorSettings.CaptureClipboardChanged = CaptureClipboardSettingChanged;
 			ApiLogViewModel = new ApiLogViewModel
 			{
 				VndbQueries = _vndbQueriesList.Items,
@@ -139,6 +140,13 @@ namespace Happy_Reader.ViewModel
 			UserGame.MoveOutputWindow = r => OutputWindow.MoveByDifference(r);
 			OutputWindow.InitialiseWindowForGame = InitialiseOutputWindowForGame;
 			Log.AddToList += AddLogToList;
+		}
+
+		public void CaptureClipboardSettingChanged(bool enabled)
+		{
+			if (ClipboardManager == null) return;
+			if (enabled) ClipboardManager.ClipboardChanged += ClipboardChanged;
+			else ClipboardManager.ClipboardChanged -= ClipboardChanged;
 		}
 
 		private void AddLogToList(Log log)

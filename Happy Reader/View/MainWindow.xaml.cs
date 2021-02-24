@@ -60,6 +60,7 @@ namespace Happy_Reader.View
 			if (DesignerProperties.GetIsInDesignMode(this)) return;
 			Stopwatch watch = Stopwatch.StartNew();
 			ViewModel.ClipboardManager = new ClipboardManager(this);
+			ViewModel.CaptureClipboardSettingChanged(ViewModel.SettingsViewModel.TranslatorSettings.CaptureClipboard);
 			var commandLineArgs = Environment.GetCommandLineArgs();
 			var noEntries = commandLineArgs.Contains("-ne");
 			var noTranslation = commandLineArgs.Contains("-nt");

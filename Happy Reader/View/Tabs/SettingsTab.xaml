@@ -85,12 +85,11 @@
 		</GroupBox>
 		<GroupBox Header="Translation Settings" Grid.Row="3" DataContext="{Binding TranslatorSettings}">
 			<StackPanel>
-				<CheckBox Content="Start Capturing Clipboard From Launch" IsChecked="{Binding CaptureClipboardOnStart}"/>
+				<CheckBox Content="Capture Clipboard" IsChecked="{Binding CaptureClipboard}"/>
 				<Grid>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="160"/>
 						<ColumnDefinition/>
-						<ColumnDefinition Width="53"/>
 						<ColumnDefinition Width="53"/>
 					</Grid.ColumnDefinitions>
 					<Label Grid.Column="0" Content="Max Input Capture Size:"/>

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
@@ -8,9 +9,12 @@ namespace Happy_Apps_Core
 {
 	public abstract class SettingsJsonFile : INotifyPropertyChanged
 	{
-		protected bool Loaded { get; private set; }
+		public virtual bool Loaded { get; set; }
 
-		private string FilePath { get; set; }
+		public virtual string FilePath { get; set; }
+
+		[JsonIgnore]
+		public object ObjectToSerialise { get; set; }
 
 		public static T Load<T>(string jsonPath) where T : SettingsJsonFile, new()
 		{
@@ -47,7 +51,7 @@ namespace Happy_Apps_Core
 			StaticHelpers.Logger.ToDebug($"Saving file ({source})...: {FilePath}");
 			try
 			{
-				File.WriteAllText(FilePath, JsonConvert.SerializeObject(this, Formatting.Indented));
+				File.WriteAllText(FilePath, JsonConvert.SerializeObject(ObjectToSerialise ?? this, Formatting.Indented));
 			}
 			catch (JsonException exception)
 			{

@@ -15,26 +15,11 @@ namespace Happy_Reader.ViewModel
 {
 	public class UserGamesViewModel : INotifyPropertyChanged
 	{
-		private bool _captureClipboard;
-
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		public readonly MainWindowViewModel MainViewModel;
 
 		public ObservableCollection<UserGameTile> UserGameItems { get; } = new();
-
-		public bool CaptureClipboard
-		{
-			get => _captureClipboard;
-			set
-			{
-				if (MainViewModel.ClipboardManager == null) return;
-				if (value) MainViewModel.ClipboardManager.ClipboardChanged += MainViewModel.ClipboardChanged;
-				else MainViewModel.ClipboardManager.ClipboardChanged -= MainViewModel.ClipboardChanged;
-				_captureClipboard = value;
-				OnPropertyChanged();
-			}
-		}
 		
 		public UserGamesViewModel(MainWindowViewModel mainViewModel)
 		{
@@ -43,7 +28,6 @@ namespace Happy_Reader.ViewModel
 
 		public async Task Initialize()
 		{
-			CaptureClipboard = MainViewModel.SettingsViewModel.TranslatorSettings.CaptureClipboardOnStart;
 			MainViewModel.StatusText = "Loading User Games...";
 			await Task.Yield();
 			await LoadUserGames(false);

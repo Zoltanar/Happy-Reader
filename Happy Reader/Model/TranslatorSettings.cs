@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Windows.Media;
 using Happy_Apps_Core;
 using Newtonsoft.Json;
@@ -8,15 +9,20 @@ namespace Happy_Reader
 	public class TranslatorSettings : SettingsJsonFile
 	{
 		private bool _googleUseCredential;
+		// ReSharper disable StringLiteralTypo
 		private string _googleCredentialPath = "C:\\Google\\hrtranslate-credential.json";
 		private string _freeUserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)";
+		// ReSharper restore StringLiteralTypo
 		private int _maxOutputSize = 700;
 		private double _fontSize = 22d;
-		private bool _captureClipboardOnStart;
+		private bool _captureClipboard;
 		private string _originalTextFont;
 		private string _romajiTextFont;
 		private string _translatedTextFont;
 		private bool _settingsViewState = true;
+
+		[JsonIgnore]
+		public Action<bool> CaptureClipboardChanged;
 
 		public bool GoogleUseCredential
 		{
@@ -41,6 +47,7 @@ namespace Happy_Reader
 			}
 		}
 
+		//todo make editable
 		public string FreeUserAgent
 		{
 			get => _freeUserAgent;
@@ -149,14 +156,18 @@ namespace Happy_Reader
 			}
 		}
 
-		public bool CaptureClipboardOnStart
+		public bool CaptureClipboard
 		{
-			get => _captureClipboardOnStart;
+			get => _captureClipboard;
 			set
 			{
-				if (_captureClipboardOnStart == value) return;
-				_captureClipboardOnStart = value;
-				if (Loaded) Save();
+				if (_captureClipboard == value) return;
+				_captureClipboard = value;
+				if (Loaded)
+				{
+					Save();
+					CaptureClipboardChanged?.Invoke(value);
+				}
 			}
 		}
 	}

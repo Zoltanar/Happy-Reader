@@ -60,7 +60,6 @@
 				<ColumnDefinition Width="Auto"/>
 				<ColumnDefinition Width="*"/>
 				<ColumnDefinition Width="Auto"/>
-				<ColumnDefinition Width="Auto"/>
 				<ColumnDefinition Width="Auto" MinWidth="100"/>
 			</Grid.ColumnDefinitions>
 			<Button Grid.Column="0" Content="Expand Groups" Click="ToggleExpandGroups" Margin="0,2,2,2"/>
@@ -76,8 +75,7 @@
 				<ComboBoxItem Content="By My VN Score"  Selected="GroupByVnScore" />
 			</ComboBox>
 			<CheckBox Margin="2" Grid.Column="2" Content="Show File Not Found" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Checked="ToggleButton_OnChecked" Unchecked="ToggleButton_OnChecked" />
-			<CheckBox Margin="2" Grid.Column="3" Content="Capture Clipboard" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"  IsChecked="{Binding CaptureClipboard}" />
-			<TextBlock Margin="2,2,0,2" Grid.Column="4" Text="{Binding UserGameItems.Count, StringFormat={}{0} Items.}" Background="Aquamarine" TextAlignment="Center" />
+			<TextBlock Margin="2,2,0,2" Grid.Column="3" Text="{Binding UserGameItems.Count, StringFormat={}{0} Items.}" Background="Aquamarine" TextAlignment="Center" />
 		</Grid>
 	</Grid>
 </UserControl>
