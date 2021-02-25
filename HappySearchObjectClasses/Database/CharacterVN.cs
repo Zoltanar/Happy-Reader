@@ -24,16 +24,16 @@ namespace Happy_Apps_Core.Database
 		public void SetDumpHeaders(string[] parts)
 		{
 			int colIndex = 0;
-			Headers = parts.ToDictionary(c => c, c => colIndex++);
+			Headers = parts.ToDictionary(c => c, _ => colIndex++);
 		}
 
 		public void LoadFromStringParts(string[] parts)
 		{
-			CharacterId = Convert.ToInt32(parts[0]);
-			VNId = Convert.ToInt32(parts[1]);
+			CharacterId = Convert.ToInt32(GetPart(parts, "id"));
+			VNId = Convert.ToInt32(GetPart(parts, "vid"));
 			RId = 0;//Convert.ToInt32(parts[2]); //todo ??
-			Spoiler = Convert.ToInt32(parts[3]);
-			Role = Convert.ToString(parts[4]);
+			Spoiler = Convert.ToInt32(GetPart(parts,"spoil"));
+			Role = Convert.ToString(GetPart(parts, "role"));
 		}
 
 		#region IDataItem Implementation

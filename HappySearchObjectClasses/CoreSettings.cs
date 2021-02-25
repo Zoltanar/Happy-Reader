@@ -8,6 +8,7 @@ namespace Happy_Apps_Core
 		private string _username = "guest";
 		private int _userID;
 		private DateTime _dumpfileDate = DateTime.MinValue;
+		private bool _clearOldDumpsAndBackups = true;
 
 		/// <summary>
 		/// Username of user.
@@ -22,7 +23,7 @@ namespace Happy_Apps_Core
 				if (Loaded) Save();
 			}
 		}
-		
+
 		/// <summary>
 		/// VNDB's UserID for user (found in the user's profile page).
 		/// </summary>
@@ -51,17 +52,28 @@ namespace Happy_Apps_Core
 			}
 		}
 
-		//todo make editable
-		public List<int> AlertTagIDs { get; } = new List<int>();
+		public bool ClearOldDumpsAndBackups
+		{
+			get => _clearOldDumpsAndBackups;
+			set
+			{
+				if (_clearOldDumpsAndBackups == value) return;
+				_clearOldDumpsAndBackups = value;
+				if (Loaded) Save();
+			}
+		}
 
 		//todo make editable
-		public List<int> AlertTraitIDs { get; } = new List<int>();
+		public List<int> AlertTagIDs { get; } = new();
 
 		//todo make editable
-		public List<double> AlertTagValues { get; } = new List<double>();
+		public List<int> AlertTraitIDs { get; } = new();
 
 		//todo make editable
-		public List<double> AlertTraitValues { get; } = new List<double>();
+		public List<double> AlertTagValues { get; } = new();
+
+		//todo make editable
+		public List<double> AlertTraitValues { get; } = new();
 
 		public Dictionary<DumpFiles.WrittenTag, double> GetTagScoreDictionary()
 		{

@@ -54,6 +54,7 @@
 					<Button Grid.Column="0" Content="Log In" Click="LogInWithDetails"/>
 					<TextBlock Grid.Column="1" Margin="5,0" x:Name="LoginResponseBlock" />
 				</Grid>
+				<CheckBox Content="Clear past data dumps and DB backups when updating" IsChecked="{Binding ClearOldDumpsAndBackups}"/>
 			</StackPanel>
 		</GroupBox>
 		<GroupBox Grid.Row="2" Header="Interface Settings" DataContext="{Binding GuiSettings}">
@@ -100,6 +101,8 @@
 				<view:LabeledTextBox LabelWidth="120" Label="Romaji Text Font:" Text="{Binding RomajiTextFont}"/>
 				<view:LabeledTextBox LabelWidth="120" Label="Translated Text Font:" Text="{Binding TranslatedTextFont}"/>
 				<view:LabeledTextBox LabelWidth="120" Label="Font Size:" Text="{Binding FontSize}"/>
+				<view:LabeledTextBox LabelWidth="120" Label="Google Credentials:" Text="{Binding GoogleCredentialPath}" ToolTip="Path to file with credentials for Google API"/>
+				<view:LabeledTextBox LabelWidth="120" Label="Free User Agent:" Text="{Binding FreeUserAgent}" ToolTip="User Agent string for sending Google API requests without credentials."/>
 				<Grid>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition/>

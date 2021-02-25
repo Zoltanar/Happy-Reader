@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Text;
 using Happy_Apps_Core;
 
@@ -21,7 +22,6 @@ namespace DatabaseDumpReader
 		/// -1 - Error
 		/// </summary>
 		/// <param name="args">Must pass 1 argument, Path to folder with DB Dump, or no arguments, to use default path.</param>
-		/// <returns></returns>
 		private static int Main(string[] args)
 		{
 			try
@@ -30,7 +30,8 @@ namespace DatabaseDumpReader
 				var dumpFolder = DumpFolder;
 				var cSettings = args[0];
 				StaticHelpers.CSettings = SettingsJsonFile.Load<SettingsViewModel>(cSettings).CoreSettings;
-				return (int)Run(dumpFolder, StaticHelpers.CSettings.UserID);
+				var result = Run(dumpFolder, StaticHelpers.CSettings.UserID);
+				return (int)result;
 			}
 			catch (Exception ex)
 			{
@@ -41,14 +42,58 @@ namespace DatabaseDumpReader
 			}
 		}
 
+		private static void RemovePastBackups(string dumpFolder, DumpFileInfo dumpFileInfo)
+		{
+			if (!StaticHelpers.CSettings.ClearOldDumpsAndBackups) return;
+			try
+			{
+				RemovePastDatabaseFiles();
+				RemovePastDataDumps(dumpFolder, dumpFileInfo);
+			}
+			catch (Exception ex)
+			{
+				//don't change exit code if it fails during backup removal
+				Console.ForegroundColor = ConsoleColor.Red;
+				StaticHelpers.Logger.ToFile(ex);
+				Console.ResetColor();
+			}
+		}
+
+		private static void RemovePastDataDumps(string dumpFolder, DumpFileInfo dumpFileInfo)
+		{
+			var infos = new DirectoryInfo(dumpFolder).GetFileSystemInfos("vndb-*", SearchOption.TopDirectoryOnly).ToArray();
+			foreach (var info in infos)
+			{
+				DeleteFileOrFolder(dumpFileInfo, info);
+			}
+		}
+
+		private static void RemovePastDatabaseFiles()
+		{
+			//remove all but one DB backups
+			var fileNoExt = Path.GetFileNameWithoutExtension(StaticHelpers.DatabaseFile);
+			var fileExt = Path.GetExtension(StaticHelpers.DatabaseFile);
+			var databaseDirectory = Directory.GetParent(StaticHelpers.DatabaseFile);
+			var files = databaseDirectory.GetFiles($"{fileNoExt}*", SearchOption.TopDirectoryOnly)
+				//only files of same extension and exclude the database file.
+				.Where(f => f.Extension == fileExt && f.FullName != StaticHelpers.DatabaseFile)
+				.OrderByDescending(f => f.LastWriteTimeUtc)
+				//skip the most recent backup
+				.Skip(1).ToArray();
+			foreach (var file in files)
+			{
+				DeleteFileOrFolder(null, file);
+			}
+		}
+		
 		private static ExitCode Run(string dumpFolder, int userId)
 		{
 			var previousDumpUpdate = DumpReader.GetLatestDumpUpdate(StaticHelpers.DatabaseFile);
-			var upToDate = GetLatestDump(previousDumpUpdate, dumpFolder, out var latestDumpFolder, out var newFileDate);
+			var dumpFileInfo = GetLatestDump(previousDumpUpdate, dumpFolder);
 			var oldDateString = previousDumpUpdate.HasValue
 				? $"Current update was from: {previousDumpUpdate.Value.ToShortDateString()}."
 				: "There was no previous dump file.";
-			if (upToDate || !newFileDate.HasValue)
+			if (dumpFileInfo.UpToDate || !dumpFileInfo.NewFileDate.HasValue)
 			{
 				StaticHelpers.Logger.ToFile(oldDateString, "Already up to date.");
 				Console.WriteLine("Do you wish to reload latest dump? (y/n)");
@@ -60,25 +105,48 @@ namespace DatabaseDumpReader
 					return ExitCode.NoUpdate;
 				}
 			}
-			Debug.Assert(newFileDate != null, nameof(newFileDate) + " != null");
-			StaticHelpers.Logger.ToFile(oldDateString, $"Getting update to: {newFileDate.Value.ToShortDateString()}.");
-			var processor = new DumpReader(latestDumpFolder, StaticHelpers.DatabaseFile, userId);
-			processor.Run(newFileDate.Value);
-			return upToDate ? ExitCode.ReloadLatest : ExitCode.Update;
+			Debug.Assert(dumpFileInfo.NewFileDate != null, nameof(dumpFileInfo.NewFileDate) + " != null");
+			StaticHelpers.Logger.ToFile(oldDateString, $"Getting update to: {dumpFileInfo.NewFileDate.Value.ToShortDateString()}.");
+			var processor = new DumpReader(dumpFileInfo.LatestDumpFolder, StaticHelpers.DatabaseFile, userId);
+			processor.Run(dumpFileInfo.NewFileDate.Value);
+			var result = dumpFileInfo.UpToDate ? ExitCode.ReloadLatest : ExitCode.Update;
+			RemovePastBackups(dumpFolder, dumpFileInfo);
+			return result;
 		}
 
-		private static bool GetLatestDump(DateTime? previousUpdate, string dumpsFolder, out string dumpFolder, out DateTime? newFileDate)
+		private static DumpFileInfo GetLatestDump(DateTime? previousUpdate, string dumpsFolder)
 		{
 			var upToDate = !(previousUpdate == null || (DateTime.UtcNow - previousUpdate.Value).TotalDays > UpToDateDays);
 			var di = Directory.CreateDirectory(dumpsFolder);
 			DownloadLatestDumpFiles(out var latestDump, out var latestVoteDump);
-			newFileDate = latestDump.LastWriteTimeUtc;
+			var newFileDate = latestDump.LastWriteTimeUtc;
 			var targetFolder = ExtractTarToFolder(latestDump, di);
 			ExtractGzToFolder(latestVoteDump, new DirectoryInfo(targetFolder));
-			dumpFolder = targetFolder;
-			return upToDate;
+			var result = new DumpFileInfo
+			{
+				LatestDumpFolder = targetFolder,
+				LatestDumpFile = latestDump,
+				LatestVoteDumpFile = latestVoteDump,
+				NewFileDate = newFileDate,
+				UpToDate = upToDate
+			};
+			return result;
 		}
 
+		private static void DeleteFileOrFolder(DumpFileInfo dumpFileInfo, FileSystemInfo info)
+		{
+			if (dumpFileInfo?.Contains(info) ?? false) return;
+			try
+			{
+				if (info is DirectoryInfo dInfo) dInfo.Delete(true);
+				else info.Delete();
+			}
+			catch (Exception ex)
+			{
+				StaticHelpers.Logger.ToFile(ex);
+			}
+		}
+		
 		private static void ExtractGzToFolder(FileInfo file, DirectoryInfo folder)
 		{
 			var destFileName = Path.Combine(folder.FullName, Path.GetFileNameWithoutExtension(file.Name));
@@ -156,6 +224,22 @@ namespace DatabaseDumpReader
 				var offset = 512 - (pos % 512);
 				if (offset == 512) offset = 0;
 				stream.Seek(offset, SeekOrigin.Current);
+			}
+		}
+
+		private class DumpFileInfo
+		{
+			public string LatestDumpFolder { get; set; }
+			public FileInfo LatestDumpFile { get; set; }
+			public FileInfo LatestVoteDumpFile { get; set; }
+			public DateTime? NewFileDate { get; set; }
+			public bool UpToDate { get; set; }
+
+			public bool Contains(FileSystemInfo info)
+			{
+				return (info is DirectoryInfo && info.FullName == LatestDumpFolder) ||
+				       (info is FileInfo && info.FullName == LatestDumpFile.FullName) ||
+				       (info is FileInfo && info.FullName == LatestVoteDumpFile.FullName);
 			}
 		}
 

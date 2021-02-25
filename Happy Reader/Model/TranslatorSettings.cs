@@ -34,8 +34,7 @@ namespace Happy_Reader
 				if (Loaded) Save();
 			}
 		}
-
-		//todo make editable
+		
 		public string GoogleCredentialPath
 		{
 			get => _googleCredentialPath;
@@ -46,8 +45,7 @@ namespace Happy_Reader
 				if (Loaded) Save();
 			}
 		}
-
-		//todo make editable
+		
 		public string FreeUserAgent
 		{
 			get => _freeUserAgent;
