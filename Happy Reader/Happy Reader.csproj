@@ -182,6 +182,7 @@
       <DependentUpon>MergeWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\RadioButtonCheckedConverter.cs" />
+    <Compile Include="Model\SavedData.cs" />
     <Compile Include="View\Tabs\AddEntriesTab.xaml.cs">
       <DependentUpon>AddEntriesTab.xaml</DependentUpon>
     </Compile>

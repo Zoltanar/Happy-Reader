@@ -37,6 +37,7 @@ namespace Happy_Reader
 		public static readonly string CustomCharacterFiltersJson = Path.Combine(StaticHelpers.StoredDataFolder, "CustomCharacterFilters.json");
 		public static readonly string PermanentCharacterFilterJson = Path.Combine(StaticHelpers.StoredDataFolder, "PermanentCharacterFilter.json");
 		public static readonly string AllSettingsJson = Path.Combine(StaticHelpers.StoredDataFolder, "HR_Settings.json");
+		public static readonly string SavedDataJson = Path.Combine(StaticHelpers.StoredDataFolder, "HR_SavedData.json");
 		public static readonly JsonSerializerSettings SerialiserSettings = new() { TypeNameHandling = TypeNameHandling.Objects };
 		public static readonly Rectangle OutputWindowStartPosition = new(20, 20, 400, 200);
 		private static SettingsViewModel _settings;

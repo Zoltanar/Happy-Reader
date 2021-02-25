@@ -9,11 +9,13 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
 using Happy_Reader.View.Tabs;
 using Happy_Reader.ViewModel;
 using JetBrains.Annotations;
+using Newtonsoft.Json;
 using NotifyIcon = System.Windows.Forms.NotifyIcon;
 using ToolStripMenuItem = System.Windows.Forms.ToolStripMenuItem;
 using ContextMenuStrip = System.Windows.Forms.ContextMenuStrip;
@@ -25,6 +27,7 @@ namespace Happy_Reader.View
 		private bool _finalizing;
 		private bool _finalized;
 		private NotifyIcon _trayIcon;
+		private readonly SavedData _savedData = new();
 
 		public MainWindowViewModel ViewModel { get; }
 
@@ -66,17 +69,52 @@ namespace Happy_Reader.View
 			var noTranslation = commandLineArgs.Contains("-nt");
 			var logVerbose = commandLineArgs.Contains("-lv");
 			await ViewModel.Initialize(watch, UserGamesTabItem.GroupByAdded, !noEntries, noTranslation, logVerbose);
+			LoadSavedData();
+		}
+
+		private void LoadSavedData()
+		{
+			if (!File.Exists(StaticMethods.SavedDataJson)) return;
+			SavedData savedData;
+			try
+			{
+				savedData = JsonConvert.DeserializeObject<SavedData>(File.ReadAllText(StaticMethods.SavedDataJson));
+			}
+			catch (Exception ex)
+			{
+				StaticHelpers.Logger.ToFile(ex);
+				return;
+			}
+			if (savedData == null) return;
+			foreach (var savedTab in savedData.Tabs)
+			{
+				switch (savedTab.TypeName)
+				{
+					case nameof(VNTab):
+						{
+							var vn = StaticHelpers.LocalDatabase.VisualNovels[(int)savedTab.Id];
+							if (vn != null) OpenVNPanel(vn);
+							break;
+						}
+					case nameof(UserGameTab):
+						{
+							var userGame = StaticMethods.Data.UserGames.FirstOrDefault(ug => ug.Id == savedTab.Id);
+							if (userGame != null) OpenUserGamePanel(userGame, null);
+							break;
+						}
+				}
+			}
 		}
 
 		public void ShowLogNotification([NotNull] Log message)
 		{
-			Happy_Apps_Core.StaticHelpers.Logger.ToDebug($"Notification - {message.Kind} - {message}");
+			StaticHelpers.Logger.ToDebug($"Notification - {message.Kind} - {message}");
 			NotificationWindow.Launch(message);
 		}
 
 		public void ShowNotification(object sender, [NotNull] string message, string title = "Notification")
 		{
-			Happy_Apps_Core.StaticHelpers.Logger.ToDebug($"Notification - {title} - {message}");
+			StaticHelpers.Logger.ToDebug($"Notification - {title} - {message}");
 			NotificationWindow.Launch(title, message);
 		}
 
@@ -85,6 +123,16 @@ namespace Happy_Reader.View
 			if (e.ChangedButton != MouseButton.Middle) return;
 			var tabItem = (TabItem)sender;
 			tabItem.Template = null;
+			var content = tabItem.Content;
+			switch (content)
+			{
+				case VNTab vnTab:
+					_savedData.Tabs.RemoveWhere(st => st.TypeName == nameof(VNTab) && st.Id == vnTab.ViewModel.VNID);
+					break;
+				case UserGameTab gameTab:
+					_savedData.Tabs.RemoveWhere(st => st.TypeName == nameof(UserGameTab) && st.Id == gameTab.ViewModel.Id);
+					break;
+			}
 			MainTabControl.Items.Remove(tabItem);
 		}
 
@@ -169,19 +217,28 @@ namespace Happy_Reader.View
 				HorizontalAlignment = HorizontalAlignment.Center
 			};
 			if (headerBinding != null) headerTextBlock.SetBinding(TextBlock.TextProperty, headerBinding);
+			var content = tabItem.Content;
 			var header = new Grid
 			{
-				Background = tabItem.Content switch
-				{
-					VNTab => Brushes.HotPink,
-					UserGameTab => Brushes.DarkKhaki,
-					_ => Brushes.IndianRed
-				},
 				Width = 100,
 				Height = 50,
 				VerticalAlignment = VerticalAlignment.Stretch,
 				HorizontalAlignment = HorizontalAlignment.Stretch
 			};
+			switch (content)
+			{
+				case VNTab vnTab:
+					_savedData.Tabs.Add(new SavedData.SavedTab(vnTab.ViewModel.VNID, nameof(VNTab)));
+					header.Background = Brushes.HotPink;
+					break;
+				case UserGameTab gameTab:
+					_savedData.Tabs.Add(new SavedData.SavedTab(gameTab.ViewModel.Id, nameof(UserGameTab)));
+					header.Background = Brushes.DarkKhaki;
+					break;
+				default:
+					header.Background = Brushes.IndianRed;
+					break;
+			}
 			header.Children.Add(headerTextBlock);
 			tabItem.MouseDown += TabMiddleClick;
 			tabItem.Header = header;
@@ -199,20 +256,32 @@ namespace Happy_Reader.View
 
 		private void Exit(object sender, EventArgs e)
 		{
-			if (_finalizing) return;
+			if (_finalizing || _finalized) return;
 			_finalizing = true;
 			Hide();
 			_trayIcon.Visible = false;
 			ViewModel.ExitProcedures(this, null);
+			SaveTabsToFile();
 			_finalized = true;
 			Close();
 		}
 
-		public void SelectTab(Type viewModelType)
+		private void SaveTabsToFile()
 		{
-			var tab = MainTabControl.Items.OfType<TabItem>().FirstOrDefault(t => ((FrameworkElement) t.Content).DataContext.GetType() == viewModelType);
-			MainTabControl.SelectedItem = tab ?? throw new ArgumentNullException(nameof(tab), $"Did not find tab with ViewModel of type {viewModelType}");
+			try
+			{
+				File.WriteAllText(StaticMethods.SavedDataJson, JsonConvert.SerializeObject(_savedData, Formatting.Indented));
+			}
+			catch (Exception ex)
+			{
+				StaticHelpers.Logger.ToFile(ex);
+			}
 		}
 
+		public void SelectTab(Type viewModelType)
+		{
+			var tab = MainTabControl.Items.OfType<TabItem>().FirstOrDefault(t => ((FrameworkElement)t.Content).DataContext.GetType() == viewModelType);
+			MainTabControl.SelectedItem = tab ?? throw new ArgumentNullException(nameof(tab), $"Did not find tab with ViewModel of type {viewModelType}");
+		}
 	}
 }

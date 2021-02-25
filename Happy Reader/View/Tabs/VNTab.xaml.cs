@@ -16,11 +16,12 @@ namespace Happy_Reader.View.Tabs
 	{
 		private bool _loaded;
 
-		private readonly ListedVN _viewModel;
+		public readonly ListedVN ViewModel;
+
 		public VNTab(ListedVN vn, UserGame userGame)
 		{
 			InitializeComponent();
-			_viewModel = vn;
+			ViewModel = vn;
 			DataContext = vn;
 			TileBox.Children.Add(VNTile.FromListedVN(vn));
 			if (userGame == null) return;
@@ -68,20 +69,20 @@ namespace Happy_Reader.View.Tabs
 			if (_loaded) return;
 			LoadAliases();
 			LoadCharacters();
-			if (_viewModel.Tags.Any()) LoadTags(_viewModel);
+			if (ViewModel.Tags.Any()) LoadTags(ViewModel);
 			LoadScreenshots();
-			StaffTab.Visibility = _viewModel.Staff.Any() ? Visibility.Visible : Visibility.Collapsed;
+			StaffTab.Visibility = ViewModel.Staff.Any() ? Visibility.Visible : Visibility.Collapsed;
 			LoadRelations();
 			LoadAnime();
 			_loaded = true;
 			var firstVisibleTab = TabControl.Items.Cast<FrameworkElement>().FirstOrDefault(t=>t.Visibility != Visibility.Collapsed);
 			if(firstVisibleTab != null) TabControl.SelectedItem = firstVisibleTab;
-			_viewModel.OnPropertyChanged(null);
+			ViewModel.OnPropertyChanged(null);
 		}
 
 		private void LoadAliases()
 		{
-			var aliasString = _viewModel.Aliases?.Replace(@"\n", ", ");
+			var aliasString = ViewModel.Aliases?.Replace(@"\n", ", ");
 			if (!string.IsNullOrWhiteSpace(aliasString))
 			{
 				AliasesTb.Text = aliasString;
@@ -98,9 +99,9 @@ namespace Happy_Reader.View.Tabs
 
 		private void LoadRelations()
 		{
-			if (_viewModel.RelationsObject.Length > 0)
+			if (ViewModel.RelationsObject.Length > 0)
 			{
-				var allRelations = _viewModel.GetAllRelations();
+				var allRelations = ViewModel.GetAllRelations();
 				var titleString = allRelations.Count == 1 ? "1 Relation" : $"{allRelations.Count} Relations";
 				var elementList = new List<object> { titleString, "--------------" };
 				foreach (var relation in allRelations.OrderBy(c => c.ID))
@@ -122,11 +123,11 @@ namespace Happy_Reader.View.Tabs
 
 		private void LoadAnime()
 		{
-			if (_viewModel.AnimeObject.Length > 0)
+			if (ViewModel.AnimeObject.Length > 0)
 			{
-				var titleString = $"{_viewModel.AnimeObject.Length} Anime";
+				var titleString = $"{ViewModel.AnimeObject.Length} Anime";
 				var stringList = new List<string> { titleString, "--------------" };
-				stringList.AddRange(_viewModel.AnimeObject.Select(x => x.Print()));
+				stringList.AddRange(ViewModel.AnimeObject.Select(x => x.Print()));
 				AnimeCombobox.ItemsSource = stringList;
 				AnimeCombobox.SelectedIndex = 0;
 				AnimeLabel.Visibility = Visibility.Visible;
@@ -141,9 +142,9 @@ namespace Happy_Reader.View.Tabs
 
 		private void LoadScreenshots()
 		{
-			if (_viewModel.ScreensObject.Length > 0)
+			if (ViewModel.ScreensObject.Length > 0)
 			{
-				ScreensBox.AspectRatio = _viewModel.ScreensObject.Max(x => (double)x.Width / x.Height);
+				ScreensBox.AspectRatio = ViewModel.ScreensObject.Max(x => (double)x.Width / x.Height);
 				ScreenshotsTab.Visibility = Visibility.Visible;
 			}
 			else
@@ -155,7 +156,7 @@ namespace Happy_Reader.View.Tabs
 
 		private void LoadCharacters()
 		{
-			var cvnItems = StaticHelpers.LocalDatabase.CharacterVNs[_viewModel.VNID];
+			var cvnItems = StaticHelpers.LocalDatabase.CharacterVNs[ViewModel.VNID];
 			var characterTiles = cvnItems.Select(CharacterTile.FromCharacterVN).ToArray();
 			if (characterTiles.Length > 0)
 			{

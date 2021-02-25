@@ -3,7 +3,6 @@
 0 - allow changing direction of text in output window (down to up) and horizontal alignment
 0 - setting to switch between vote scores of 10-100 and 1-10.
 0 - databasedumpreader: auto clear previous dumps 
-1 - save tabs open
 0 - warn if an instance is already running (maybe show database file for opening instance)
 0 - launch title from VN context menu
 0 - user stats tab: approx time played
@@ -11,7 +10,7 @@
 0 - store custom filter in named function (instead of the custom filter's function), so that the named function can be reset after modifying the custom filter.
 0 - CachedTranslations: keep track of how often something is translated and remove from cache if not used recently or originally cached too long ago.
 0 - show written tag description on tooltip
-
+0 - staff filter by name instead of id
 
 look at global hooks for managing infinite text, etc (https://github.com/gmamaladze/globalmousekeyhook)
 allow keeping time played for multiple games
