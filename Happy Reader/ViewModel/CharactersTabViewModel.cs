@@ -24,9 +24,12 @@ namespace Happy_Reader.ViewModel
 		protected override Func<IDataItem<int>, UserControl> GetTile => i => CharacterTile.FromCharacter((CharacterItem)i, HideTraits);
 		protected override NamedFunction DbFunction { get; set; } = new NamedFunction(db => db.Characters, "All", false);
 		protected override Func<IEnumerable<IDataItem<int>>, IEnumerable<IDataItem<int>>> Ordering { get; set; } = chars => chars.OrderByDescending(x => ((CharacterItem)x).VisualNovelSortingDate);
-		public override FiltersViewModel FiltersViewModel { get; } = new(StaticMethods.AllFilters.CharacterFilters, StaticMethods.AllFilters.CharacterPermanentFilter);
+		public override FiltersViewModel FiltersViewModel { get; }
 
-		public CharactersTabViewModel(MainWindowViewModel mainViewModel) : base(mainViewModel) { }
+		public CharactersTabViewModel(MainWindowViewModel mainViewModel) : base(mainViewModel)
+		{
+			FiltersViewModel = new(StaticMethods.AllFilters.CharacterFilters, StaticMethods.AllFilters.CharacterPermanentFilter, this);
+		}
 
 		public override async Task Initialize()
 		{

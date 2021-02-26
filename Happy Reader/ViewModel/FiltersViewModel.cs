@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -16,6 +17,7 @@ namespace Happy_Reader.ViewModel
 		public event PropertyChangedEventHandler PropertyChanged;
 		private CustomFilter _customFilter;
 		private int _selectedFilterIndex;
+		private readonly DatabaseViewModelBase _databaseViewModel;
 		public ObservableCollection<CustomFilter> Filters { get; }
 		public CustomFilter PermanentFilter { get; }
 		public CustomFilter CustomFilter
@@ -47,8 +49,9 @@ namespace Happy_Reader.ViewModel
 
 		public string SaveFilterError { get; set; }
 		
-		public FiltersViewModel(ObservableCollection<CustomFilter> customFilters, CustomFilter permanentFilter)
+		public FiltersViewModel(ObservableCollection<CustomFilter> customFilters, CustomFilter permanentFilter, DatabaseViewModelBase databaseViewModel)
 		{
+			_databaseViewModel = databaseViewModel;
 			Filters = customFilters;
 			PermanentFilter = permanentFilter;
 			SelectedFilterIndex = 0;
@@ -146,6 +149,11 @@ namespace Happy_Reader.ViewModel
 		public void OnPropertyChanged([CallerMemberName] string propertyName = null)
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
+
+		public async Task ApplyCurrentFilter()
+		{
+			await _databaseViewModel.ChangeFilter(CustomFilter);
 		}
 	}
 }

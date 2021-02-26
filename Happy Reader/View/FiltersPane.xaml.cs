@@ -134,5 +134,10 @@ namespace Happy_Reader.View
 			var regex = new System.Text.RegularExpressions.Regex("[^0-9]+");
 			e.Handled = regex.IsMatch(e.Text);
 		}
+
+		private async void ApplyFilterClick(object sender, RoutedEventArgs e)
+		{
+			await ViewModel.ApplyCurrentFilter();
+		}
 	}
 }
