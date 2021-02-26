@@ -18,14 +18,14 @@ namespace Happy_Reader.ViewModel
 
 		protected override Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> GetAll => db => db.Characters;
 		protected override IEnumerable<IDataItem<int>> GetAllWithKeyIn(VisualNovelDatabase db, int[] keys) => db.Characters.WithKeyIn(keys);
-		protected override Func<IDataItem<int>, bool> IsBlacklistedFunction { get; } = i => ((CharacterItem) i).VisualNovel?.UserVN?.Blacklisted ?? false;
+		protected override Func<IDataItem<int>, bool> IsBlacklistedFunction { get; } = i => ((CharacterItem)i).VisualNovel?.UserVN?.Blacklisted ?? false;
 		protected override Func<string, Func<IDataItem<int>, bool>> SearchByText => t => i => VisualNovelDatabase.SearchForCharacter(t)((CharacterItem)i);
 		protected override Func<IDataItem<int>, ListedProducer> GetProducer { get; } = i => ((CharacterItem)i).VisualNovel?.Producer;
 		protected override Func<IDataItem<int>, UserControl> GetTile => i => CharacterTile.FromCharacter((CharacterItem)i, HideTraits);
 		protected override NamedFunction DbFunction { get; set; } = new NamedFunction(db => db.Characters, "All", false);
 		protected override Func<IEnumerable<IDataItem<int>>, IEnumerable<IDataItem<int>>> Ordering { get; set; } = chars => chars.OrderByDescending(x => ((CharacterItem)x).VisualNovelSortingDate);
 		public override FiltersViewModelBase FiltersViewModel { get; } = new CharacterFiltersViewModel();
-		
+
 		public CharactersTabViewModel(MainWindowViewModel mainViewModel) : base(mainViewModel) { }
 
 		public override async Task Initialize()
@@ -35,11 +35,11 @@ namespace Happy_Reader.ViewModel
 			LocalDatabase.SetCharactersAttachedVisualNovels();
 			await RefreshTiles();
 		}
-		
+
 		private void ResetOrdering() => Ordering = chars => chars.OrderByDescending(x => ((CharacterItem)x).VisualNovelSortingDate);
 
 		//todo implement permanent filter return c.ImageId != null && c.HasFullReleaseDate && c.Gender == "f";
-		
+
 		protected override Func<IDataItem<int>, double?> GetSuggestion { get; } = i => ((CharacterItem)i).TraitScore;
 
 		public async Task ShowForVisualNovel(CharacterVN visualNovel)
@@ -61,7 +61,7 @@ namespace Happy_Reader.ViewModel
 
 		public override int[] GetRelatedTitles(IDataItem<int> item)
 		{
-			return ((CharacterItem)item).VisualNovel?.AllRelations?.Select(i=>i.ID).ToArray() ?? Array.Empty<int>();
+			return ((CharacterItem)item).VisualNovel?.AllRelations?.Select(i => i.ID).ToArray() ?? Array.Empty<int>();
 		}
 
 		public async Task ShowForSeiyuuWithAlias(int aliasId)
@@ -77,11 +77,11 @@ namespace Happy_Reader.ViewModel
 		{
 			DbFunction = new NamedFunction(db =>
 			{
-				return db.Characters.Where(c=>c.DbTraits.Any(t=>trait.AllIDs.Contains(t.TraitId)));
+				return db.Characters.Where(c => c.DbTraits.Any(t => trait.AllIDs.Contains(t.TraitId)));
 			}, $"Trait: {trait}", true);
 			await RefreshTiles();
 		}
-		
+
 		public override async Task SortByMyScore()
 		{
 			Ordering = chars => chars.OrderByDescending(x => ((CharacterItem)x).VisualNovel?.UserVN?.Vote ?? 0);
@@ -91,9 +91,10 @@ namespace Happy_Reader.ViewModel
 		public override async Task SortByRating()
 		{
 			Ordering = chars => chars.OrderByDescending(x => ((CharacterItem)x).VisualNovel?.Rating ?? 0d);
+			if (StaticMethods.Settings.GuiSettings.ExcludeLowVotesForRatingSort) Exclude = x => (((CharacterItem)x).VisualNovel?.VoteCount ?? 0) < 10;
 			await RefreshTiles();
 		}
-		
+
 
 		public override async Task SortByReleaseDate()
 		{

@@ -87,7 +87,7 @@ namespace Happy_Apps_Core.Database
 		public double Popularity { get; set; }
 
 		/// <summary>
-		/// Bayesian rating of VN, 1-10
+		/// Rating of VN, 1-10
 		/// </summary>
 		public double Rating { get; set; }
 

@@ -15,10 +15,14 @@ namespace Happy_Reader
 		private bool _technicalTags;
 		private bool _hookGlobalMouse;
 		private bool _hookIthVnr;
+		private bool _excludeLowVotesForRatingSort = true;
+		private string _localeEmulatorPath;
 		private string _culture;
 		private CultureInfo _cultureInfo = CultureInfo.DefaultThreadCurrentCulture ?? CultureInfo.CurrentCulture;
-		private string _localeEmulatorPath;
 		private List<PageLink> _pageLinks;
+
+		[JsonIgnore]
+		public string About => $"{StaticHelpers.ClientName} {StaticHelpers.ClientVersion}";
 
 		[JsonIgnore]
 		public CultureInfo[] Cultures { get; } = CultureInfo.GetCultures(CultureTypes.InstalledWin32Cultures);
@@ -108,6 +112,27 @@ namespace Happy_Reader
 				if (Loaded) Save();
 			}
 		}
+		public bool ExcludeLowVotesForRatingSort
+		{
+			get => _excludeLowVotesForRatingSort;
+			set
+			{
+				if (_excludeLowVotesForRatingSort == value) return;
+				_excludeLowVotesForRatingSort = value;
+				if (Loaded) Save();
+			}
+		}
+
+		public string LocaleEmulatorPath
+		{
+			get => _localeEmulatorPath;
+			set
+			{
+				if (_localeEmulatorPath == value) return;
+				_localeEmulatorPath = value;
+				if (Loaded) Save();
+			}
+		}
 
 		public string Culture
 		{
@@ -138,19 +163,6 @@ namespace Happy_Reader
 				if (Equals(_cultureInfo, value)) return;
 				_cultureInfo = value;
 				Culture = _cultureInfo.ToString();
-			}
-		}
-
-		public string About => $"{StaticHelpers.ClientName} {StaticHelpers.ClientVersion}";
-
-		public string LocaleEmulatorPath
-		{
-			get => _localeEmulatorPath;
-			set
-			{
-				if (_localeEmulatorPath == value) return;
-				_localeEmulatorPath = value;
-				if (Loaded) Save();
 			}
 		}
 

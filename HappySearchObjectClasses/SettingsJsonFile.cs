@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
@@ -9,8 +8,10 @@ namespace Happy_Apps_Core
 {
 	public abstract class SettingsJsonFile : INotifyPropertyChanged
 	{
+		[JsonIgnore]
 		public virtual bool Loaded { get; set; }
 
+		[JsonIgnore]
 		public virtual string FilePath { get; set; }
 
 		[JsonIgnore]

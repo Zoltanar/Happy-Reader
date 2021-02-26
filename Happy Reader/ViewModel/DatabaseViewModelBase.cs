@@ -38,6 +38,7 @@ namespace Happy_Reader.ViewModel
 		protected abstract Func<IDataItem<int>, UserControl> GetTile { get; }
 		protected abstract NamedFunction DbFunction { get; set; }
 		protected abstract Func<IEnumerable<IDataItem<int>>, IEnumerable<IDataItem<int>>> Ordering { get; set; }
+		protected Func<IDataItem<int>, bool> Exclude;
 		public abstract FiltersViewModelBase FiltersViewModel { get; }
 		public PausableUpdateList<UserControl> Tiles { get; set; } = new();
 		private bool _isBlacklisted;
@@ -191,6 +192,12 @@ namespace Happy_Reader.ViewModel
 				var items = DbFunction.SelectAndInvoke(StaticHelpers.LocalDatabase);
 				OnPropertyChanged(nameof(SelectedFunctionIndex));
 				if (!DbFunction.AlwaysIncludeBlacklisted && !IsBlacklisted) items = items.Where(item => !IsBlacklistedFunction(item));
+				if (Exclude != null)
+				{
+					var exclude = Exclude;
+					items = items.Where(x=> !exclude(x));
+					Exclude = null;
+				}
 				var filteredResults = items.Intersect(FiltersViewModel.PermanentFilter.GetAllResults(StaticHelpers.LocalDatabase, GetAll, GetAllWithKeyIn));
 				AllResults = Ordering(filteredResults).ToArray();
 				var firstPage = AllResults.Take(PageSize).ToArray();

@@ -51,7 +51,7 @@ namespace Happy_Reader.ViewModel
         public string Stage6 { get; set; }
         public string Stage7 { get; set; }
         public ListedVN Game { get; set; }
-        public PausableUpdateList<DisplayEntry> EntriesUsed { get; } = new PausableUpdateList<DisplayEntry>();
+        public PausableUpdateList<DisplayEntry> EntriesUsed { get; } = new();
         public string[] UserGameNames => StaticMethods.Data.UserGames.Local.Select(x => x.DisplayName).ToArray();
 
 

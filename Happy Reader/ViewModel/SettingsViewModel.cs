@@ -1,9 +1,11 @@
 ﻿using Happy_Apps_Core;
+using Newtonsoft.Json;
 
 namespace Happy_Reader.ViewModel
 {
 	public class SettingsViewModel : SettingsJsonFile
 	{
+		[JsonIgnore]
 		public override bool Loaded
 		{
 			set
@@ -16,6 +18,7 @@ namespace Happy_Reader.ViewModel
 			get => base.Loaded;
 		}
 
+		[JsonIgnore]
 		public override string FilePath
 		{
 			set
@@ -34,9 +37,9 @@ namespace Happy_Reader.ViewModel
 
 		public SettingsViewModel()
 		{
-			CoreSettings = new CoreSettings() { ObjectToSerialise = this };
-			GuiSettings = new GuiSettings() { ObjectToSerialise = this };
-			TranslatorSettings = new TranslatorSettings() { ObjectToSerialise = this };
+			CoreSettings = new CoreSettings { ObjectToSerialise = this };
+			GuiSettings = new GuiSettings { ObjectToSerialise = this };
+			TranslatorSettings = new TranslatorSettings { ObjectToSerialise = this };
 		}
 	}
 }

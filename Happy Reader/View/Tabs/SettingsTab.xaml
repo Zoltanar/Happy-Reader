@@ -15,7 +15,7 @@
 			<Setter Property="Margin" Value="5"/>
 		</Style>
 	</UserControl.Resources>
-	<Grid Background="DimGray">
+	<Grid Background="DimGray" ScrollViewer.VerticalScrollBarVisibility="Visible">
 		<Grid.Style>
 			<Style TargetType="Grid">
 				<Style.Resources>
@@ -62,6 +62,7 @@
 				<CheckBox Content="Show Content Tags" IsChecked="{Binding ContentTags}"/>
 				<CheckBox Content="Show Sexual Tags" IsChecked="{Binding SexualTags}"/>
 				<CheckBox Content="Show Technical Tags" IsChecked="{Binding TechnicalTags}"/>
+				<CheckBox Content="Exclude Titles with under 10 votes when sorting by rating" IsChecked="{Binding ExcludeLowVotesForRatingSort}"/>
 				<CheckBox Content="Show NSFW Images" IsChecked="{Binding NSFWImages}" Click="OnNsfwToggle"/>
 				<CheckBox Content="Use ITHVNR" IsChecked="{Binding HookIthVnr}" />
 				<CheckBox Content="Hook Global Mouse Events" IsChecked="{Binding HookGlobalMouse}" ToolTip="If enabled, text in output window should not be combined when a mouse click happens in between text lines, useful when clicking through text rapidly.This feature can result in some slow performance when enabled."/>

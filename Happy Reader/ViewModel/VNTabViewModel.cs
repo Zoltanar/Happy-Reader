@@ -60,6 +60,7 @@ namespace Happy_Reader.ViewModel
 		public override async Task SortByRating()
 		{
 			Ordering = lvn => lvn.OrderByDescending(i => ((ListedVN)i).Rating).ThenByDescending(i => ((ListedVN)i).ReleaseDate);
+			if(StaticMethods.Settings.GuiSettings.ExcludeLowVotesForRatingSort) Exclude = x => ((ListedVN)x).VoteCount < 10;
 			await RefreshTiles();
 		}
 

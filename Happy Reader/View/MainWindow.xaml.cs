@@ -93,13 +93,13 @@ namespace Happy_Reader.View
 					case nameof(VNTab):
 						{
 							var vn = StaticHelpers.LocalDatabase.VisualNovels[(int)savedTab.Id];
-							if (vn != null) OpenVNPanel(vn);
+							if (vn != null) OpenVNPanel(vn, false);
 							break;
 						}
 					case nameof(UserGameTab):
 						{
 							var userGame = StaticMethods.Data.UserGames.FirstOrDefault(ug => ug.Id == savedTab.Id);
-							if (userGame != null) OpenUserGamePanel(userGame, null);
+							if (userGame != null) OpenUserGamePanel(userGame, null, false);
 							break;
 						}
 				}
@@ -150,10 +150,10 @@ namespace Happy_Reader.View
 				Name = nameof(AddEntriesTab),
 				Content = new AddEntriesTab(ViewModel, vnEntries, entries)
 			};
-			AddTabItem(tabItem, null);
+			AddTabItem(tabItem, null, true);
 		}
 
-		public void OpenVNPanel(ListedVN vn)
+		public void OpenVNPanel(ListedVN vn, bool select = true)
 		{
 			var userGame = StaticMethods.Data.UserGames.FirstOrDefault(ug => ug.VNID == vn.VNID);
 			if (userGame != null)
@@ -176,10 +176,10 @@ namespace Happy_Reader.View
 			};
 			var headerBinding = new Binding(userGame != null ? nameof(UserGame.DisplayName) : nameof(ListedVN.Title))
 			{ Source = tabItem.DataContext };
-			AddTabItem(tabItem, headerBinding);
+			AddTabItem(tabItem, headerBinding, select);
 		}
 
-		public void OpenUserGamePanel(UserGame userGame, ListedVN priorVN)
+		public void OpenUserGamePanel(UserGame userGame, ListedVN priorVN, bool select = true)
 		{
 			if (priorVN != null)
 			{
@@ -203,10 +203,10 @@ namespace Happy_Reader.View
 			{
 				Source = tabItem.DataContext
 			};
-			AddTabItem(tabItem, headerBinding);
+			AddTabItem(tabItem, headerBinding, select);
 		}
 
-		private void AddTabItem(HeaderedContentControl tabItem, BindingBase headerBinding)
+		private void AddTabItem(HeaderedContentControl tabItem, BindingBase headerBinding, bool select)
 		{
 			var headerTextBlock = new TextBlock
 			{
@@ -244,7 +244,7 @@ namespace Happy_Reader.View
 			tabItem.Header = header;
 			MainTabControl.Items.Add(tabItem);
 			MainTabControl.SelectedItem = tabItem;
-			tabItem.Focus();
+			if (select) tabItem.Focus();
 		}
 
 		private void MainWindow_OnClosing(object sender, CancelEventArgs e)
