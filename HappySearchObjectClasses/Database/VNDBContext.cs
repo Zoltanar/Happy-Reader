@@ -325,6 +325,12 @@ select AliasID from StaffAliass join StaffItems on StaffAliass.StaffID = StaffIt
 									 ch.Aliases != null && ch.Aliases.ToLower().Contains(lowerSearchString);
 		}
 
+		public IEnumerable<CharacterItem> GetCharactersForVN(int vnid)
+		{
+			var cvnItems = CharacterVNs[vnid];
+			return cvnItems.Select(cvn => Characters[cvn.CharacterId]);
+		}
+
 		private static bool HasWholeWord(string input, string searchString)
 		{
 			return !string.IsNullOrWhiteSpace(input) && input.ToLower().Split(' ').Any(p => p == searchString);

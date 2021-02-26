@@ -17,7 +17,7 @@ namespace Happy_Apps_Core
 		[JsonIgnore]
 		public object ObjectToSerialise { get; set; }
 
-		public static T Load<T>(string jsonPath) where T : SettingsJsonFile, new()
+		public static T Load<T>(string jsonPath, JsonSerializerSettings serialiserSettings = null) where T : SettingsJsonFile, new()
 		{
 			StaticHelpers.Logger.ToDebug($"Loading file...: {jsonPath}");
 			T settings = null;
@@ -25,7 +25,7 @@ namespace Happy_Apps_Core
 			{
 				try
 				{
-					settings = JsonConvert.DeserializeObject<T>(File.ReadAllText(jsonPath));
+					settings = JsonConvert.DeserializeObject<T>(File.ReadAllText(jsonPath), serialiserSettings);
 					if (settings != null)
 					{
 						settings.FilePath = jsonPath;

@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace Happy_Reader
 {
-	public class VnMultiFilter : IFilter
+	public class GeneralMultiFilter : IFilter
 	{
 		/// <summary>
 		/// True if it represents an OR group, false if it represents an AND group
@@ -24,7 +24,7 @@ namespace Happy_Reader
 		/// <summary>
 		/// Create custom filter
 		/// </summary>
-		public VnMultiFilter(bool isOrGroup, IEnumerable<IFilter> filters)
+		public GeneralMultiFilter(bool isOrGroup, IEnumerable<IFilter> filters)
 		{
 			IsOrGroup = isOrGroup;
 			Filters = filters.ToList();
@@ -66,7 +66,7 @@ namespace Happy_Reader
 
 		public IFilter GetCopy()
 		{
-			var filter = new VnMultiFilter(IsOrGroup, Filters);
+			var filter = new GeneralMultiFilter(IsOrGroup, Filters);
 			return filter;
 		}
 	}

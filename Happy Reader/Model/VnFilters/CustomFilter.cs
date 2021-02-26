@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 
 namespace Happy_Reader
 {
-	public abstract class CustomFilterBase : INotifyPropertyChanged
+	public class CustomFilter
 	{
 		/// <summary>
 		/// Name of custom filter.
@@ -21,25 +21,24 @@ namespace Happy_Reader
 		/// <summary>
 		/// List of filters which must all be true.
 		/// </summary>
-		public ObservableCollection<IFilter> AndFilters { get; set; } = new ObservableCollection<IFilter>();
+		public ObservableCollection<IFilter> AndFilters { get; set; } = new();
 
 		/// <summary>
 		/// List of filters in which at least one must be true, must be saved to <see cref="AndFilters"/> with <see cref="SaveOrGroup"/>
 		/// </summary>
 		[JsonIgnore]
-		public ObservableCollection<IFilter> OrFilters { get; set; } = new ObservableCollection<IFilter>();
+		public ObservableCollection<IFilter> OrFilters { get; set; } = new();
 
 		/// <inheritdoc />
 		public override string ToString() => Name;
 
 		[JsonIgnore]
-		public CustomFilterBase OriginalFilter { get; set; }
-		
+		public CustomFilter OriginalFilter { get; set; }
+
 		/// <summary>
 		/// The filter is overwritten by the passed filter.
 		/// </summary>
-		/// <param name="customFilter"></param>
-		public void Overwrite(CustomFilterBase customFilter)
+		public void Overwrite(CustomFilter customFilter)
 		{
 			AndFilters.Clear();
 			foreach (var filter in customFilter.AndFilters) AndFilters.Add(filter.GetCopy());
@@ -48,7 +47,7 @@ namespace Happy_Reader
 		}
 
 		public IEnumerable<IDataItem<int>> GetAllResults(
-			VisualNovelDatabase database, 
+			VisualNovelDatabase database,
 			Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> getAllFunc,
 			Func<VisualNovelDatabase, int[], IEnumerable<IDataItem<int>>> getAllWithKeyFunc)
 		{
@@ -61,7 +60,7 @@ namespace Happy_Reader
 		private Func<IDataItem<int>, bool> GetFunction()
 		{
 			if (AndFilters.Count == 0) return _ => true;
-			Func<IDataItem<int>, bool>[] andFunctions = AndFilters.Where(f=>!f.IsGlobal).Select(filter => filter.GetFunction()).ToArray();
+			Func<IDataItem<int>, bool>[] andFunctions = AndFilters.Where(f => !f.IsGlobal).Select(filter => filter.GetFunction()).ToArray();
 			return item => andFunctions.All(x => x(item));
 		}
 
@@ -69,7 +68,7 @@ namespace Happy_Reader
 		{
 			var globalFilters = AndFilters.Where(f => f.IsGlobal).ToList();
 			if (globalFilters.Count == 0) return getAllFunc(database).Select(i => i.Key).ToArray();
-			var result = getAllFunc(database).Select(i=>i.Key);
+			var result = getAllFunc(database).Select(i => i.Key);
 			foreach (var filter in globalFilters)
 			{
 				result = result.Intersect(filter.GetGlobalFunction(getAllFunc)(database));
@@ -85,8 +84,39 @@ namespace Happy_Reader
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 
-		public abstract void SaveOrGroup();
+		/// <summary>
+		/// Create a custom filter with copies of filters from an existing filter.
+		/// </summary>
+		public CustomFilter(CustomFilter existingFilter)
+		{
+			OriginalFilter = existingFilter;
+			Name = existingFilter.Name;
+			AndFilters = new ObservableCollection<IFilter>();
+			foreach (var filter in existingFilter.AndFilters) AndFilters.Add(filter.GetCopy());
+			OrFilters = new ObservableCollection<IFilter>();
+			foreach (var filter in existingFilter.OrFilters) OrFilters.Add(filter.GetCopy());
+			OnPropertyChanged();
+		}
 
-		public abstract CustomFilterBase GetCopy();
+		/// <summary>
+		/// Constructor for an empty custom filter
+		/// </summary>
+		public CustomFilter()
+		{
+			Name = "Custom Filter";
+		}
+
+		public void SaveOrGroup()
+		{
+			if (!OrFilters.Any()) return;
+			var orFilter = new GeneralMultiFilter(true, OrFilters);
+			AndFilters.Add(orFilter);
+			OrFilters.Clear();
+		}
+
+		public CustomFilter GetCopy()
+		{
+			return new(this);
+		}
 	}
 }

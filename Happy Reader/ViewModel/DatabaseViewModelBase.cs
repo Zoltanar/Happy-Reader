@@ -39,7 +39,7 @@ namespace Happy_Reader.ViewModel
 		protected abstract NamedFunction DbFunction { get; set; }
 		protected abstract Func<IEnumerable<IDataItem<int>>, IEnumerable<IDataItem<int>>> Ordering { get; set; }
 		protected Func<IDataItem<int>, bool> Exclude;
-		public abstract FiltersViewModelBase FiltersViewModel { get; }
+		public abstract FiltersViewModel FiltersViewModel { get; }
 		public PausableUpdateList<UserControl> Tiles { get; set; } = new();
 		private bool _isBlacklisted;
 		private SuggestionScorer _suggestionScorer;
@@ -51,7 +51,7 @@ namespace Happy_Reader.ViewModel
 		public bool BackEnabled => History.ToList().FindIndex(i => i.Selected) > 0;
 		public int SelectedFunctionIndex => History.ToList().FindIndex(i => i.Selected);
 
-		public CustomFilterBase SelectedFilter
+		public CustomFilter SelectedFilter
 		{
 			get => FiltersViewModel.CustomFilter;
 			set
@@ -270,7 +270,7 @@ namespace Happy_Reader.ViewModel
 			StaticHelpers.Logger.ToDebug($@"{nameof(ShowTagged)}: {watch.ElapsedMilliseconds}ms");
 		}
 
-		public async Task ChangeFilter(CustomFilterBase item)
+		public async Task ChangeFilter(CustomFilter item)
 		{
 			DbFunction = new NamedFunction(db => item.GetAllResults(db, GetAll, GetAllWithKeyIn), item.ToString(), false);
 			await RefreshTiles();

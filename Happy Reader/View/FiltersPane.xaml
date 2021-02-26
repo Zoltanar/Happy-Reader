@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
              mc:Ignorable="d" 
-             d:DesignHeight="500" d:DesignWidth="400" d:DataContext="{d:DesignInstance viewModel:FiltersViewModelBase}">
+             d:DesignHeight="500" d:DesignWidth="400" d:DataContext="{d:DesignInstance viewModel:FiltersViewModel}">
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>

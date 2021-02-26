@@ -42,7 +42,7 @@ namespace Happy_Reader.ViewModel
 
 		protected override Func<IDataItem<int>, double?> GetSuggestion => i => ((ListedVN)i).Suggestion?.Score;
 		protected override Func<string, Func<IDataItem<int>, bool>> SearchByText => t => i => VisualNovelDatabase.SearchForVN(t)((ListedVN)i);
-		public override FiltersViewModelBase FiltersViewModel { get; } = new FiltersViewModel();
+		public override FiltersViewModel FiltersViewModel { get; } = new(StaticMethods.AllFilters.VnFilters, StaticMethods.AllFilters.VnPermanentFilter);
 
 		public VNTabViewModel(MainWindowViewModel mainWindowViewModel) : base(mainWindowViewModel) { }
 

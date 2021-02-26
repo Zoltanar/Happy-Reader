@@ -10,6 +10,9 @@
 0 - CachedTranslations: keep track of how often something is translated and remove from cache if not used recently or originally cached too long ago.
 0 - show written tag description on tooltip
 0 - staff filter by name instead of id
+0 - merge character and vn filter types
+0 - add seiyuu filter to character
+0 - allow filtering without saving filter
 
 look at global hooks for managing infinite text, etc (https://github.com/gmamaladze/globalmousekeyhook)
 allow keeping time played for multiple games

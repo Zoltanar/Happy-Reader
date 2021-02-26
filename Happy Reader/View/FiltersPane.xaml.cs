@@ -13,7 +13,7 @@ namespace Happy_Reader.View
 	{
 
 		// ReSharper disable once NotAccessedField.Local
-		private FiltersViewModelBase ViewModel => (FiltersViewModelBase)DataContext;
+		private FiltersViewModel ViewModel => (FiltersViewModel)DataContext;
 		private AutoCompleteBox _traitOrTagControl;
 		
 		public FiltersPane()
@@ -31,7 +31,7 @@ namespace Happy_Reader.View
 			selected.CopyTo(array, 0);
 			foreach (var item in array) list.Remove(item);
 			var parent = listBox.FindParent<GroupBox>();
-			if (parent == PermanentFilterGroupBox) ViewModel.SavePermanentFilter();
+			if (parent == PermanentFilterGroupBox) ViewModel.SaveToFile(true);
 		}
 
 		private void SaveOrGroup(object sender, RoutedEventArgs e)

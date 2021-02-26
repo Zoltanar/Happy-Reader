@@ -30,19 +30,16 @@ namespace Happy_Reader
 	public static class StaticMethods
 	{
 		public delegate void NotificationEventHandler(object sender, string message, string title = null);
-		
+
 		public static readonly string ProxiesJson = Path.Combine(StaticHelpers.StoredDataFolder, "proxies.json");
-		public static readonly string CustomFiltersJson = Path.Combine(StaticHelpers.StoredDataFolder, "customfilters.json");
-		public static readonly string PermanentFilterJson = Path.Combine(StaticHelpers.StoredDataFolder, "filters.json");
-		public static readonly string CustomCharacterFiltersJson = Path.Combine(StaticHelpers.StoredDataFolder, "CustomCharacterFilters.json");
-		public static readonly string PermanentCharacterFilterJson = Path.Combine(StaticHelpers.StoredDataFolder, "PermanentCharacterFilter.json");
 		public static readonly string AllSettingsJson = Path.Combine(StaticHelpers.StoredDataFolder, "HR_Settings.json");
 		public static readonly string SavedDataJson = Path.Combine(StaticHelpers.StoredDataFolder, "HR_SavedData.json");
+		public static readonly string AllFiltersJson = Path.Combine(StaticHelpers.StoredDataFolder, "HR_Filters.json");
 		public static readonly JsonSerializerSettings SerialiserSettings = new() { TypeNameHandling = TypeNameHandling.Objects };
 		public static readonly Rectangle OutputWindowStartPosition = new(20, 20, 400, 200);
 		private static SettingsViewModel _settings;
-
-		public static HappyReaderDatabase Data { get; } = new ();
+		public static FiltersData AllFilters { get; set; }
+		public static HappyReaderDatabase Data { get; } = new();
 		public static Func<bool> ShowNSFWImages { get; set; } = () => true;
 		public static MainWindow MainWindow => (MainWindow)Application.Current.MainWindow;
 		public static SettingsViewModel Settings
@@ -65,7 +62,7 @@ namespace Happy_Reader
 			bool isAmPm = culture.DateTimeFormat.AMDesignator != string.Empty;
 			return dateTime.ToString(isAmPm ? "hh:mm tt" : "HH:mm", culture);
 		}
-		
+
 		public static T FindParent<T>(this DependencyObject child) where T : DependencyObject
 		{
 			while (true)
@@ -122,7 +119,7 @@ namespace Happy_Reader
 			}
 			return (T)foundElement;
 		}
-		
+
 		public static bool Is64BitProcess(this Process process)
 		{
 			if (!Environment.Is64BitOperatingSystem) return false;
@@ -150,7 +147,7 @@ namespace Happy_Reader
 			NativeMethods.GetWindowThreadProcessId(handle, out uint pid);
 			return pid == 0 ? null : Process.GetProcessById((int)pid);
 		}
-		
+
 		/// <summary>
 		/// Truncates strings if they are longer than 'maxChars' (minimum is 4 characters).
 		/// </summary>
@@ -179,7 +176,7 @@ namespace Happy_Reader
 		public static ComboBoxItem[] GetEnumValues(Type enumType)
 		{
 			var result = Enum.GetValues(enumType);
-			return result.Length == 0 ? new ComboBoxItem[0] : result.Cast<Enum>().Where(t=> !AttributeIsDefined(t,typeof(NotMappedAttribute))).Select(x => new ComboBoxItem
+			return result.Length == 0 ? new ComboBoxItem[0] : result.Cast<Enum>().Where(t => !AttributeIsDefined(t, typeof(NotMappedAttribute))).Select(x => new ComboBoxItem
 			{
 				Content = x.GetDescription(),
 				Tag = x,
@@ -287,5 +284,13 @@ namespace Happy_Reader
 			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			return Application.Current.Dispatcher.CheckAccess() ? action() : Application.Current.Dispatcher.Invoke(action);
 		}
+	}
+
+	public class FiltersData : SettingsJsonFile
+	{
+		public ObservableCollection<CustomFilter> VnFilters { get; set; } = new();
+		public ObservableCollection<CustomFilter> CharacterFilters { get; set; } = new();
+		public CustomFilter VnPermanentFilter { get; set; } = new();
+		public CustomFilter CharacterPermanentFilter { get; set; } = new();
 	}
 }
