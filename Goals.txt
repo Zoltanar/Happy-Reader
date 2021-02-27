@@ -6,10 +6,11 @@
 0 - launch title from VN context menu
 0 - user stats tab: approx time played
 0 - display date of database update
-0 - CachedTranslations: keep track of how often something is translated and remove from cache if not used recently or originally cached too long ago.
+0 - CachedTranslations: remove from cache if not used recently or originally cached too long ago.
 0 - show written tag description on tooltip
 0 - staff filter by name instead of id
 0 - add seiyuu filter to character
+0 - allow scrolling on main window tab control when too many tabs and add close all tabs button
 
 look at global hooks for managing infinite text, etc (https://github.com/gmamaladze/globalmousekeyhook)
 allow keeping time played for multiple games

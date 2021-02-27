@@ -182,6 +182,7 @@ namespace HRGoogleTranslate
 			if (!inCache1) return false;
 			LogVerbose($"HRTranslate.Google - Getting string from cache, input: {input}");
 			GotFromCacheCount++;
+			cachedTranslation.Update();
 			text.Append(cachedTranslation.Output);
 			return true;
 		}

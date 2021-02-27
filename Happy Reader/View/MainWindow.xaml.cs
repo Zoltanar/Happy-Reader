@@ -164,8 +164,11 @@ namespace Happy_Reader.View
 			var vnTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.DataContext == vn);
 			if (vnTab != null)
 			{
-				MainTabControl.SelectedItem = vnTab;
-				vnTab.Focus();
+				if (select)
+				{
+					MainTabControl.SelectedItem = vnTab;
+					vnTab.Focus();
+				}
 				return;
 			}
 			var tabItem = new TabItem
@@ -243,8 +246,9 @@ namespace Happy_Reader.View
 			tabItem.MouseDown += TabMiddleClick;
 			tabItem.Header = header;
 			MainTabControl.Items.Add(tabItem);
+			if (!select) return;
 			MainTabControl.SelectedItem = tabItem;
-			if (select) tabItem.Focus();
+			tabItem.Focus();
 		}
 
 		private void MainWindow_OnClosing(object sender, CancelEventArgs e)
