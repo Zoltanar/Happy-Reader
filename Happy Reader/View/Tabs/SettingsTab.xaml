@@ -31,10 +31,8 @@
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
-		<TextBox TextWrapping="Wrap" IsReadOnly="True" Text="{Binding GuiSettings.About, Mode=OneWay}" Margin="10,5" Background="Black" Foreground="White"/>
-		<GroupBox Header="Core Settings" Grid.Row="1" DataContext="{Binding CoreSettings}">
+		<GroupBox Header="Core Settings" Grid.Row="0" DataContext="{Binding CoreSettings}">
 			<StackPanel>
 				<view:LabeledTextBox LabelWidth="120" Label="UserID:" Text="{Binding UserID}"/>
 				<view:LabeledTextBox LabelWidth="120" Label="Username:" Text="{Binding Username}"/>
@@ -57,7 +55,7 @@
 				<CheckBox Content="Clear past data dumps and DB backups when updating" IsChecked="{Binding ClearOldDumpsAndBackups}"/>
 			</StackPanel>
 		</GroupBox>
-		<GroupBox Grid.Row="2" Header="Interface Settings" DataContext="{Binding GuiSettings}">
+		<GroupBox Grid.Row="1" Header="Interface Settings" DataContext="{Binding GuiSettings}">
 			<StackPanel>
 				<CheckBox Content="Show Content Tags" IsChecked="{Binding ContentTags}"/>
 				<CheckBox Content="Show Sexual Tags" IsChecked="{Binding SexualTags}"/>
@@ -85,7 +83,7 @@
 				</Grid>
 			</StackPanel>
 		</GroupBox>
-		<GroupBox Header="Translation Settings" Grid.Row="3" DataContext="{Binding TranslatorSettings}">
+		<GroupBox Header="Translation Settings" Grid.Row="2" DataContext="{Binding TranslatorSettings}">
 			<StackPanel>
 				<CheckBox Content="Capture Clipboard" IsChecked="{Binding CaptureClipboard}"/>
 				<Grid>

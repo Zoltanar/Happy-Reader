@@ -72,6 +72,7 @@ namespace Happy_Reader.ViewModel
 		[NotNull] public ProducersTabViewModel ProducersViewModel { get; }
 		[NotNull] public IthViewModel IthViewModel { get; }
 		[NotNull] public SettingsViewModel SettingsViewModel { get; }
+		[NotNull] public InformationViewModel InformationViewModel { get; }
 		[NotNull] public ApiLogViewModel ApiLogViewModel { get; }
 		public OutputWindowViewModel OutputWindowViewModel => (OutputWindowViewModel)OutputWindow.DataContext;
 
@@ -121,8 +122,9 @@ namespace Happy_Reader.ViewModel
 			SettingsViewModel = Happy_Apps_Core.SettingsJsonFile.Load<SettingsViewModel>(StaticMethods.AllSettingsJson);
 			StaticMethods.Settings = SettingsViewModel;
 			CSettings = SettingsViewModel.CoreSettings;
-			StaticMethods.AllFilters = Happy_Apps_Core.SettingsJsonFile.Load<FiltersData>(StaticMethods.AllFiltersJson, StaticMethods.SerialiserSettings);
 			SettingsViewModel.TranslatorSettings.CaptureClipboardChanged = CaptureClipboardSettingChanged;
+			StaticMethods.AllFilters = Happy_Apps_Core.SettingsJsonFile.Load<FiltersData>(StaticMethods.AllFiltersJson, StaticMethods.SerialiserSettings);
+			InformationViewModel = new InformationViewModel();
 			ApiLogViewModel = new ApiLogViewModel
 			{
 				VndbQueries = _vndbQueriesList.Items,
@@ -212,6 +214,7 @@ namespace Happy_Reader.ViewModel
 				EntriesViewModel.SetEntries();
 			}
 			await UserGamesViewModel.Initialize();
+			InformationViewModel.Initialise(LocalDatabase, StaticMethods.Data);
 			LoadLogs();
 			SetLastPlayed();
 			defaultUserGameGrouping(null, null);

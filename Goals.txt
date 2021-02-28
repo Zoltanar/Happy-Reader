@@ -4,8 +4,6 @@
 0 - setting to switch between vote scores of 10-100 and 1-10.
 0 - warn if an instance is already running (maybe show database file for opening instance)
 0 - launch title from VN context menu
-0 - user stats tab: approx time played
-0 - display date of database update
 0 - CachedTranslations: remove from cache if not used recently or originally cached too long ago.
 0 - show written tag description on tooltip
 0 - staff filter by name instead of id

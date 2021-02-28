@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.Data.Common;
 using System.Data.SQLite;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -17,6 +18,9 @@ namespace Happy_Apps_Core.Database
 	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 	public class VisualNovelDatabase
 	{
+		public const string LatestDumpUpdateKey = @"LatestDumpUpdate";
+		public const string DateFormat = @"yyyy-MM-dd";
+
 		public DACollection<int, ListedVN> VisualNovels { get; }
 		public DACollection<int, ListedProducer> Producers { get; }
 		public DACollection<(int, int), UserVN> UserVisualNovels { get; }
@@ -368,6 +372,23 @@ select AliasID from StaffAliass join StaffItems on StaffAliass.StaffID = StaffIt
 			command.Transaction = trans;
 			command.ExecuteNonQuery();
 			command.Dispose();
+		}
+
+		public DateTime? GetLatestDumpUpdate()
+		{
+			var datePair = TableDetails[LatestDumpUpdateKey];
+			if (datePair is null || string.IsNullOrWhiteSpace(datePair.Value)) return null;
+			return DateTime.ParseExact(datePair.Value, DateFormat, CultureInfo.InvariantCulture);
+		}
+
+		public void SaveLatestDumpUpdate(DateTime updateDate)
+		{
+			var tableDetail = new TableDetail
+			{
+				Key = LatestDumpUpdateKey,
+				Value = updateDate.ToString(DateFormat, CultureInfo.InvariantCulture)
+			};
+			TableDetails.Upsert(tableDetail, true);
 		}
 	}
 

@@ -20,10 +20,7 @@ namespace Happy_Reader
 		private string _culture;
 		private CultureInfo _cultureInfo = CultureInfo.DefaultThreadCurrentCulture ?? CultureInfo.CurrentCulture;
 		private List<PageLink> _pageLinks;
-
-		[JsonIgnore]
-		public string About => $"{StaticHelpers.ClientName} {StaticHelpers.ClientVersion}";
-
+		
 		[JsonIgnore]
 		public CultureInfo[] Cultures { get; } = CultureInfo.GetCultures(CultureTypes.InstalledWin32Cultures);
 

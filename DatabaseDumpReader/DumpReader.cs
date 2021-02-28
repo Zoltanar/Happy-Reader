@@ -79,13 +79,13 @@ namespace DatabaseDumpReader
 				Database.VisualNovels.Add(i, false, true, t);
 				ResolveUserVnForVn(i, t);
 			}, "db\\vn");
-			SaveLatestDumpUpdate(dumpDate);
+			Database.SaveLatestDumpUpdate(dumpDate);
 			Console.ResetColor();
 			StaticHelpers.Logger.ToFile("Completed.");
 		}
 
 		private void LoadStaff()
-		{   
+		{
 			Load<StaffItem>((i, t) =>
 			{
 				Database.StaffItems.Add(i, false, true, t);
@@ -129,7 +129,7 @@ namespace DatabaseDumpReader
 		{
 			Load<CharacterVN>((i, t) =>
 			{
-				if (Database.CharacterVNs.ByKey(i.ListKey,i.Key) != null) return;
+				if (Database.CharacterVNs.ByKey(i.ListKey, i.Key) != null) return;
 				Database.CharacterVNs.Add(i, false, true, t);
 			}, "db\\chars_vns");
 			Load<DbTrait>((i, t) =>
@@ -138,7 +138,7 @@ namespace DatabaseDumpReader
 			}, "db\\chars_traits");
 			Load<CharacterItem>((i, t) =>
 			{
-				SuggestionScorer.SetScore(i, Database.Traits[i.ID].Select(trait=> trait.TraitId));
+				SuggestionScorer.SetScore(i, Database.Traits[i.ID].Select(trait => trait.TraitId));
 				Database.Characters.Add(i, false, true, t);
 			}, "db\\chars");
 		}
@@ -351,23 +351,11 @@ namespace DatabaseDumpReader
 			return day == "99" ? $"{year}-{month}" : $"{year}-{month}-{day}";
 		}
 
-		public const string LatestDumpUpdateKey = @"LatestDumpUpdate";
-		public const string DateFormat = @"yyyy-MM-dd";
-
 		public static DateTime? GetLatestDumpUpdate(string databaseFile)
 		{
 			if (!File.Exists(databaseFile)) return null;
 			var database = new VisualNovelDatabase(databaseFile, false);
-			database.TableDetails.Load(true);
-			var datePair = database.TableDetails[LatestDumpUpdateKey];
-			if (datePair is null || string.IsNullOrWhiteSpace(datePair.Value)) return null;
-			return DateTime.ParseExact(datePair.Value, DateFormat, CultureInfo.InvariantCulture);
-		}
-
-		public void SaveLatestDumpUpdate(DateTime updateDate)
-		{
-			var tableDetail = new TableDetail { Key = LatestDumpUpdateKey, Value = updateDate.ToString(DateFormat, CultureInfo.InvariantCulture) };
-			Database.TableDetails.Upsert(tableDetail, true);
+			return database.GetLatestDumpUpdate();
 		}
 	}
 }

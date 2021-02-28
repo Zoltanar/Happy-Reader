@@ -69,8 +69,11 @@
 			<TabItem Header="Producers" Style="{StaticResource DatabaseTabItem}">
 				<tabs:ProducersTab DataContext="{Binding ProducersViewModel}"/>
 			</TabItem>
-			<TabItem Header="Info/Settings">
+			<TabItem Header="Settings">
 				<tabs:SettingsTab DataContext="{Binding SettingsViewModel}"/>
+			</TabItem>
+			<TabItem Header="Information">
+				<tabs:InfoTab DataContext="{Binding InformationViewModel}"/>
 			</TabItem>
 			<TabItem Header="API Log">
 				<tabs:ApiLogTab DataContext="{Binding ApiLogViewModel}"/>

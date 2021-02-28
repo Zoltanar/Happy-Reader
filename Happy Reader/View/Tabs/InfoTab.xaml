@@ -1,0 +1,36 @@
+﻿<UserControl x:Class="Happy_Reader.View.Tabs.InfoTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
+             mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModel:InformationViewModel}" >
+	<UserControl.Resources>
+		<Style TargetType="GroupBox">
+			<Setter Property="Foreground" Value="White"/>
+			<Setter Property="BorderThickness" Value="1"/>
+			<Setter Property="Margin" Value="5"/>
+		</Style>
+	</UserControl.Resources>
+	<StackPanel Background="DimGray" ScrollViewer.VerticalScrollBarVisibility="Visible">
+		<StackPanel.Style>
+			<Style>
+				<Style.Resources>
+					<Style TargetType="TextBox">
+						<Setter Property="Foreground" Value="White" />
+						<Setter Property="TextWrapping" Value="Wrap"/>
+						<Setter Property="IsReadOnly" Value="True"/>
+						<Setter Property="Margin" Value="10,2"/>
+						<Setter Property="Background" Value="Black"/>
+						<Setter Property="Foreground" Value="White"/>
+					</Style>
+				</Style.Resources>
+			</Style>
+		</StackPanel.Style>
+		<TextBox Text="{Binding About, Mode=OneWay}"/>
+		<TextBox Text="{Binding DatabaseDate, Mode=OneWay}"/>
+		<TextBox Text="{Binding RecordedTime, Mode=OneWay}"/>
+		<TextBox Text="{Binding ApproxVndbTime, Mode=OneWay}"/>
+		<TextBox Text="{Binding ApproxOverallTime, Mode=OneWay}"/>
+	</StackPanel>
+</UserControl>
