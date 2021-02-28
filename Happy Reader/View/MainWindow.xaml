@@ -106,7 +106,7 @@
 				           Text="{Binding DatabaseViewModel.VndbConnectionStatus, Mode=OneWay}" 
 				           TextAlignment="Center" TextWrapping="Wrap"/>
 			<Label Grid.Column="1" Foreground="Black" Content="{Binding DisplayUser}" Padding="5,0,25,0" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"/>
-			<Label Grid.Column="2" Foreground="Black" Content="{Binding DisplayGame}" Padding="5,0" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"/>
+			<Label Grid.Column="2" Foreground="Black" Content="{Binding DisplayGame}" Padding="5,0" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" Background="{Binding UserGame.RunningStatus, Converter={StaticResource RunningStatusToBrushConverter}, Mode=OneWay}"/>
 			<Label Grid.Column="3" Foreground="Black" Content="{Binding StatusText}" Padding="0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"/>
 		</Grid>
 	</Grid>

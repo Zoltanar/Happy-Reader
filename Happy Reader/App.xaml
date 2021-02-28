@@ -24,6 +24,7 @@
 		<view:DateToBrushConverter x:Key="DateToBrushConverter" />
 		<converters:UserVnToBackgroundConverter x:Key="UserVnToBackgroundConverter" />
 		<converters:UserVnToForegroundConverter x:Key="UserVnToForegroundConverter" />
+		<converters:RunningStatusToBrushConverter x:Key="RunningStatusToBrushConverter" />
 		<view:VnToProducerForegroundConverter x:Key="VnToProducerForegroundConverter" />
 		<view:StringToNullableIntConverter x:Key="StringToNullableIntConverter" />
 		<view:VnOrScreenToImagePathConverter x:Key="VnOrScreenToImagePathConverter"/>

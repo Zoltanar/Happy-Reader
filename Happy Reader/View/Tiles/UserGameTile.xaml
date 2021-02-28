@@ -16,19 +16,17 @@
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type Button}" >
-						<Border Name="Border" BorderBrush="Black" BorderThickness="2" Background="Red" CornerRadius="0,0,5,0" Padding="0">
+						<Border Name="Border" BorderBrush="Black" BorderThickness="2" Background="{TemplateBinding Background}" CornerRadius="0,0,5,0" Padding="0">
 							<Viewbox>
 								<TextBlock Name="TextBlock" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Text="OFF"/>
 							</Viewbox>
 						</Border>
 						<ControlTemplate.Triggers>
-							<DataTrigger Binding="{Binding }" Value="2">
-								<Setter Property="Background" TargetName="Border" Value="LimeGreen"/>
+							<DataTrigger Binding="{Binding RunningStatus}" Value="2">
 								<Setter Property="Text" TargetName="TextBlock" Value="ON"/>
 								<Setter Property="IsEnabled" Value="False"/>
 							</DataTrigger>
-							<DataTrigger Binding="{Binding }" Value="1">
-								<Setter Property="Background" TargetName="Border" Value="Yellow"/>
+							<DataTrigger Binding="{Binding RunningStatus}" Value="1">
 								<Setter Property="Text" TargetName="TextBlock" Value="Paused"/>
 								<Setter Property="IsEnabled" Value="False"/>
 							</DataTrigger>
@@ -69,7 +67,7 @@
 			<Viewbox Grid.Row="3" Margin="0,0,48,0">
 				<TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding TimeOpen, Converter={StaticResource TimeSpanConverterKey}}"/>
 			</Viewbox>
-			<Button Margin="112,5,0,0" Grid.Row="3" Style="{StaticResource StatusButtonStyle}" DataContext="{Binding RunningStatus}" Click="LaunchGame"/>
+			<Button Margin="112,5,0,0" Grid.Row="3" Style="{StaticResource StatusButtonStyle}" Background="{Binding RunningStatus, Converter={StaticResource RunningStatusToBrushConverter}, Mode=OneWay}" Click="LaunchGame"/>
 		</Grid>
 	</Border>
 	<UserControl.ContextMenu>
