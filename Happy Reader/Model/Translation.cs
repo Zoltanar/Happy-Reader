@@ -39,13 +39,13 @@ namespace Happy_Reader
 			}
 			var romajiSb = new StringBuilder(original);
 			Translator.TranslateStageOne(romajiSb, stageOneResult);
-			_entriesUsedStageOne.AddRange(stageOneResult.EntriesUsed.SelectMany(i=>i));
+			_entriesUsedStageOne.AddRange(stageOneResult.EntriesUsed.SelectMany(i => i));
 			Original = romajiSb.ToString();
 			GetRomaji(romajiSb);
 			Romaji = romajiSb.ToString();
 			IsCharacterOnly = Original.IndexOfAny(new[] { '「', '」' }) < 0 && Original.Length < 10;
 		}
-		
+
 
 		public Translation(Translation first, Translation second)
 		{
@@ -102,7 +102,7 @@ namespace Happy_Reader
 				StaticHelpers.Logger.ToFile(ex.Message);
 			}
 		}
-		
+
 		public void SetParagraphs()
 		{
 			if (IsError)
@@ -143,7 +143,7 @@ namespace Happy_Reader
 		public List<Paragraph> GetBlocks(bool original, bool romaji)
 		{
 			var blocks = new List<Paragraph>();
-			if(IsError) blocks.Add(ErrorBlock);
+			if (IsError) blocks.Add(ErrorBlock);
 			if (original && OriginalBlock != null) blocks.Add(OriginalBlock);
 			if (romaji && RomajiBlock != null) blocks.Add(RomajiBlock);
 			if (TranslatedBlock != null) blocks.Add(TranslatedBlock);
@@ -152,6 +152,7 @@ namespace Happy_Reader
 				block.Margin = new Thickness(0);
 				block.TextAlignment = TextAlignment.Center;
 				block.FontSize = StaticMethods.Settings.TranslatorSettings.FontSize;
+				block.Tag = this;
 			}
 			var spacer = new Paragraph(new Run("￣￣￣"));
 			spacer.Inlines.FirstInline.Foreground = Brushes.White;

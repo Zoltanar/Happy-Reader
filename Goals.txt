@@ -9,7 +9,6 @@
 0 - staff filter by name instead of id
 0 - add seiyuu filter to character
 0 - allow scrolling on main window tab control when too many tabs and add close all tabs button
-0 - output window context menu: copy original (so user doesnt have to enable original and select text)
 
 look at global hooks for managing infinite text, etc (https://github.com/gmamaladze/globalmousekeyhook)
 allow keeping time played for multiple games

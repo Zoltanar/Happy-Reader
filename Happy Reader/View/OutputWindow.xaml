@@ -83,6 +83,7 @@
 					<MenuItem Header="Add Entry For Text" Command="{Binding AddEntryCommand}" />
 					<MenuItem Header="Ask Jisho" Command="{Binding AskJishoNotificationCommand}" />
 					<MenuItem Header="Ask Jisho (Browser)" Command="{Binding AskJishoCommand}" />
+					<MenuItem Header="Copy Original" Click="CopyOriginalClick" />
 					<MenuItem Command="ApplicationCommands.Copy" />
 					<MenuItem Command="ApplicationCommands.Cut" />
 					<MenuItem Command="ApplicationCommands.Paste" />

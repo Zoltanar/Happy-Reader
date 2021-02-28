@@ -141,5 +141,13 @@ namespace Happy_Reader.View
 				Height = Math.Max(30, Height + rect.Height);
 			});
 		}
+
+		private void CopyOriginalClick(object sender, RoutedEventArgs e)
+		{
+			var curBlock = OutputTextBox.Document.Blocks.FirstOrDefault(x =>
+				x.ContentStart.CompareTo(OutputTextBox.CaretPosition) == -1 &&
+				x.ContentEnd.CompareTo(OutputTextBox.CaretPosition) == 1);
+			if (curBlock?.Tag is Translation translation) Clipboard.SetText(translation.Original);
+		}
 	}
 }
