@@ -250,13 +250,14 @@ namespace Happy_Reader.ViewModel
 
 		public async Task SearchForItem(string text)
 		{
-			var vns = StaticHelpers.LocalDatabase.VisualNovels.Where(VisualNovelDatabase.SearchForVN(text)).ToList();
-			if (!vns.Any())
+			Func<IDataItem<int>, bool> searchForText = SearchByText(text);
+			var results = GetAll(StaticHelpers.LocalDatabase).Where(i => searchForText(i)).Select(t=>t.Key).ToArray();
+			if (results.Length == 0)
 			{
 				SetReplyText($"Found no results for '{text}'", VndbConnection.MessageSeverity.Normal);
 				return;
 			}
-			DbFunction = new NamedFunction(db => GetAll(db).Where(i=> SearchByText(text)(i)), "Search By VN Name", true);
+			DbFunction = new NamedFunction(db => GetAllWithKeyIn(db, results), "Text Search", true);
 			await RefreshTiles();
 		}
 
