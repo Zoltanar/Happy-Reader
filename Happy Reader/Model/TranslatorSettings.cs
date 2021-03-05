@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Windows;
 using System.Windows.Media;
 using Happy_Apps_Core;
 using Newtonsoft.Json;
@@ -20,6 +21,8 @@ namespace Happy_Reader
 		private string _romajiTextFont;
 		private string _translatedTextFont;
 		private bool _settingsViewState = true;
+		private VerticalAlignment _outputVerticalAlignment = VerticalAlignment.Top;
+		private TextAlignment _outputHorizontalAlignment = TextAlignment.Center;
 
 		[JsonIgnore]
 		public Action<bool> CaptureClipboardChanged;
@@ -167,6 +170,47 @@ namespace Happy_Reader
 					CaptureClipboardChanged?.Invoke(value);
 				}
 			}
+		}
+		public TextAlignment OutputHorizontalAlignment
+		{
+			get => _outputHorizontalAlignment;
+			set
+			{
+				if (_outputHorizontalAlignment == value) return;
+				_outputHorizontalAlignment = value;
+				if (Loaded) Save();
+			}
+		}
+
+		public VerticalAlignment OutputVerticalAlignment
+		{
+			get => _outputVerticalAlignment;
+			set
+			{
+				if (_outputVerticalAlignment == value) return;
+				_outputVerticalAlignment = value;
+				if (Loaded) Save();
+			}
+		}
+
+		public TextAlignment SetNextHorizontalAlignmentState()
+		{
+			return OutputHorizontalAlignment switch
+			{
+				TextAlignment.Left => OutputHorizontalAlignment = TextAlignment.Center,
+				TextAlignment.Center => OutputHorizontalAlignment = TextAlignment.Right,
+				TextAlignment.Right => OutputHorizontalAlignment = TextAlignment.Left,
+				_ => OutputHorizontalAlignment = TextAlignment.Left
+			};
+		}
+		public VerticalAlignment SetNextVerticalAlignmentState()
+		{
+			return OutputVerticalAlignment switch
+			{
+				VerticalAlignment.Top => OutputVerticalAlignment = VerticalAlignment.Bottom,
+				VerticalAlignment.Bottom => OutputVerticalAlignment = VerticalAlignment.Top,
+				_ => OutputVerticalAlignment = VerticalAlignment.Top,
+			};
 		}
 	}
 }

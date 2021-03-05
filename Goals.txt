@@ -1,6 +1,5 @@
 ﻿0 - allow special characters through kakasi romaji, like ❤
 0 - test tab: list entries used per stage.
-0 - allow changing direction of text in output window (down to up) and horizontal alignment
 0 - setting to switch between vote scores of 10-100 and 1-10.
 0 - warn if an instance is already running (maybe show database file for opening instance)
 0 - launch title from VN context menu
@@ -11,7 +10,7 @@
 0 - allow scrolling on main window tab control when too many tabs and add close all tabs button
 0 - TestTab: show if translation was cached or not and give option to re-fetch
 
-look at global hooks for managing infinite text, etc (https://github.com/gmamaladze/globalmousekeyhook)
+look at global hooks for managing infinite text via global hotkeys, etc (https://github.com/gmamaladze/globalmousekeyhook)
 allow keeping time played for multiple games
 allow monitor to keep running always
 make monitor only have one instance.

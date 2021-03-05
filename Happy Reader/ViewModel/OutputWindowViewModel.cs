@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
 using Happy_Reader.Database;
@@ -19,6 +20,7 @@ namespace Happy_Reader.ViewModel
 		private int _translationCounter;
 		private DateTime _lastOutputTime;
 		private Func<string> _getSelectedText;
+		private Action _scrollToBottom;
 		private FlowDocument _flowDocument;
 		private readonly RecentItemList<Translation> _translations = new(10);
 
@@ -73,10 +75,11 @@ namespace Happy_Reader.ViewModel
 			NotificationWindow.Launch("Ask Jisho", text);
 		}
 
-		public void Initialize(Func<string> getSelectedText, FlowDocument flowDocument)
+		public void Initialize(Func<string> getSelectedText, FlowDocument flowDocument, Action scrollToBottom)
 		{
 			_getSelectedText = getSelectedText;
 			_flowDocument = flowDocument;
+			_scrollToBottom = scrollToBottom;
 			OnPropertyChanged(nameof(TranslatePaused));
 		}
 
@@ -100,9 +103,13 @@ namespace Happy_Reader.ViewModel
 		public void UpdateOutput()
 		{
 			_flowDocument.Blocks.Clear();
-			_flowDocument.Blocks.AddRange(_translations.Items.SelectMany(t => t.GetBlocks(_originalOn, _romajiOn)));
+			IEnumerable<Paragraph> items = _translations.Items.SelectMany(t => t.GetBlocks(_originalOn, _romajiOn));
+			var fromBottom = StaticMethods.Settings.TranslatorSettings.OutputVerticalAlignment == VerticalAlignment.Bottom;
+			if (fromBottom) items = items.Reverse();
+			_flowDocument.Blocks.AddRange(items);
 			IdText = $"TL Count: {_translationCounter}";
 			OnPropertyChanged(nameof(IdText));
+			if (fromBottom) _scrollToBottom?.Invoke();
 		}
 
 		public void AddTranslation(Translation translation)

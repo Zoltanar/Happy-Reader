@@ -39,7 +39,11 @@
 				</Trigger>
 			</Style.Triggers>
 		</Style>
-		<Style TargetType="{x:Type ToggleButton}" x:Key="MiniIconStyle">
+		<Style TargetType="ButtonBase" x:Key="MiniIconBaseStyle">
+			<Setter Property="Background" Value="LightBlue" />
+			<Setter Property="Foreground" Value="Black" />
+		</Style>
+		<Style TargetType="{x:Type ToggleButton}" x:Key="MiniIconStyle" BasedOn="{StaticResource MiniIconBaseStyle}">
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="ToggleButton">
@@ -49,8 +53,6 @@
 					</ControlTemplate>
 				</Setter.Value>
 			</Setter>
-			<Setter Property="Background" Value="LightBlue" />
-			<Setter Property="Foreground" Value="Black" />
 			<Style.Triggers>
 				<Trigger Property="IsChecked" Value="True">
 					<Setter Property="BorderBrush" Value="Gold" />
@@ -92,6 +94,7 @@
 		</RichTextBox>
 		<Grid Column="1" HorizontalAlignment="Right" >
 			<DockPanel x:Name="SettingsPanel" LastChildFill="True">
+				<Button DockPanel.Dock="Top" Tag="❌,Close" Content="Close" Click="CloseButton_Click" Height="22" Background="Transparent" FontWeight="Bold" BorderBrush="DarkRed" BorderThickness="2" Foreground="White" MouseLeftButtonDown="DragOnMouseButton" />
 				<ToggleButton Content="Settings" Tag="S,Settings" DockPanel.Dock="Top"
 				              Style="{StaticResource SettingsButtonStyle}"
 				              IsChecked="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=view:OutputWindow}, Path=SettingsOn}"/>
@@ -99,7 +102,8 @@
 				<ToggleButton Style="{StaticResource MiniIconStyle}" Tag="字,Original" DockPanel.Dock="Top" Content="Original" IsChecked="{Binding OriginalOn}" />
 				<ToggleButton Style="{StaticResource MiniIconStyle}" Tag="Ro,Romaji" DockPanel.Dock="Top" Content="Romaji" IsChecked="{Binding RomajiOn}" />
 				<ToggleButton Style="{StaticResource MiniIconStyle}" Tag="⏸,Paused" DockPanel.Dock="Top" Content="Paused" IsChecked="{Binding TranslatePaused}" />
-				<Button DockPanel.Dock="Top" Tag="❌,Close" Content="Close" Click="CloseButton_Click" Height="22" Background="Transparent" FontWeight="Bold" BorderBrush="DarkRed" BorderThickness="2" Foreground="White" MouseLeftButtonDown="DragOnMouseButton" />
+				<Button DockPanel.Dock="Top" Style="{StaticResource MiniIconBaseStyle}" Tag="HL,Hori Align" Content="Hori Align" Click="HorizontalAlignmentClick" />
+				<Button DockPanel.Dock="Top" Style="{StaticResource MiniIconBaseStyle}" Tag="VA,Vert Align" Content="Vert Align" Click="VerticalAlignmentClick" />
 				<DockPanel>
 					<Slider Name="OpacitySlider" Orientation="Vertical" Value="0.6" Minimum="0.1" Maximum="1" />
 					<TextBlock Text="Opacity" DockPanel.Dock="Right" Foreground="White" TextAlignment="Center" x:Name="OpacityLabel"/>

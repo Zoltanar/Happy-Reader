@@ -86,7 +86,7 @@ namespace Happy_Reader.View
 		private void OutputWindow_OnLoaded(object sender, RoutedEventArgs e)
 		{
 			_viewModel = (OutputWindowViewModel)DataContext;
-			_viewModel.Initialize(() => OutputTextBox.Selection.Text, OutputTextBox.Document);
+			_viewModel.Initialize(() => OutputTextBox.Selection.Text, OutputTextBox.Document, () => Dispatcher.Invoke(()=> OutputTextBox.ScrollToEnd()));
 			SettingsOn = StaticMethods.Settings.TranslatorSettings.SettingsViewState;
 			var tColor = ((SolidColorBrush)StaticMethods.Settings.TranslatorSettings.TranslationColor).Color;
 			var darkerColor = System.Windows.Media.Color.FromRgb((byte)(tColor.R * 0.75), (byte)(tColor.G * 0.75), (byte)(tColor.B * 0.75));
@@ -148,6 +148,19 @@ namespace Happy_Reader.View
 				x.ContentStart.CompareTo(OutputTextBox.CaretPosition) == -1 &&
 				x.ContentEnd.CompareTo(OutputTextBox.CaretPosition) == 1);
 			if (curBlock?.Tag is Translation translation) Clipboard.SetText(translation.Original);
+		}
+
+		private void HorizontalAlignmentClick(object sender, RoutedEventArgs e)
+		{
+			StaticMethods.Settings.TranslatorSettings.SetNextHorizontalAlignmentState();
+			_viewModel.UpdateOutput();
+		}
+
+		private void VerticalAlignmentClick(object sender, RoutedEventArgs e)
+		{
+			var newState = StaticMethods.Settings.TranslatorSettings.SetNextVerticalAlignmentState();
+			_viewModel.UpdateOutput();
+			if (newState == VerticalAlignment.Top) OutputTextBox.ScrollToHome();
 		}
 	}
 }

@@ -150,14 +150,14 @@ namespace Happy_Reader
 			foreach (Paragraph block in blocks)
 			{
 				block.Margin = new Thickness(0);
-				block.TextAlignment = TextAlignment.Center;
+				block.TextAlignment = StaticMethods.Settings.TranslatorSettings.OutputHorizontalAlignment;
 				block.FontSize = StaticMethods.Settings.TranslatorSettings.FontSize;
 				block.Tag = this;
 			}
 			var spacer = new Paragraph(new Run("￣￣￣"));
 			spacer.Inlines.FirstInline.Foreground = Brushes.White;
 			spacer.Margin = new Thickness(0);
-			spacer.TextAlignment = TextAlignment.Center;
+			spacer.TextAlignment = StaticMethods.Settings.TranslatorSettings.OutputHorizontalAlignment;
 			spacer.FontSize = 3d;
 			spacer.Padding = new Thickness(0);
 			blocks.Add(spacer);
