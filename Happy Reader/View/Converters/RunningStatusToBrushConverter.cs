@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Media;
-using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
 
 namespace Happy_Reader.View.Converters

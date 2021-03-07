@@ -162,6 +162,7 @@
     <Compile Include="View\Converters.cs" />
     <Compile Include="View\Converters\DateToMonthStringConverter.cs" />
     <Compile Include="View\Converters\RunningStatusToBrushConverter.cs" />
+    <Compile Include="View\Converters\GameDisplayNameConverter.cs" />
     <Compile Include="View\Converters\UserVnConverters.cs" />
     <Compile Include="View\FiltersPane.xaml.cs">
       <DependentUpon>FiltersPane.xaml</DependentUpon>

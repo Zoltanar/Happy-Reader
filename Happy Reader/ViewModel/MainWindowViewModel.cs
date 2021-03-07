@@ -110,7 +110,7 @@ namespace Happy_Reader.ViewModel
 				_userGame = value;
 				TestViewModel.Game = _userGame?.VN;
 				TestViewModel.OnPropertyChanged(nameof(TestViewModel.Game));
-				OnPropertyChanged(nameof(DisplayGame));
+				OnPropertyChanged();
 				OnPropertyChanged(nameof(UserGame.RunningStatus));
 			}
 		}
@@ -471,6 +471,7 @@ namespace Happy_Reader.ViewModel
 					UserGame.SetActiveProcess(process, HookedProcessOnExited);
 					TestViewModel.Game = UserGame.VN;
 					UserGame.OnPropertyChanged(null);
+					OnPropertyChanged(nameof(UserGame));
 					if (!UserGame.HookProcess) return;
 					if (SettingsViewModel.GuiSettings.HookGlobalMouse) _globalHook = WinAPI.HookMouseEvents(GlobalMouseClick);
 					while (!_loadingComplete) Thread.Sleep(25);

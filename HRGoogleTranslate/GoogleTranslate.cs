@@ -52,20 +52,33 @@ namespace HRGoogleTranslate
 			_cache = existingCache;
 			_noApiTranslation = noApiTranslation;
 			_googleCredentialPath = credentialLocation;
-			_canUseGoogleCredential = !_noApiTranslation && !string.IsNullOrWhiteSpace(_googleCredentialPath) && File.Exists(_googleCredentialPath);
 			FreeClient.DefaultRequestHeaders.Add(@"user-agent", userAgentString);
-			if (_canUseGoogleCredential)
-			{
-				Debug.Assert(_googleCredentialPath != null, nameof(_googleCredentialPath) + " != null");
-				using (var stream = File.OpenRead(_googleCredentialPath))
-				{
-					_client = TranslationClient.Create(Google.Apis.Auth.OAuth2.GoogleCredential.FromStream(stream));
-				}
-			}
+			SetGoogleCredential();
 			UntouchedStrings.Clear();
 			foreach (var untouchedString in untouchedStrings)
 			{
 				UntouchedStrings.Add(untouchedString);
+			}
+		}
+
+		private static void SetGoogleCredential()
+		{
+			_canUseGoogleCredential = !_noApiTranslation && !string.IsNullOrWhiteSpace(_googleCredentialPath) && File.Exists(_googleCredentialPath);
+			if (_canUseGoogleCredential)
+			{
+				try
+				{
+					Debug.Assert(_googleCredentialPath != null, nameof(_googleCredentialPath) + " != null");
+					using (var stream = File.OpenRead(_googleCredentialPath))
+					{
+						_client = TranslationClient.Create(Google.Apis.Auth.OAuth2.GoogleCredential.FromStream(stream));
+					}
+				}
+				catch (Exception ex)
+				{
+					LogVerbose($"Exception initialising Google API client: {ex}");
+					_canUseGoogleCredential = false;
+				}
 			}
 		}
 

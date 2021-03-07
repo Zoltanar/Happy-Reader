@@ -9,6 +9,12 @@
 0 - add seiyuu filter to character
 0 - allow scrolling on main window tab control when too many tabs and add close all tabs button
 0 - TestTab: show if translation was cached or not and give option to re-fetch
+0 - report error when setting google credential path
+0 - use ithvnr tab to also show captured clipboard text format like: [process/pid] [outputted] [text]
+0 - outputwindow: add entry from selected text should default type to output when latin only.
+0 - entries: entry type should be a combobox like in add entry tab
+0 - ithvnr: better saving/loading game text threads 
+0 - ithvnr: somehow, add hook code later rather than on process start (maybe after first text thread is found) also add button in tab to do the same (instead of having to copy paste to command input)
 
 look at global hooks for managing infinite text via global hotkeys, etc (https://github.com/gmamaladze/globalmousekeyhook)
 allow keeping time played for multiple games
@@ -16,6 +22,7 @@ allow monitor to keep running always
 make monitor only have one instance.
 apply translate stage 4 to pre-romaji
 if response is error with id 'needlogin' show user that credentials are wrong
+offline dictionary for faster (mouseover?) word lookups
 
 
 great outstanding problems:

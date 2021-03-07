@@ -49,6 +49,7 @@ namespace Happy_Reader.View.Tabs
 		{
 			if (e.Key != Key.Enter) return;
 			ViewModel.SaveUserDefinedName(DisplayNameBox.Text);
+			StaticMethods.MainWindow.ViewModel.OnPropertyChanged(nameof(Happy_Reader.ViewModel.MainWindowViewModel.UserGame));
 		}
 		private void SaveTag(object sender, KeyEventArgs e)
 		{
