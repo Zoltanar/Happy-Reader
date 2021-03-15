@@ -24,7 +24,8 @@
 			         ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
 			         ScrollViewer.ScrollChanged="ScrollViewer_OnScrollChanged"
 			         VirtualizingStackPanel.VirtualizationMode="Recycling" 
-			         MouseDoubleClick="VNTileDoubleClicked">
+							 MouseDoubleClick="VNTileDoubleClick"
+			         MouseUp="VNTileMouseUp">
 				<ListBox.Resources>
 					<Style TargetType="ListBoxItem">
 						<Setter Property="HorizontalContentAlignment" Value="Left" />

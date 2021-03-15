@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:database="clr-namespace:Happy_Reader.Database"
              xmlns:view="clr-namespace:Happy_Reader.View"
-             mc:Ignorable="d" d:DesignHeight="250" d:DesignWidth="160" Loaded="UserGameTile_OnLoaded" MouseDoubleClick="OnMouseDoubleClick">
+             mc:Ignorable="d" d:DesignHeight="250" d:DesignWidth="160" Loaded="UserGameTile_OnLoaded" MouseDoubleClick="OnMouseDoubleClick" MouseUp="OnMouseUp">
 	<UserControl.DataContext>
 		<database:UserGame/>
 	</UserControl.DataContext>

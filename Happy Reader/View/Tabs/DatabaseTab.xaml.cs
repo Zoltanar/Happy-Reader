@@ -4,8 +4,10 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
+using Happy_Reader.View.Tiles;
 using Happy_Reader.ViewModel;
 
 namespace Happy_Reader.View.Tabs
@@ -43,19 +45,6 @@ namespace Happy_Reader.View.Tabs
 			if (DesignerProperties.GetIsInDesignMode(this)) return;
 			ViewModel = (DatabaseViewModelBase)DataContext;
 			_loaded = true;
-		}
-
-		private void VNTileDoubleClicked(object sender, MouseButtonEventArgs e)
-		{
-			var item = ((FrameworkElement)VisualNovelItems.SelectedItem).DataContext;
-			var vn = item switch
-			{
-				ListedVN iVn => iVn,
-				CharacterItem ch => StaticHelpers.LocalDatabase.VisualNovels[ch.CharacterVN.VNId],
-				_ => null
-			};
-			if (vn == null) return;
-			StaticMethods.MainWindow.OpenVNPanel(vn);
 		}
 
 		private async void ShowSuggested(object sender, RoutedEventArgs e)
@@ -118,7 +107,7 @@ namespace Happy_Reader.View.Tabs
 			if (textBox.SelectedItem is ListedProducer producer) await ViewModel.ShowForProducer(producer);
 			else if (!string.IsNullOrWhiteSpace(textBox.Text)) await ViewModel.ShowForProducer(textBox.Text);
 		}
-		
+
 		private async void BrowseHistory(object sender, SelectionChangedEventArgs e)
 		{
 			if (!_userInteractionHistory || e.AddedItems.Count == 0) return;
@@ -137,6 +126,31 @@ namespace Happy_Reader.View.Tabs
 		private void ShowFilters(object sender, RoutedEventArgs e)
 		{
 			FiltersPane.Visibility = FiltersPane.Visibility == Visibility.Collapsed ? Visibility.Visible : Visibility.Collapsed;
+		}
+
+		private void VNTileMouseUp(object sender, MouseButtonEventArgs e)
+		{
+			if (e.ChangedButton == MouseButton.Middle) OpenVNPanel(e, (FrameworkElement)sender, false);
+		}
+
+		private void VNTileDoubleClick(object sender, MouseButtonEventArgs e)
+		{
+			if (e.ChangedButton == MouseButton.Left) OpenVNPanel(e, (FrameworkElement)sender, true);
+		}
+
+		private void OpenVNPanel(MouseEventArgs e, FrameworkElement element, bool switchToTab)
+		{
+			var hitTestResult = VisualTreeHelper.HitTest(element, e.GetPosition(element));
+			var vnTile = hitTestResult.VisualHit.FindParent<VNTile>();
+			var item = vnTile?.DataContext;
+			var vn = item switch
+			{
+				ListedVN iVn => iVn,
+				CharacterItem ch => StaticHelpers.LocalDatabase.VisualNovels[ch.CharacterVN.VNId],
+				_ => null
+			};
+			if (vn == null) return;
+			StaticMethods.MainWindow.OpenVNPanel(vn, switchToTab);
 		}
 	}
 }

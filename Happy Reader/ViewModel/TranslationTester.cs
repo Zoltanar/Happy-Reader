@@ -53,8 +53,7 @@ namespace Happy_Reader.ViewModel
         public ListedVN Game { get; set; }
         public PausableUpdateList<DisplayEntry> EntriesUsed { get; } = new();
         public string[] UserGameNames => StaticMethods.Data.UserGames.Local.Select(x => x.DisplayName).ToArray();
-
-
+    
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using Happy_Reader.Database;
 
 namespace Happy_Reader.View.Tiles
@@ -33,9 +34,8 @@ namespace Happy_Reader.View.Tiles
 		{
 			if (UserGame.HasVN) StaticMethods.MainWindow.OpenVNPanel(UserGame.VN);
 			else StaticMethods.MainWindow.OpenUserGamePanel(UserGame,null);
-
 		}
-
+		
 		public void BrowseToLocation(object sender, RoutedEventArgs e)
 		{
 			var directory = Directory.GetParent(UserGame.FilePath);
@@ -103,6 +103,23 @@ namespace Happy_Reader.View.Tiles
 		private void LaunchGame(object sender, RoutedEventArgs e)
 		{
 			if (UserGame.RunningStatus == UserGame.ProcessStatus.Off) LaunchProcessClick(sender,e);
+		}
+
+		private void OnMouseUp(object sender, MouseButtonEventArgs e)
+		{
+			if (e.ChangedButton != MouseButton.Middle) return;
+			var element = (FrameworkElement) sender;
+			var hitTestResult = VisualTreeHelper.HitTest(element, e.GetPosition(element));
+			var userGameTile = hitTestResult.VisualHit.FindParent<UserGameTile>();
+			var item = userGameTile?.DataContext;
+			var userGame = item switch
+			{
+				UserGame iUserGame => iUserGame,
+				_ => null
+			};
+			if (userGame == null) return;
+			if (UserGame.HasVN) StaticMethods.MainWindow.OpenVNPanel(UserGame.VN, false);
+			else StaticMethods.MainWindow.OpenUserGamePanel(UserGame, null, false);
 		}
 	}
 }

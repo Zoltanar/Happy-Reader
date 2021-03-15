@@ -104,25 +104,11 @@ namespace Happy_Reader.View
 		private void DataGridMouseLeftUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
 		{
 			var dataGrid = (DataGrid)sender;
-			HitTestResult hitTestResult = VisualTreeHelper.HitTest(dataGrid, e.GetPosition(dataGrid));
-			DataGridRow dataGridRow = GetParentOfType<DataGridRow>(hitTestResult.VisualHit);
+			var hitTestResult = VisualTreeHelper.HitTest(dataGrid, e.GetPosition(dataGrid));
+			var dataGridRow = hitTestResult.VisualHit.FindParent<DataGridRow>();
 			if (dataGridRow == null) return;
 			var mergeGame = (MergeGame)dataGridRow.Item;
 			mergeGame.Selected = !mergeGame.Selected;
-		}
-
-		public static T GetParentOfType<T>(DependencyObject element) where T : DependencyObject
-		{
-			while (true)
-			{
-				var type = typeof(T);
-				if (element == null) return null;
-				DependencyObject parent = VisualTreeHelper.GetParent(element);
-				if (parent == null && ((FrameworkElement)element).Parent != null) parent = ((FrameworkElement)element).Parent;
-				if (parent == null) return null;
-				if (parent.GetType() == type || parent.GetType().IsSubclassOf(type)) return parent as T;
-				element = parent;
-			}
 		}
 	}
 }

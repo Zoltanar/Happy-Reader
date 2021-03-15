@@ -62,7 +62,7 @@ namespace Happy_Reader
 			bool isAmPm = culture.DateTimeFormat.AMDesignator != string.Empty;
 			return dateTime.ToString(isAmPm ? "hh:mm tt" : "HH:mm", culture);
 		}
-
+		
 		public static T FindParent<T>(this DependencyObject child) where T : DependencyObject
 		{
 			while (true)
