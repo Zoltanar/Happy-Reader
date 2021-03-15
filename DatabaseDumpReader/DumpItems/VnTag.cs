@@ -7,14 +7,14 @@ namespace DatabaseDumpReader.DumpItems
 {
 	public class VnTag : IDumpItem
 	{
-		public static Dictionary<string, int> Headers = new Dictionary<string, int>();
+		public static Dictionary<string, int> Headers = new();
 
 		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
 
 		public void SetDumpHeaders(string[] parts)
 		{
 			int colIndex = 0;
-			Headers = parts.ToDictionary(c => c, c => colIndex++);
+			Headers = parts.ToDictionary(c => c, _ => colIndex++);
 		}
 
 		public int TagId { get; set; }
@@ -29,11 +29,12 @@ namespace DatabaseDumpReader.DumpItems
 
 		public void LoadFromStringParts(string[] parts)
 		{
-			TagId = Convert.ToInt32(parts[0]);
-			VnId = Convert.ToInt32(parts[1]);
-			Vote = Convert.ToInt32(parts[3]);
-			Spoiler = parts[4] == "\\N" ? (int?) null : Convert.ToInt32(parts[4]);
-			Ignore = parts[6] == "t";
+			TagId = Convert.ToInt32(GetPart(parts, "tag").Substring(1));
+			VnId = Convert.ToInt32(GetPart(parts, "vid").Substring(1));
+			Vote = Convert.ToInt32(GetPart(parts, "vote"));
+			var spoiler = GetPart(parts, "spoiler");
+			Spoiler = spoiler == "\\N" ? (int?)null : Convert.ToInt32(spoiler);
+			Ignore = GetPart(parts, "ignore") == "t";
 		}
 	}
 }

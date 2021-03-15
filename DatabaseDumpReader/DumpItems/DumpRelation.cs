@@ -11,8 +11,8 @@ namespace DatabaseDumpReader.DumpItems
 	{
 		void IDumpItem.LoadFromStringParts(string[] parts)
 		{
-			Id = Convert.ToInt32(GetPart(parts, "id"));
-			VnId = Convert.ToInt32(GetPart(parts, "vid"));
+			Id = Convert.ToInt32(GetPart(parts, "id").Substring(1));
+			VnId = Convert.ToInt32(GetPart(parts, "vid").Substring(1));
 			Relation = GetPart(parts, "relation");
 			Official = GetPart(parts, "official") == "t";
 		}
@@ -25,19 +25,19 @@ namespace DatabaseDumpReader.DumpItems
 
 		public int Id { get; set; }
 
-		public static Dictionary<string, int> Headers = new Dictionary<string, int>();
+		public static Dictionary<string, int> Headers = new();
 
 		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
 
 		public void SetDumpHeaders(string[] parts)
 		{
 			int colIndex = 0;
-			Headers = parts.ToDictionary(c => c, c => colIndex++);
+			Headers = parts.ToDictionary(c => c, _ => colIndex++);
 		}
 
 		public RelationsItem ToRelationItem()
 		{
-			return new RelationsItem
+			return new()
 			{
 				ID = VnId,
 				Relation = Relation,
@@ -62,14 +62,14 @@ namespace DatabaseDumpReader.DumpItems
 		public string Title_Romaji { get; set; }
 		public string Title_Kanji { get; set; }
 
-		public static Dictionary<string, int> Headers = new Dictionary<string, int>();
+		public static Dictionary<string, int> Headers = new();
 
 		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
 
 		public void SetDumpHeaders(string[] parts)
 		{
 			int colIndex = 0;
-			Headers = parts.ToDictionary(c => c, c => colIndex++);
+			Headers = parts.ToDictionary(c => c, _ => colIndex++);
 		}
 	}
 
@@ -77,20 +77,20 @@ namespace DatabaseDumpReader.DumpItems
 	{
 		void IDumpItem.LoadFromStringParts(string[] parts)
 		{
-			VnId = Convert.ToInt32(GetPart(parts, "id"));
+			VnId = Convert.ToInt32(GetPart(parts, "id").Substring(1));
 			AnimeId = Convert.ToInt32(GetPart(parts, "aid"));
 		}
 		public int VnId { get; set; }
 		public int AnimeId { get; set; }
 
-		public static Dictionary<string, int> Headers = new Dictionary<string, int>();
+		public static Dictionary<string, int> Headers = new();
 
 		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
 
 		public void SetDumpHeaders(string[] parts)
 		{
 			int colIndex = 0;
-			Headers = parts.ToDictionary(c => c, c => colIndex++);
+			Headers = parts.ToDictionary(c => c, _ => colIndex++);
 		}
 
 		public AnimeItem ToAnimeItem(Dictionary<int, DumpAnime> animeDict)
@@ -123,7 +123,7 @@ namespace DatabaseDumpReader.DumpItems
 		public int Height { get; set; }
 
 		public int Width { get; set; }
-		
+
 		public double Sexual { get; set; }
 
 		public double Violence { get; set; }
@@ -132,14 +132,14 @@ namespace DatabaseDumpReader.DumpItems
 
 		public string Id { get; set; }
 
-		public static Dictionary<string, int> Headers = new Dictionary<string, int>();
+		public static Dictionary<string, int> Headers = new();
 
 		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
 
 		public void SetDumpHeaders(string[] parts)
 		{
 			int colIndex = 0;
-			Headers = parts.ToDictionary(c => c, c => colIndex++);
+			Headers = parts.ToDictionary(c => c, _ => colIndex++);
 		}
 	}
 
@@ -147,7 +147,7 @@ namespace DatabaseDumpReader.DumpItems
 	{
 		void IDumpItem.LoadFromStringParts(string[] parts)
 		{
-			VnId = Convert.ToInt32(GetPart(parts, "id"));
+			VnId = Convert.ToInt32(GetPart(parts, "id").Substring(1));
 			var imageId = GetPart(parts, "scr");
 			ImageId = imageId == "\\N" ? null : imageId;
 			//Nsfw = GetPart(parts, "nsfw") == "t";
@@ -159,14 +159,14 @@ namespace DatabaseDumpReader.DumpItems
 
 		public int VnId { get; set; }
 
-		public static Dictionary<string, int> Headers = new Dictionary<string, int>();
+		public static Dictionary<string, int> Headers = new();
 
 		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
 
 		public void SetDumpHeaders(string[] parts)
 		{
 			int colIndex = 0;
-			Headers = parts.ToDictionary(c => c, c => colIndex++);
+			Headers = parts.ToDictionary(c => c, _ => colIndex++);
 		}
 
 		public ScreenItem ToScreenItem(Dictionary<string, DumpScreen> imageDictionary)

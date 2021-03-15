@@ -57,7 +57,7 @@ namespace Happy_Apps_Core.Database
 			{
 				if (!_producerSet)
 				{
-					if (ProducerID.HasValue && ProducerID.Value >= 0)
+					if (ProducerID >= 0)
 					{
 						_producer = StaticHelpers.LocalDatabase.Producers[ProducerID.Value];
 					}
@@ -149,7 +149,7 @@ namespace Happy_Apps_Core.Database
 				return _hasFullDate.Value;
 			}
 		}
-		
+
 		[NotNull]
 		public RelationsItem[] RelationsObject
 		{
@@ -197,7 +197,7 @@ namespace Happy_Apps_Core.Database
 		private VNLanguages _languagesObject;
 		private ListedProducer _producer;
 		private int? _producerID;
-		
+
 		public SuggestionScoreObject Suggestion { get; set; }
 
 		/// <summary>
@@ -253,7 +253,7 @@ namespace Happy_Apps_Core.Database
 				return sb.ToString();
 			}
 		}
-		
+
 		private bool _imageSourceSet;
 		private string _imageSource;
 
@@ -304,7 +304,7 @@ namespace Happy_Apps_Core.Database
 			}
 			return _specialFlag.Value;
 		}
-		
+
 		public bool HasLanguage(string value)
 		{
 			return LanguagesObject.All.Contains(value);
@@ -367,7 +367,7 @@ namespace Happy_Apps_Core.Database
 		#region IDumpItem Implementation
 
 		public static Dictionary<string, int> Headers = new();
-		
+
 		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
 
 		public void SetDumpHeaders(string[] parts)
@@ -380,7 +380,7 @@ namespace Happy_Apps_Core.Database
 		{
 			try
 			{
-				VNID = Convert.ToInt32(GetPart(parts, "id"));
+				VNID = Convert.ToInt32(GetPart(parts, "id").Substring(1));
 				Title = GetPart(parts, "title");
 				KanjiTitle = GetPart(parts, "original");
 				Aliases = GetPart(parts, "alias");

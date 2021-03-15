@@ -17,7 +17,7 @@ namespace Happy_Apps_Core.Database
 
 		public override string ToString() => $"[CID: {CharacterId}, VNID: {VNId}]";
 
-		public static Dictionary<string, int> Headers = new Dictionary<string, int>();
+		public static Dictionary<string, int> Headers = new();
 
 		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
 
@@ -29,10 +29,10 @@ namespace Happy_Apps_Core.Database
 
 		public void LoadFromStringParts(string[] parts)
 		{
-			CharacterId = Convert.ToInt32(GetPart(parts, "id"));
-			VNId = Convert.ToInt32(GetPart(parts, "vid"));
+			CharacterId = Convert.ToInt32(GetPart(parts, "id").Substring(1));
+			VNId = Convert.ToInt32(GetPart(parts, "vid").Substring(1));
 			RId = 0;//Convert.ToInt32(parts[2]); //todo ??
-			Spoiler = Convert.ToInt32(GetPart(parts,"spoil"));
+			Spoiler = Convert.ToInt32(GetPart(parts, "spoil"));
 			Role = Convert.ToString(GetPart(parts, "role"));
 		}
 

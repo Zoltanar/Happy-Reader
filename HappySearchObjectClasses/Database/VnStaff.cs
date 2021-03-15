@@ -50,7 +50,7 @@ namespace Happy_Apps_Core.Database
 
 		public void LoadFromStringParts(string[] parts)
 		{
-			VNID = Convert.ToInt32(GetPart(parts, "id"));
+			VNID = Convert.ToInt32(GetPart(parts, "id").Substring(1));
 			AliasID = Convert.ToInt32(GetPart(parts, "aid"));
 			Role = GetPart(parts, "role");
 			Note = GetPart(parts, "note");
@@ -59,7 +59,7 @@ namespace Happy_Apps_Core.Database
 		public void SetDumpHeaders(string[] parts)
 		{
 			int colIndex = 0;
-			Headers = parts.ToDictionary(c => c, c => colIndex++);
+			Headers = parts.ToDictionary(c => c, _ => colIndex++);
 		}
 
 		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];

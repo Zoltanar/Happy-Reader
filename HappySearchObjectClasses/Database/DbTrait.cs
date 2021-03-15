@@ -18,7 +18,7 @@ namespace Happy_Apps_Core.Database
 		public int TraitId { get; set; }
 
 		public int Spoiler { get; set; }
-		
+
 		#region IDataItem Implementation
 
 		public string KeyField { get; } = "(CharacterItem_Id, TraitId)";
@@ -52,22 +52,22 @@ namespace Happy_Apps_Core.Database
 			}
 		}
 		#endregion
-		
+
 		public void LoadFromStringParts(string[] parts)
 		{
-			CharacterItem_Id = Convert.ToInt32(GetPart(parts,"id"));
+			CharacterItem_Id = Convert.ToInt32(GetPart(parts, "id").Substring(1));
 			TraitId = Convert.ToInt32(GetPart(parts, "tid"));
 			Spoiler = Convert.ToInt32(GetPart(parts, "spoil"));
 		}
 
-		public static Dictionary<string, int> Headers = new Dictionary<string, int>();
+		public static Dictionary<string, int> Headers = new();
 
 		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
 
 		public void SetDumpHeaders(string[] parts)
 		{
 			int colIndex = 0;
-			Headers = parts.ToDictionary(c => c, c => colIndex++);
+			Headers = parts.ToDictionary(c => c, _ => colIndex++);
 		}
 	}
 }

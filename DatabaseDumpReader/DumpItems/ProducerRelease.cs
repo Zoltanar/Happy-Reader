@@ -13,10 +13,10 @@ namespace DatabaseDumpReader.DumpItems
 		public void SetDumpHeaders(string[] parts)
 		{
 			int colIndex = 0;
-			Headers = parts.ToDictionary(c=>c,c=>colIndex++);
+			Headers = parts.ToDictionary(c => c, _ => colIndex++);
 		}
 
-		public static Dictionary<string, int> Headers = new Dictionary<string, int>();
+		public static Dictionary<string, int> Headers = new();
 
 		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
 
@@ -29,7 +29,7 @@ namespace DatabaseDumpReader.DumpItems
 
 		public void LoadFromStringParts(string[] parts)
 		{
-			ReleaseId = Convert.ToInt32(GetPart(parts,"id"));
+			ReleaseId = Convert.ToInt32(GetPart(parts, "id").Substring(1));
 			Type = GetPart(parts, "type");
 			Released = GetPart(parts, "released");
 			Website = GetPart(parts, "website");
@@ -38,14 +38,14 @@ namespace DatabaseDumpReader.DumpItems
 
 	public class ProducerRelease : IDumpItem
 	{
-		public static Dictionary<string, int> Headers = new Dictionary<string, int>();
+		public static Dictionary<string, int> Headers = new();
 
 		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
 
 		public void SetDumpHeaders(string[] parts)
 		{
 			int colIndex = 0;
-			Headers = parts.ToDictionary(c => c, c => colIndex++);
+			Headers = parts.ToDictionary(c => c, _ => colIndex++);
 		}
 
 		public bool Developer { get; set; }
@@ -58,8 +58,8 @@ namespace DatabaseDumpReader.DumpItems
 
 		public void LoadFromStringParts(string[] parts)
 		{
-			ReleaseId = Convert.ToInt32(GetPart(parts, "id"));
-			ProducerId = Convert.ToInt32(GetPart(parts, "pid"));
+			ReleaseId = Convert.ToInt32(GetPart(parts, "id").Substring(1));
+			ProducerId = Convert.ToInt32(GetPart(parts, "pid").Substring(1));
 			Developer = GetPart(parts, "developer") == "t";
 			Publisher = GetPart(parts, "publisher") == "t";
 		}
@@ -67,20 +67,20 @@ namespace DatabaseDumpReader.DumpItems
 
 	public class VnRelease : IDumpItem
 	{
-		public static Dictionary<string, int> Headers = new Dictionary<string, int>();
+		public static Dictionary<string, int> Headers = new();
 
 		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
 
 		public void SetDumpHeaders(string[] parts)
 		{
 			int colIndex = 0;
-			Headers = parts.ToDictionary(c => c, c => colIndex++);
+			Headers = parts.ToDictionary(c => c, _ => colIndex++);
 		}
 
 		public void LoadFromStringParts(string[] parts)
 		{
-			ReleaseId = Convert.ToInt32(GetPart(parts, "id"));
-			VnId = Convert.ToInt32(GetPart(parts, "vid"));
+			ReleaseId = Convert.ToInt32(GetPart(parts, "id").Substring(1));
+			VnId = Convert.ToInt32(GetPart(parts, "vid").Substring(1));
 		}
 
 		public int VnId { get; set; }
@@ -90,19 +90,19 @@ namespace DatabaseDumpReader.DumpItems
 
 	public class LangRelease : IDumpItem
 	{
-		public static Dictionary<string, int> Headers = new Dictionary<string, int>();
+		public static Dictionary<string, int> Headers = new();
 
 		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
 
 		public void SetDumpHeaders(string[] parts)
 		{
 			int colIndex = 0;
-			Headers = parts.ToDictionary(c => c, c => colIndex++);
+			Headers = parts.ToDictionary(c => c, _ => colIndex++);
 		}
 
 		public void LoadFromStringParts(string[] parts)
 		{
-			ReleaseId = Convert.ToInt32(GetPart(parts, "id"));
+			ReleaseId = Convert.ToInt32(GetPart(parts, "id").Substring(1));
 			Lang = GetPart(parts, "lang");
 		}
 

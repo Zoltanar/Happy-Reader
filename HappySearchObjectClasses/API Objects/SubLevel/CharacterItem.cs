@@ -104,7 +104,7 @@ namespace Happy_Apps_Core
 
 		public void LoadFromStringParts(string[] parts)
 		{
-			ID = Convert.ToInt32(GetPart(parts, "id"));
+			ID = Convert.ToInt32(GetPart(parts, "id").Substring(1));
 			Name = GetPart(parts, "name");
 			Original = GetPart(parts, "original");
 			Aliases = GetPart(parts, "alias");
@@ -143,7 +143,7 @@ namespace Happy_Apps_Core
 			return _alertFlag.Value;
 		}
 
-		public IEnumerable<IGrouping<string,DumpFiles.WrittenTrait>> GetGroupedTraits()
+		public IEnumerable<IGrouping<string, DumpFiles.WrittenTrait>> GetGroupedTraits()
 		{
 			var groups = DbTraits
 				.Where(t =>

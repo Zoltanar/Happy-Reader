@@ -18,7 +18,7 @@ namespace Happy_Apps_Core.Database
 		public string KeyField => nameof(ID);
 		public int Key => ID;
 		public static Dictionary<string, int> Headers { get; set; }
-		
+
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
 		{
 			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO {nameof(StaffItem)}s " +
@@ -50,10 +50,10 @@ namespace Happy_Apps_Core.Database
 				throw;
 			}
 		}
-		
+
 		public void LoadFromStringParts(string[] parts)
 		{
-			ID = Convert.ToInt32(GetPart(parts, "id"));
+			ID = Convert.ToInt32(GetPart(parts, "id").Substring(1));
 			AliasID = Convert.ToInt32(GetPart(parts, "aid"));
 			Gender = GetPart(parts, "gender");
 			Language = GetPart(parts, "lang");
@@ -63,9 +63,9 @@ namespace Happy_Apps_Core.Database
 		public void SetDumpHeaders(string[] parts)
 		{
 			int colIndex = 0;
-			Headers = parts.ToDictionary(c => c, c => colIndex++);
+			Headers = parts.ToDictionary(c => c, _ => colIndex++);
 		}
-		
+
 		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
 	}
 }

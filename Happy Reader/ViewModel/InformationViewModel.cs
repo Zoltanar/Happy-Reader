@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Happy_Apps_Core;
@@ -22,7 +22,7 @@ namespace Happy_Reader.ViewModel
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		[NotifyPropertyChangedInvocator]
-		protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+		public void OnPropertyChanged([CallerMemberName] string propertyName = null)
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
@@ -56,7 +56,7 @@ namespace Happy_Reader.ViewModel
 				else
 				{
 					var timeForVn = new TimeSpan();
-					TimeSpan? vnTime =null;
+					TimeSpan? vnTime = null;
 					foreach (var game in gameGroup)
 					{
 						recordedTime = recordedTime.Add(game.TimeOpen);
@@ -65,6 +65,7 @@ namespace Happy_Reader.ViewModel
 						var approxTime = GetApproxTime(game.VN.LengthTime, ratio);
 						vnTime ??= TimeSpan.FromHours(approxTime);
 					}
+					Debug.Assert(vnTime != null, nameof(vnTime) + " != null");
 					var timeToAdd = timeForVn.TotalHours < vnTime.Value.TotalHours * 0.25d ? vnTime : timeForVn;
 					approxOverallTime = approxOverallTime.Add(timeToAdd.Value);
 				}
@@ -92,7 +93,7 @@ namespace Happy_Reader.ViewModel
 
 		private static bool HasPlayed(ListedVN userGameVN, out double ratio)
 		{
-			switch (userGameVN.UserVN?.PriorityLabel)
+			switch (userGameVN?.UserVN?.PriorityLabel)
 			{
 				case UserVN.LabelKind.Playing:
 				case UserVN.LabelKind.Dropped:

@@ -259,7 +259,7 @@ namespace Happy_Reader
 			if (process.Is64BitProcess())
 			{
 				var searcher = new ManagementObjectSearcher("root\\CIMV2", $"SELECT ExecutablePath FROM Win32_Process WHERE ProcessId = {process.Id}");
-				processFileName = searcher.Get().Cast<ManagementObject>().FirstOrDefault()?["ExecutablePath"].ToString() ?? string.Empty;
+				processFileName = searcher.Get().Cast<ManagementObject>().FirstOrDefault()?["ExecutablePath"]?.ToString() ?? string.Empty;
 				if (string.IsNullOrWhiteSpace(processFileName)) throw new InvalidOperationException("Did not find executable path for process");
 			}
 			else
