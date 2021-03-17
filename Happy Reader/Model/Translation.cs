@@ -114,20 +114,20 @@ namespace Happy_Reader
 				return;
 			}
 			var originalP = new Paragraph(new Run(Original));
-			originalP.Inlines.FirstInline.Foreground = StaticMethods.Settings.TranslatorSettings.OriginalColor;
+			originalP.Inlines.FirstInline.Foreground = StaticMethods.Settings.TranslatorSettings.OriginalColor.Color;
 			SetFont(originalP, StaticMethods.Settings.TranslatorSettings.OriginalTextFont);
 			OriginalBlock = originalP;
 			if (!string.IsNullOrWhiteSpace(Romaji) && !Romaji.Equals(Original))
 			{
 				var romajiP = new Paragraph(new Run(Romaji));
-				romajiP.Inlines.FirstInline.Foreground = StaticMethods.Settings.TranslatorSettings.RomajiColor;
+				romajiP.Inlines.FirstInline.Foreground = StaticMethods.Settings.TranslatorSettings.RomajiColor.Color;
 				SetFont(romajiP, StaticMethods.Settings.TranslatorSettings.RomajiTextFont);
 				RomajiBlock = romajiP;
 			}
 			if (!string.IsNullOrWhiteSpace(Output) && !Output.Equals(Original))
 			{
 				var translatedP = new Paragraph(new Run(Output));
-				translatedP.Inlines.FirstInline.Foreground = StaticMethods.Settings.TranslatorSettings.TranslationColor;
+				translatedP.Inlines.FirstInline.Foreground = StaticMethods.Settings.TranslatorSettings.TranslatedColor.Color;
 				SetFont(translatedP, StaticMethods.Settings.TranslatorSettings.TranslatedTextFont);
 				TranslatedBlock = translatedP;
 			}

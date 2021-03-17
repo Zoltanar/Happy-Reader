@@ -88,7 +88,7 @@ namespace Happy_Reader.View
 			_viewModel = (OutputWindowViewModel)DataContext;
 			_viewModel.Initialize(() => OutputTextBox.Selection.Text, OutputTextBox.Document, () => Dispatcher.Invoke(()=> OutputTextBox.ScrollToEnd()));
 			SettingsOn = StaticMethods.Settings.TranslatorSettings.SettingsViewState;
-			var tColor = ((SolidColorBrush)StaticMethods.Settings.TranslatorSettings.TranslationColor).Color;
+			var tColor = StaticMethods.Settings.TranslatorSettings.TranslatedColor.Color.Color;
 			var darkerColor = System.Windows.Media.Color.FromRgb((byte)(tColor.R * 0.75), (byte)(tColor.G * 0.75), (byte)(tColor.B * 0.75));
 			var dropShadowEffect = new System.Windows.Media.Effects.DropShadowEffect
 			{

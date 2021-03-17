@@ -11,8 +11,8 @@ namespace Happy_Reader
 	{
 		private bool _googleUseCredential;
 		// ReSharper disable StringLiteralTypo
-		private string _googleCredentialPath = "C:\\Google\\hrtranslate-credential.json";
-		private string _freeUserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)";
+		private string _googleCredentialPath = @"C:\Google\hrtranslate-credential.json";
+		private string _freeUserAgent = @"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)";
 		// ReSharper restore StringLiteralTypo
 		private int _maxOutputSize = 700;
 		private double _fontSize = 22d;
@@ -37,7 +37,7 @@ namespace Happy_Reader
 				if (Loaded) Save();
 			}
 		}
-		
+
 		public string GoogleCredentialPath
 		{
 			get => _googleCredentialPath;
@@ -48,7 +48,7 @@ namespace Happy_Reader
 				if (Loaded) Save();
 			}
 		}
-		
+
 		public string FreeUserAgent
 		{
 			get => _freeUserAgent;
@@ -61,7 +61,7 @@ namespace Happy_Reader
 		}
 
 		//todo make editable
-		public HashSet<string> UntouchedStrings { get; set; } = new() {"","\r\n"};
+		public HashSet<string> UntouchedStrings { get; set; } = new() { "", "\r\n" };
 
 		public string OriginalTextFont
 		{
@@ -107,7 +107,7 @@ namespace Happy_Reader
 				if (Loaded) Save();
 			}
 		}
-		
+
 		public bool SettingsViewState
 		{
 			get => _settingsViewState;
@@ -119,19 +119,84 @@ namespace Happy_Reader
 			}
 		}
 
-		//todo make editable
-		[JsonIgnore]
-		public Brush OriginalColor => Brushes.Ivory;
+		public string OriginalColorString
+		{
+			get => OriginalColor.Name;
+			set
+			{
+				try
+				{
+					// ReSharper disable once PossibleNullReferenceException
+					var newColor = (Color)ColorConverter.ConvertFromString(value);
+					if (OriginalColor.Color.Color == newColor) return;
+					OriginalColor = (new SolidColorBrush(newColor),value);
+				}
+				catch
+				{
+					OriginalColor = (new SolidColorBrush(Colors.Ivory), "Ivory");
+				}
+				if (Loaded)
+				{
+					Save();
+				}
+			}
+		}
 
-		//todo make editable
-		[JsonIgnore]
-		public Brush RomajiColor => Brushes.Pink;
+		public string RomajiColorString
+		{
+			get => RomajiColor.Name;
+			set
+			{
+				try
+				{
+					// ReSharper disable once PossibleNullReferenceException
+					var newColor = (Color)ColorConverter.ConvertFromString(value);
+					if (RomajiColor.Color.Color == newColor) return;
+					RomajiColor = (new SolidColorBrush(newColor), value);
+				}
+				catch
+				{
+					OriginalColor = (new SolidColorBrush(Colors.Pink), "Pink");
+				}
+				if (Loaded)
+				{
+					Save();
+				}
+			}
+		}
 
-		//todo make editable
-		[JsonIgnore]
-		public Brush TranslationColor => Brushes.GreenYellow;
+		public string TranslatedColorString
+		{
+			get => TranslatedColor.Name;
+			set
+			{
+				try
+				{
+					// ReSharper disable once PossibleNullReferenceException
+					var newColor = (Color)ColorConverter.ConvertFromString(value);
+					if (TranslatedColor.Color.Color == newColor) return;
+					TranslatedColor = (new SolidColorBrush(newColor), value);
+				}
+				catch
+				{
+					TranslatedColor = (new SolidColorBrush(Colors.GreenYellow), "GreenYellow");
+				}
+				if (Loaded)
+				{
+					Save();
+				}
+			}
+		}
 
-		//todo make editable
+		[JsonIgnore]
+		public (SolidColorBrush Color, string Name) OriginalColor { get; private set; } = (new(Colors.Ivory), "Ivory");
+
+		[JsonIgnore]
+		public (SolidColorBrush Color, string Name) RomajiColor { get; private set; } = (new(Colors.Pink), "Pink");
+
+		[JsonIgnore]
+		public (SolidColorBrush Color, string Name) TranslatedColor { get; private set; } = (new(Colors.GreenYellow), "GreenYellow");
+
 		[JsonIgnore]
 		public Brush ErrorColor => Brushes.Red;
 
@@ -145,7 +210,7 @@ namespace Happy_Reader
 				if (Loaded) Save();
 			}
 		}
-		
+
 		public int MaxOutputSize
 		{
 			get => _maxOutputSize;

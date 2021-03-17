@@ -42,5 +42,11 @@ namespace Happy_Reader.View.Tabs
 			StaticMethods.MainWindow.ViewModel.RefreshActiveObjectImages();
 		}
 
+		private void SettingsTab_OnLoaded(object sender, RoutedEventArgs e)
+		{
+			OriginalColorSelector.TrySetColor();
+			RomajiColorSelector.TrySetColor();
+			TranslatedColorSelector.TrySetColor();
+		}
 	}
 }

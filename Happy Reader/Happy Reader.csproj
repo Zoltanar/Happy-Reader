@@ -159,6 +159,9 @@
     <Compile Include="ViewModel\ProducersTabViewModel.cs" />
     <Compile Include="ViewModel\SettingsViewModel.cs" />
     <Compile Include="ViewModel\UserGamesViewModel.cs" />
+    <Compile Include="View\ColorSelector.xaml.cs">
+      <DependentUpon>ColorSelector.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\Converters.cs" />
     <Compile Include="View\Converters\DateToMonthStringConverter.cs" />
     <Compile Include="View\Converters\RunningStatusToBrushConverter.cs" />
@@ -262,6 +265,10 @@
     </Compile>
     <Compile Include="WinAPI.cs" />
     <Compile Include="WinAPIConstants.cs" />
+    <Page Include="View\ColorSelector.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\FiltersPane.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

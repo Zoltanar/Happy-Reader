@@ -102,8 +102,8 @@
 				<ToggleButton Style="{StaticResource MiniIconStyle}" Tag="字,Original" DockPanel.Dock="Top" Content="Original" IsChecked="{Binding OriginalOn}" />
 				<ToggleButton Style="{StaticResource MiniIconStyle}" Tag="Ro,Romaji" DockPanel.Dock="Top" Content="Romaji" IsChecked="{Binding RomajiOn}" />
 				<ToggleButton Style="{StaticResource MiniIconStyle}" Tag="⏸,Paused" DockPanel.Dock="Top" Content="Paused" IsChecked="{Binding TranslatePaused}" />
-				<Button DockPanel.Dock="Top" Style="{StaticResource MiniIconBaseStyle}" Tag="HL,Hori Align" Content="Hori Align" Click="HorizontalAlignmentClick" />
-				<Button DockPanel.Dock="Top" Style="{StaticResource MiniIconBaseStyle}" Tag="VA,Vert Align" Content="Vert Align" Click="VerticalAlignmentClick" />
+				<Button DockPanel.Dock="Top" Style="{StaticResource MiniIconBaseStyle}" Tag="TA,Text Align" Content="Text Align" Click="HorizontalAlignmentClick" />
+				<Button DockPanel.Dock="Top" Style="{StaticResource MiniIconBaseStyle}" Tag="VD,Vert Direct" Content="Vert Direct" Click="VerticalAlignmentClick" />
 				<DockPanel>
 					<Slider Name="OpacitySlider" Orientation="Vertical" Value="0.6" Minimum="0.1" Maximum="1" />
 					<TextBlock Text="Opacity" DockPanel.Dock="Right" Foreground="White" TextAlignment="Center" x:Name="OpacityLabel"/>

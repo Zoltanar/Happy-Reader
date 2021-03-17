@@ -7,7 +7,8 @@
              xmlns:view="clr-namespace:Happy_Reader.View"
              mc:Ignorable="d" 
              d:DesignHeight="650" d:DesignWidth="800"
-             d:DataContext="{d:DesignInstance viewModel:SettingsViewModel}">
+             d:DataContext="{d:DesignInstance viewModel:SettingsViewModel}"
+             Loaded="SettingsTab_OnLoaded">
 	<UserControl.Resources>
 		<Style TargetType="GroupBox">
 			<Setter Property="Foreground" Value="White"/>
@@ -96,9 +97,23 @@
 					<Slider Grid.Column="1" Name="MaxInputSizeSlider" Value="{Binding MaxOutputSize, Mode=OneWay}" Minimum="0" Maximum="1000" Foreground="White" IsSnapToTickEnabled="True" Thumb.DragCompleted="SetMaxInputSize"/>
 					<TextBox Grid.Column="2" Text="{Binding ElementName=MaxInputSizeSlider, Path=Value}" Foreground="White" Style="{StaticResource NoBorderTextBox}"/>
 				</Grid>
-				<view:LabeledTextBox LabelWidth="120" Label="Original Text Font:" Text="{Binding OriginalTextFont}"/>
-				<view:LabeledTextBox LabelWidth="120" Label="Romaji Text Font:" Text="{Binding RomajiTextFont}"/>
-				<view:LabeledTextBox LabelWidth="120" Label="Translated Text Font:" Text="{Binding TranslatedTextFont}"/>
+				<Grid Margin="0,0,6,0">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*"/>
+						<ColumnDefinition Width="Auto"/>
+					</Grid.ColumnDefinitions>
+					<Grid.RowDefinitions>
+						<RowDefinition/>
+						<RowDefinition/>
+						<RowDefinition/>
+					</Grid.RowDefinitions>
+					<view:LabeledTextBox Grid.Row="0" Grid.Column="0" LabelWidth="120" Label="Original Text Font:" Text="{Binding OriginalTextFont}"/>
+					<view:ColorSelector Grid.Row="0" Grid.Column="1"  x:Name="OriginalColorSelector"  Text="{Binding OriginalColorString}" />
+					<view:LabeledTextBox Grid.Row="1" Grid.Column="0" LabelWidth="120" Label="Romaji Text Font:" Text="{Binding RomajiTextFont}"/>
+					<view:ColorSelector Grid.Row="1" Grid.Column="1"  x:Name="RomajiColorSelector"  Text="{Binding RomajiColorString}" />
+					<view:LabeledTextBox Grid.Row="2" Grid.Column="0" LabelWidth="120" Label="Translated Text Font:" Text="{Binding TranslatedTextFont}"/>
+					<view:ColorSelector Grid.Row="2" Grid.Column="1"  x:Name="TranslatedColorSelector"  Text="{Binding TranslatedColorString}" />
+				</Grid>
 				<view:LabeledTextBox LabelWidth="120" Label="Font Size:" Text="{Binding FontSize}"/>
 				<view:LabeledTextBox LabelWidth="120" Label="Google Credentials:" Text="{Binding GoogleCredentialPath}" ToolTip="Path to file with credentials for Google API"/>
 				<view:LabeledTextBox LabelWidth="120" Label="Free User Agent:" Text="{Binding FreeUserAgent}" ToolTip="User Agent string for sending Google API requests without credentials."/>
