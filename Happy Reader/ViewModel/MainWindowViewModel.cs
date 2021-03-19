@@ -139,10 +139,9 @@ namespace Happy_Reader.ViewModel
 			DatabaseViewModel = new VNTabViewModel(this);
 			CharactersViewModel = new CharactersTabViewModel(this);
 			ProducersViewModel = new ProducersTabViewModel(this);
-			IthViewModel = new IthViewModel(this);
-			OutputWindow = new OutputWindow();
+			IthViewModel = new IthViewModel(this, InitialiseOutputWindowForGame);
+			OutputWindow = new OutputWindow(InitialiseOutputWindowForGame);
 			UserGame.MoveOutputWindow = r => OutputWindow.MoveByDifference(r);
-			OutputWindow.InitialiseWindowForGame = InitialiseOutputWindowForGame;
 			Log.AddToList += AddLogToList;
 		}
 
@@ -295,7 +294,7 @@ namespace Happy_Reader.ViewModel
 			LocalDatabase.CurrentUser = User;
 		}
 
-		private void PopulateProxies()
+		private static void PopulateProxies()
 		{
 			var array = JArray.Parse(File.ReadAllText(StaticMethods.ProxiesJson));
 			// ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
@@ -490,7 +489,6 @@ namespace Happy_Reader.ViewModel
 
 		private void InitialiseOutputWindowForGame()
 		{
-
 			if (OutputWindow.InitialisedWindowLocation) return;
 			UserGame.Process.Refresh();
 			var success = NativeMethods.GetWindowRect(UserGame.Process.MainWindowHandle, out var windowLocation);
@@ -503,6 +501,10 @@ namespace Happy_Reader.ViewModel
 					UserGame.OutputRectangle.Size);
 				OutputWindow.SetLocation(outputWindowLocation);
 			}
+			if(!IthViewModel.Finalized && UserGame.HookProcess && !string.IsNullOrWhiteSpace(UserGame.HookCode))
+			{
+				IthViewModel.Commands?.ProcessCommand(UserGame.HookCode, UserGame.Process.Id);
+			}
 			OutputWindow.InitialisedWindowLocation = true;
 		}
 
@@ -512,7 +514,6 @@ namespace Happy_Reader.ViewModel
 			IthViewModel.PrefEncoding = UserGame.PrefEncoding;
 			IthViewModel.GameTextThreads = StaticMethods.Data.GameThreads.Where(t => t.GameId == UserGame.Id).ToArray();
 			IthViewModel.Commands?.ProcessCommand($"/P{UserGame.Process.Id}", 0);
-			if (!string.IsNullOrWhiteSpace(UserGame.HookCode)) IthViewModel.Commands?.ProcessCommand(UserGame.HookCode, UserGame.Process.Id);
 		}
 
 		private void HookedProcessOnExited(object sender, EventArgs eventArgs)

@@ -5,7 +5,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using Happy_Reader.ViewModel;
 
 namespace Happy_Reader.View
@@ -30,9 +29,10 @@ namespace Happy_Reader.View
 		}
 		public bool FullScreenOn { get; set; }
 
-		public OutputWindow()
+		public OutputWindow(Action initialiseOutputWindowForGame)
 		{
 			InitializeComponent();
+			InitialiseWindowForGame = initialiseOutputWindowForGame;
 			_settingsColumnLength = SettingsColumn.Width;
 		}
 		
@@ -52,7 +52,7 @@ namespace Happy_Reader.View
 
 		public bool InitialisedWindowLocation { get; set; }
 
-		public Action InitialiseWindowForGame { get; set; }
+		public Action InitialiseWindowForGame { get; }
 
 		public void AddTranslation(Translation translation)
 		{
