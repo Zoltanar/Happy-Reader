@@ -336,6 +336,8 @@ namespace Happy_Reader.Database
 			Logger.ToDebug($"Restored {DisplayName}, starting running time at {_runningTime.Elapsed}");
 			_runningTime.Start();
 			OnPropertyChanged(nameof(RunningStatus));
+			var outputWindow = StaticMethods.MainWindow.ViewModel.OutputWindow;
+			if(outputWindow.InitialisedWindowLocation) StaticMethods.MainWindow.ViewModel.OutputWindow.Show();
 		}
 
 		private void WindowIsMinimised(IntPtr windowPointer)
@@ -344,6 +346,7 @@ namespace Happy_Reader.Database
 			Logger.ToDebug($"Minimized {DisplayName}, stopped running time at {_runningTime.Elapsed}");
 			OnPropertyChanged(nameof(RunningStatus));
 			OnPropertyChanged(nameof(TimeOpen));
+			StaticMethods.MainWindow.ViewModel.OutputWindow.Hide();
 		}
 
 		public Process StartProcessThroughLocaleEmulator()
