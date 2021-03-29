@@ -74,7 +74,7 @@ namespace Happy_Apps_Core
 
 		//todo make editable
 		public List<double> AlertTraitValues { get; } = new();
-
+		
 		public Dictionary<DumpFiles.WrittenTag, double> GetTagScoreDictionary()
 		{
 			var tagScoreDict = new Dictionary<DumpFiles.WrittenTag, double>();

@@ -48,5 +48,10 @@ namespace Happy_Reader.View.Tabs
 			RomajiColorSelector.TrySetColor();
 			TranslatedColorSelector.TrySetColor();
 		}
+
+		private void OnDecimalVoteToggle(object sender, RoutedEventArgs e)
+		{
+			StaticMethods.MainWindow.ViewModel.RefreshActiveObjectUserVns();
+		}
 	}
 }

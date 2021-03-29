@@ -166,13 +166,14 @@ namespace Happy_Reader.View
 			var inputWindow = new InputWindow
 			{
 				Title = $"{StaticHelpers.ClientName} - Enter Visual Novel Vote",
-				InputLabel = "Enter vote value from 10 to 100",
-				Filter = s => int.TryParse(s, out var vote) && vote >= 10 && vote <= 100,
+				InputLabel = StaticMethods.Settings.GuiSettings.UseDecimalVoteScores ? "Enter vote value from 1 to 10" : "Enter vote value from 10 to 100",
+				Filter = s => (StaticMethods.Settings.GuiSettings.UseDecimalVoteScores && double.TryParse(s, out var dVote) && dVote >= 1 && dVote <= 10)
+											|| int.TryParse(s, out var vote) && vote >= 10 && vote <= 100
 			};
 			var result = inputWindow.ShowDialog();
 			if (result == true)
 			{
-				var voteValue = int.Parse(inputWindow.InputText);
+				var voteValue = StaticMethods.Settings.GuiSettings.UseDecimalVoteScores ? (int)(double.Parse(inputWindow.InputText) * 10) : int.Parse(inputWindow.InputText);
 				var success = await StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ChangeVote(VN, voteValue);
 				if (success) VN.OnPropertyChanged(null);
 			}

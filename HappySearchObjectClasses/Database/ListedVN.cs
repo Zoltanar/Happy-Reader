@@ -233,27 +233,7 @@ namespace Happy_Apps_Core.Database
 		/// <returns>A string that represents the current object.</returns>
 		/// <filterpriority>2</filterpriority>
 		public override string ToString() => $"[{VNID}] {Title}";
-
-		/// <summary>
-		/// Get VN's User-related status as a string.
-		/// </summary>
-		/// <returns>User-related status</returns>
-		public string UserRelatedStatus
-		{
-			get
-			{
-				var sb = new StringBuilder();
-				var label = UserVN?.Labels.FirstOrDefault(l => l != UserVN.LabelKind.Voted && l != UserVN.LabelKind.Wishlist);
-				if (label != null)
-				{
-					sb.Append(label.GetDescription());
-					if (UserVN?.Vote > 0) sb.Append($" (Vote: {UserVN.Vote:0.#})");
-				}
-				else if (UserVN?.Vote > 0) sb.Append($"Vote: {UserVN.Vote:0.#}");
-				return sb.ToString();
-			}
-		}
-
+		
 		private bool _imageSourceSet;
 		private string _imageSource;
 

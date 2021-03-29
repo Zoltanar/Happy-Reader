@@ -28,10 +28,7 @@ namespace Happy_Apps_Core.Database
 		public DateTime? VoteAdded { get; set; }
 
 		public HashSet<LabelKind> Labels { get; set; }
-
-		[NotMapped]
-		public bool Blacklisted => Labels?.Any(b => b == LabelKind.Blacklist) ?? false;
-
+		
 		[NotMapped]
 		public LabelKind PriorityLabel => Labels.FirstOrDefault(i => !_labelsToExcludeFromPriority.Contains(i));
 

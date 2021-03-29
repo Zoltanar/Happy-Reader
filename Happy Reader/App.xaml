@@ -23,13 +23,14 @@
 		<view:DateToWeightConverter x:Key="DateToWeightConverter" />
 		<view:DateToBrushConverter x:Key="DateToBrushConverter" />
 		<converters:UserVnToBackgroundConverter x:Key="UserVnToBackgroundConverter" />
-		<converters:UserVnToForegroundConverter x:Key="UserVnToForegroundConverter" />
 		<converters:RunningStatusToBrushConverter x:Key="RunningStatusToBrushConverter" />
 		<converters:GameDisplayNameConverter x:Key="GameDisplayNameConverter" /> 
 		<view:VnToProducerForegroundConverter x:Key="VnToProducerForegroundConverter" />
 		<view:StringToNullableIntConverter x:Key="StringToNullableIntConverter" />
 		<view:VnOrScreenToImagePathConverter x:Key="VnOrScreenToImagePathConverter"/>
 		<view:StringAndBracketedConverter x:Key="StringAndBracketedConverter"/>
+		<converters:ScoreConverter x:Key="ScoreConverter"/>
+		<converters:UserRelatedStatusConverter x:Key="UserRelatedStatusConverter"/>
 		<system:Boolean x:Key="True">True</system:Boolean>
 		<system:Boolean x:Key="False">False</system:Boolean>
 		<Style x:Key="NoBorderTextBox" TargetType="TextBox">

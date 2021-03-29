@@ -200,8 +200,8 @@ namespace Happy_Reader.View
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if (value is null) return Brushes.Black;
-			if (!(value is ListedVN vn)) throw new NotSupportedException($"Value was type {value.GetType()}");
-			return vn.ReleaseDate > DateTime.UtcNow ? Theme.UnreleasedBrush : (vn.UserVN?.Blacklisted ?? false) ? Brushes.White : Brushes.Black;
+			if (value is not DateTime dt) throw new NotSupportedException($"Value was type {value.GetType()}");
+			return dt > DateTime.UtcNow ? Theme.UnreleasedBrush : Brushes.Black;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
@@ -212,8 +212,8 @@ namespace Happy_Reader.View
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if (value is null) return Brushes.White;
-			if (!(value is ListedVN vn)) throw new NotSupportedException();
-			return StaticHelpers.VNIsByFavoriteProducer(vn) ? Theme.FavoriteProducerBrush : (vn.UserVN?.Blacklisted ?? false) ? Brushes.White : Brushes.Black;
+			if (value is not ListedVN vn) throw new NotSupportedException();
+			return StaticHelpers.VNIsByFavoriteProducer(vn) ? Theme.FavoriteProducerBrush : Brushes.Black;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();

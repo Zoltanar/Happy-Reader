@@ -32,7 +32,6 @@ namespace Happy_Reader.ViewModel
 		protected readonly MainWindowViewModel MainViewModel;
 		protected abstract Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> GetAll { get; }
 		protected abstract IEnumerable<IDataItem<int>> GetAllWithKeyIn(VisualNovelDatabase db, int[] keys);
-		protected abstract Func<IDataItem<int>, bool> IsBlacklistedFunction { get; }
 		protected abstract Func<string, Func<IDataItem<int>, bool>> SearchByText { get; }
 		protected abstract Func<IDataItem<int>, ListedProducer> GetProducer { get; }
 		protected abstract Func<IDataItem<int>, UserControl> GetTile { get; }
@@ -41,7 +40,6 @@ namespace Happy_Reader.ViewModel
 		protected Func<IDataItem<int>, bool> Exclude;
 		public abstract FiltersViewModel FiltersViewModel { get; }
 		public PausableUpdateList<UserControl> Tiles { get; set; } = new();
-		private bool _isBlacklisted;
 		private SuggestionScorer _suggestionScorer;
 		
 		public ObservableCollection<NamedFunction> History { get; } = new();
@@ -69,13 +67,7 @@ namespace Happy_Reader.ViewModel
 			get => _replyText;
 			set { _replyText = value; OnPropertyChanged(); }
 		}
-
-		public bool IsBlacklisted
-		{
-			get => _isBlacklisted;
-			set { _isBlacklisted = value; OnPropertyChanged(); }
-		}
-
+		
 		public Brush ReplyColor
 		{
 			get => _replyColor;
@@ -191,7 +183,6 @@ namespace Happy_Reader.ViewModel
 			{
 				var items = DbFunction.SelectAndInvoke(StaticHelpers.LocalDatabase);
 				OnPropertyChanged(nameof(SelectedFunctionIndex));
-				if (!DbFunction.AlwaysIncludeBlacklisted && !IsBlacklisted) items = items.Where(item => !IsBlacklistedFunction(item));
 				if (Exclude != null)
 				{
 					var exclude = Exclude;
@@ -257,7 +248,7 @@ namespace Happy_Reader.ViewModel
 				SetReplyText($"Found no results for '{text}'", VndbConnection.MessageSeverity.Normal);
 				return;
 			}
-			DbFunction = new NamedFunction(db => GetAllWithKeyIn(db, results), "Text Search", true);
+			DbFunction = new NamedFunction(db => GetAllWithKeyIn(db, results), "Text Search");
 			await RefreshTiles();
 		}
 
@@ -266,14 +257,14 @@ namespace Happy_Reader.ViewModel
 			var watch = Stopwatch.StartNew();
 			DbFunction = new NamedFunction(
 				db => GetAllWithKeyIn(db, db.Tags.Where(t => tag.AllIDs.Contains(t.TagId)).Select(x => x.VNID).Distinct().ToArray()),
-				$"Tag {tag.Name}", false);
+				$"Tag {tag.Name}");
 			await RefreshTiles();
 			StaticHelpers.Logger.ToDebug($@"{nameof(ShowTagged)}: {watch.ElapsedMilliseconds}ms");
 		}
 
 		public async Task ChangeFilter(CustomFilter item)
 		{
-			DbFunction = new NamedFunction(db => item.GetAllResults(db, GetAll, GetAllWithKeyIn), item.ToString(), false);
+			DbFunction = new NamedFunction(db => item.GetAllResults(db, GetAll, GetAllWithKeyIn), item.ToString());
 			await RefreshTiles();
 		}
 
@@ -284,7 +275,7 @@ namespace Happy_Reader.ViewModel
 		{
 			var vnIds = GetRelatedTitles(item);
 			DbFunction = new NamedFunction(db => GetAllWithKeyIn(db, vnIds),
-				$"Related to {item}", true);
+				$"Related to {item}");
 			await RefreshTiles();
 		}
 
@@ -292,14 +283,14 @@ namespace Happy_Reader.ViewModel
 		{
 			var lowerName = producerName.ToLowerInvariant();
 			DbFunction = new NamedFunction(db => GetAll(db).Where(item => GetProducer(item)?.Name.ToLowerInvariant() == lowerName),
-				$"Producer {producerName}", true);
+				$"Producer {producerName}");
 			await RefreshTiles();
 		}
 
 		public async Task ShowForProducer(ListedProducer producer)
 		{
 			DbFunction = new NamedFunction(db => GetAll(db).Where(item => GetProducer(item) == producer),
-				$"Producer {producer.Name}", true);
+				$"Producer {producer.Name}");
 			await RefreshTiles();
 		}
 
@@ -307,7 +298,7 @@ namespace Happy_Reader.ViewModel
 		{
 			DbFunction = new NamedFunction(
 				db => GetAllWithKeyIn(db, db.Characters[character.ID].VisualNovels.Select(cvn => cvn.VNId).ToArray()),
-				$"Character {character.Name}", true);
+				$"Character {character.Name}");
 			await RefreshTiles();
 		}
 
@@ -316,7 +307,7 @@ namespace Happy_Reader.ViewModel
 		public async Task ShowSuggested()
 		{
 			var scoredKeys = GetAll(StaticHelpers.LocalDatabase).Where(i=> GetSuggestion(i) >= 0d).Select(i=>i.Key).ToArray();
-			DbFunction = new NamedFunction(db => GetAllWithKeyIn(db,scoredKeys), "Suggested", false);
+			DbFunction = new NamedFunction(db => GetAllWithKeyIn(db,scoredKeys), "Suggested");
 			Ordering = lvn => lvn.OrderByDescending(i => GetSuggestion(i));
 			await RefreshTiles();
 		}
@@ -343,7 +334,7 @@ namespace Happy_Reader.ViewModel
 
 		public async Task ShowAll()
 		{
-			DbFunction = new NamedFunction(GetAll, "All", false);
+			DbFunction = new NamedFunction(GetAll, "All");
 			await RefreshTiles();
 		}
 
@@ -364,7 +355,7 @@ namespace Happy_Reader.ViewModel
 					var vns = db.VnStaffs.Where(vnStaff => allAliasIds.Contains(vnStaff.AliasID)).Select(vnStaff => vnStaff.VNID).ToArray();
 					return GetAllWithKeyIn(db, vns);
 				},
-				searchHeader, true);
+				searchHeader);
 			await RefreshTiles();
 		}
 
@@ -378,7 +369,7 @@ namespace Happy_Reader.ViewModel
 					var vns = db.VnStaffs.Where(vnStaff => aliasIds.Contains(vnStaff.AliasID)).Select(vnStaff => vnStaff.VNID).ToArray();
 					return GetAllWithKeyIn(db, vns);
 				},
-				$"Staff {staff}", true);
+				$"Staff {staff}");
 			await RefreshTiles();
 		}
 
@@ -392,7 +383,7 @@ namespace Happy_Reader.ViewModel
 					var vns = db.VnSeiyuus.Where(vnSeiyuu => aliasIds.Contains(vnSeiyuu.AliasID)).Select(vnSeiyuu => vnSeiyuu.VNID).ToArray();
 					return GetAllWithKeyIn(db, vns);
 				},
-				$"Seiyuu {staff}", true);
+				$"Seiyuu {staff}");
 			await RefreshTiles();
 		}
 

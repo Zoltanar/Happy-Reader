@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Globalization;
+using System.Linq;
+using System.Text;
 using System.Windows;
 using System.Windows.Data;
-using System.Windows.Media;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 
@@ -49,37 +50,22 @@ namespace Happy_Reader.View.Converters
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 	}
-
-	public class UserVnToForegroundConverter : IValueConverter
+	
+	public class UserRelatedStatusConverter : IValueConverter
 	{
+		public static readonly ScoreConverter ScoreConverter = new();
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is null) return Brushes.Black;
-			var userVN = value switch
+			if (value is not UserVN userVN) return string.Empty;
+			var sb = new StringBuilder();
+			var label = userVN.Labels.FirstOrDefault(l => l != UserVN.LabelKind.Voted && l != UserVN.LabelKind.Wishlist);
+			if (label != default)
 			{
-				UserVN vUserVN => vUserVN,
-				ListedVN listedVN => listedVN.UserVN,
-				CharacterItem character => character.VisualNovel?.UserVN,
-				_ => throw new NotSupportedException()
-			};
-			return userVN?.Blacklisted ?? false ? Brushes.White : Brushes.Black;
-		}
-
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
-	}
-
-	public class UserVnToScoreConverter : IValueConverter
-	{
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			if (value is null || value == DependencyProperty.UnsetValue) return "N/A";
-			int? vote = value switch
-			{
-				UserVN userVN => userVN.Vote,
-				int vVote => vVote,
-				_ => throw new NotSupportedException()
-			};
-			return vote.HasValue ? $"Vote: {vote}" : "N/A";
+				sb.Append(label.GetDescription());
+				if (userVN.Vote > 0) sb.Append($" (Vote: {ScoreConverter.Convert(userVN.Vote,targetType, parameter, culture)})");
+			}
+			else if (userVN.Vote > 0) sb.Append($"Vote: {ScoreConverter.Convert(userVN.Vote, targetType, parameter, culture)}");
+			return sb.ToString();
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();

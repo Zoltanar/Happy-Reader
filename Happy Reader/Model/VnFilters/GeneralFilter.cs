@@ -144,8 +144,6 @@ namespace Happy_Reader
 					return i => (GetVisualNovel(i, out var vn) && vn.ReleaseStatus == (ReleaseStatusEnum)IntValue) != Exclude;
 				case GeneralFilterType.Voted:
 					return i => (GetVisualNovel(i, out var vn) && vn.Voted) != Exclude;
-				case GeneralFilterType.Blacklisted:
-					return i => (GetVisualNovel(i, out var vn) && (vn.UserVN?.Blacklisted ?? false)) != Exclude;
 				case GeneralFilterType.ByFavoriteProducer:
 					return i => (GetVisualNovel(i, out var vn) && StaticHelpers.VNIsByFavoriteProducer(vn)) != Exclude;
 				case GeneralFilterType.Label:
@@ -292,7 +290,6 @@ namespace Happy_Reader
 			switch (Type)
 			{
 				case GeneralFilterType.Voted:
-				case GeneralFilterType.Blacklisted:
 				case GeneralFilterType.ByFavoriteProducer:
 				case GeneralFilterType.HasFullDate:
 				case GeneralFilterType.UserVN:
@@ -347,8 +344,6 @@ namespace Happy_Reader
 		//ReleasedBetween = 1,
 		[Description("Release Status"), TypeConverter(typeof(ReleaseStatusEnum))]
 		ReleaseStatus = 2,
-		[TypeConverter(typeof(bool))]
-		Blacklisted = 3,
 		[TypeConverter(typeof(bool))]
 		Voted = 4,
 		[Description("By Favorite Producer"), TypeConverter(typeof(bool))]

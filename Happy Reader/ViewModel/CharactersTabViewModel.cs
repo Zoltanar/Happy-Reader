@@ -18,11 +18,10 @@ namespace Happy_Reader.ViewModel
 
 		protected override Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> GetAll => db => db.Characters;
 		protected override IEnumerable<IDataItem<int>> GetAllWithKeyIn(VisualNovelDatabase db, int[] keys) => db.Characters.WithKeyIn(keys);
-		protected override Func<IDataItem<int>, bool> IsBlacklistedFunction { get; } = i => ((CharacterItem)i).VisualNovel?.UserVN?.Blacklisted ?? false;
 		protected override Func<string, Func<IDataItem<int>, bool>> SearchByText => t => i => VisualNovelDatabase.SearchForCharacter(t)((CharacterItem)i);
 		protected override Func<IDataItem<int>, ListedProducer> GetProducer { get; } = i => ((CharacterItem)i).VisualNovel?.Producer;
 		protected override Func<IDataItem<int>, UserControl> GetTile => i => CharacterTile.FromCharacter((CharacterItem)i, HideTraits);
-		protected override NamedFunction DbFunction { get; set; } = new NamedFunction(db => db.Characters, "All", false);
+		protected override NamedFunction DbFunction { get; set; } = new NamedFunction(db => db.Characters, "All");
 		protected override Func<IEnumerable<IDataItem<int>>, IEnumerable<IDataItem<int>>> Ordering { get; set; } = chars => chars.OrderByDescending(x => ((CharacterItem)x).VisualNovelSortingDate);
 		public override FiltersViewModel FiltersViewModel { get; }
 
@@ -48,7 +47,7 @@ namespace Happy_Reader.ViewModel
 		public async Task ShowForVisualNovel(CharacterVN visualNovel)
 		{
 			var vn = LocalDatabase.VisualNovels[visualNovel.VNId];
-			DbFunction = new NamedFunction(db => db.Characters.Where(c => c.CharacterVN?.VNId == visualNovel.VNId), $"VN: {vn}", true);
+			DbFunction = new NamedFunction(db => db.Characters.Where(c => c.CharacterVN?.VNId == visualNovel.VNId), $"VN: {vn}");
 			await RefreshTiles();
 		}
 
@@ -58,7 +57,7 @@ namespace Happy_Reader.ViewModel
 			var aliasIds = LocalDatabase.StaffAliases.Where(c => c.StaffID == staff.StaffID).Select(sa => sa.AliasID).ToList();
 			var keys = LocalDatabase.VnStaffs.Where(s => aliasIds.Contains(s.AliasID)).Select(s => s.VNID).Distinct().ToList();
 			var characters = LocalDatabase.CharacterVNs.WithKeyIn(keys).Select(cvn => cvn.CharacterId).ToArray();
-			DbFunction = new NamedFunction(db => db.Characters.WithKeyIn(characters), $"Staff: {staff}", true);
+			DbFunction = new NamedFunction(db => db.Characters.WithKeyIn(characters), $"Staff: {staff}");
 			await RefreshTiles();
 		}
 
@@ -72,7 +71,7 @@ namespace Happy_Reader.ViewModel
 			var staff = LocalDatabase.StaffAliases[aliasId];
 			var aliasIds = LocalDatabase.StaffAliases.Where(c => c.StaffID == staff.StaffID).Select(sa => sa.AliasID).ToArray();
 			var keys = LocalDatabase.VnSeiyuus.Where(s => aliasIds.Contains(s.AliasID)).Select(s => s.CharacterID).Distinct().ToArray();
-			DbFunction = new NamedFunction(db => db.Characters.WithKeyIn(keys), $"Seiyuu: {staff}", true);
+			DbFunction = new NamedFunction(db => db.Characters.WithKeyIn(keys), $"Seiyuu: {staff}");
 			await RefreshTiles();
 		}
 
@@ -81,7 +80,7 @@ namespace Happy_Reader.ViewModel
 			DbFunction = new NamedFunction(db =>
 			{
 				return db.Characters.Where(c => c.DbTraits.Any(t => trait.AllIDs.Contains(t.TraitId)));
-			}, $"Trait: {trait}", true);
+			}, $"Trait: {trait}");
 			await RefreshTiles();
 		}
 

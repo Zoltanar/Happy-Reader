@@ -14,7 +14,6 @@ namespace Happy_Reader.ViewModel
 		private bool _selected;
 		public Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> Function { get; }
 		public string Name { get; }
-		public bool AlwaysIncludeBlacklisted { get; }
 		public bool Selected
 		{
 			get => _selected;
@@ -30,11 +29,10 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 		
-		public NamedFunction(Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> function, string name,bool alwaysIncludeBlacklisted)
+		public NamedFunction(Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> function, string name)
 		{
 			Function = function;
 			Name = name;
-			AlwaysIncludeBlacklisted = alwaysIncludeBlacklisted;
 		}
 
 		public IEnumerable<IDataItem<int>> SelectAndInvoke(VisualNovelDatabase localDatabase)

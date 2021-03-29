@@ -554,5 +554,17 @@ namespace Happy_Reader.ViewModel
 				tile.UpdateImageBinding();
 			}
 		}
+
+		public void RefreshActiveObjectUserVns()
+		{
+			foreach (var tile in UserGamesViewModel.UserGameItems)
+			{
+				tile.UserGame.OnPropertyChanged($"{nameof(Database.UserGame.VN)}");
+			}
+			foreach (var tile in DatabaseViewModel.Tiles.OfType<VNTile>())
+			{
+				tile.VN.OnPropertyChanged(nameof(Database.UserGame.VN.UserVN));
+			}
+		}
 	}
 }

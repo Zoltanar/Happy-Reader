@@ -11,24 +11,24 @@
 	</UserControl.ContextMenu>
 	<Border BorderBrush="Black" BorderThickness="1" CornerRadius="10" Background="{Binding UserVN, Converter={StaticResource UserVnToBackgroundConverter}}">
 		<Grid>
-			<Label Content="{Binding Title}" Margin="10,10,10,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="{Binding UserVN, Converter={StaticResource UserVnToForegroundConverter}}"/>
+			<Label Content="{Binding Title}" Margin="10,10,10,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="Black"/>
 			<Label Content="{Binding Producer.Name}" Foreground="{Binding Path=., Converter={StaticResource VnToProducerForegroundConverter}, NotifyOnSourceUpdated=True, Mode=OneWay}" Margin="10,0,10,52" VerticalAlignment="Bottom" Padding="0"/>
 			<Label Content="{Binding LengthTime, Converter={StaticResource EnumDescriptionConverter}}" Foreground="Purple" Margin="10,0,10,52" VerticalAlignment="Bottom" HorizontalAlignment="Right" Padding="0"/>
-			<Label Margin="10,0,97,31" VerticalAlignment="Bottom" Padding="0" Foreground="{Binding UserVN, Converter={StaticResource UserVnToForegroundConverter}}">
+			<Label Margin="10,0,97,31" VerticalAlignment="Bottom" Padding="0" Foreground="Black">
 				<TextBlock>
 					<TextBlock.Text>
-						<MultiBinding StringFormat="{}{0:0.00} ({1} votes)">
-							<Binding Path="Rating"/>
+						<MultiBinding StringFormat="{}{0} ({1} votes)" >
+							<Binding Path="Rating" Converter="{StaticResource ScoreConverter}"/>
 							<Binding Path="VoteCount"/>
 						</MultiBinding>
 					</TextBlock.Text>
 				</TextBlock>
 			</Label>
 			<Label Margin="0,0,10,31" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="82" HorizontalContentAlignment="Right" 
-			       Foreground="{Binding Path=., Converter={StaticResource DateToBrushConverter}, NotifyOnSourceUpdated=True, Mode=OneWay}" Padding="0">
+			       Foreground="{Binding Path=ReleaseDate, Converter={StaticResource DateToBrushConverter}, NotifyOnSourceUpdated=True, Mode=OneWay}" Padding="0">
 			<TextBlock Text="{Binding ReleaseDateString}" FontWeight="{Binding ReleaseDate, Converter={StaticResource DateToWeightConverter}}"/>
 				</Label>
-			<Label Content="{Binding UserRelatedStatus}" Margin="10,0,10,10" VerticalAlignment="Bottom" Foreground="{Binding UserVN, Converter={StaticResource UserVnToForegroundConverter}}" Padding="0"/>
+			<Label Content="{Binding UserVN, Converter={StaticResource UserRelatedStatusConverter}}" Margin="10,0,10,10" VerticalAlignment="Bottom" Foreground="Black" Padding="0"/>
 			<Image x:Name="CoverBox" Margin="10,41,10,73"	Source="{Binding ., Converter={StaticResource VnOrScreenToImagePathConverter}}" />
 			<Image Margin="194,41,10,320" Source="{Binding FlagSource}"/>
 			<Border Margin="0,59,10,0" Style="{StaticResource AlertFlagStyle}" Visibility="{Binding Path=., Converter={StaticResource VnOrCharacterToAlertFlagVisibilityConverter}}">

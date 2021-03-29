@@ -14,13 +14,13 @@ namespace Happy_Reader.ViewModel
 	{
 		protected override Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> GetAll => db => db.VisualNovels;
 		protected override Func<IDataItem<int>, UserControl> GetTile => i => VNTile.FromListedVN((ListedVN)i);
-		protected override NamedFunction DbFunction { get; set; } = new(x => x.VisualNovels, "All", false);
+		protected override NamedFunction DbFunction { get; set; } = new(x => x.VisualNovels, "All");
 		protected override Func<IEnumerable<IDataItem<int>>, IEnumerable<IDataItem<int>>> Ordering { get; set; } = lvn => lvn.OrderByDescending(i => ((ListedVN)i).ReleaseDate);
-
 		protected override IEnumerable<IDataItem<int>> GetAllWithKeyIn(VisualNovelDatabase db, int[] keys) => db.VisualNovels.WithKeyIn(keys);
-
-		protected override Func<IDataItem<int>, bool> IsBlacklistedFunction => i => ((ListedVN)i).UserVN?.Blacklisted ?? false;
 		protected override Func<IDataItem<int>, ListedProducer> GetProducer => i => ((ListedVN)i).Producer;
+		protected override Func<IDataItem<int>, double?> GetSuggestion => i => ((ListedVN)i).Suggestion?.Score;
+		protected override Func<string, Func<IDataItem<int>, bool>> SearchByText => t => i => VisualNovelDatabase.SearchForVN(t)((ListedVN)i);
+
 		public override async Task Initialize()
 		{
 			MainViewModel.StatusText = "Loading VN Database...";
@@ -40,9 +40,7 @@ namespace Happy_Reader.ViewModel
 			await RefreshTiles();
 		}
 
-		protected override Func<IDataItem<int>, double?> GetSuggestion => i => ((ListedVN)i).Suggestion?.Score;
-		protected override Func<string, Func<IDataItem<int>, bool>> SearchByText => t => i => VisualNovelDatabase.SearchForVN(t)((ListedVN)i);
-		public override FiltersViewModel FiltersViewModel { get; } 
+		public override FiltersViewModel FiltersViewModel { get; }
 
 		public VNTabViewModel(MainWindowViewModel mainWindowViewModel) : base(mainWindowViewModel)
 		{
@@ -63,7 +61,7 @@ namespace Happy_Reader.ViewModel
 		public override async Task SortByRating()
 		{
 			Ordering = lvn => lvn.OrderByDescending(i => ((ListedVN)i).Rating).ThenByDescending(i => ((ListedVN)i).ReleaseDate);
-			if(StaticMethods.Settings.GuiSettings.ExcludeLowVotesForRatingSort) Exclude = x => ((ListedVN)x).VoteCount < 10;
+			if (StaticMethods.Settings.GuiSettings.ExcludeLowVotesForRatingSort) Exclude = x => ((ListedVN)x).VoteCount < 10;
 			await RefreshTiles();
 		}
 

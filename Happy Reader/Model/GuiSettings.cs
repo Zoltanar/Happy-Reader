@@ -15,6 +15,7 @@ namespace Happy_Reader
 		private bool _technicalTags;
 		private bool _hookGlobalMouse;
 		private bool _hookIthVnr;
+		private bool _useDecimalVoteScores = true;
 		private bool _excludeLowVotesForRatingSort = true;
 		private string _localeEmulatorPath;
 		private string _culture;
@@ -109,6 +110,18 @@ namespace Happy_Reader
 				if (Loaded) Save();
 			}
 		}
+
+		public bool UseDecimalVoteScores
+		{
+			get => _useDecimalVoteScores;
+			set
+			{
+				if (_useDecimalVoteScores == value) return;
+				_useDecimalVoteScores = value;
+				if (Loaded) Save();
+			}
+		}
+
 		public bool ExcludeLowVotesForRatingSort
 		{
 			get => _excludeLowVotesForRatingSort;
@@ -150,7 +163,7 @@ namespace Happy_Reader
 				if (Loaded) Save();
 			}
 		}
-
+		
 		[JsonIgnore]
 		public CultureInfo CultureInfo
 		{

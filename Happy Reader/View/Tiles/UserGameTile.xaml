@@ -59,10 +59,10 @@
 			<Viewbox Grid.Row="1">
 				<TextBlock Padding="5,0" Text="{Binding DisplayName}"  VerticalAlignment="Center" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
 			</Viewbox>
-			<TextBlock Text="{Binding VN.UserRelatedStatus}"  
+			<TextBlock Text="{Binding VN.UserVN, Converter={StaticResource UserRelatedStatusConverter}}"  
 			           TextAlignment="Left" Padding="5,0"
 			           TextTrimming="CharacterEllipsis" Grid.Row="2" 
-			           Visibility="{Binding VN.UserRelatedStatus, Converter={StaticResource NullableToVisibilityConverter}}"
+			           Visibility="{Binding VN.UserVN, Converter={StaticResource NullableToVisibilityConverter}}"
 			           Background="{Binding VN.UserVN, Converter={StaticResource UserVnToBackgroundConverter}}"/>
 			<Viewbox Grid.Row="3" Margin="0,0,48,0">
 				<TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding TimeOpen, Converter={StaticResource TimeSpanConverterKey}}"/>
