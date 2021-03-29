@@ -6,7 +6,7 @@
              xmlns:happyAppsCore="clr-namespace:Happy_Apps_Core;assembly=Happy_Apps_Core"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance happyAppsCore:CharacterItem}" d:DesignHeight="230" d:DesignWidth="430"
-             Loaded="CharacterTile_OnLoaded">
+             Loaded="CharacterTile_OnLoaded" MouseDoubleClick="OnDoubleClick">
 	<UserControl.Resources>
 		<Style TargetType="TextBox" BasedOn="{StaticResource NoBorderTextBox}"/>
 	</UserControl.Resources>

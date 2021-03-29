@@ -55,10 +55,7 @@ namespace Happy_Reader.View
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 	}
-
-	/// <summary>
-	/// Interaction logic for MergeWindow.xaml
-	/// </summary>
+	
 	public partial class MergeWindow : Window
 	{
 		public UserGame UserGame { get; }

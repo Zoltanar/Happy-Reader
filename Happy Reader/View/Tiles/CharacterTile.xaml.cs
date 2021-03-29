@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Happy_Apps_Core;
@@ -141,6 +142,12 @@ namespace Happy_Reader.View.Tiles
 		{
 			VnMenu.DataContext ??= _viewModel.VisualNovel;
 			VnMenu.ContextMenuOpened();
+		}
+
+		private void OnDoubleClick(object sender, MouseButtonEventArgs e)
+		{
+			if (_viewModel.VisualNovel == null) return;
+			StaticMethods.MainWindow.OpenVNPanel(_viewModel.VisualNovel);
 		}
 	}
 }

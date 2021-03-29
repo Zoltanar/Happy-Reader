@@ -18,7 +18,7 @@ namespace Happy_Reader
 		private GeneralFilterType _type;
 		private string _typeName;
 		private string _stringValue = "";
-		[CanBeNull] private Func<double, bool> _intFunc;
+		[CanBeNull] private Func<double, bool> _doubleFunc;
 		[CanBeNull] private Func<DateTime, bool> _dateTimeFunc;
 
 		[JsonIgnore]
@@ -229,48 +229,83 @@ namespace Happy_Reader
 			//can't seem to catch exception thrown here when casting.
 			return i => func(i);
 		}
-
+		
 		private bool DateFunctionFromString(DateTime dtValue)
 		{
 			if (_dateTimeFunc != null) return _dateTimeFunc(dtValue);
-			var firstChar = StringValue[0];
-			if (char.IsDigit(firstChar))
+			if (StringValue.StartsWith(">="))
 			{
-				var date = DateTime.ParseExact(StringValue, "yyyyMMdd", CultureInfo.CurrentCulture);
-				_dateTimeFunc = i => i == date;
+				var compareValue = DateTime.ParseExact(StringValue.Substring(2).Trim(), "yyyyMMdd", CultureInfo.CurrentCulture);
+				_dateTimeFunc = i => i >= compareValue;
 			}
-			else
+			else if (StringValue.StartsWith("<="))
 			{
-				var date = DateTime.ParseExact(StringValue.Substring(1), "yyyyMMdd", CultureInfo.CurrentCulture);
-				_dateTimeFunc = firstChar switch
-				{
-					'>' => i => i > date,
-					'<' => i => i < date,
-					'=' => i => i == date,
-					_ => throw new InvalidOperationException($"Invalid character for function filter: '{firstChar}'")
-				};
+				var compareValue = DateTime.ParseExact(StringValue.Substring(2).Trim(), "yyyyMMdd", CultureInfo.CurrentCulture);
+				_dateTimeFunc = i => i <= compareValue;
 			}
+			else if (StringValue.StartsWith(">"))
+			{
+				var compareValue = DateTime.ParseExact(StringValue.Substring(1).Trim(), "yyyyMMdd", CultureInfo.CurrentCulture);
+				_dateTimeFunc = i => i > compareValue;
+			}
+			else if (StringValue.StartsWith("<"))
+			{
+				var compareValue = DateTime.ParseExact(StringValue.Substring(1).Trim(), "yyyyMMdd", CultureInfo.CurrentCulture);
+				_dateTimeFunc = i => i < compareValue;
+			}
+			else if (StringValue.StartsWith("="))
+			{
+				var compareValue = DateTime.ParseExact(StringValue.Substring(1).Trim(), "yyyyMMdd", CultureInfo.CurrentCulture);
+				// ReSharper disable once CompareOfFloatsByEqualityOperator
+				_dateTimeFunc = i => i == compareValue;
+			}
+			else if (char.IsDigit(StringValue[0]))
+			{
+				var compareValue = DateTime.ParseExact(StringValue.Trim(), "yyyyMMdd", CultureInfo.CurrentCulture);
+				// ReSharper disable once CompareOfFloatsByEqualityOperator
+				_dateTimeFunc = i => i == compareValue;
+			}
+			else throw new InvalidOperationException($"Invalid double function filter: {StringValue}");
 			return _dateTimeFunc(dtValue);
 		}
 
 		private bool DoubleFunctionFromString(double iValue)
 		{
-			if (_intFunc != null) return _intFunc(iValue);
-			var firstChar = StringValue[0];
-			// ReSharper disable once CompareOfFloatsByEqualityOperator
-			if (char.IsDigit(firstChar)) _intFunc = i => i == IntValue;
-			else
+			if (_doubleFunc != null) return _doubleFunc(iValue);
+			if (StringValue.StartsWith(">="))
 			{
-				var functionIntValue = int.Parse(StringValue.Substring(1));
-				_intFunc = firstChar switch
-				{
-					'>' => i => i > functionIntValue,
-					'<' => i => i < functionIntValue,
-					'=' => i => i == functionIntValue,
-					_ => throw new InvalidOperationException($"Invalid character for function filter: {firstChar}")
-				};
+				var compareValue = double.Parse(StringValue.Substring(2).Trim());
+				_doubleFunc = i => i >= compareValue;
 			}
-			return _intFunc(iValue);
+			else if (StringValue.StartsWith("<="))
+			{
+				var compareValue = double.Parse(StringValue.Substring(2).Trim());
+				_doubleFunc = i => i <= compareValue;
+			}
+			else if (StringValue.StartsWith(">"))
+			{
+				var compareValue = double.Parse(StringValue.Substring(1).Trim());
+				_doubleFunc = i => i > compareValue;
+			}
+			else if (StringValue.StartsWith("<"))
+			{
+				var compareValue = double.Parse(StringValue.Substring(1).Trim());
+				_doubleFunc = i => i < compareValue;
+			}
+			else if (StringValue.StartsWith("="))
+			{
+				var compareValue = double.Parse(StringValue.Substring(1).Trim());
+				// ReSharper disable once CompareOfFloatsByEqualityOperator
+				_doubleFunc = i => i == compareValue;
+			}
+			else if (char.IsDigit(StringValue[0]))
+			{
+				var compareValue = double.Parse(StringValue.Trim());
+				// ReSharper disable once CompareOfFloatsByEqualityOperator
+				_doubleFunc = i => i == compareValue;
+			}
+			else throw new InvalidOperationException($"Invalid double function filter: {StringValue}");
+			return _doubleFunc(iValue);
 		}
 
 		private bool TagsFunction(IDataItem<int> item)

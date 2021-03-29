@@ -4,9 +4,11 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Brush = System.Windows.Media.Brush;
 using Brushes = System.Windows.Media.Brushes;
+using Color = System.Windows.Media.Color;
 
 namespace Happy_Reader.View
 {
@@ -17,11 +19,11 @@ namespace Happy_Reader.View
 		public static readonly Brush WLHighBrush = Brushes.DeepPink;
 		public static readonly Brush WLMediumBrush = Brushes.HotPink;
 		public static readonly Brush WLLowBrush = Brushes.LightPink;
-		public static readonly Brush WLBlacklistBrush = Brushes.Black;
+		public static readonly Brush WLBlacklistBrush = new SolidColorBrush(Color.FromRgb(25	,25,25));
 		public static readonly Brush ULFinishedBrush = Brushes.LightGreen;
 		public static readonly Brush ULStalledBrush = Brushes.DarkKhaki;
 		public static readonly Brush ULDroppedBrush = Brushes.DarkOrange;
-		public static readonly Brush ULUnknownBrush = Brushes.Gray;
+		public static readonly Brush ULUnknownBrush = Brushes.LightGray;
 
 		// ReSharper disable UnusedMember.Local
 		//tile text colors
