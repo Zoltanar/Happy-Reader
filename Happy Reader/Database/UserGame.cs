@@ -153,7 +153,7 @@ namespace Happy_Reader.Database
 				}
 				else image = new Bitmap(VN.ImageSource);
 				using var memory = new MemoryStream();
-				image.Save(memory, ImageFormat.MemoryBmp);
+				image.Save(memory, ImageFormat.Bmp);
 				memory.Position = 0;
 				_image = new BitmapImage();
 				_image.BeginInit();
