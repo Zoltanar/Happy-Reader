@@ -56,7 +56,7 @@ namespace Happy_Apps_Core.Database
 		public void LoadFromStringParts(string[] parts)
 		{
 			CharacterItem_Id = Convert.ToInt32(GetPart(parts, "id").Substring(1));
-			TraitId = Convert.ToInt32(GetPart(parts, "tid"));
+			TraitId = Convert.ToInt32(GetPart(parts, "tid").Substring(1));
 			Spoiler = Convert.ToInt32(GetPart(parts, "spoil"));
 		}
 

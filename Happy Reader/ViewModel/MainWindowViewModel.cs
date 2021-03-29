@@ -191,6 +191,7 @@ namespace Happy_Reader.ViewModel
 		public async Task Initialize(Stopwatch watch, RoutedEventHandler defaultUserGameGrouping, bool initialiseEntries, bool noApiTranslation, bool logVerbose)
 		{
 			StaticHelpers.Logger.LogVerbose = logVerbose;
+			Directory.CreateDirectory(StaticMethods.UserGameIconsFolder);
 			await Task.Run(() =>
 			{
 				StatusText = "Loading data from dump files...";

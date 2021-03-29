@@ -146,12 +146,14 @@ namespace Happy_Reader.Database
 				if ((VN?.ImageNSFW  ?? false) && !StaticMethods.ShowNSFWImages()) return Theme.NsfwImage;
 				if (_image != null) return _image;
 				// ReSharper disable once PossibleNullReferenceException
-				if (VN == null) image = Icon.ExtractAssociatedIcon(FilePath).ToBitmap();
-				else if (VN.ImageSource != null) image = new Bitmap(VN.ImageSource);
-				// ReSharper disable once PossibleNullReferenceException
-				else image = Icon.ExtractAssociatedIcon(FilePath).ToBitmap();
+				if (VN?.ImageSource == null)
+				{
+					if (!IconImageExists(out var iconPath)) return Theme.ImageNotFoundImage;
+					image = new Bitmap(iconPath);
+				}
+				else image = new Bitmap(VN.ImageSource);
 				using var memory = new MemoryStream();
-				image.Save(memory, ImageFormat.Bmp);
+				image.Save(memory, ImageFormat.MemoryBmp);
 				memory.Position = 0;
 				_image = new BitmapImage();
 				_image.BeginInit();
@@ -160,6 +162,23 @@ namespace Happy_Reader.Database
 				_image.EndInit();
 				return _image;
 			}
+		}
+
+		public bool IconImageExists(out string iconPath)
+		{
+			iconPath = Path.Combine(StaticMethods.UserGameIconsFolder, Id + ".bmp");
+			return File.Exists(iconPath);
+		}
+
+		public void SaveIconImage()
+		{
+			IconImageExists(out var iconPath);
+			var icon = Icon.ExtractAssociatedIcon(FilePath);
+			if (icon == null) return;
+			var image = icon.ToBitmap();
+			using var fileStream = File.OpenWrite(iconPath);
+			image.Save(fileStream, ImageFormat.Bmp);
+			OnPropertyChanged(nameof(Image));
 		}
 
 		[NotMapped]
@@ -282,6 +301,7 @@ namespace Happy_Reader.Database
 		public void ChangeFilePath(string newFilePath)
 		{
 			FilePath = newFilePath;
+			SaveIconImage();
 			StaticMethods.Data.SaveChanges();
 			OnPropertyChanged(nameof(FilePath));
 			OnPropertyChanged(nameof(Image));
