@@ -304,6 +304,7 @@ namespace Happy_Reader.Database
 			SaveIconImage();
 			StaticMethods.Data.SaveChanges();
 			OnPropertyChanged(nameof(FilePath));
+			OnPropertyChanged(nameof(FileExists));
 			OnPropertyChanged(nameof(Image));
 		}
 

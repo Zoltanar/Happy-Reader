@@ -17,9 +17,6 @@ namespace Happy_Reader
 		//TODO add regex to all stages
 
 		private static readonly object TranslateLock = new();
-		private static readonly char[] Separators = "『「」』…".ToCharArray();
-		private static readonly char[] InclusiveSeparators = "。？".ToCharArray();
-		private static readonly char[] AllSeparators = Separators.Concat(InclusiveSeparators).ToArray();
 		private static readonly Regex LatinOnlyRegex = new(@"^[a-zA-Z0-9:\/\\\r\n .!?,;@()_$^""]+$");
 		private static readonly Regex Stage4P1InputRegex = new(@"\[\[(.+?)]]");
 		private static readonly Regex Stage4P1OutputRegex = new(@"^.*?\[\[(.+)]].*?$");
@@ -30,12 +27,16 @@ namespace Happy_Reader
 		private ListedVN _lastGame;
 		private Entry[] _entries;
 		private bool _logVerbose;
+		private char[] _inclusiveSeparators = { };
+		private char[] _allSeparators = { };
 		public bool RefreshEntries = true;
 
 		public Translator(HappyReaderDatabase data) => _data = data;
 
 		public void SetCache(bool noApiTranslation, bool logVerbose, TranslatorSettings translatorSettings)
 		{
+			_inclusiveSeparators = translatorSettings.InclusiveSeparators.ToCharArray();
+			_allSeparators = translatorSettings.ExclusiveSeparators.Concat(translatorSettings.InclusiveSeparators).ToArray();
 			_logVerbose = logVerbose;
 			var cachedTranslations = _data.CachedTranslations.Local;
 			GoogleTranslate.Initialize(
@@ -100,7 +101,7 @@ namespace Happy_Reader
 			return skip != indexOfSecondBracket ? input : input.Substring(skip);
 		}
 
-		private static void SplitInputIntoParts(Translation item)
+		private void SplitInputIntoParts(Translation item)
 		{
 			var input = item.Original;
 			int index = 0;
@@ -108,16 +109,16 @@ namespace Happy_Reader
 			while (index < input.Length)
 			{
 				var @char = input[index];
-				if (AllSeparators.Contains(@char))
+				if (_allSeparators.Contains(@char))
 				{
-					if (InclusiveSeparators.Contains(@char))
+					if (_inclusiveSeparators.Contains(@char))
 					{
 						currentPart += @char;
-						item.Parts.Add((currentPart, !currentPart.All(c => AllSeparators.Contains(c))));
+						item.Parts.Add((currentPart, !currentPart.All(c => _allSeparators.Contains(c))));
 					}
 					else
 					{
-						if (currentPart.Length > 0) item.Parts.Add((currentPart, !string.IsNullOrWhiteSpace(currentPart) && !currentPart.All(c => AllSeparators.Contains(c))));
+						if (currentPart.Length > 0) item.Parts.Add((currentPart, !string.IsNullOrWhiteSpace(currentPart) && !currentPart.All(c => _allSeparators.Contains(c))));
 						item.Parts.Add((@char.ToString(), false));
 					}
 					currentPart = "";
@@ -127,7 +128,7 @@ namespace Happy_Reader
 				currentPart += @char;
 				index++;
 			}
-			if (currentPart.Length > 0) item.Parts.Add((currentPart, !string.IsNullOrWhiteSpace(currentPart) && !currentPart.All(c => AllSeparators.Contains(c))));
+			if (currentPart.Length > 0) item.Parts.Add((currentPart, !string.IsNullOrWhiteSpace(currentPart) && !currentPart.All(c => _allSeparators.Contains(c))));
 		}
 
 		private void SetEntries([NotNull] User user, ListedVN game)

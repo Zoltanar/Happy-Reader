@@ -19,11 +19,12 @@ namespace Happy_Reader.View
 		public static readonly Brush WLHighBrush = Brushes.DeepPink;
 		public static readonly Brush WLMediumBrush = Brushes.HotPink;
 		public static readonly Brush WLLowBrush = Brushes.LightPink;
-		public static readonly Brush WLBlacklistBrush = new SolidColorBrush(Color.FromRgb(25	,25,25));
+		public static readonly Brush WLBlacklistBrush = new SolidColorBrush(Color.FromRgb(35	,35,35));
 		public static readonly Brush ULFinishedBrush = Brushes.LightGreen;
 		public static readonly Brush ULStalledBrush = Brushes.DarkKhaki;
 		public static readonly Brush ULDroppedBrush = Brushes.DarkOrange;
 		public static readonly Brush ULUnknownBrush = Brushes.LightGray;
+		public static readonly Brush UserGameTabBackground = Brushes.DarkKhaki;
 
 		// ReSharper disable UnusedMember.Local
 		//tile text colors
@@ -43,6 +44,7 @@ namespace Happy_Reader.View
 			ImageNotFoundImage = GetBitmapImageFromResourceFile(@"pack://application:,,,/Resources/no-image.png");
 			NsfwImage = GetBitmapImageFromResourceFile(@"pack://application:,,,/Resources/nsfw-image.png");
 		}
+
 
 
 		private static BitmapImage GetBitmapImageFromResourceFile(string path)

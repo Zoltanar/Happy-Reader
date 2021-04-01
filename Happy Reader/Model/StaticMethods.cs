@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -14,10 +13,12 @@ using Happy_Reader.Database;
 using System.Linq.Expressions;
 using System.Management;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using Happy_Apps_Core.Database;
 using Happy_Reader.View;
+using Happy_Reader.View.Tabs;
 using Happy_Reader.ViewModel;
 using Newtonsoft.Json;
 using FontFamily = System.Windows.Media.FontFamily;
@@ -37,7 +38,7 @@ namespace Happy_Reader
 		public static readonly string AllFiltersJson = Path.Combine(StaticHelpers.StoredDataFolder, "HR_Filters.json");
 		public static readonly string UserGameIconsFolder = Path.Combine(StaticHelpers.StoredDataFolder, "Usergame_Icons\\");
 		public static readonly JsonSerializerSettings SerialiserSettings = new() { TypeNameHandling = TypeNameHandling.Objects };
-		public static readonly Rectangle OutputWindowStartPosition = new(20, 20, 400, 200);
+		public static readonly System.Drawing.Rectangle OutputWindowStartPosition = new(20, 20, 400, 200);
 		private static SettingsViewModel _settings;
 		public static FiltersData AllFilters { get; set; }
 		public static HappyReaderDatabase Data { get; } = new();
@@ -285,6 +286,52 @@ namespace Happy_Reader
 			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			return Application.Current.Dispatcher.CheckAccess() ? action() : Application.Current.Dispatcher.Invoke(action);
 		}
+
+		public static Grid GetTabHeader(string text, BindingBase headerBinding, object content, HashSet<SavedData.SavedTab> savedTabs)
+		{
+			var headerTextBlock = new TextBlock
+			{
+				Text = text,
+				TextWrapping = TextWrapping.Wrap,
+				TextAlignment = TextAlignment.Center,
+				VerticalAlignment = VerticalAlignment.Center,
+				HorizontalAlignment = HorizontalAlignment.Center,
+				Margin = new Thickness(2)
+			};
+			if (headerBinding != null) headerTextBlock.SetBinding(TextBlock.TextProperty, headerBinding); 
+			var header = new Grid
+			{
+				Width = 100,
+				Height = 50,
+				VerticalAlignment = VerticalAlignment.Stretch,
+				HorizontalAlignment = HorizontalAlignment.Stretch
+			};
+			switch (content)
+			{
+				case VNTab vnTab:
+					savedTabs?.Add(new SavedData.SavedTab(vnTab.ViewModel.VNID, nameof(VNTab)));
+					header.Background = Brushes.HotPink;
+					break;
+				case ListedVN vn:
+					savedTabs?.Add(new SavedData.SavedTab(vn.VNID, nameof(VNTab)));
+					header.Background = Brushes.HotPink;
+					break;
+				case UserGameTab gameTab:
+					savedTabs?.Add(new SavedData.SavedTab(gameTab.ViewModel.Id, nameof(UserGameTab)));
+					header.Background = Theme.UserGameTabBackground;
+					break;
+				case UserGame game:
+					savedTabs?.Add(new SavedData.SavedTab(game.Id, nameof(UserGameTab)));
+					header.Background = Theme.UserGameTabBackground;
+					break;
+				default:
+					header.Background = Brushes.IndianRed;
+					break;
+			}
+			header.Children.Add(headerTextBlock);
+			return header;
+		}
+
 	}
 
 	public class FiltersData : SettingsJsonFile

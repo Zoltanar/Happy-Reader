@@ -55,8 +55,11 @@
             <ColumnDefinition Width="Auto" MinWidth="30" x:Name="DataColumn"/>
             <ColumnDefinition Width="*" x:Name="ImageColumn"/>
         </Grid.ColumnDefinitions>
-        <UniformGrid Grid.Column="0" Rows="11" Columns="1">
-            <Label Style="{StaticResource Row0Label}" Content="File"/>
+		<UniformGrid Grid.Column="0" Rows="11" Columns="1">
+			<StackPanel Orientation="Horizontal">
+				<Label Style="{StaticResource Row0Label}" Content="(❌ File Not Found)" Foreground="Red" Visibility="{Binding FileExists, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=1}" />
+				<Label Style="{StaticResource Row0Label}" Content="File"/>
+			</StackPanel>
 			<Button Style="{StaticResource UniformButton}" Content="Browse to file" Click="BrowseToFolderClick"/>
 			<Label Style="{StaticResource Row0Label}" Content="User Defined Name" />
             <Label Style="{StaticResource Row0Label}" Content="Tag" />

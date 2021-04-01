@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using Happy_Apps_Core;
@@ -17,25 +19,36 @@ namespace Happy_Reader.View.Tabs
 		private bool _loaded;
 
 		public readonly ListedVN ViewModel;
+		public readonly IList<UserGame> UserGames;
 
-		public VNTab(ListedVN vn, UserGame userGame)
+		public VNTab(ListedVN vn, IList<UserGame> userGames)
 		{
 			InitializeComponent();
 			ViewModel = vn;
 			DataContext = vn;
 			TileBox.Children.Add(VNTile.FromListedVN(vn));
-			if (userGame == null) return;
-			var tabItem = new TabItem
+			UserGames = userGames;
+			var differentDisplayNames = userGames.Where(ug => !string.IsNullOrWhiteSpace(ug.UserDefinedName)).Select(ug => ug.UserDefinedName).Distinct().Count() == userGames.Count;
+			var differentFileNames = userGames.Select(ug => Path.GetFileName(ug.FilePath)).Distinct().Count() == userGames.Count;
+			int index = 0;
+			foreach (var userGame in userGames)
 			{
-				Header = "User Game",
-				Name = nameof(UserGameTab),
-				Content = new UserGameTab(userGame, true),
-				Tag = userGame,
-				HorizontalAlignment = HorizontalAlignment.Stretch,
-				VerticalAlignment = VerticalAlignment.Stretch
-
-			};
-			TabControl.Items.Insert(0,tabItem);
+				index++;
+				var headerName = userGames.Count == 1 ? "User Game" :
+					differentDisplayNames ? $"UG: {userGame.UserDefinedName}" :
+					differentFileNames ? $"UG: {Path.GetFileName(userGame.FilePath)}" : $"User Game {index}";
+				var header = StaticMethods.GetTabHeader(headerName, new Binding(nameof(UserGame.DisplayName)) { Source = userGame }, userGame, null);
+				var tabItem = new TabItem
+				{
+					Header = header,
+					Name = nameof(UserGameTab),
+					Content = new UserGameTab(userGame, true),
+					Tag = userGame,
+					HorizontalAlignment = HorizontalAlignment.Stretch,
+					VerticalAlignment = VerticalAlignment.Stretch
+				};
+				TabControl.Items.Insert(0, tabItem);
+			}
 		}
 
 		private void LoadTags(ListedVN vn)
@@ -75,8 +88,8 @@ namespace Happy_Reader.View.Tabs
 			LoadRelations();
 			LoadAnime();
 			_loaded = true;
-			var firstVisibleTab = TabControl.Items.Cast<FrameworkElement>().FirstOrDefault(t=>t.Visibility != Visibility.Collapsed);
-			if(firstVisibleTab != null) TabControl.SelectedItem = firstVisibleTab;
+			var firstVisibleTab = TabControl.Items.Cast<FrameworkElement>().FirstOrDefault(t => t.Visibility != Visibility.Collapsed);
+			if (firstVisibleTab != null) TabControl.SelectedItem = firstVisibleTab;
 			ViewModel.OnPropertyChanged(null);
 		}
 
@@ -177,7 +190,7 @@ namespace Happy_Reader.View.Tabs
 			else scrollViewer.LineRight();
 			e.Handled = true;
 		}
-		
+
 		private async void ShowVNsForStaff(object sender, RoutedEventArgs e)
 		{
 			var element = sender as FrameworkElement;
@@ -199,7 +212,7 @@ namespace Happy_Reader.View.Tabs
 			if (!_loaded) return;
 			if (e.AddedItems.Count == 0) return;
 			var relationElement = e.AddedItems.OfType<TextBlock>().FirstOrDefault();
-			if (!(relationElement?.Tag is RelationsItem relation)) return;
+			if (relationElement?.Tag is not RelationsItem relation) return;
 			var vn = StaticHelpers.LocalDatabase.VisualNovels[relation.ID];
 			if (vn != null) StaticMethods.MainWindow.OpenVNPanel(vn);
 		}

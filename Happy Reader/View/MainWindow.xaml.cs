@@ -121,7 +121,7 @@ namespace Happy_Reader.View
 		public void TabMiddleClick(object sender, MouseButtonEventArgs e)
 		{
 			if (e.ChangedButton != MouseButton.Middle) return;
-			var tabItem = (TabItem)sender;
+			var tabItem = ((DependencyObject) sender).FindParent<TabItem>();
 			tabItem.Template = null;
 			var content = tabItem.Content;
 			switch (content)
@@ -155,29 +155,36 @@ namespace Happy_Reader.View
 
 		public void OpenVNPanel(ListedVN vn, bool select = true)
 		{
-			var userGame = StaticMethods.Data.UserGames.FirstOrDefault(ug => ug.VNID == vn.VNID);
-			if (userGame != null)
+			var userGamesForVn = StaticMethods.Data.UserGames.Where(ug => ug.VNID == vn.VNID).ToList();
+			//remove existing user game tabs if any
+			foreach (var userGame in userGamesForVn)
 			{
 				var userGameTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.DataContext == userGame);
 				if (userGameTab != null) MainTabControl.Items.Remove(userGameTab);
 			}
-			var vnTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.DataContext == vn);
+			var vnTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.Content is VNTab vTab && vTab.ViewModel == vn);
 			if (vnTab != null)
 			{
-				if (select)
+				if(((VNTab)vnTab.Content).UserGames.Intersect(userGamesForVn).Count() == userGamesForVn.Count)
 				{
+					//if tab already exists with same userGames
+					if (!select) return;
 					MainTabControl.SelectedItem = vnTab;
 					vnTab.Focus();
+					return;
 				}
-				return;
+				//else, remove tab and re-create with new user games
+				MainTabControl.Items.Remove(vnTab);
 			}
+
+			var hasSingleUserGame = userGamesForVn.Count == 1;
 			var tabItem = new TabItem
 			{
 				Name = nameof(VNTab),
-				Content = new VNTab(vn, userGame),
-				DataContext = (object)userGame ?? vn
+				Content = new VNTab(vn, userGamesForVn),
+				DataContext = hasSingleUserGame ? userGamesForVn.First() : vn
 			};
-			var headerBinding = new Binding(userGame != null ? nameof(UserGame.DisplayName) : nameof(ListedVN.Title))
+			var headerBinding = new Binding(hasSingleUserGame ? nameof(UserGame.DisplayName) : nameof(ListedVN.Title))
 			{ Source = tabItem.DataContext };
 			AddTabItem(tabItem, headerBinding, select);
 		}
@@ -209,41 +216,45 @@ namespace Happy_Reader.View
 			AddTabItem(tabItem, headerBinding, select);
 		}
 
-		private void AddTabItem(HeaderedContentControl tabItem, BindingBase headerBinding, bool select)
+		public static Grid GetTabHeader(string text, BindingBase headerBinding, object content, HashSet<SavedData.SavedTab> savedTabs)
 		{
 			var headerTextBlock = new TextBlock
 			{
-				Text = (string)tabItem.Header,
+				Text = text,
 				TextWrapping = TextWrapping.Wrap,
 				TextAlignment = TextAlignment.Center,
 				VerticalAlignment = VerticalAlignment.Center,
 				HorizontalAlignment = HorizontalAlignment.Center
 			};
-			if (headerBinding != null) headerTextBlock.SetBinding(TextBlock.TextProperty, headerBinding);
-			var content = tabItem.Content;
-			var header = new Grid
+			if (headerBinding != null) headerTextBlock.SetBinding(TextBlock.TextProperty, headerBinding); var header = new Grid
 			{
 				Width = 100,
 				Height = 50,
 				VerticalAlignment = VerticalAlignment.Stretch,
 				HorizontalAlignment = HorizontalAlignment.Stretch
-			};
+			}; 
 			switch (content)
 			{
 				case VNTab vnTab:
-					_savedData.Tabs.Add(new SavedData.SavedTab(vnTab.ViewModel.VNID, nameof(VNTab)));
+					savedTabs.Add(new SavedData.SavedTab(vnTab.ViewModel.VNID, nameof(VNTab)));
 					header.Background = Brushes.HotPink;
 					break;
 				case UserGameTab gameTab:
-					_savedData.Tabs.Add(new SavedData.SavedTab(gameTab.ViewModel.Id, nameof(UserGameTab)));
-					header.Background = Brushes.DarkKhaki;
+					savedTabs.Add(new SavedData.SavedTab(gameTab.ViewModel.Id, nameof(UserGameTab)));
+					header.Background = Theme.UserGameTabBackground;
 					break;
 				default:
 					header.Background = Brushes.IndianRed;
 					break;
 			}
 			header.Children.Add(headerTextBlock);
-			tabItem.MouseDown += TabMiddleClick;
+			return header;
+		}
+
+		private void AddTabItem(HeaderedContentControl tabItem, BindingBase headerBinding, bool select)
+		{
+			var header = GetTabHeader((string)tabItem.Header, headerBinding, tabItem.Content, _savedData.Tabs);
+			header.MouseDown += TabMiddleClick;
 			tabItem.Header = header;
 			MainTabControl.Items.Add(tabItem);
 			if (!select) return;

@@ -1,6 +1,4 @@
-﻿0 - allow special characters through kakasi romaji, like ❤
-0 - test tab: list entries used per stage.
-0 - setting to switch between vote scores of 10-100 and 1-10.
+﻿0 - test tab: list entries used per stage.
 0 - warn if an instance is already running (maybe show database file for opening instance)
 0 - launch title from VN context menu
 0 - CachedTranslations: remove from cache if not used recently or originally cached too long ago.

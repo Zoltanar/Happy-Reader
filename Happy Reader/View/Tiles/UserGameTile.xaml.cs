@@ -118,8 +118,7 @@ namespace Happy_Reader.View.Tiles
 				_ => null
 			};
 			if (userGame == null) return;
-			if (UserGame.HasVN) StaticMethods.MainWindow.OpenVNPanel(UserGame.VN, false);
-			else StaticMethods.MainWindow.OpenUserGamePanel(UserGame, null, false);
+			ViewDetails(sender,e);
 		}
 	}
 }

@@ -108,12 +108,17 @@ namespace Happy_Reader.View
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => new NotSupportedException();
 	}
 
+	/// <summary>
+	/// Will convert boolean value to visibility value, visible if true and hidden if not.
+	/// If parameter given is "1" (string), it will flip these values, so boolean being true would return hidden visibility.
+	/// </summary>
 	public class BooleanToVisibilityConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (!(value is bool val)) throw new NotSupportedException();
-			return val ? Visibility.Visible : Visibility.Hidden;
+			if (value is not bool val) throw new NotSupportedException();
+			var flip = parameter?.Equals("1") ?? false;
+			return val != flip ? Visibility.Visible : Visibility.Hidden;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
