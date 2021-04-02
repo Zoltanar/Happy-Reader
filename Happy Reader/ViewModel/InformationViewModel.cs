@@ -15,9 +15,14 @@ namespace Happy_Reader.ViewModel
 		public string About { get; } = $"{StaticHelpers.ClientName} {StaticHelpers.ClientVersion}";
 
 		public string DatabaseDate { get; private set; }
+		public string UserDatabaseSize { get; private set; }
+		public string VnDatabaseSize { get; private set; }
+		public string TranslationsData { get; private set; }
 		public string RecordedTime { get; private set; }
 		public string ApproxVndbTime { get; private set; }
 		public string ApproxOverallTime { get; private set; }
+		public HappyReaderDatabase UserDatabase { get; private set; }
+		private DateTime OldTranslationsTime = DateTime.UtcNow.AddMonths(-2);
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
@@ -29,8 +34,17 @@ namespace Happy_Reader.ViewModel
 
 		public void Initialise(VisualNovelDatabase vnData, HappyReaderDatabase userGameData)
 		{
+			UserDatabase = userGameData;
 			var databaseDate = vnData.GetLatestDumpUpdate();
 			DatabaseDate = $"Database Dump Date: {databaseDate?.ToString("yyyy-MM-dd")}";
+			VnDatabaseSize = $"VN Database Size: {GetFileSizeStringForDb(vnData.Connection)}";
+			SetUserDatabaseData(userGameData);
+			SetTimeSpentData(userGameData);
+			OnPropertyChanged(null);
+		}
+
+		private void SetTimeSpentData(HappyReaderDatabase userGameData)
+		{
 			var recordedTime = new TimeSpan();
 			var approxVnTime = new TimeSpan();
 			var approxOverallTime = new TimeSpan();
@@ -46,6 +60,7 @@ namespace Happy_Reader.ViewModel
 							approxOverallTime = approxOverallTime.Add(game.TimeOpen);
 							continue;
 						}
+
 						var approxTime = GetApproxTime(game.VN.LengthTime, ratio);
 						var timeSpan = TimeSpan.FromHours(approxTime);
 						approxVnTime = approxVnTime.Add(timeSpan);
@@ -65,15 +80,61 @@ namespace Happy_Reader.ViewModel
 						var approxTime = GetApproxTime(game.VN.LengthTime, ratio);
 						vnTime ??= TimeSpan.FromHours(approxTime);
 					}
+
 					Debug.Assert(vnTime != null, nameof(vnTime) + " != null");
 					var timeToAdd = timeForVn.TotalHours < vnTime.Value.TotalHours * 0.25d ? vnTime : timeForVn;
 					approxOverallTime = approxOverallTime.Add(timeToAdd.Value);
 				}
 			}
-			RecordedTime = $"Time playing as recorded by app: {recordedTime.TotalHours:0.00} hours.";
-			ApproxVndbTime = $"Time playing as approximated by VN length time (excludes titles outside VNDB): {approxVnTime.TotalHours:0.00} hours.";
-			ApproxOverallTime = $"Time playing as approximated by recorded times and VN length time: {approxOverallTime.TotalHours:0.00} hours.";
-			OnPropertyChanged(null);
+
+			RecordedTime = $"Time playing as recorded by app: {recordedTime.TotalHours:0} hours.";
+			ApproxVndbTime =
+				$"Time playing as approximated by VN length time (excludes titles outside VNDB): {approxVnTime.TotalHours:0} hours.";
+			ApproxOverallTime =
+				$"Time playing as approximated by recorded times and VN length time: {approxOverallTime.TotalHours:0} hours.";
+		}
+
+		private void SetUserDatabaseData(HappyReaderDatabase userGameData)
+		{
+			UserDatabaseSize = $"User Database Size: {GetFileSizeStringForDb(userGameData.Database.Connection)}";
+			var cachedTranslations = userGameData.CachedTranslations.Count();
+			var cachedTranslationsOld = userGameData.CachedTranslations.Count(t => t.Timestamp < OldTranslationsTime);
+			TranslationsData = $"Cached Translations: {cachedTranslations}, 2+ Months Old: {cachedTranslationsOld}";
+			var mostUsedTranslation = userGameData.CachedTranslations.OrderByDescending(t => t.Count).FirstOrDefault();
+			if (mostUsedTranslation != null)
+				TranslationsData +=
+					$", Most Used: {mostUsedTranslation.Input}>{mostUsedTranslation.Output} ({mostUsedTranslation.Count} times)";
+		}
+
+		private static string GetFileSizeStringForDb(System.Data.Common.DbConnection connection)
+		{
+			var dataSource = GetSourceFromDatabase(connection);
+			try
+			{
+				if (!System.IO.File.Exists(dataSource)) return "File not found.";
+				var sizeBytes = new System.IO.FileInfo(dataSource).Length;
+				return $"{sizeBytes / 1024d / 1024d:0} MB";
+			}
+			catch (System.IO.IOException ex)
+			{
+				return $"Failed to access file {ex}";
+			}
+		}
+
+		private static string GetSourceFromDatabase(System.Data.Common.DbConnection connection)
+		{
+			var connectionString = connection.ConnectionString;
+			var parameters = connectionString.Split(';').Select(s =>
+			{
+				var parts = s.Split('=');
+				if(parts.Length != 2) { }
+				return new[] {parts[0].ToLowerInvariant(), parts[1]};
+			});
+			var sourcePart = parameters.FirstOrDefault(p => p[0].Equals("attachdbfilename")) ??
+			                 parameters.FirstOrDefault(p => p[0].Equals("datasource")) ??
+			                 parameters.FirstOrDefault(p => p[0].Equals("data source"));
+			var source = sourcePart?[1] ?? connection.DataSource;
+			return source;
 		}
 
 		private static double GetApproxTime(LengthFilterEnum? length, double ratio)
@@ -110,6 +171,13 @@ namespace Happy_Reader.ViewModel
 					return false;
 			}
 			return true;
+		}
+		
+		public void DeletedCachedTranslations()
+		{
+			UserDatabase.DeleteCachedTranslationsOlderThan(OldTranslationsTime);
+			SetUserDatabaseData(UserDatabase);
+			OnPropertyChanged(null);
 		}
 	}
 }

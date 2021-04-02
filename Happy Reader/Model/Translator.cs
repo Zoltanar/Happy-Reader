@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -8,6 +9,8 @@ using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
 using HRGoogleTranslate;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 namespace Happy_Reader
@@ -33,21 +36,46 @@ namespace Happy_Reader
 
 		public Translator(HappyReaderDatabase data) => _data = data;
 
-		public void SetCache(bool noApiTranslation, bool logVerbose, TranslatorSettings translatorSettings)
+		public async Task SetCache(bool noApiTranslation, bool logVerbose, TranslatorSettings translatorSettings)
 		{
 			_inclusiveSeparators = translatorSettings.InclusiveSeparators.ToCharArray();
 			_allSeparators = translatorSettings.ExclusiveSeparators.Concat(translatorSettings.InclusiveSeparators).ToArray();
 			_logVerbose = logVerbose;
-			var cachedTranslations = _data.CachedTranslations.Local;
+			var cachedTranslations = await TryLoadCachedTranslations(_data.CachedTranslations);
+			await _data.SaveChangesAsync();
+			//var aa = _data.CachedTranslations.ToDictionary(x => x.Input);
 			GoogleTranslate.Initialize(
-				cachedTranslations.ToDictionary(x => x.Input),
 				cachedTranslations,
+				_data.CachedTranslations.Local,
 				Kakasi.JapaneseToRomaji,
 				translatorSettings.GoogleCredentialPath,
 				translatorSettings.FreeUserAgent,
 				translatorSettings.UntouchedStrings,
 				noApiTranslation,
 				logVerbose);
+		}
+
+		private static async Task<Dictionary<string, GoogleTranslation>> TryLoadCachedTranslations(DbSet<GoogleTranslation> cachedTranslations)
+		{
+			var tokenSource = new CancellationTokenSource(15000);
+			try
+			{
+				await cachedTranslations.LoadAsync(tokenSource.Token);
+				if (tokenSource.IsCancellationRequested) return new Dictionary<string, GoogleTranslation>();
+				var grouped = cachedTranslations.GroupBy(ct => ct.Input).Where(g=>g.Count()> 1).ToList();
+				foreach (var group in grouped)
+				{
+					var toRemove = group.OrderByDescending(t => t.Timestamp).Skip(1).ToList();
+					cachedTranslations.RemoveRange(toRemove);
+				}
+				return cachedTranslations.ToDictionary(x => x.Input);
+			}
+			catch (Exception ex)
+			{
+				StaticHelpers.Logger.ToFile(ex);
+			}
+
+			return new Dictionary<string, GoogleTranslation>();
 		}
 
 		public Translation Translate(User user, ListedVN game, string input, bool saveEntriesUsed, bool removeRepetition)
@@ -228,7 +256,7 @@ namespace Happy_Reader
 		/// <summary>
 		/// Replace entries of type Name and translation to proxies.
 		/// </summary>
-		private IEnumerable<Entry> TranslateStageFour(StringBuilder sb, HappyReaderDatabase data, TranslationResults result)
+		private List<Entry> TranslateStageFour(StringBuilder sb, HappyReaderDatabase data, TranslationResults result)
 		{
 			result.SetStage(4);
 			var usefulEntriesWithProxies = GetRelevantEntriesWithProxies(sb, data, out Dictionary<string, ProxiesWithCount> proxies);
@@ -437,7 +465,7 @@ namespace Happy_Reader
 			TranslateStageOne(sb, result);
 			TranslateStageTwo(sb, result);
 			TranslateStageThree(sb, result);
-			IEnumerable<Entry> usefulEntriesWithProxies;
+			List<Entry> usefulEntriesWithProxies;
 			try
 			{
 				usefulEntriesWithProxies = TranslateStageFour(sb, _data, result);
@@ -450,7 +478,16 @@ namespace Happy_Reader
 				result[7] = ex.Message;
 				return result;
 			}
-			TranslateStageFive(sb, result);
+			var singleEntry = usefulEntriesWithProxies.Select(e=>e.AssignedProxy.Entry).FirstOrDefault(e => e.Input == sb.ToString());
+			if (singleEntry != null)
+			{
+				sb.Clear();
+				sb.Append(singleEntry.Output);
+			}
+			else if (sb.ToString().All(c => _allSeparators.Contains(c)))
+			{
+			}
+			else TranslateStageFive(sb, result);
 			TranslateStageSix(sb, usefulEntriesWithProxies, result);
 			TranslateStageSeven(sb, result);
 			return result;

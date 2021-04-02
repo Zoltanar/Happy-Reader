@@ -203,10 +203,10 @@ namespace Happy_Reader.ViewModel
 			if (initialiseEntries)
 			{
 				StatusText = "Loading Cached Translations...";
-				await Task.Run(() =>
+				await Task.Run(async () =>
 				{
 					var cacheLoadWatch = Stopwatch.StartNew();
-					Translator.SetCache(noApiTranslation, logVerbose, SettingsViewModel.TranslatorSettings);
+					await Translator.SetCache(noApiTranslation, logVerbose, SettingsViewModel.TranslatorSettings);
 					StaticHelpers.Logger.ToDebug($"Loaded cached translations in {cacheLoadWatch.ElapsedMilliseconds} ms");
 				});
 				StatusText = "Populating Proxies...";

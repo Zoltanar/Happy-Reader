@@ -1,8 +1,11 @@
-﻿using System.Data.Entity;
+﻿using System;
+using System.Data.Entity;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
+using HRGoogleTranslate;
 using IthVnrSharpLib;
 using StaticHelpers = Happy_Apps_Core.StaticHelpers;
 
@@ -34,7 +37,7 @@ namespace Happy_Reader.Database
 			int result = base.SaveChanges();
 			var caller = new StackFrame(1).GetMethod();
 			var callerName = $"{caller.DeclaringType?.Name}.{caller.Name}";
-			StaticHelpers.Logger.ToDebug($"{System.DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.{nameof(SaveChanges)} called by {callerName} - returned {result}");
+			StaticHelpers.Logger.ToDebug($"{DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.{nameof(SaveChanges)} called by {callerName} - returned {result}");
 			return result;
 		}
 
@@ -43,8 +46,32 @@ namespace Happy_Reader.Database
 			int result = await base.SaveChangesAsync();
 			var caller = new StackFrame(1).GetMethod();
 			var callerName = $"{caller.DeclaringType?.Name}.{caller.Name}";
-			StaticHelpers.Logger.ToDebug($"{System.DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.{nameof(SaveChangesAsync)} called by {callerName} - returned {result}");
+			StaticHelpers.Logger.ToDebug($"{DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.{nameof(SaveChangesAsync)} called by {callerName} - returned {result}");
 			return result;
+		}
+
+		public void DeleteCachedTranslationsOlderThan(DateTime dateTime)
+		{
+			var sql = $"DELETE FROM {nameof(GoogleTranslation)}s WHERE Timestamp < @Timestamp";
+			Database.Connection.Open();
+			try
+			{
+				var cmd = Database.Connection.CreateCommand();
+				cmd.CommandText = sql;
+				cmd.AddParameter("@Timestamp", dateTime);
+				var result = cmd.ExecuteNonQuery();
+				StaticHelpers.Logger.ToFile($"Deleted Cached Translations older than {dateTime}: {result} records.");
+				if (result == 0) return;
+				CachedTranslations.Load();
+			}
+			catch (Exception ex)
+			{
+				StaticHelpers.Logger.ToFile(ex);
+			}
+			finally
+			{
+				Database.Connection.Close();
+			}
 		}
 	}
 
