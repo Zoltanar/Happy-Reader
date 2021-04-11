@@ -60,10 +60,12 @@
 			<Grid Grid.Column="1">
 				<Grid.RowDefinitions>
 					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
 					<RowDefinition/>
 				</Grid.RowDefinitions>
-				<TextBox x:Name="DescriptionBox" Grid.Row="0" Text="{Binding Description}" TextWrapping="Wrap" MinWidth="0" MaxWidth="230" BorderThickness="1" Margin="5" BorderBrush="Black" Foreground="Black"/>
-				<ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="5">
+				<Label Content="{Binding CharacterVN.Role}" FontSize="10" Padding="2"/>
+				<TextBox x:Name="DescriptionBox" Grid.Row="1" Text="{Binding Description}" TextWrapping="Wrap" MinWidth="0" MaxWidth="230" BorderThickness="1" Margin="5" BorderBrush="Black" Foreground="Black"/>
+				<ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="5">
 					<StackPanel CanVerticallyScroll="True">
 						<ItemsControl x:Name="TraitsControl"/>
 					</StackPanel>

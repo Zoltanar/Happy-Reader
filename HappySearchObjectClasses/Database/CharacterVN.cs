@@ -12,7 +12,8 @@ namespace Happy_Apps_Core.Database
 		public int CharacterId { get; set; }
 		public int RId { get; set; }
 		public int Spoiler { get; set; }
-		public string Role { get; set; }
+		public string RoleString { get; set; }
+		public CharacterRole Role { get; private set; } 
 		public int VNId { get; set; }
 
 		public override string ToString() => $"[CID: {CharacterId}, VNID: {VNId}]";
@@ -33,7 +34,7 @@ namespace Happy_Apps_Core.Database
 			VNId = Convert.ToInt32(GetPart(parts, "vid").Substring(1));
 			RId = 0;//Convert.ToInt32(parts[2]); //todo ??
 			Spoiler = Convert.ToInt32(GetPart(parts, "spoil"));
-			Role = Convert.ToString(GetPart(parts, "role"));
+			RoleString = Convert.ToString(GetPart(parts, "role"));
 		}
 
 		#region IDataItem Implementation
@@ -52,7 +53,7 @@ namespace Happy_Apps_Core.Database
 			command.AddParameter("@VNID", VNId);
 			command.AddParameter("@RId", RId);
 			command.AddParameter("@Spoiler", Spoiler);
-			command.AddParameter("@Role", Role);
+			command.AddParameter("@Role", RoleString);
 			return command;
 		}
 
@@ -62,7 +63,8 @@ namespace Happy_Apps_Core.Database
 			VNId = Convert.ToInt32(reader["VNID"]);
 			RId = Convert.ToInt32(reader["RId"]);
 			Spoiler = Convert.ToInt32(reader["Spoiler"]);
-			Role = Convert.ToString(reader["Role"]);
+			RoleString = Convert.ToString(reader["Role"]);
+			Role = Enum.TryParse(RoleString, true, out CharacterRole role) ? role : CharacterRole.Undefined;
 		}
 		#endregion
 	}

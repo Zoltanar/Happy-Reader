@@ -67,6 +67,7 @@ namespace Happy_Reader
 
 		private static void GetRomaji(StringBuilder romajiSb)
 		{
+			//todo split into parts, don't modify separators
 			Translator.ReplacePreRomaji(romajiSb);
 			Kakasi.JapaneseToRomaji(romajiSb);
 			Translator.ReplacePostRomaji(romajiSb);

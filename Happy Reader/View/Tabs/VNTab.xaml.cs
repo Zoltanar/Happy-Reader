@@ -170,7 +170,7 @@ namespace Happy_Reader.View.Tabs
 		private void LoadCharacters()
 		{
 			var cvnItems = StaticHelpers.LocalDatabase.CharacterVNs[ViewModel.VNID];
-			var characterTiles = cvnItems.Select(CharacterTile.FromCharacterVN).ToArray();
+			var characterTiles = cvnItems.OrderBy(cvn=>cvn.Role).Select(CharacterTile.FromCharacterVN).ToArray();
 			if (characterTiles.Length > 0)
 			{
 				CharacterTiles.ItemsSource = characterTiles;
@@ -181,7 +181,7 @@ namespace Happy_Reader.View.Tabs
 				CharactersTab.Visibility = Visibility.Collapsed;
 			}
 		}
-
+		
 		private void ScrollViewer_OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
 		{
 			ScrollViewer scrollViewer = (ScrollViewer)sender;

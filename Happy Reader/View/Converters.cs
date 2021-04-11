@@ -232,11 +232,11 @@ namespace Happy_Reader.View
 			if (!(value is CharacterItem character)) throw new NotSupportedException();
 			return character.CharacterVN?.Role switch
 			{
-				"main" => Brushes.Gold,
-				"primary" => Brushes.Orchid,
-				"side" => Brushes.GreenYellow,
-				"appears" => Brushes.LightBlue,
-				null => Brushes.Gray,
+				CharacterRole.Main => Brushes.Gold,
+				CharacterRole.Primary => Brushes.Orchid,
+				CharacterRole.Side => Brushes.GreenYellow,
+				CharacterRole.Appears => Brushes.LightBlue,
+				CharacterRole.Unknown => Brushes.Gray,
 				_ => Brushes.White
 			};
 		}
