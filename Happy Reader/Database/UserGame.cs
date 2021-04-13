@@ -22,8 +22,9 @@ namespace Happy_Reader.Database
 	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 	public class UserGame : INotifyPropertyChanged
 	{
-		public static readonly SortedList<DateTime, long> LastGamesPlayed = new SortedList<DateTime, long>();
+		public static readonly SortedList<DateTime, long> LastGamesPlayed = new();
 		public static Encoding[] Encodings => IthVnrViewModel.Encodings;
+		public static HookMode[] HookModes { get; } = (HookMode[])Enum.GetValues(typeof(HookMode));
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
@@ -32,7 +33,7 @@ namespace Happy_Reader.Database
 		private ListedVN _vn;
 		private bool _vnGot;
 		private NativeMethods.RECT? _locationOnMoveStart;
-		
+
 		public UserGame(string file, ListedVN vn)
 		{
 			FilePath = file;
@@ -47,7 +48,7 @@ namespace Happy_Reader.Database
 		public long Id { get; set; }
 		public string UserDefinedName { get; set; }
 		public string LaunchPath { get; set; }
-		public bool HookProcess { get; set; }
+		public HookMode HookProcess { get; set; }
 		public int? VNID { get; set; }
 		public string FilePath { get; set; }
 		public string HookCode { get; set; }
@@ -58,6 +59,7 @@ namespace Happy_Reader.Database
 
 		public bool HasVN => VNID.HasValue;
 		public bool FileExists => File.Exists(FilePath);
+		public bool IsHooked => Process != null && HookProcess != HookMode.None;
 
 		/// <summary>
 		/// Store output window location and dimensions as a string in the 'form x,y,width,height' 
@@ -143,7 +145,7 @@ namespace Happy_Reader.Database
 					// ReSharper disable once PossibleNullReferenceException
 					return Theme.FileNotFoundImage;
 				}
-				if ((VN?.ImageNSFW  ?? false) && !StaticMethods.ShowNSFWImages()) return Theme.NsfwImage;
+				if ((VN?.ImageNSFW ?? false) && !StaticMethods.ShowNSFWImages()) return Theme.NsfwImage;
 				if (_image != null) return _image;
 				// ReSharper disable once PossibleNullReferenceException
 				if (VN?.ImageSource == null)
@@ -224,7 +226,7 @@ namespace Happy_Reader.Database
 
 		[NotMapped]
 		public static Action<NativeMethods.RECT> MoveOutputWindow { get; set; }
-		
+
 		public void SaveTimePlayed(bool notify)
 		{
 			_runningTime.Stop();
@@ -331,7 +333,7 @@ namespace Happy_Reader.Database
 			Process.Exited += hookedProcessOnExited;
 			if (WinAPI.IsIconic(process.MainWindowHandle)) WindowIsMinimised(process.MainWindowHandle);
 		}
-		
+
 		private void WindowMoveStarts(IntPtr windowPointer)
 		{
 			if (MoveOutputWindow == null) return;
@@ -349,7 +351,7 @@ namespace Happy_Reader.Database
 			MoveOutputWindow?.Invoke(diff);
 			_locationOnMoveStart = null;
 		}
-		
+
 		private void WindowsIsRestored(IntPtr windowPointer)
 		{
 			var success = NativeMethods.GetWindowRect(windowPointer, out var location);
@@ -358,7 +360,7 @@ namespace Happy_Reader.Database
 			_runningTime.Start();
 			OnPropertyChanged(nameof(RunningStatus));
 			var outputWindow = StaticMethods.MainWindow.ViewModel.OutputWindow;
-			if(outputWindow.InitialisedWindowLocation) StaticMethods.MainWindow.ViewModel.OutputWindow.Show();
+			if (outputWindow.InitialisedWindowLocation) StaticMethods.MainWindow.ViewModel.OutputWindow.Show();
 		}
 
 		private void WindowIsMinimised(IntPtr windowPointer)
@@ -422,7 +424,7 @@ namespace Happy_Reader.Database
 			if (!processStarted.HasExited) processStarted.WaitForInputIdle(3000);
 			return processStarted;
 		}
-		
+
 		public enum EncodingEnum
 		{
 			// ReSharper disable once InconsistentNaming
@@ -434,6 +436,13 @@ namespace Happy_Reader.Database
 			Off = 0,
 			Paused = 1,
 			On = 2
+		}
+
+		public enum HookMode
+		{
+			None = 0,
+			VnrHook = 1,
+			VnrAgent = 2
 		}
 	}
 

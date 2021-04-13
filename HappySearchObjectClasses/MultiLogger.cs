@@ -74,7 +74,12 @@ namespace Happy_Apps_Core
 			while (IsFileLocked(new FileInfo(file), out stream))
 			{
 				counter++;
-				if (counter > 5) throw new IOException("Logfile is locked!");
+				if (counter > 5)
+				{
+					//throw new IOException("Logfile is locked!");
+					Console.WriteLine(messageWithTime);
+					return;
+				}
 				Thread.Sleep(25);
 			}
 			if (stream == null) throw new ArgumentNullException(nameof(stream), "Log file stream was null.");

@@ -64,10 +64,10 @@
 			<Label Style="{StaticResource Row0Label}" Content="User Defined Name" />
             <Label Style="{StaticResource Row0Label}" Content="Tag" />
 			<Label Style="{StaticResource Row0Label}" Content="VNID" />
+			<Label Style="{StaticResource Row0Label}" Content="Launch Path" />
             <Label Style="{StaticResource Row0Label}" Content="Hook Code" />
-            <Label Style="{StaticResource Row0Label}" Content="Encoding" />
-            <Label Style="{StaticResource Row0Label}" Content="Launch Path" />
-            <CheckBox Style="{StaticResource UniformCheckbox}" Content="Hook to Process" IsChecked="{Binding HookProcess}" />
+			<Label Style="{StaticResource Row0Label}" Content="Encoding" />
+			<Label Style="{StaticResource Row0Label}" Content="Hook Mode" />
         </UniformGrid>
         <UniformGrid Grid.Column="1" Rows="11">
             <TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding FilePath, Mode=OneWay}" />
@@ -75,9 +75,10 @@
 			<TextBox Style="{StaticResource Row1TextBox}" x:Name="DisplayNameBox" Text="{Binding UserDefinedName}" KeyUp="SaveUserDefinedName" />
             <TextBox Style="{StaticResource Row1TextBox}" x:Name="TagBox" Text="{Binding Tag}" KeyUp="SaveTag" />
 			<TextBox Style="{StaticResource Row1TextBox}" x:Name="VnidNameBox" Text="{Binding VNID}" KeyUp="SaveVNID" PreviewTextInput="DigitsOnly" />
-            <TextBox Style="{StaticResource Row1TextBox}" x:Name="HookCodeBox" Text="{Binding HookCode}" KeyUp="SaveHookCode" />
-            <ComboBox ItemsSource="{Binding Encodings}" DisplayMemberPath="EncodingName" SelectedItem="{Binding PrefEncoding}" />
             <TextBox Style="{StaticResource Row1TextBox}" x:Name="LaunchPathBox" Text="{Binding LaunchPath}" KeyUp="SaveLaunchPath" />
+			<TextBox Style="{StaticResource Row1TextBox}" x:Name="HookCodeBox" Text="{Binding HookCode}" KeyUp="SaveHookCode" />
+            <ComboBox ItemsSource="{Binding Encodings}" DisplayMemberPath="EncodingName" SelectedItem="{Binding PrefEncoding}" />
+            <ComboBox ItemsSource="{Binding HookModes}" SelectedItem="{Binding HookProcess}" />
 			<CheckBox Style="{StaticResource UniformCheckbox}" Content="Merge By Hook Code" IsChecked="{Binding MergeByHookCode}"/>
 			<CheckBox Style="{StaticResource UniformCheckbox}" Content="Remove Repetition" IsChecked="{Binding RemoveRepetition}"
 			          ToolTip="Remove repeated text at the start of strings to be translated, this occurs before Stage 1."/>

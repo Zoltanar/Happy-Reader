@@ -63,9 +63,9 @@ namespace Happy_Reader.View
 
 		private void AttachProcess(object sender, RoutedEventArgs e)
 		{
-			if (!(ProcessGrid.SelectedItem is ProcessInfo item)) return; //todo return error
+			if (ProcessGrid.SelectedItem is not ProcessInfo item) return; //todo return error
 			uint pid = (uint)item.Id;
-			var result = _ithViewModel.VnrHost.Host_InjectByPID(pid, out var errorMessage);
+			var result = _ithViewModel.VnrHost.Host_InjectByPID(pid, out var errorMessage, false);
 			if (result)
 			{
 				var result2 = _ithViewModel.VnrHost.Host_HijackProcess(pid);

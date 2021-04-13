@@ -107,6 +107,7 @@
     <Compile Include="DataAccess\DAListCollection.cs" />
     <Compile Include="DataAccess\IDataItem.cs" />
     <Compile Include="DataAccess\IDataListItem.cs" />
+    <Compile Include="Database\CharacterRole.cs" />
     <Compile Include="Database\CharacterVN.cs" />
     <Compile Include="API Objects\SubLevel\UserItem.cs" />
     <Compile Include="API Objects\Top Level\ErrorResponse.cs" />
