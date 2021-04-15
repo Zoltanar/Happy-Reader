@@ -23,3 +23,6 @@ offline dictionary for faster (mouseover?) word lookups
 
 great outstanding problems:
 can't show outputwindow on top of some fullscreen games, steals focus on games where it works
+
+VNRAGENT:
+Must inject dependency dlls (Qt done but maybe MSVC also required)

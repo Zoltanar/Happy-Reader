@@ -18,7 +18,7 @@ namespace Happy_Reader.Database
 
 		public virtual DbSet<Entry> Entries { get; set; }
 		public virtual DbSet<UserGame> UserGames { get; set; }
-		public virtual DbSet<HRGoogleTranslate.GoogleTranslation> CachedTranslations { get; set; }
+		public virtual DbSet<GoogleTranslation> CachedTranslations { get; set; }
 		public virtual DbSet<Log> Logs { get; set; }
 		public virtual DbSet<GameTextThread> GameThreads { get; set; }
 

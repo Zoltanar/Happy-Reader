@@ -55,10 +55,10 @@ namespace Happy_Reader.ViewModel
 
 		public Selector Selector { get; set; }
 
-		public IthViewModel(MainWindowViewModel mainViewModel, Action initializeUserGame)
+		public IthViewModel(MainWindowViewModel mainViewModel, Action initializeUserGameAction)
 		{
 			_mainViewModel = mainViewModel;
-			_initializeUserGame = initializeUserGame;
+			InitializeUserGameAction = initializeUserGameAction;
 			SetHookCodeCommand = new IthCommandHandler(SetHookCode);
 		}
 		
