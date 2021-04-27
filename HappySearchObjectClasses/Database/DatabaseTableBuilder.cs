@@ -14,7 +14,38 @@ namespace Happy_Apps_Core.Database
 			CreateListedVNs(connection);
 			CreateTableDetails(connection);
 			CreateStaffTables(connection);
+			CreateUserTables(connection);
 		}
+
+
+		private static void CreateUserTables(SQLiteConnection connection)
+		{
+			ExecuteSql(connection, @"CREATE TABLE ""Users"" (
+	`Id`	INTEGER NOT NULL UNIQUE,
+	`Username`	TEXT,
+	PRIMARY KEY(`Id`)
+)");
+
+			ExecuteSql(connection, @"CREATE TABLE ""UserVNs"" (
+	""VNID""	INTEGER,
+	""UserID""	INTEGER,
+	""ULNote""	TEXT,
+	""Vote""	INTEGER,
+	""VoteAdded""	DATETIME,
+	""Added""	DATETIME,
+	""Labels""	TEXT,
+	PRIMARY KEY(""UserID"",""VNID"")
+)");
+
+			ExecuteSql(connection, @"CREATE TABLE ""UserListedProducers"" (
+	`ListedProducer_Id`	INTEGER NOT NULL,
+	`User_Id`	INTEGER NOT NULL,
+	`UserAverageVote`	NUMERIC,
+	`UserDropRate`	INTEGER,
+	PRIMARY KEY(`ListedProducer_Id`,`User_Id`)
+)");
+		}
+
 
 		private static void CreateStaffTables(SQLiteConnection connection)
 		{
@@ -81,6 +112,7 @@ namespace Happy_Apps_Core.Database
 	""Aliases""	TEXT,
 	""Description""	TEXT,
 	""Image""	TEXT,
+	""TraitScore""	REAL,
 	PRIMARY KEY(""ID"")
 );");
 		}
