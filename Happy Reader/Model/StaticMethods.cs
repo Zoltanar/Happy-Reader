@@ -192,39 +192,20 @@ namespace Happy_Reader
 			var field = value.GetType().GetField(value.ToString());
 			return Attribute.IsDefined(field, attributeType);
 		}
-
-		//todo make this an externally loaded list
-		public static HashSet<string> ExcludedNamesForVNResolve = new(StringComparer.OrdinalIgnoreCase)
-		{
-			"data",
-			"windows-i686",
-			"lib",
-			"update.exe",
-			"install.exe",
-			"ihs.exe",
-			"lcsebody",
-			"セーブデータフォルダを開く.exe",
-			"savedata",
-			"cg",
-			"patch",
-			"plugin"
-		};
-
-		public static readonly string[] ResolveNamesToSkip = { };
-
+		
 		public static ListedVN ResolveVNForFile(string file)
 		{
 			var filename = Path.GetFileNameWithoutExtension(file);
 			ListedVN[] fileResults = StaticHelpers.LocalDatabase.VisualNovels.Where(VisualNovelDatabase.SearchForVN(filename)).ToArray();
 			ListedVN vn = null;
-			if (fileResults.Length == 1 && !ExcludedNamesForVNResolve.Contains(Path.GetFileName(file))) vn = fileResults.First();
+			if (fileResults.Length == 1 && !Settings.GuiSettings.ExcludedNamesForVNResolve.Contains(filename)) vn = fileResults.First();
 			else
 			{
 				var parent = Directory.GetParent(file);
 				//if parent is not null, and if parent's parent  is not null (if parent's parent is null, then it is the root location.
 				while (parent?.Parent != null)
 				{
-					if (ExcludedNamesForVNResolve.Contains(parent.Name))
+					if (Settings.GuiSettings.ExcludedNamesForVNResolve.Contains(parent.Name))
 					{
 						parent = parent.Parent;
 						continue;

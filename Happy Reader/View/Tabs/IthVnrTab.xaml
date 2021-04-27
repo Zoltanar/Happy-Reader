@@ -60,19 +60,20 @@
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
 		<!-- row 0 -->
-		<UniformGrid Columns="4" Grid.Row="0" Height="82">
-			<Button Margin="5" Content="Turn Off" Style="{StaticResource GeneralButtonStyle}" Click="FinalizeButton"/>
-			<Button Margin="5" Content="Turn On"  Style="{StaticResource GeneralButtonStyle}"  Click="InitializeButton"/>
-			<Button Margin="5" Content="Show Output Window" Style="{StaticResource GeneralButtonStyle}" Click="ShowOutputWindow"/>
-			<Button Margin="5" Content="Reset Output Window" Style="{StaticResource GeneralButtonStyle}" Click="ResetOutputWindow"/>
-			<ToggleButton Margin="5" Content="Merge By Hook Code" Style="{StaticResource GeneralToggleStyle}" IsChecked="{Binding MergeByHookCode}"/>
-			<ToggleButton Margin="5" Content="Global Pause" Style="{StaticResource GeneralToggleStyle}" IsChecked="{Binding Paused}" />
-			<ToggleButton Margin="5" Content="Show Latest Thread" Style="{StaticResource GeneralToggleStyle}" IsChecked="{Binding HookManager.ShowLatestThread}" />
-			<Button Margin="5" Content="Attach To Process" Style="{StaticResource GeneralButtonStyle}" Click="OpenProcessExplorer"/>
-			<Button Margin="5" Content="Toggle Display Others"    Command="{Binding ToggleDisplayOthersCommand}" />
-			<Button Margin="5" Content="Toggle Post Others" Command="{Binding TogglePostOthersCommand}"/>
-			<Button Margin="5" Content="Toggle Pause Others"      Command="{Binding TogglePauseOthersCommand}" />
-			<Button Margin="5" Content="Clear Others"      Command="{Binding ClearOtherThreadsCommand}"/>
+		<UniformGrid Columns="4" Grid.Row="0" Height="100">
+			<Button Margin="2" Content="Turn Off" Style="{StaticResource GeneralButtonStyle}" Click="FinalizeButton"/>
+			<Button Margin="2" Content="Turn On"  Style="{StaticResource GeneralButtonStyle}"  Click="InitializeButton"/>
+			<Button Margin="2" Content="Show Output Window" Style="{StaticResource GeneralButtonStyle}" Click="ShowOutputWindow"/>
+			<Button Margin="2" Content="Reset Output Window" Style="{StaticResource GeneralButtonStyle}" Click="ResetOutputWindow"/>
+			<ToggleButton Margin="2" Content="Merge By Hook Code" Style="{StaticResource GeneralToggleStyle}" IsChecked="{Binding MergeByHookCode}"/>
+			<ToggleButton Margin="2" Content="Global Pause" Style="{StaticResource GeneralToggleStyle}" IsChecked="{Binding Paused}" />
+			<ToggleButton Margin="2" Content="Show Latest Thread" Style="{StaticResource GeneralToggleStyle}" IsChecked="{Binding HookManager.ShowLatestThread}" />
+			<ToggleButton Margin="2" Content="Ignore Other Threads" Style="{StaticResource GeneralToggleStyle}" IsChecked="{Binding HookManager.IgnoreOtherThreads}" />
+			<Button Margin="2" Content="Attach To Process" Style="{StaticResource GeneralButtonStyle}" Click="OpenProcessExplorer"/>
+			<Button Margin="2" Content="Toggle Display Others"    Command="{Binding ToggleDisplayOthersCommand}" />
+			<Button Margin="2" Content="Toggle Post Others" Command="{Binding TogglePostOthersCommand}"/>
+			<Button Margin="2" Content="Toggle Pause Others"      Command="{Binding TogglePauseOthersCommand}" />
+			<Button Margin="2" Content="Clear Others"      Command="{Binding ClearOtherThreadsCommand}"/>
 		</UniformGrid>
 		<!-- row 1 -->
 		<ComboBox Grid.Row="1" Margin="5,5,0,5" x:Name="ProcessComboBox" ItemsSource="{Binding DisplayProcesses}" SelectedItem="{Binding SelectedProcess, Mode=TwoWay}"  HorizontalAlignment="Left"  Width="120">

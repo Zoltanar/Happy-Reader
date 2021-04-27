@@ -44,7 +44,7 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged();
 			}
 		}
-
+		
 		public ICommand SetHookCodeCommand { get; }
 
 		public bool Paused
@@ -73,7 +73,7 @@ namespace Happy_Reader.ViewModel
 			OnPropertyChanged(nameof(DisplayThreads));
 		}
 
-		public void SetHookCode() => _mainViewModel.UserGame?.SaveHookCode(SelectedTextThread.HookCode);
+		public void SetHookCode() => _mainViewModel.UserGame?.SaveHookCode(SelectedTextThread.PersistentIdentifier);
 
 		public override void AddGameThread(GameTextThread gameTextThread)
 		{

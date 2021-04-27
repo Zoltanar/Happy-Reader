@@ -77,7 +77,11 @@ namespace Happy_Apps_Core
 				if (counter > 5)
 				{
 					//throw new IOException("Logfile is locked!");
-					Console.WriteLine(messageWithTime);
+					foreach (var message in messages)
+					{
+						var messageWithTime = TimeString + message;
+						Console.WriteLine(messageWithTime);
+					}
 					return;
 				}
 				Thread.Sleep(25);

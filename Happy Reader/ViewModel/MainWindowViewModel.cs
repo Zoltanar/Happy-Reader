@@ -417,15 +417,12 @@ namespace Happy_Reader.ViewModel
 
 		public bool RunTranslation(object sender, TextOutputEventArgs e)
 		{
-			if (e.TextThread?.IsConsole ?? false) return false;
-			if (string.IsNullOrWhiteSpace(e.Text) || e.Text == "\r\n") return false;
 			try
 			{
 				if (TranslatePaused) return false;
 				if (StaticMethods.CtrlKeyIsHeld()) return false;
 				Logger.Verbose($"{nameof(RunTranslation)} - {e}");
 				if (UserGame.Process == null) return false;
-				if ((sender as TextThread)?.IsConsole ?? false) return false;
 				TestViewModel.OriginalText = e.Text;
 				var translation = Translator.Translate(User, UserGame?.VN, e.Text, false, UserGame?.RemoveRepetition ?? false);
 				if (string.IsNullOrWhiteSpace(translation?.Output)) return false;

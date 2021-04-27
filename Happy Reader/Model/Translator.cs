@@ -20,9 +20,9 @@ namespace Happy_Reader
 		//TODO add regex to all stages
 
 		private static readonly object TranslateLock = new();
-		private static readonly Regex LatinOnlyRegex = new(@"^[a-zA-Z0-9:\/\\\r\n .!?,;@()_$^""]+$");
-		private static readonly Regex Stage4P1InputRegex = new(@"\[\[(.+?)]]");
-		private static readonly Regex Stage4P1OutputRegex = new(@"^.*?\[\[(.+)]].*?$");
+		private static readonly Regex LatinOnlyRegex = new(@"^[a-zA-Z0-9:+|\-[\]\/\\\r\n .!?,;@()_$^""]+$", RegexOptions.Compiled);
+		private static readonly Regex Stage4P1InputRegex = new(@"\[\[(.+?)]]", RegexOptions.Compiled);
+		private static readonly Regex Stage4P1OutputRegex = new(@"^.*?\[\[(.+)]].*?$", RegexOptions.Compiled);
 		private static readonly Dictionary<string, Regex> RegexDict = new();
 
 		private readonly HappyReaderDatabase _data;
@@ -43,7 +43,6 @@ namespace Happy_Reader
 			_logVerbose = logVerbose;
 			var cachedTranslations = await TryLoadCachedTranslations(_data.CachedTranslations);
 			await _data.SaveChangesAsync();
-			//var aa = _data.CachedTranslations.ToDictionary(x => x.Input);
 			GoogleTranslate.Initialize(
 				cachedTranslations,
 				_data.CachedTranslations.Local,
@@ -94,6 +93,7 @@ namespace Happy_Reader
 			}
 			input = input.Replace("\r\n", "");
 			input = input.Replace("\r", "");
+			input = input.Replace("\n", "");
 			if (string.IsNullOrWhiteSpace(input))
 			{
 				return Translation.Error("Input was empty.");
@@ -125,7 +125,7 @@ namespace Happy_Reader
 			var indexOfSecondBracket = input.IndexOf(firstChar, 1);
 			if (indexOfSecondBracket == -1) return input;
 			int skip = 0;
-			while (input[skip] == input[indexOfSecondBracket + skip] && skip < indexOfSecondBracket) skip++;
+			while (indexOfSecondBracket + skip < input.Length && input[skip] == input[indexOfSecondBracket + skip] && skip < indexOfSecondBracket) skip++;
 			return skip != indexOfSecondBracket ? input : input.Substring(skip);
 		}
 

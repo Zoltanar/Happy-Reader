@@ -13,6 +13,7 @@ namespace Happy_Reader.View
 	{
 		private readonly GridLength _settingsColumnLength;
 		private OutputWindowViewModel _viewModel;
+		private bool _loaded;
 		private bool _isResizing;
 		private bool _settingsOn = true;
 		private System.Windows.Point _startPosition;
@@ -57,7 +58,8 @@ namespace Happy_Reader.View
 		public void AddTranslation(Translation translation)
 		{
 			if (!InitialisedWindowLocation) InitialiseWindowForGame?.Invoke();
-			if (!IsVisible) Show();
+			if (!IsVisible && !translation.IsError) Show();
+			if(!_loaded) OutputWindow_OnLoaded(null,null);
 			_viewModel.AddTranslation(translation);
 			_viewModel.UpdateOutput();
 			if (FullScreenOn) Activate();
@@ -85,6 +87,7 @@ namespace Happy_Reader.View
 
 		private void OutputWindow_OnLoaded(object sender, RoutedEventArgs e)
 		{
+			if (_loaded) return;
 			_viewModel = (OutputWindowViewModel)DataContext;
 			_viewModel.Initialize(() => OutputTextBox.Selection.Text, OutputTextBox.Document, () => Dispatcher.Invoke(()=> OutputTextBox.ScrollToEnd()));
 			SettingsOn = StaticMethods.Settings.TranslatorSettings.SettingsViewState;
@@ -95,6 +98,7 @@ namespace Happy_Reader.View
 				Color = darkerColor
 			};
 			OutputTextBox.Effect = dropShadowEffect;
+			_loaded = true;
 		}
 
 		public Rectangle GetRectangle()

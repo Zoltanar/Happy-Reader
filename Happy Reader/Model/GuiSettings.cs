@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Happy_Apps_Core;
@@ -21,7 +22,24 @@ namespace Happy_Reader
 		private string _culture;
 		private CultureInfo _cultureInfo = CultureInfo.DefaultThreadCurrentCulture ?? CultureInfo.CurrentCulture;
 		private List<PageLink> _pageLinks;
-		
+		private HashSet<string> _vnResolveExcludedNames = new(StringComparer.OrdinalIgnoreCase)
+		{
+			// ReSharper disable StringLiteralTypo
+			"data",
+			"windows-i686",
+			"lib",
+			"update",
+			"install",
+			"ihs",
+			"lcsebody",
+			"セーブデータフォルダを開く",
+			"savedata",
+			"cg",
+			"patch",
+			"plugin"
+			// ReSharper restore StringLiteralTypo
+		};
+
 		[JsonIgnore]
 		public CultureInfo[] Cultures { get; } = CultureInfo.GetCultures(CultureTypes.InstalledWin32Cultures);
 
@@ -163,7 +181,7 @@ namespace Happy_Reader
 				if (Loaded) Save();
 			}
 		}
-		
+
 		[JsonIgnore]
 		public CultureInfo CultureInfo
 		{
@@ -187,10 +205,27 @@ namespace Happy_Reader
 				if (Loaded) Save();
 			}
 		}
-		
+
+		//todo make editable
+		public HashSet<string> ExcludedNamesForVNResolve
+		{
+			get => _vnResolveExcludedNames;
+			set
+			{
+				if (_vnResolveExcludedNames == value) return;
+				_vnResolveExcludedNames = value;
+				if (Loaded) Save();
+			}
+		}
+
 		public void SavePageLinks(IEnumerable<PageLink> pageLinks)
 		{
 			PageLinks = pageLinks.ToList();
+		}
+
+		public void SaveExcludedNamesForVNResolve(IEnumerable<string> excludedNamesForVnResolve)
+		{
+			ExcludedNamesForVNResolve = excludedNamesForVnResolve.ToHashSet(StringComparer.OrdinalIgnoreCase);
 		}
 	}
 }
