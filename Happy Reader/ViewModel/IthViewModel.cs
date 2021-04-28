@@ -3,6 +3,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using Happy_Reader.Database;
 using Happy_Reader.View;
 using IthVnrSharpLib;
 
@@ -44,7 +45,7 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged();
 			}
 		}
-		
+
 		public ICommand SetHookCodeCommand { get; }
 
 		public bool Paused
@@ -61,7 +62,7 @@ namespace Happy_Reader.ViewModel
 			InitializeUserGameAction = initializeUserGameAction;
 			SetHookCodeCommand = new IthCommandHandler(SetHookCode);
 		}
-		
+
 		public override void AddNewThreadToDisplayCollection(TextThread textThread)
 		{
 			if (Application.Current == null) return;
@@ -79,11 +80,16 @@ namespace Happy_Reader.ViewModel
 		{
 			if (_mainViewModel.UserGame == null) return;
 			gameTextThread.GameId = _mainViewModel.UserGame.Id;
-			StaticMethods.Data.GameThreads.Add(gameTextThread);
+			StaticMethods.Data.SqliteGameThreads.UpsertLater(new GameThread(gameTextThread));
 		}
-
+		
 		protected override void SaveGameTextThreads()
 		{
+			var threads = StaticMethods.Data.SqliteGameThreads.WithKeyIn(GameTextThreads.Select(x => (x.GameId, x.Identifier)).ToArray()).ToArray();
+			foreach (var gameThread in threads)
+			{
+				StaticMethods.Data.SqliteGameThreads.UpsertLater(gameThread);
+			}
 			StaticMethods.Data.SaveChanges();
 		}
 	}

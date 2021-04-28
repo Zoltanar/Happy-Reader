@@ -520,7 +520,7 @@ namespace Happy_Reader.ViewModel
 		{
 			IthViewModel.MergeByHookCode = UserGame.MergeByHookCode;
 			IthViewModel.PrefEncoding = UserGame.PrefEncoding;
-			IthViewModel.GameTextThreads = StaticMethods.Data.GameThreads.Where(t => t.GameId == UserGame.Id).ToArray();
+			IthViewModel.GameTextThreads = StaticMethods.Data.SqliteGameThreads.Where(t => t.Item.GameId == UserGame.Id).Select(t=>t.Item).ToArray();
 			if (UserGame.HookProcess == UserGame.HookMode.VnrAgent)
 			{
 				if(!IthViewModel.EmbedHost.Initialized) IthViewModel.EmbedHost.Initialize();
