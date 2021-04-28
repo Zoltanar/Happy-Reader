@@ -294,7 +294,7 @@ namespace Happy_Reader.ViewModel
 			UserGame.LastGamesPlayed.Clear();
 			foreach (var log in lastPlayed)
 			{
-				var userGame = StaticMethods.Data.UserGames.FirstOrDefault(x => x.Id == log.AssociatedId);
+				var userGame = StaticMethods.Data.SqliteUserGames.FirstOrDefault(x => x.Id == log.AssociatedId);
 				if (userGame != null) UserGame.LastGamesPlayed.Add(log.Timestamp, log.AssociatedId);
 			}
 		}
@@ -327,7 +327,6 @@ namespace Happy_Reader.ViewModel
 		private void MonitorStart()
 		{
 			StaticHelpers.Logger.ToDebug($"MonitorStart starting with ID: {Thread.CurrentThread.ManagedThreadId}");
-			StaticMethods.Data.UserGames.Load();
 			while (true)
 			{
 				if (_closing) return;
@@ -356,13 +355,13 @@ namespace Happy_Reader.ViewModel
 			var processes = Process.GetProcesses();
 			try
 			{
-				var userGameProcesses = StaticMethods.Data.UserGames.Local.Select(x => x.ProcessName).ToArray();
+				var userGameProcesses = StaticMethods.Data.SqliteUserGames.Select(x => x.ProcessName).ToArray();
 				var gameProcess = processes.FirstOrDefault(p => userGameProcesses.Contains(p.ProcessName));
 				try
 				{
 					if (gameProcess == null || gameProcess.HasExited) return false;
 					var processFileName = StaticMethods.GetProcessFileName(gameProcess);
-					var possibleUserGames = StaticMethods.Data.UserGames.Local.Where(x => x.ProcessName == gameProcess.ProcessName);
+					var possibleUserGames = StaticMethods.Data.SqliteUserGames.Where(x => x.ProcessName == gameProcess.ProcessName);
 					foreach (var userGame in possibleUserGames)
 					{
 						if (_closing) return true;
@@ -471,9 +470,8 @@ namespace Happy_Reader.ViewModel
 					}
 					if (UserGame.ProcessName == null)
 					{
-						var game = StaticMethods.Data.UserGames.Single(x => x.Id == UserGame.Id);
-						game.ProcessName = process.ProcessName;
-						StaticMethods.Data.SaveChanges();
+						UserGame.ProcessName = process.ProcessName;
+						StaticMethods.Data.SqliteUserGames.Upsert(UserGame, true);
 					}
 					UserGame.SetActiveProcess(process, HookedProcessOnExited);
 					TestViewModel.Game = UserGame.VN;
@@ -545,6 +543,7 @@ namespace Happy_Reader.ViewModel
 							outputRectangle.Size);
 					UserGame.OutputRectangle = newRect;
 				});
+				StaticMethods.Data.SqliteUserGames.Upsert(UserGame, true);
 			}
 			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			Application.Current.Dispatcher.Invoke(() => OutputWindow.Hide());

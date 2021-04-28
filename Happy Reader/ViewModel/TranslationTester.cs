@@ -52,7 +52,7 @@ namespace Happy_Reader.ViewModel
         public string Stage7 { get; set; }
         public ListedVN Game { get; set; }
         public PausableUpdateList<DisplayEntry> EntriesUsed { get; } = new();
-        public string[] UserGameNames => StaticMethods.Data.UserGames.Local.Select(x => x.DisplayName).ToArray();
+        public string[] UserGameNames => StaticMethods.Data.SqliteUserGames.Select(x => x.DisplayName).ToArray();
     
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -84,7 +84,7 @@ namespace Happy_Reader.ViewModel
             //if text is just numbers, parse as vnid, else, look inside display names of user games
             if (!int.TryParse(item, out int id))
             {
-                id = StaticMethods.Data.UserGames.Local.FirstOrDefault(x => x.DisplayName.Contains(item))?.VNID ?? 0;
+                id = StaticMethods.Data.SqliteUserGames.FirstOrDefault(x => x.DisplayName.Contains(item))?.VNID ?? 0;
             }
             Game = StaticHelpers.LocalDatabase.VisualNovels[id];
             outputText = Game?.Title ?? item;

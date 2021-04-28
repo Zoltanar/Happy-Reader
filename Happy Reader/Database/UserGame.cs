@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data;
+using System.Data.Common;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -11,19 +13,20 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Windows.Media.Imaging;
+using Happy_Apps_Core;
+using Happy_Apps_Core.DataAccess;
 using Happy_Apps_Core.Database;
 using Happy_Reader.View;
-using IthVnrSharpLib;
 using JetBrains.Annotations;
 using static Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Reader.Database
 {
 	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
-	public class UserGame : INotifyPropertyChanged
+	public class UserGame : INotifyPropertyChanged, IDataItem<long>, IReadyToUpsert
 	{
 		public static readonly SortedList<DateTime, long> LastGamesPlayed = new();
-		public static Encoding[] Encodings => IthVnrViewModel.Encodings;
+		public static Encoding[] Encodings => IthVnrSharpLib.IthVnrViewModel.Encodings;
 		public static HookMode[] HookModes { get; } = (HookMode[])Enum.GetValues(typeof(HookMode));
 
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -33,6 +36,57 @@ namespace Happy_Reader.Database
 		private ListedVN _vn;
 		private bool _vnGot;
 		private NativeMethods.RECT? _locationOnMoveStart;
+		private WinAPI.WindowHook _windowHook;
+		private BitmapImage _image;
+		private bool _mergeByHookCode;
+		private HookMode _hookProcess;
+		private EncodingEnum _prefEncodingEnum;
+		private bool _removeRepetition;
+
+		public string KeyField { get; } = nameof(Id);
+		public long Key => Id;
+
+		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
+		{
+			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO {nameof(UserGame)}s" +
+									 "(Id, UserDefinedName, LaunchPath, VNID, FilePath, HookCode, MergeByHookCode, ProcessName, Tag, RemoveRepetition, OutputWindow, TimeOpenDT, PrefEncodingEnum) " +
+									 "VALUES " +
+									 "(@Id, @UserDefinedName, @LaunchPath, @VNID, @FilePath, @HookCode, @MergeByHookCode, @ProcessName, @Tag, @RemoveRepetition, @OutputWindow, @TimeOpenDT, @PrefEncodingEnum)";
+			var command = connection.CreateCommand();
+			command.CommandText = sql;
+			command.AddParameter("@Id", Id);
+			command.AddParameter("@UserDefinedName", UserDefinedName);
+			command.AddParameter("@LaunchPath", LaunchPath);
+			command.AddParameter("@VNID", VNID);
+			command.AddParameter("@FilePath", FilePath);
+			command.AddParameter("@HookCode", HookCode);
+			command.AddParameter("@MergeByHookCode", MergeByHookCode);
+			command.AddParameter("@ProcessName", ProcessName);
+			command.AddParameter("@Tag", Tag);
+			command.AddParameter("@RemoveRepetition", RemoveRepetition);
+			command.AddParameter("@OutputWindow", OutputWindow);
+			command.AddParameter("@TimeOpenDT", TimeOpenDT);
+			command.AddParameter("@PrefEncodingEnum", PrefEncodingEnum);
+			return command;
+		}
+
+		public void LoadFromReader(IDataRecord reader)
+		{
+			Id = Convert.ToInt32(reader["Id"]);
+			UserDefinedName = Convert.ToString(reader["UserDefinedName"]);
+			LaunchPath = Convert.ToString(reader["LaunchPath"]);
+			VNID = GetNullableInt(reader["VNID"]);
+			FilePath = Convert.ToString(reader["FilePath"]);
+			HookCode = Convert.ToString(reader["HookCode"]);
+			MergeByHookCode = Convert.ToInt32(reader["MergeByHookCode"]) == 1;
+			ProcessName = Convert.ToString(reader["ProcessName"]);
+			Tag = Convert.ToString(reader["Tag"]);
+			RemoveRepetition = Convert.ToInt32(reader["RemoveRepetition"]) == 1;
+			OutputWindow = Convert.ToString(reader["OutputWindow"]);
+			TimeOpenDT = Convert.ToDateTime(reader["TimeOpenDT"]);
+			PrefEncodingEnum = (EncodingEnum)Convert.ToInt32(reader["PrefEncodingEnum"]);
+			Loaded = true;
+		}
 
 		public UserGame(string file, ListedVN vn)
 		{
@@ -41,31 +95,70 @@ namespace Happy_Reader.Database
 			VN = vn;
 			if (VN != null) VN.IsOwned = FileExists ? OwnedStatus.CurrentlyOwned : OwnedStatus.PastOwned;
 		}
-
 		public UserGame() { }
-
+		[NotMapped] public bool Loaded { get; protected set; }
+		[NotMapped] public bool ReadyToUpsert { get; set; }
 		[DatabaseGenerated(DatabaseGeneratedOption.None)]
 		public long Id { get; set; }
-		public string UserDefinedName { get; set; }
-		public string LaunchPath { get; set; }
-		public HookMode HookProcess { get; set; }
-		public int? VNID { get; set; }
-		public string FilePath { get; set; }
-		public string HookCode { get; set; }
-		public bool MergeByHookCode { get; set; }
+		public string UserDefinedName { get; protected set; }
+		public string LaunchPath { get; protected set; }
+		public HookMode HookProcess
+		{
+			get => _hookProcess;
+			set
+			{
+				if (_hookProcess == value) return;
+				_hookProcess = value;
+				if (Loaded) ReadyToUpsert = true;
+			}
+		}
+		public int? VNID { get; protected set; }
+		public string FilePath { get; protected set; }
+		public string HookCode { get; protected set; }
+		public bool MergeByHookCode
+		{
+			get => _mergeByHookCode;
+			set
+			{
+				if (_mergeByHookCode == value) return;
+				_mergeByHookCode = value;
+				if (Loaded) ReadyToUpsert = true;
+			}
+		}
 		public string ProcessName { get; set; }
-		public string Tag { get; set; }
-		public bool RemoveRepetition { get; set; }
+		public string Tag { get; protected set; }
 
-		public bool HasVN => VNID.HasValue;
-		public bool FileExists => File.Exists(FilePath);
-		public bool IsHooked => Process != null && HookProcess != HookMode.None;
+		public bool RemoveRepetition
+		{
+			get => _removeRepetition;
+			set
+			{
+				if (_removeRepetition == value) return;
+				_removeRepetition = value;
+				if (Loaded) ReadyToUpsert = true;
+			}
+		}
 
 		/// <summary>
 		/// Store output window location and dimensions as a string in the 'form x,y,width,height' 
 		/// </summary>
 		public string OutputWindow { get; set; }
+		// ReSharper disable once InconsistentNaming
+		public DateTime TimeOpenDT { get; set; }
+		public EncodingEnum PrefEncodingEnum
+		{
+			get => _prefEncodingEnum;
+			set
+			{
+				if (_prefEncodingEnum == value) return;
+				_prefEncodingEnum = value;
+				if (Loaded) ReadyToUpsert = true;
+			}
+		}
 
+		public bool HasVN => VNID.HasValue;
+		public bool FileExists => File.Exists(FilePath);
+		public bool IsHooked => Process != null && HookProcess != HookMode.None;
 		[NotMapped]
 		public Rectangle OutputRectangle
 		{
@@ -77,17 +170,12 @@ namespace Happy_Reader.Database
 			}
 			set => OutputWindow = string.Join(",", value.X, value.Y, value.Width, value.Height);
 		}
-
-		// ReSharper disable once InconsistentNaming
-		public DateTime TimeOpenDT { get; set; }
-		public EncodingEnum PrefEncodingEnum { get; set; }
 		[NotMapped]
 		public TimeSpan TimeOpen
 		{
 			get => TimeSpan.FromTicks(TimeOpenDT.Ticks + (_runningTime?.ElapsedTicks ?? 0));
 			set => TimeOpenDT = new DateTime(value.Ticks);
 		}
-
 		[NotMapped]
 		public ListedVN VN
 		{
@@ -96,6 +184,7 @@ namespace Happy_Reader.Database
 				if (Id == 0) return _vn;
 				if (!_vnGot)
 				{
+					if (LocalDatabase == null) return null;
 					if (VNID != null) _vn = LocalDatabase.VisualNovels[VNID.Value];
 					_vnGot = true;
 				}
@@ -107,7 +196,6 @@ namespace Happy_Reader.Database
 				_vnGot = true;
 			}
 		}
-
 		[NotMapped]
 		public Process Process
 		{
@@ -125,15 +213,7 @@ namespace Happy_Reader.Database
 				_process.EnableRaisingEvents = true;
 			}
 		}
-
-		private WinAPI.WindowHook _windowHook;
-
-		[NotMapped]
-		public string DisplayName =>
-			UserDefinedName ?? StaticMethods.TruncateStringFunction30(VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath));
-
-		private BitmapImage _image;
-
+		[NotMapped] public string DisplayName => UserDefinedName ?? StaticMethods.TruncateStringFunction30(VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath));
 		[NotMapped]
 		public BitmapImage Image
 		{
@@ -194,11 +274,9 @@ namespace Happy_Reader.Database
 			}
 		}
 
-		[NotMapped]
-		public string DisplayNameGroup => DisplayName.Substring(0, Math.Min(DisplayName.Length, 1));
+		[NotMapped] public string DisplayNameGroup => DisplayName.Substring(0, Math.Min(DisplayName.Length, 1));
 
-		[NotMapped]
-		public string TagSort => string.IsNullOrWhiteSpace(Tag) ? char.MaxValue.ToString() : Tag;
+		[NotMapped] public string TagSort => string.IsNullOrWhiteSpace(Tag) ? char.MaxValue.ToString() : Tag;
 
 		[NotMapped]
 		public DateTime LastPlayedDate
@@ -221,11 +299,9 @@ namespace Happy_Reader.Database
 			}
 		}
 
-		[NotMapped]
-		public NativeMethods.RECT WindowLocation { get; set; }
+		[NotMapped] public NativeMethods.RECT WindowLocation { get; set; }
 
-		[NotMapped]
-		public static Action<NativeMethods.RECT> MoveOutputWindow { get; set; }
+		[NotMapped] public static Action<NativeMethods.RECT> MoveOutputWindow { get; set; }
 
 		public void SaveTimePlayed(bool notify)
 		{
@@ -235,7 +311,7 @@ namespace Happy_Reader.Database
 			TimeOpen += timeToAdd;
 			Process = null;
 			var log = Log.NewTimePlayedLog(Id, timeToAdd, notify);
-			StaticMethods.Data.SqliteLogs.Add(log,true,true);
+			StaticMethods.Data.SqliteLogs.Add(log, true, true);
 		}
 
 		public void MergeTimePlayed(TimeSpan mergedTimePlayed)
@@ -267,21 +343,21 @@ namespace Happy_Reader.Database
 		public void SaveUserDefinedName([NotNull] string text)
 		{
 			UserDefinedName = string.IsNullOrWhiteSpace(text) ? null : text.Trim();
-			StaticMethods.Data.SaveChanges();
+			StaticMethods.Data.SqliteUserGames.Upsert(this, true);
 			OnPropertyChanged(nameof(DisplayName));
 		}
 
 		public void SaveTag([NotNull] string text)
 		{
 			Tag = string.IsNullOrWhiteSpace(text) ? null : text.Trim();
-			StaticMethods.Data.SaveChanges();
+			StaticMethods.Data.SqliteUserGames.Upsert(this, true);
 			OnPropertyChanged(nameof(Tag));
 		}
 
 		public bool SaveVNID(int? vnid)
 		{
 			VNID = vnid;
-			StaticMethods.Data.SaveChanges();
+			StaticMethods.Data.SqliteUserGames.Upsert(this, true);
 			VN = vnid == null ? null : LocalDatabase.VisualNovels[vnid.Value];
 			if (VN != null) VN.IsOwned = FileExists ? OwnedStatus.CurrentlyOwned : OwnedStatus.PastOwned;
 			OnPropertyChanged(nameof(DisplayName));
@@ -293,7 +369,7 @@ namespace Happy_Reader.Database
 		public void SaveHookCode(string hookCode)
 		{
 			HookCode = string.IsNullOrWhiteSpace(hookCode) ? null : hookCode.Trim();
-			StaticMethods.Data.SaveChanges();
+			StaticMethods.Data.SqliteUserGames.Upsert(this, true);
 			OnPropertyChanged(nameof(HookCode));
 		}
 
@@ -301,7 +377,7 @@ namespace Happy_Reader.Database
 		{
 			FilePath = newFilePath;
 			SaveIconImage();
-			StaticMethods.Data.SaveChanges();
+			StaticMethods.Data.SqliteUserGames.Upsert(this, true);
 			OnPropertyChanged(nameof(FilePath));
 			OnPropertyChanged(nameof(FileExists));
 			OnPropertyChanged(nameof(Image));

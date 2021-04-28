@@ -6,55 +6,55 @@
              xmlns:database="clr-namespace:Happy_Reader.Database"
              mc:Ignorable="d" d:DesignWidth="462" d:DesignHeight="340"
              Loaded="UserGameTab_OnLoaded">
-    <UserControl.DataContext>
-        <database:UserGame/>
-    </UserControl.DataContext>
-    <UserControl.Resources>
-        <Style x:Key="Row0Label" TargetType="Label">
-            <Style.Setters>
-                <Setter Property="HorizontalAlignment" Value="Right"/>
-                <Setter Property="HorizontalContentAlignment" Value="Right"/>
-                <Setter Property="Height" Value="26"/>
-            </Style.Setters>
-        </Style>
-        <Style x:Key="Row1TextBoxTransparent" TargetType="TextBox" BasedOn="{StaticResource NoBorderTextBox}">
-            <Style.Setters>
-                <Setter Property="HorizontalAlignment" Value="Stretch"/>
-                <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                <Setter Property="Height" Value="26"/>
-            </Style.Setters>
-        </Style>
-        <Style x:Key="Row1TextBox" TargetType="TextBox">
-            <Style.Setters>
-                <Setter Property="HorizontalAlignment" Value="Stretch"/>
-                <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                <Setter Property="Height" Value="26"/>
-            </Style.Setters>
-        </Style>
-        <Style x:Key="UniformButton" TargetType="Button">
-            <Style.Setters>
-                <Setter Property="HorizontalAlignment" Value="Stretch"/>
-                <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                <Setter Property="Height" Value="26"/>
-                <Setter Property="Margin" Value="5,0"/>
-            </Style.Setters>
-        </Style>
-        <Style x:Key="UniformCheckbox" TargetType="CheckBox">
-            <Style.Setters>
-                <Setter Property="HorizontalAlignment" Value="Stretch"/>
-                <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                <Setter Property="VerticalContentAlignment" Value="Center"/>
-                <Setter Property="Height" Value="26"/>
-                <Setter Property="Margin" Value="5,0"/>
-            </Style.Setters>
-        </Style>
-    </UserControl.Resources>
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="150"/>
-            <ColumnDefinition Width="Auto" MinWidth="30" x:Name="DataColumn"/>
-            <ColumnDefinition Width="*" x:Name="ImageColumn"/>
-        </Grid.ColumnDefinitions>
+	<UserControl.DataContext>
+		<database:UserGame/>
+	</UserControl.DataContext>
+	<UserControl.Resources>
+		<Style x:Key="Row0Label" TargetType="Label">
+			<Style.Setters>
+				<Setter Property="HorizontalAlignment" Value="Right"/>
+				<Setter Property="HorizontalContentAlignment" Value="Right"/>
+				<Setter Property="Height" Value="26"/>
+			</Style.Setters>
+		</Style>
+		<Style x:Key="Row1TextBoxTransparent" TargetType="TextBox" BasedOn="{StaticResource NoBorderTextBox}">
+			<Style.Setters>
+				<Setter Property="HorizontalAlignment" Value="Stretch"/>
+				<Setter Property="HorizontalContentAlignment" Value="Left"/>
+				<Setter Property="Height" Value="26"/>
+			</Style.Setters>
+		</Style>
+		<Style x:Key="Row1TextBox" TargetType="TextBox">
+			<Style.Setters>
+				<Setter Property="HorizontalAlignment" Value="Stretch"/>
+				<Setter Property="HorizontalContentAlignment" Value="Left"/>
+				<Setter Property="Height" Value="26"/>
+			</Style.Setters>
+		</Style>
+		<Style x:Key="UniformButton" TargetType="Button">
+			<Style.Setters>
+				<Setter Property="HorizontalAlignment" Value="Stretch"/>
+				<Setter Property="HorizontalContentAlignment" Value="Center"/>
+				<Setter Property="Height" Value="26"/>
+				<Setter Property="Margin" Value="5,0"/>
+			</Style.Setters>
+		</Style>
+		<Style x:Key="UniformCheckbox" TargetType="CheckBox">
+			<Style.Setters>
+				<Setter Property="HorizontalAlignment" Value="Stretch"/>
+				<Setter Property="HorizontalContentAlignment" Value="Center"/>
+				<Setter Property="VerticalContentAlignment" Value="Center"/>
+				<Setter Property="Height" Value="26"/>
+				<Setter Property="Margin" Value="5,0"/>
+			</Style.Setters>
+		</Style>
+	</UserControl.Resources>
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="150"/>
+			<ColumnDefinition Width="Auto" MinWidth="30" x:Name="DataColumn"/>
+			<ColumnDefinition Width="*" x:Name="ImageColumn"/>
+		</Grid.ColumnDefinitions>
 		<UniformGrid Grid.Column="0" Rows="11" Columns="1">
 			<StackPanel Orientation="Horizontal">
 				<Label Style="{StaticResource Row0Label}" Content="(❌ File Not Found)" Foreground="Red" Visibility="{Binding FileExists, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=1}" />
@@ -62,28 +62,28 @@
 			</StackPanel>
 			<Button Style="{StaticResource UniformButton}" Content="Browse to file" Click="BrowseToFolderClick"/>
 			<Label Style="{StaticResource Row0Label}" Content="User Defined Name" />
-            <Label Style="{StaticResource Row0Label}" Content="Tag" />
+			<Label Style="{StaticResource Row0Label}" Content="Tag" />
 			<Label Style="{StaticResource Row0Label}" Content="VNID" />
 			<Label Style="{StaticResource Row0Label}" Content="Launch Path" />
-            <Label Style="{StaticResource Row0Label}" Content="Hook Code" />
+			<Label Style="{StaticResource Row0Label}" Content="Hook Code" />
 			<Label Style="{StaticResource Row0Label}" Content="Encoding" />
 			<Label Style="{StaticResource Row0Label}" Content="Hook Mode" />
-        </UniformGrid>
-        <UniformGrid Grid.Column="1" Rows="11">
-            <TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding FilePath, Mode=OneWay}" />
+		</UniformGrid>
+		<UniformGrid Grid.Column="1" Rows="11">
+			<TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding FilePath, Mode=OneWay}" />
 			<Button  Style="{StaticResource UniformButton}" Content="Change File Path" Click="ChangeFileLocationClick"/>
-			<TextBox Style="{StaticResource Row1TextBox}" x:Name="DisplayNameBox" Text="{Binding UserDefinedName}" KeyUp="SaveUserDefinedName" />
-            <TextBox Style="{StaticResource Row1TextBox}" x:Name="TagBox" Text="{Binding Tag}" KeyUp="SaveTag" />
-			<TextBox Style="{StaticResource Row1TextBox}" x:Name="VnidNameBox" Text="{Binding VNID}" KeyUp="SaveVNID" PreviewTextInput="DigitsOnly" />
-            <TextBox Style="{StaticResource Row1TextBox}" x:Name="LaunchPathBox" Text="{Binding LaunchPath}" KeyUp="SaveLaunchPath" />
-			<TextBox Style="{StaticResource Row1TextBox}" x:Name="HookCodeBox" Text="{Binding HookCode}" KeyUp="SaveHookCode" />
-            <ComboBox ItemsSource="{Binding Encodings}" DisplayMemberPath="EncodingName" SelectedItem="{Binding PrefEncoding}" />
-            <ComboBox ItemsSource="{Binding HookModes}" SelectedItem="{Binding HookProcess}" />
+			<TextBox Style="{StaticResource Row1TextBox}" x:Name="DisplayNameBox" Text="{Binding UserDefinedName, Mode=OneWay}" KeyUp="SaveUserDefinedName" />
+			<TextBox Style="{StaticResource Row1TextBox}" x:Name="TagBox" Text="{Binding Tag, Mode=OneWay}" KeyUp="SaveTag" />
+			<TextBox Style="{StaticResource Row1TextBox}" x:Name="VnidNameBox" Text="{Binding VNID, Mode=OneWay}" KeyUp="SaveVNID" PreviewTextInput="DigitsOnly" />
+			<TextBox Style="{StaticResource Row1TextBox}" x:Name="LaunchPathBox" Text="{Binding LaunchPath, Mode=OneWay}" KeyUp="SaveLaunchPath" />
+			<TextBox Style="{StaticResource Row1TextBox}" x:Name="HookCodeBox" Text="{Binding HookCode, Mode=OneWay}" KeyUp="SaveHookCode" />
+			<ComboBox ItemsSource="{Binding Encodings}" DisplayMemberPath="EncodingName" SelectedItem="{Binding PrefEncoding}" />
+			<ComboBox ItemsSource="{Binding HookModes}" SelectedItem="{Binding HookProcess}" />
 			<CheckBox Style="{StaticResource UniformCheckbox}" Content="Merge By Hook Code" IsChecked="{Binding MergeByHookCode}"/>
 			<CheckBox Style="{StaticResource UniformCheckbox}" Content="Remove Repetition" IsChecked="{Binding RemoveRepetition}"
 			          ToolTip="Remove repeated text at the start of strings to be translated, this occurs before Stage 1."/>
 		</UniformGrid>
 		<Border x:Name="ImageBorder" BorderBrush="Black" BorderThickness="4" Grid.Column="2" Background="#FF3EAE8F" />
 		<Image x:Name="Image" Grid.Column="2" Source="{Binding Image, Mode=OneWay}" Margin="10" />
-    </Grid>
+	</Grid>
 </UserControl>

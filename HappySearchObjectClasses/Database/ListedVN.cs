@@ -431,8 +431,7 @@ namespace Happy_Apps_Core.Database
 				Title = Convert.ToString(reader["Title"]);
 				KanjiTitle = Convert.ToString(reader["KanjiTitle"]);
 				ReleaseDateString = Convert.ToString(reader["ReleaseDateString"]);
-				var producerIdObject = reader["ProducerID"];
-				if (!producerIdObject.Equals(DBNull.Value)) ProducerID = Convert.ToInt32(producerIdObject);
+				ProducerID = StaticHelpers.GetNullableInt(reader["ProducerID"]);
 				var imageIdObject = reader["Image"];
 				if (!imageIdObject.Equals(DBNull.Value)) ImageId = Convert.ToString(imageIdObject);
 				ImageNSFW = Convert.ToInt32(reader["ImageNSFW"]) == 1;

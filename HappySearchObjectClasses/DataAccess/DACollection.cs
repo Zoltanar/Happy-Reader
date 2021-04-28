@@ -108,14 +108,16 @@ namespace Happy_Apps_Core.DataAccess
 
 		public int SaveChanges()
 		{
-			if (_itemsToUpsertLater.Count == 0) return 0;
+			var otherItemsToUpsert = typeof(TValue).IsSubclassOf(typeof(IReadyToUpsert))
+				? _items.Values.Where(i => ((IReadyToUpsert) i).ReadyToUpsert).ToArray() : Array.Empty<TValue>();
+			if (_itemsToUpsertLater.Count == 0 && otherItemsToUpsert.Length == 0) return 0;
 			Conn.Open();
 			DbTransaction transaction = null;
 			int rowsAffected = 0;
 			try
 			{
 				transaction = Conn.BeginTransaction();
-				foreach (var item in _itemsToUpsertLater.Values)
+				foreach (var item in _itemsToUpsertLater.Values.Concat(otherItemsToUpsert))
 				{
 					rowsAffected += Upsert(item, false, false, transaction);
 				}
@@ -130,6 +132,10 @@ namespace Happy_Apps_Core.DataAccess
 			finally
 			{
 				_itemsToUpsertLater.Clear();
+				foreach (var item in otherItemsToUpsert)
+				{
+					((IReadyToUpsert)item).ReadyToUpsert = false;
+				}
 				Conn.Close();
 
 			}

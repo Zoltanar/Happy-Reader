@@ -40,8 +40,7 @@ namespace Happy_Reader.ViewModel
 			IEnumerable<UserGame> orderedGames = null;
 			await Task.Run(() =>
 			{
-				StaticMethods.Data.UserGames.Load();
-				foreach (var game in StaticMethods.Data.UserGames.Local)
+				foreach (var game in StaticMethods.Data.SqliteUserGames)
 				{
 					if (game.VNID != null)
 					{
@@ -51,7 +50,7 @@ namespace Happy_Reader.ViewModel
 						if (game.VN != null && game.VN.IsOwned != OwnedStatus.CurrentlyOwned) game.VN.IsOwned = game.FileExists ? OwnedStatus.CurrentlyOwned : OwnedStatus.PastOwned;
 					}
 				}
-				orderedGames = StaticMethods.Data.UserGames.Local.OrderBy(x => x.VNID ?? 0).ToList();
+				orderedGames = StaticMethods.Data.SqliteUserGames.OrderBy(x => x.VNID ?? 0).ToList();
 				if (!showFileNotFound) orderedGames = orderedGames.Where(og => og.FileExists);
 			});
 			foreach (var game in orderedGames) { UserGameItems.Add(new UserGameTile(game)); }
@@ -60,17 +59,16 @@ namespace Happy_Reader.ViewModel
 		
 		public UserGameTile AddGameFile(string file)
 		{
-			var userGame = StaticMethods.Data.UserGames.FirstOrDefault(x => x.FilePath == file);
+			var userGame = StaticMethods.Data.SqliteUserGames.FirstOrDefault(x => x.FilePath == file);
 			if (userGame != null)
 			{
 				MainViewModel.StatusText = $"This file has already been added. ({userGame.DisplayName})";
 				return null;
 			}
 			var vn = StaticMethods.ResolveVNForFile(file);
-			userGame = new UserGame(file, vn) { Id = StaticMethods.Data.UserGames.Max(x => x.Id) + 1 };
+			userGame = new UserGame(file, vn) { Id = StaticMethods.Data.SqliteUserGames.Max(x => x.Id) + 1 };
 			userGame.SaveIconImage();
-			StaticMethods.Data.UserGames.Add(userGame);
-			StaticMethods.Data.SaveChanges();
+			StaticMethods.Data.SqliteUserGames.Add(userGame,true);
 			MainViewModel.StatusText = vn == null ? "File was added without VN." : $"File was added as {userGame.DisplayName}.";
 			return new UserGameTile(userGame);
 		}
@@ -78,8 +76,7 @@ namespace Happy_Reader.ViewModel
 		public void RemoveUserGame(UserGameTile item)
 		{
 			UserGameItems.Remove(item);
-			StaticMethods.Data.UserGames.Remove(item.UserGame);
-			StaticMethods.Data.SaveChanges();
+			StaticMethods.Data.SqliteUserGames.Remove(item.UserGame,true);
 			MainViewModel.OnPropertyChanged(nameof(MainViewModel.TestViewModel));
 		}
 

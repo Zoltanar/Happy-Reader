@@ -5,7 +5,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.Data.Common;
 using System.Globalization;
-using System.Linq;
 using System.Text;
 using System.Windows.Documents;
 using System.Windows.Media;
@@ -142,25 +141,25 @@ namespace Happy_Reader.Database
 			switch (Kind)
 			{
 				case LogKind.TimePlayed:
-					var userGame1 = StaticMethods.Data.UserGames.FirstOrDefault(g => g.Id == AssociatedId);
+					var userGame1 = StaticMethods.Data.SqliteUserGames[AssociatedId];
 					inlines.Add(new Run("Played "));
 					inlines.Add(new Run(userGame1?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame") { Foreground = Brushes.Green });
 					inlines.Add(new Run($" for {((TimeSpan)ParsedData).ToHumanReadable()}."));
 					break;
 				case LogKind.StartedPlaying:
-					var userGame2 = StaticMethods.Data.UserGames.FirstOrDefault(g => g.Id == AssociatedId);
+					var userGame2 = StaticMethods.Data.SqliteUserGames[AssociatedId];
 					inlines.Add(new Run("Started playing "));
 					inlines.Add(new Run(userGame2?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame") { Foreground = Brushes.Green });
 					inlines.Add(new Run($" at {((DateTime)ParsedData):hh\\:mm}"));
 					break;
 				case LogKind.MergeTimePlayed:
-					var userGame3 = StaticMethods.Data.UserGames.FirstOrDefault(g => g.Id == AssociatedId);
+					var userGame3 = StaticMethods.Data.SqliteUserGames[AssociatedId];
 					inlines.Add(new Run("Merged time played to "));
 					inlines.Add(new Run(userGame3?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame") { Foreground = Brushes.Green });
 					inlines.Add(new Run($" for {((TimeSpan)ParsedData).ToHumanReadable()}."));
 					break;
 				case LogKind.ResetTimePlayed:
-					var userGame4 = StaticMethods.Data.UserGames.FirstOrDefault(g => g.Id == AssociatedId);
+					var userGame4 = StaticMethods.Data.SqliteUserGames[AssociatedId];
 					inlines.Add(new Run("Reset time played for "));
 					inlines.Add(new Run(userGame4?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame") { Foreground = Brushes.Green });
 					break;
@@ -186,7 +185,7 @@ namespace Happy_Reader.Database
 					case LogKind.StartedPlaying:
 					case LogKind.MergeTimePlayed:
 					case LogKind.ResetTimePlayed:
-						return StaticMethods.Data.UserGames.Any(g => g.Id == AssociatedId);
+						return StaticMethods.Data.SqliteUserGames[AssociatedId] != null;
 					default:
 						return true;
 				}
@@ -234,7 +233,7 @@ namespace Happy_Reader.Database
 
 		private string GetGameDisplayName()
 		{
-			var userGame1 = StaticMethods.Data.UserGames.FirstOrDefault(g => g.Id == AssociatedId);
+			var userGame1 = StaticMethods.Data.SqliteUserGames[AssociatedId];
 			return userGame1?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame";
 		}
 

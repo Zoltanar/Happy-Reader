@@ -98,7 +98,7 @@ namespace Happy_Reader.View
 						}
 					case nameof(UserGameTab):
 						{
-							var userGame = StaticMethods.Data.UserGames.FirstOrDefault(ug => ug.Id == savedTab.Id);
+							var userGame = StaticMethods.Data.SqliteUserGames[savedTab.Id];
 							if (userGame != null) OpenUserGamePanel(userGame, null, false);
 							break;
 						}
@@ -155,7 +155,7 @@ namespace Happy_Reader.View
 
 		public void OpenVNPanel(ListedVN vn, bool select = true)
 		{
-			var userGamesForVn = StaticMethods.Data.UserGames.Where(ug => ug.VNID == vn.VNID).ToList();
+			var userGamesForVn = StaticMethods.Data.SqliteUserGames.Where(ug => ug.VNID == vn.VNID).ToList();
 			//remove existing user game tabs if any
 			foreach (var userGame in userGamesForVn)
 			{

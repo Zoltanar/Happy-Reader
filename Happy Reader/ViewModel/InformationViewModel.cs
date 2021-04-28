@@ -48,7 +48,7 @@ namespace Happy_Reader.ViewModel
 			var recordedTime = new TimeSpan();
 			var approxVnTime = new TimeSpan();
 			var approxOverallTime = new TimeSpan();
-			foreach (var gameGroup in userGameData.UserGames.GroupBy(u => u.VNID))
+			foreach (var gameGroup in userGameData.SqliteUserGames.GroupBy(u => u.VNID))
 			{
 				if (gameGroup.Key == null || gameGroup.Count() == 1)
 				{
@@ -60,7 +60,6 @@ namespace Happy_Reader.ViewModel
 							approxOverallTime = approxOverallTime.Add(game.TimeOpen);
 							continue;
 						}
-
 						var approxTime = GetApproxTime(game.VN.LengthTime, ratio);
 						var timeSpan = TimeSpan.FromHours(approxTime);
 						approxVnTime = approxVnTime.Add(timeSpan);

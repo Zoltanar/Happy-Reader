@@ -30,8 +30,6 @@ namespace Happy_Reader.Database
 			return command;
 		}
 
-
-
 		public GameThread()
 		{
 			Item = new GameTextThread();

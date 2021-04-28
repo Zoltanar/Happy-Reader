@@ -22,7 +22,8 @@ namespace Happy_Reader.Database
 
 		public DACollection<string, GoogleTranslation> SqliteTranslations { get; private set; }
 		public DACollection<long, Log> SqliteLogs { get; private set; }
-		public DACollection<(long,string), GameThread> SqliteGameThreads { get; private set; }
+		public DACollection<(long, string), GameThread> SqliteGameThreads { get; private set; }
+		public DACollection<long, UserGame> SqliteUserGames { get; private set; }
 
 		public HappyReaderDatabase(string dbFile) : base("name=HappyReaderDatabase")
 		{
@@ -35,6 +36,7 @@ namespace Happy_Reader.Database
 			SqliteTranslations = new DACollection<string, GoogleTranslation>(SqliteConnection);
 			SqliteLogs = new DACollection<long, Log>(SqliteConnection);
 			SqliteGameThreads = new DACollection<(long, string), GameThread>(SqliteConnection);
+			SqliteUserGames = new DACollection<long, UserGame>(SqliteConnection);
 			if (!File.Exists(dbFile)) SeedSqlite();
 			if (!loadAllTables) return;
 			LoadAllSqliteTables();
@@ -48,6 +50,7 @@ namespace Happy_Reader.Database
 				SqliteTranslations.Load(false);
 				SqliteLogs.Load(false);
 				SqliteGameThreads.Load(false);
+				SqliteUserGames.Load(false);
 			}
 			catch (Exception ex)
 			{
@@ -91,6 +94,22 @@ namespace Happy_Reader.Database
 	`Label`	TEXT,
 	PRIMARY KEY(`GameId`, `Identifier`)
 )");
+				DatabaseTableBuilder.ExecuteSql(SqliteConnection, $@"CREATE TABLE `{nameof(UserGame)}s` (
+	`Id`	INTEGER NOT NULL UNIQUE,
+	`UserDefinedName`	TEXT,
+	`LaunchPath`	TEXT,
+	`VNID`	INTEGER,
+	`FilePath`	TEXT,
+	`HookCode`	TEXT,
+	`MergeByHookCode`	INTEGER,
+	`ProcessName`	TEXT,
+	`Tag`	TEXT,
+	`RemoveRepetition`	INTEGER,
+	`OutputWindow`	TEXT,
+	`TimeOpenDT`	DATETIME,
+	`PrefEncodingEnum`	INTEGER,
+	PRIMARY KEY(`Id`)
+)");
 			}
 			finally
 			{
@@ -100,7 +119,6 @@ namespace Happy_Reader.Database
 		#endregion
 
 		public virtual DbSet<Entry> Entries { get; set; }
-		public virtual DbSet<UserGame> UserGames { get; set; }
 
 		protected override void OnModelCreating(DbModelBuilder modelBuilder) { }
 
@@ -119,6 +137,7 @@ namespace Happy_Reader.Database
 			totalResult += WrapInExceptionList(exceptions, () => SqliteTranslations.SaveChanges());
 			totalResult += WrapInExceptionList(exceptions, () => SqliteLogs.SaveChanges());
 			totalResult += WrapInExceptionList(exceptions, () => SqliteGameThreads.SaveChanges());
+			totalResult += WrapInExceptionList(exceptions, () => SqliteUserGames.SaveChanges());
 			totalResult += WrapInExceptionList(exceptions, () => base.SaveChanges());
 			var caller = new StackFrame(1).GetMethod();
 			var callerName = $"{caller.DeclaringType?.Name}.{caller.Name}";
@@ -176,21 +195,15 @@ namespace Happy_Reader.Database
 		public void SaveToSqlite()
 		{
 			/*
-			if (SqliteGameThreads.Count != 0) return;
+			if (SqliteUserGames.Count != 0) return;
 			SqliteConnection.Open();
 			SQLiteTransaction transaction = null;
 			try
 			{
 				transaction = SqliteConnection.BeginTransaction();
-				int dupes = 0;
-				foreach (var itemGroup in GameThreads.AsEnumerable().GroupBy(a=>(a.GameId,a.Identifier)))
+				foreach (var item in UserGames)
 				{
-					var a = itemGroup.Count();
-					if (a > 1)
-					{
-						dupes++;
-					}
-					SqliteGameThreads.Add(new GameThread(itemGroup.First()), false, true, transaction);
+					SqliteUserGames.Add(item, false, true, transaction);
 				}
 				transaction.Commit();
 			}
