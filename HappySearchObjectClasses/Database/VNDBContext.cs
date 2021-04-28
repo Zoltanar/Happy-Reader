@@ -283,7 +283,7 @@ select AliasID from StaffAliass join StaffItems on StaffAliass.StaffID = StaffIt
 			Connection.Open();
 			try
 			{
-				DatabaseTableBuilder.CreateTables(Connection);
+				DatabaseTableBuilder.CreateHappyAppsTables(Connection);
 				TableDetails.Upsert(new TableDetail { Key = "programname", Value = "Happy Reader" }, false);
 				TableDetails.Upsert(new TableDetail { Key = "author", Value = "Zoltanar" }, false);
 				TableDetails.Upsert(new TableDetail { Key = "projecturl", Value = StaticHelpers.ProjectURL }, false);

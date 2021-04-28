@@ -2,9 +2,9 @@ using System.Data.SQLite;
 
 namespace Happy_Apps_Core.Database
 {
-	internal static class DatabaseTableBuilder
+	public static class DatabaseTableBuilder
 	{
-		internal static void CreateTables(SQLiteConnection connection)
+		internal static void CreateHappyAppsTables(SQLiteConnection connection)
 		{
 			CreateCharacterItems(connection);
 			CreateCharacterVns(connection);
@@ -177,7 +177,7 @@ namespace Happy_Apps_Core.Database
 );");
 		}
 
-		private static void ExecuteSql(SQLiteConnection connection, string sql)
+		public static void ExecuteSql(SQLiteConnection connection, string sql)
 		{
 			using var command = connection.CreateCommand();
 			command.CommandText = sql;

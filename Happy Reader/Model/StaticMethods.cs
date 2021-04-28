@@ -32,6 +32,7 @@ namespace Happy_Reader
 	{
 		public delegate void NotificationEventHandler(object sender, string message, string title = null);
 
+		public static readonly string ReaderDatabaseFile = Path.Combine(StaticHelpers.StoredDataFolder, "Happy-Reader.sqlite");
 		public static readonly string ProxiesJson = Path.Combine(StaticHelpers.StoredDataFolder, "proxies.json");
 		public static readonly string AllSettingsJson = Path.Combine(StaticHelpers.StoredDataFolder, "HR_Settings.json");
 		public static readonly string SavedDataJson = Path.Combine(StaticHelpers.StoredDataFolder, "HR_SavedData.json");
@@ -41,7 +42,7 @@ namespace Happy_Reader
 		public static readonly System.Drawing.Rectangle OutputWindowStartPosition = new(20, 20, 400, 200);
 		private static SettingsViewModel _settings;
 		public static FiltersData AllFilters { get; set; }
-		public static HappyReaderDatabase Data { get; } = new();
+		public static HappyReaderDatabase Data { get; set; }
 		public static Func<bool> ShowNSFWImages { get; set; } = () => true;
 		public static MainWindow MainWindow => (MainWindow)Application.Current.MainWindow;
 		public static SettingsViewModel Settings

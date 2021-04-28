@@ -1,9 +1,15 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Data;
+using System.Data.Common;
 using System.Data.Entity;
+using System.Data.SQLite;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Happy_Apps_Core;
+using Happy_Apps_Core.DataAccess;
 using Happy_Apps_Core.Database;
 using HRGoogleTranslate;
 using IthVnrSharpLib;
@@ -14,7 +20,135 @@ namespace Happy_Reader.Database
 	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 	public class HappyReaderDatabase : DbContext
 	{
-		public HappyReaderDatabase() : base("name=HappyReaderDatabase") { }
+		#region SQLite
+		public SQLiteConnection Connection { get; }
+
+		[NotMapped]
+		public class CachedTranslation : GoogleTranslation, IDataItem<long>
+		{
+			public string KeyField { get; } = nameof(Id);
+			public long Key => Id;
+			public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
+			{
+				string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO {nameof(CachedTranslation)}s" +
+										 "(Id, Input, Output, CreatedAt, Timestamp, Count) VALUES " +
+										 "(@Id, @Input, @Output, @CreatedAt, @Timestamp, @Count)";
+				var command = connection.CreateCommand();
+				command.CommandText = sql;
+				command.AddParameter("@Id", Id);
+				command.AddParameter("@Input", Input);
+				command.AddParameter("@Output", Output);
+				command.AddParameter("@CreatedAt", CreatedAt);
+				command.AddParameter("@Timestamp", Timestamp);
+				command.AddParameter("@Count", Count);
+				return command;
+			}
+
+			public void LoadFromReader(IDataRecord reader)
+			{
+				Id = Convert.ToInt64(reader["Id"]);
+				Input = Convert.ToString(reader["Input"]);
+				Output = Convert.ToString(reader["Output"]);
+				CreatedAt = Convert.ToDateTime(reader["CreatedAt"]);
+				Timestamp = Convert.ToDateTime(reader["Timestamp"]);
+				Count = Convert.ToInt32(reader["Count"]);
+			}
+		}
+		public DACollection<long, CachedTranslation> SqliteTranslations { get; private set; }
+
+		public HappyReaderDatabase(string dbFile) : base("name=HappyReaderDatabase")
+		{
+			Connection = new SQLiteConnection($@"Data Source={dbFile}");
+			InitialiseSqliteDatabase(dbFile, true);
+		}
+
+		private void InitialiseSqliteDatabase(string dbFile, bool loadAllTables)
+		{
+			SqliteTranslations = new DACollection<long, CachedTranslation>(Connection);
+			if (!File.Exists(dbFile)) Seed();
+			if (!loadAllTables) return;
+			LoadAllTables();
+		}
+
+		private void LoadAllTables()
+		{
+			Connection.Open();
+			try
+			{
+				SqliteTranslations.Load(false);
+			}
+			catch (Exception ex)
+			{
+				StaticHelpers.Logger.ToFile(ex);
+				throw;
+			}
+			finally
+			{
+				Connection.Close();
+			}
+		}
+
+		private void Seed()
+		{
+			Connection.Open();
+			try
+			{
+				DatabaseTableBuilder.ExecuteSql(Connection, @"CREATE TABLE ""CachedTranslations"" (
+	`Id`	INTEGER NOT NULL UNIQUE,
+	`Input`	TEXT,
+	`Output`	TEXT,
+	`CreatedAt`	DATETIME,
+	`Timestamp`	DATETIME,
+	`Count`	INTEGER,
+	PRIMARY KEY(`Id`)
+)");
+			}
+			finally
+			{
+				Connection.Close();
+			}
+		}
+
+		public void SaveTranslationsToSqlite()
+		{
+			if (SqliteTranslations.Count != 0) return;
+			Connection.Open();
+			SQLiteTransaction transaction = null;
+			try
+			{
+				transaction = Connection.BeginTransaction();
+				/*var count = CachedTranslations.Count();
+				int skip = 0;
+				while (skip < count)
+				{*/
+				foreach (var translation in CachedTranslations/*.Skip(skip).Take(100)*/)
+				{
+					var cTranslation = new CachedTranslation()
+					{
+						Id = translation.Id,
+						Input = translation.Input,
+						Output = translation.Output,
+						CreatedAt = translation.CreatedAt,
+						Timestamp = translation.Timestamp,
+						Count = translation.Count,
+					};
+					SqliteTranslations.Add(cTranslation, false, true, transaction);
+				}/*
+					skip += 100;
+				}*/
+				transaction.Commit();
+			}
+			catch
+			{
+				transaction?.Rollback();
+				throw;
+			}
+			finally
+			{
+				Connection.Close();
+			}
+		}
+		#endregion
 
 		public virtual DbSet<Entry> Entries { get; set; }
 		public virtual DbSet<UserGame> UserGames { get; set; }

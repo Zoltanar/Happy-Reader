@@ -120,6 +120,8 @@ namespace Happy_Reader.ViewModel
 		public MainWindowViewModel()
 		{
 			Application.Current.Exit += ExitProcedures;
+			StaticMethods.Data = new HappyReaderDatabase(StaticMethods.ReaderDatabaseFile);
+			StaticMethods.Data.SaveTranslationsToSqlite();
 			SettingsViewModel = Happy_Apps_Core.SettingsJsonFile.Load<SettingsViewModel>(StaticMethods.AllSettingsJson);
 			StaticMethods.Settings = SettingsViewModel;
 			CSettings = SettingsViewModel.CoreSettings;
