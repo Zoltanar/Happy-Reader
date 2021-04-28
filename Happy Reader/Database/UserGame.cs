@@ -213,7 +213,7 @@ namespace Happy_Reader.Database
 				_process.EnableRaisingEvents = true;
 			}
 		}
-		[NotMapped] public string DisplayName => UserDefinedName ?? StaticMethods.TruncateStringFunction30(VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath));
+		[NotMapped] public string DisplayName => !string.IsNullOrWhiteSpace(UserDefinedName) ? UserDefinedName : StaticMethods.TruncateStringFunction30(VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath));
 		[NotMapped]
 		public BitmapImage Image
 		{
@@ -390,7 +390,7 @@ namespace Happy_Reader.Database
 			OnPropertyChanged(nameof(LaunchPath));
 		}
 
-		public override string ToString() => UserDefinedName ?? VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath);
+		public override string ToString() => !string.IsNullOrWhiteSpace(UserDefinedName) ? UserDefinedName : VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath);
 
 		public void SetActiveProcess(Process process, EventHandler hookedProcessOnExited)
 		{

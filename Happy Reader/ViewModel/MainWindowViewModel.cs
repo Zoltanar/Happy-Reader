@@ -316,11 +316,10 @@ namespace Happy_Reader.ViewModel
 				var i = item["input"].ToString();
 				var o = item["output"].ToString();
 				// ReSharper restore PossibleNullReferenceException
-				var proxy = StaticMethods.Data.Entries.SingleOrDefault(x => x.RoleString.Equals(r) && x.Input.Equals(i));
+				var proxy = StaticMethods.Data.SqliteEntries.FirstOrDefault(x =>x.Type == EntryType.Proxy && x.RoleString.Equals(r) && x.Input.Equals(i));
 				if (proxy != null) continue;
 				proxy = new Entry { UserId = 0, Type = EntryType.Proxy, RoleString = r, Input = i, Output = o };
-				StaticMethods.Data.Entries.Add(proxy);
-				StaticMethods.Data.SaveChanges();
+				StaticMethods.Data.SqliteEntries.Add(proxy, true);
 			}
 		}
 

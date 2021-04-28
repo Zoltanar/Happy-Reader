@@ -3,5 +3,6 @@
 	public interface IReadyToUpsert
 	{
 		bool ReadyToUpsert { get; set; }
+		bool Loaded { get; }
 	}
 }

@@ -3,16 +3,79 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data;
+using System.Data.Common;
 using System.Runtime.CompilerServices;
 using Happy_Apps_Core;
+using Happy_Apps_Core.DataAccess;
 using Happy_Apps_Core.Database;
+using Happy_Reader.View;
 using JetBrains.Annotations;
 
 namespace Happy_Reader.Database
 {
 
-	public class Entry : INotifyPropertyChanged
+	public class Entry : INotifyPropertyChanged, IDataItem<long>, IReadyToUpsert
 	{
+		public string KeyField { get; } = nameof(Id);
+		public long Key => Id;
+		[NotMapped] public bool ReadyToUpsert { get; set; }
+		[NotMapped] public bool Loaded { get; private set; }
+
+		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
+		{
+			if (Id == 0)
+			{
+				throw new InvalidOperationException("Id should have been set.");
+			}
+			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO {nameof(Entry)}s" +
+									 "(Id, UserId, Input, Output, GameId, SeriesSpecific, Private, Priority, Regex, Comment, Type, RoleString, Disabled, Time, UpdateTime, UpdateUserId, UpdateComment) " +
+									 "VALUES " +
+									 "(@Id, @UserId, @Input, @Output, @GameId, @SeriesSpecific, @Private, @Priority, @Regex, @Comment, @Type, @RoleString, @Disabled, @Time, @UpdateTime, @UpdateUserId, @UpdateComment)";
+			var command = connection.CreateCommand();
+			command.CommandText = sql;
+			command.AddParameter("@Id", Id);
+			command.AddParameter("@UserId", UserId);
+			command.AddParameter("@Input", Input);
+			command.AddParameter("@Output", Output);
+			command.AddParameter("@GameId", GameId);
+			command.AddParameter("@SeriesSpecific", SeriesSpecific);
+			command.AddParameter("@Private", Private);
+			command.AddParameter("@Priority", Priority);
+			command.AddParameter("@Regex", Regex);
+			command.AddParameter("@Comment", Comment);
+			command.AddParameter("@Type", Type);
+			command.AddParameter("@RoleString", RoleString);
+			command.AddParameter("@Disabled", Disabled);
+			command.AddParameter("@Time", Time);
+			command.AddParameter("@UpdateTime", UpdateTime);
+			command.AddParameter("@UpdateUserId", UpdateUserId);
+			command.AddParameter("@UpdateComment", UpdateComment);
+			return command;
+		}
+
+		public void LoadFromReader(IDataRecord reader)
+		{
+			Id = Convert.ToInt32(reader["Id"]);
+			UserId = Convert.ToInt32(reader["UserId"]);
+			Input = Convert.ToString(reader["Input"]);
+			Output = Convert.ToString(reader["Output"]);
+			GameId = StaticHelpers.GetNullableInt(reader["GameId"]);
+			SeriesSpecific = Convert.ToInt32(reader["SeriesSpecific"]) == 1;
+			Private = Convert.ToInt32(reader["Private"]) == 1;
+			Priority = Convert.ToDouble(reader["Priority"]);
+			Regex = Convert.ToInt32(reader["Regex"]) == 1;
+			Comment = Convert.ToString(reader["Comment"]);
+			Type = (EntryType)Convert.ToInt32(reader["Type"]);
+			RoleString = Convert.ToString(reader["RoleString"]);
+			Disabled = Convert.ToInt32(reader["Disabled"]) == 1;
+			Time = Convert.ToDateTime(reader["Time"]);
+			UpdateTime = StaticHelpers.GetNullableDate(reader["UpdateTime"]);
+			UpdateUserId = Convert.ToInt32(reader["UpdateUserId"]);
+			UpdateComment = Convert.ToString(reader["UpdateComment"]);
+			Loaded = true;
+		}
+
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public long Id { get; set; }
 		public int UserId { get; set; }

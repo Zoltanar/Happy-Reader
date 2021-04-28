@@ -43,8 +43,8 @@ namespace Happy_Reader.View.Tabs
 				entry.Time = DateTime.UtcNow;
 				entry.UserId = _mainViewModel.User?.Id ?? 0;
 			}
-			StaticMethods.Data.Entries.AddRange(entries);
-			StaticMethods.Data.SaveChanges();
+
+			StaticMethods.Data.AddEntries(entries);
 			ResponseLabel.Content = $@"{entries.Length} entries were added.";
 			_mainViewModel.EntriesViewModel.SetEntries();
 			_mainViewModel.Translator.RefreshEntries = true;

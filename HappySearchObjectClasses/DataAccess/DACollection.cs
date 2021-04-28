@@ -15,6 +15,21 @@ namespace Happy_Apps_Core.DataAccess
 
 		private DbConnection Conn { get; }
 
+		private long _highestKey;
+
+		public long HighestKey
+		{
+			get
+			{
+				if (!typeof(TKey).IsPrimitive) throw new NotSupportedException($"Can't order keys for non-primitive types.");
+				return _highestKey;
+			}
+			private set
+			{
+				_highestKey = value;
+			}
+		}
+
 		private IEnumerable<TValue> List => _items.Values;
 		IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator() => List.GetEnumerator();
 		IEnumerator IEnumerable.GetEnumerator() => List.GetEnumerator();
@@ -42,6 +57,8 @@ namespace Happy_Apps_Core.DataAccess
 					var item = new TValue();
 					item.LoadFromReader(reader);
 					_items.Add(item.Key, item);
+					if (item.Key is long longKey && longKey > HighestKey) HighestKey = longKey;
+					else if (item.Key is int intKey && intKey > HighestKey) HighestKey = intKey;
 				}
 			}
 			finally
@@ -60,6 +77,8 @@ namespace Happy_Apps_Core.DataAccess
 				var rowsAffected = command.ExecuteNonQuery();
 				var result = rowsAffected != 0;
 				if (result) _items[item.Key] = item;
+				if (item.Key is long longKey && longKey > HighestKey) HighestKey = longKey;
+				else if (item.Key is int intKey && intKey > HighestKey) HighestKey = intKey;
 				return rowsAffected;
 			}
 			finally
@@ -105,7 +124,6 @@ namespace Happy_Apps_Core.DataAccess
 			return _items.Where(i => keyCollection.Contains(i.Key)).Select(i => i.Value);
 		}
 		
-
 		public int SaveChanges()
 		{
 			var otherItemsToUpsert = typeof(TValue).IsSubclassOf(typeof(IReadyToUpsert))

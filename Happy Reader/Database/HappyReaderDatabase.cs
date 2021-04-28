@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Data.Entity;
 using System.Data.SQLite;
 using System.Diagnostics;
@@ -24,6 +25,7 @@ namespace Happy_Reader.Database
 		public DACollection<long, Log> SqliteLogs { get; private set; }
 		public DACollection<(long, string), GameThread> SqliteGameThreads { get; private set; }
 		public DACollection<long, UserGame> SqliteUserGames { get; private set; }
+		public DACollection<long, Entry> SqliteEntries { get; private set; }
 
 		public HappyReaderDatabase(string dbFile) : base("name=HappyReaderDatabase")
 		{
@@ -37,6 +39,7 @@ namespace Happy_Reader.Database
 			SqliteLogs = new DACollection<long, Log>(SqliteConnection);
 			SqliteGameThreads = new DACollection<(long, string), GameThread>(SqliteConnection);
 			SqliteUserGames = new DACollection<long, UserGame>(SqliteConnection);
+			SqliteEntries = new DACollection<long, Entry>(SqliteConnection);
 			if (!File.Exists(dbFile)) SeedSqlite();
 			if (!loadAllTables) return;
 			LoadAllSqliteTables();
@@ -51,6 +54,7 @@ namespace Happy_Reader.Database
 				SqliteLogs.Load(false);
 				SqliteGameThreads.Load(false);
 				SqliteUserGames.Load(false);
+				SqliteEntries.Load(false);
 			}
 			catch (Exception ex)
 			{
@@ -110,6 +114,26 @@ namespace Happy_Reader.Database
 	`PrefEncodingEnum`	INTEGER,
 	PRIMARY KEY(`Id`)
 )");
+				DatabaseTableBuilder.ExecuteSql(SqliteConnection, $@"CREATE TABLE `{nameof(Happy_Reader.Database.Entry)}s` (
+	`Id`	INTEGER NOT NULL UNIQUE,
+	`UserId`	INTEGER,
+	`Input`	TEXT,
+	`Output`	TEXT,
+	`GameId`	INTEGER,
+	`SeriesSpecific`	INTEGER,
+	`Private`	INTEGER,
+	`Priority`	REAL,
+	`Regex`	INTEGER,
+	`Comment`	TEXT,
+	`Type`	INTEGER,
+	`RoleString`	TEXT,
+	`Disabled`	INTEGER,
+	`Time`	DATETIME,
+	`UpdateTime`	DATETIME,
+	`UpdateUserId`	INTEGER,
+	`UpdateComment`	TEXT,
+	PRIMARY KEY(`Id`)
+)");
 			}
 			finally
 			{
@@ -118,16 +142,16 @@ namespace Happy_Reader.Database
 		}
 		#endregion
 
-		public virtual DbSet<Entry> Entries { get; set; }
+		//public virtual DbSet<Entry> Entries { get; set; }
 
 		protected override void OnModelCreating(DbModelBuilder modelBuilder) { }
 
-		public IQueryable<Entry> GetGameOnlyEntries(ListedVN game) => Entries.Where(x => x.GameId == game.VNID);
+		public IEnumerable<Entry> GetGameOnlyEntries(ListedVN game) => SqliteEntries.Where(x => x.GameId == game.VNID);
 
-		public IQueryable<Entry> GetSeriesOnlyEntries(ListedVN game)
+		public IEnumerable<Entry> GetSeriesOnlyEntries(ListedVN game)
 		{
 			var series = StaticHelpers.LocalDatabase.VisualNovels.Where(i => i.Series == game.Series).Select(i => i.VNID).ToArray();
-			return Entries.Where(i => series.Contains(i.GameId.Value));
+			return SqliteEntries.Where(i => i.GameId != null && series.Contains(i.GameId.Value));
 		}
 
 		public override int SaveChanges()
@@ -138,6 +162,7 @@ namespace Happy_Reader.Database
 			totalResult += WrapInExceptionList(exceptions, () => SqliteLogs.SaveChanges());
 			totalResult += WrapInExceptionList(exceptions, () => SqliteGameThreads.SaveChanges());
 			totalResult += WrapInExceptionList(exceptions, () => SqliteUserGames.SaveChanges());
+			totalResult += WrapInExceptionList(exceptions, () => SqliteEntries.SaveChanges());
 			totalResult += WrapInExceptionList(exceptions, () => base.SaveChanges());
 			var caller = new StackFrame(1).GetMethod();
 			var callerName = $"{caller.DeclaringType?.Name}.{caller.Name}";
@@ -195,15 +220,15 @@ namespace Happy_Reader.Database
 		public void SaveToSqlite()
 		{
 			/*
-			if (SqliteUserGames.Count != 0) return;
+			if (SqliteEntries.Count != 0) return;
 			SqliteConnection.Open();
 			SQLiteTransaction transaction = null;
 			try
 			{
 				transaction = SqliteConnection.BeginTransaction();
-				foreach (var item in UserGames)
+				foreach (var item in Entries)
 				{
-					SqliteUserGames.Add(item, false, true, transaction);
+					SqliteEntries.Add(item, false, true, transaction);
 				}
 				transaction.Commit();
 			}
@@ -216,6 +241,33 @@ namespace Happy_Reader.Database
 			{
 				SqliteConnection.Close();
 			}*/
+		}
+
+		public void AddEntries(Entry[] entries)
+		{
+			long id = SqliteEntries.HighestKey;
+			SqliteConnection.Open();
+			DbTransaction transaction = null;
+			try
+			{
+				transaction = SqliteConnection.BeginTransaction();
+				foreach (var entry in entries)
+				{
+					if (entry.Id == 0) entry.Id = id + 1;
+					SqliteEntries.Upsert(entry, false, false, transaction);
+				}
+
+				transaction.Commit();
+			}
+			catch
+			{
+				transaction?.Rollback();
+				throw;
+			}
+			finally
+			{
+				SqliteConnection.Close();
+			}
 		}
 	}
 

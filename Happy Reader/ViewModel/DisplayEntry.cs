@@ -32,43 +32,78 @@ namespace Happy_Reader.ViewModel
 		public bool Regex
 		{
 			get => Entry.Regex;
-			set => Entry.Regex = value;
+			set
+			{
+				if (Entry.Regex == value) return;
+				Entry.Regex = value;
+				Entry.ReadyToUpsert = true;
+			}
 		}
 
 		public bool SeriesSpecific
 		{
 			get => Entry.SeriesSpecific;
-			set => Entry.SeriesSpecific = value;
+			set
+			{
+				if (Entry.SeriesSpecific == value) return;
+				Entry.SeriesSpecific = value;
+				Entry.ReadyToUpsert = true;
+			}
 		}
 
 		public string Output
 		{
 			get => Entry.Output;
-			set => Entry.Output = value;
+			set
+			{
+				if (Entry.Output == value) return;
+				Entry.Output = value;
+				Entry.ReadyToUpsert = true;
+			}
 		}
 
 		public string Input
 		{
 			get => Entry.Input;
-			set => Entry.Input = value;
+			set
+			{
+				if (Entry.Input == value) return;
+				Entry.Input = value;
+				Entry.ReadyToUpsert = true;
+			}
 		}
 
 		public string Role
 		{
 			get => Entry.RoleString;
-			set => Entry.RoleString = value;
+			set
+			{
+				if (Entry.RoleString == value) return;
+				Entry.RoleString = value;
+				Entry.ReadyToUpsert = true;
+			}
 		}
 
 		public ListedVN Game
 		{
 			get => Entry.Game;
-			set => Entry.GameId = value.VNID;
+			set
+			{
+				if (Entry.Game == value) return;
+				Entry.GameId = value.VNID;
+				Entry.ReadyToUpsert = true;
+			}
 		}
 
 		public EntryType Type
 		{
 			get => Entry.Type;
-			set => Entry.Type = value;
+			set
+			{
+				if (Entry.Type == value) return;
+				Entry.Type = value;
+				Entry.ReadyToUpsert = true;
+			}
 		}
 
 		public User User => Entry.User;

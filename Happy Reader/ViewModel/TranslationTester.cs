@@ -105,8 +105,7 @@ namespace Happy_Reader.ViewModel
         public void DeleteEntry(DisplayEntry displayEntry)
         {
 	        EntriesUsed.Remove(displayEntry);
-	        StaticMethods.Data.Entries.Remove(displayEntry.Entry);
-	        StaticMethods.Data.SaveChanges();
+	        StaticMethods.Data.SqliteEntries.Remove(displayEntry.Entry,true);
 	        Translation.Translator.RefreshEntries = true;
 	        OnPropertyChanged(nameof(EntriesUsed));
         }
