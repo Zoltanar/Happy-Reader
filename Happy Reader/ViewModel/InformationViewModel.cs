@@ -97,13 +97,11 @@ namespace Happy_Reader.ViewModel
 		private void SetUserDatabaseData(HappyReaderDatabase userGameData)
 		{
 			UserDatabaseSize = $"User Database Size: {GetFileSizeStringForDb(userGameData.Database.Connection)}";
-			var cachedTranslations = userGameData.CachedTranslations.Count();
-			var cachedTranslationsOld = userGameData.CachedTranslations.Count(t => t.Timestamp < OldTranslationsTime);
+			var cachedTranslations = userGameData.SqliteTranslations.Count();
+			var cachedTranslationsOld = userGameData.SqliteTranslations.Count(t => t.Timestamp < OldTranslationsTime);
 			TranslationsData = $"Cached Translations: {cachedTranslations}, 2+ Months Old: {cachedTranslationsOld}";
-			var mostUsedTranslation = userGameData.CachedTranslations.OrderByDescending(t => t.Count).FirstOrDefault();
-			if (mostUsedTranslation != null)
-				TranslationsData +=
-					$", Most Used: {mostUsedTranslation.Input}>{mostUsedTranslation.Output} ({mostUsedTranslation.Count} times)";
+			var mostUsedTranslation = userGameData.SqliteTranslations.OrderByDescending(t => t.Count).FirstOrDefault();
+			if (mostUsedTranslation != null) TranslationsData += $", Most Used: {mostUsedTranslation.Input}>{mostUsedTranslation.Output} ({mostUsedTranslation.Count} times)";
 		}
 
 		private static string GetFileSizeStringForDb(System.Data.Common.DbConnection connection)

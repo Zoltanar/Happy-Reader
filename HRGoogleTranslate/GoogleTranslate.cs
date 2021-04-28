@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -10,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Google;
 using Google.Cloud.Translation.V2;
+using Happy_Apps_Core.DataAccess;
 using HtmlAgilityPack;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -23,8 +23,8 @@ namespace HRGoogleTranslate
 		private const string GoogleDetectedString2 = @"This page appears when Google automatically detects requests coming from your computer network";
 		//todo make this an external string?
 		private const string TranslateFreeUrl = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=en&dt=t&q=";
-		private static Dictionary<string, GoogleTranslation> _cache = new Dictionary<string, GoogleTranslation>();
 		private static readonly HashSet<string> UntouchedStrings = new HashSet<string>();
+		private static DACollection<string, GoogleTranslation> _cache;
 		private static bool _noApiTranslation;
 		private static bool _logVerbose;
 		private static string _googleCredentialPath;
@@ -34,11 +34,9 @@ namespace HRGoogleTranslate
 		private static Func<string, string> _japaneseToRomaji;
 		private static uint GotFromCacheCount { get; set; }
 		private static uint GotFromAPICount { get; set; }
-		private static ObservableCollection<GoogleTranslation> _linkedCache = new ObservableCollection<GoogleTranslation>();
 
 		public static void Initialize(
-			[NotNull] Dictionary<string, GoogleTranslation> existingCache,
-			[NotNull] ObservableCollection<GoogleTranslation> inputCache,
+			[NotNull] DACollection<string, GoogleTranslation> existingCache,
 			[NotNull] Func<string, string> japaneseToRomaji,
 			string credentialLocation,
 			string userAgentString,
@@ -48,7 +46,6 @@ namespace HRGoogleTranslate
 		{
 			_logVerbose = logVerbose;
 			_japaneseToRomaji = japaneseToRomaji;
-			_linkedCache = inputCache;
 			_cache = existingCache;
 			_noApiTranslation = noApiTranslation;
 			_googleCredentialPath = credentialLocation;
@@ -156,8 +153,7 @@ namespace HRGoogleTranslate
 		{
 			text.Append(translated);
 			var translation = new GoogleTranslation(input, translated);
-			_linkedCache.Add(translation);
-			_cache[input] = translation;
+			_cache.UpsertLater(translation);
 		}
 
 		private static bool TryDeserializeJsonResponse(StringBuilder text, string jsonString, out string translated)
@@ -191,12 +187,13 @@ namespace HRGoogleTranslate
 
 		private static bool GetFromCache(StringBuilder text, string input)
 		{
-			bool inCache1 = _cache.TryGetValue(input, out var cachedTranslation);
-			if (!inCache1) return false;
+			var item = _cache[input];
+			if (item == null) return false;
 			LogVerbose($"HRTranslate.Google - Getting string from cache, input: {input}");
 			GotFromCacheCount++;
-			cachedTranslation.Update();
-			text.Append(cachedTranslation.Output);
+			item.Update();
+			_cache.UpsertLater(item);
+			text.Append(item.Output);
 			return true;
 		}
 
@@ -228,10 +225,7 @@ namespace HRGoogleTranslate
 			//if character is 'tsu' on its own, we remove it.
 			var output = character == 'っ' || character == 'ッ' ? string.Empty : _japaneseToRomaji(input);
 			text.Clear();
-			text.Append(output);
-			var translation = new GoogleTranslation(input, output);
-			_linkedCache.Add(translation);
-			_cache[input] = translation;
+			SetTranslationAndSaveToCache(text,output,input);
 			return true;
 		}
 

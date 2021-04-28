@@ -41,11 +41,8 @@ namespace Happy_Reader
 			_inclusiveSeparators = translatorSettings.InclusiveSeparators.ToCharArray();
 			_allSeparators = translatorSettings.ExclusiveSeparators.Concat(translatorSettings.InclusiveSeparators).ToArray();
 			_logVerbose = logVerbose;
-			var cachedTranslations = await TryLoadCachedTranslations(_data.CachedTranslations);
-			await _data.SaveChangesAsync();
 			GoogleTranslate.Initialize(
-				cachedTranslations,
-				_data.CachedTranslations.Local,
+				_data.SqliteTranslations,
 				Kakasi.JapaneseToRomaji,
 				translatorSettings.GoogleCredentialPath,
 				translatorSettings.FreeUserAgent,

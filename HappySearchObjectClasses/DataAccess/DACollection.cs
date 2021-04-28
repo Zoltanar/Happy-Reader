@@ -11,6 +11,8 @@ namespace Happy_Apps_Core.DataAccess
 	public class DACollection<TKey, TValue> : IEnumerable<TValue> where TValue : IDataItem<TKey>, new()
 	{
 		private readonly IDictionary<TKey, TValue> _items = new Dictionary<TKey, TValue>();
+		private readonly Dictionary<TKey, TValue> _itemsToUpsert = new();
+
 		private DbConnection Conn { get; }
 
 		private IEnumerable<TValue> List => _items.Values;
@@ -26,6 +28,7 @@ namespace Happy_Apps_Core.DataAccess
 			{
 				StaticHelpers.Logger.ToDebug($"Loading {nameof(DACollection<TKey, TValue>)} after already loaded");
 				_items.Clear();
+				_itemsToUpsert.Clear();
 			}
 			if (openAndCloseConnection) Conn.Open();
 			try
@@ -47,7 +50,7 @@ namespace Happy_Apps_Core.DataAccess
 			}
 		}
 
-		public void Upsert(TValue item, bool openNewConnection, bool insertOnly = false, SQLiteTransaction transaction = null)
+		public void Upsert(TValue item, bool openNewConnection, bool insertOnly = false, DbTransaction transaction = null)
 		{
 			if (openNewConnection) Conn.Open();
 			try
@@ -88,8 +91,7 @@ namespace Happy_Apps_Core.DataAccess
 			}
 			return result;
 		}
-
-
+		
 		public void Add(TValue item, bool openNewConnection, bool insertOnly = false, SQLiteTransaction transaction = null)
 		=> Upsert(item, openNewConnection, insertOnly, transaction);
 
@@ -97,10 +99,45 @@ namespace Happy_Apps_Core.DataAccess
 		/// Returns default if item does not exist.
 		/// </summary>
 		public TValue this[TKey key] => _items.ContainsKey(key) ? _items[key] : default;
-
+		
 		public IEnumerable<TValue> WithKeyIn(IList<TKey> keyCollection)
 		{
 			return _items.Where(i => keyCollection.Contains(i.Key)).Select(i => i.Value);
+		}
+		
+
+		public void SaveChanges()
+		{
+			if (_itemsToUpsert.Count == 0) return;
+			Conn.Open();
+			DbTransaction transaction = null;
+			try
+			{
+				transaction = Conn.BeginTransaction();
+				foreach (var item in _itemsToUpsert.Values)
+				{
+					Upsert(item, false, false, transaction);
+				}
+
+				transaction.Commit();
+			}
+			catch
+			{
+				transaction?.Rollback();
+				throw;
+			}
+			finally
+			{
+				_itemsToUpsert.Clear();
+				Conn.Close();
+
+			}
+		}
+
+		public void UpsertLater(TValue item)
+		{
+			_items[item.Key] = item;
+			_itemsToUpsert[item.Key] = item;
 		}
 	}
 }

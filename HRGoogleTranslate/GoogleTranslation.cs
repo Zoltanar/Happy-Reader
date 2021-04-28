@@ -1,5 +1,10 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data;
+using System.Data.Common;
+using Happy_Apps_Core;
+using Happy_Apps_Core.DataAccess;
+
 // ReSharper disable UnusedMember.Global
 // ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
 // ReSharper disable MemberCanBePrivate.Global
@@ -7,8 +12,35 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace HRGoogleTranslate
 {
 
-	public class GoogleTranslation
+	public class GoogleTranslation : IDataItem<string>
 	{
+
+		public string KeyField { get; } = nameof(Input);
+		public string Key => Input;
+		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
+		{
+			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO {nameof(GoogleTranslation)}s" +
+			             "(Input, Output, CreatedAt, Timestamp, Count) VALUES " +
+			             "(@Input, @Output, @CreatedAt, @Timestamp, @Count)";
+			var command = connection.CreateCommand();
+			command.CommandText = sql;
+			command.AddParameter("@Input", Input);
+			command.AddParameter("@Output", Output);
+			command.AddParameter("@CreatedAt", CreatedAt);
+			command.AddParameter("@Timestamp", Timestamp);
+			command.AddParameter("@Count", Count);
+			return command;
+		}
+
+		public void LoadFromReader(IDataRecord reader)
+		{
+			Input = Convert.ToString(reader["Input"]);
+			Output = Convert.ToString(reader["Output"]);
+			CreatedAt = Convert.ToDateTime(reader["CreatedAt"]);
+			Timestamp = Convert.ToDateTime(reader["Timestamp"]);
+			Count = Convert.ToInt32(reader["Count"]);
+		}
+
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public long Id { get; set; }
 		public string Input { get; set; }

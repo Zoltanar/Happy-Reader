@@ -1,7 +1,5 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Data;
-using System.Data.Common;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.SQLite;
 using System.Diagnostics;
@@ -21,58 +19,27 @@ namespace Happy_Reader.Database
 	public class HappyReaderDatabase : DbContext
 	{
 		#region SQLite
-		public SQLiteConnection Connection { get; }
+		private SQLiteConnection SqliteConnection { get; }
 
-		[NotMapped]
-		public class CachedTranslation : GoogleTranslation, IDataItem<long>
-		{
-			public string KeyField { get; } = nameof(Id);
-			public long Key => Id;
-			public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
-			{
-				string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO {nameof(CachedTranslation)}s" +
-										 "(Id, Input, Output, CreatedAt, Timestamp, Count) VALUES " +
-										 "(@Id, @Input, @Output, @CreatedAt, @Timestamp, @Count)";
-				var command = connection.CreateCommand();
-				command.CommandText = sql;
-				command.AddParameter("@Id", Id);
-				command.AddParameter("@Input", Input);
-				command.AddParameter("@Output", Output);
-				command.AddParameter("@CreatedAt", CreatedAt);
-				command.AddParameter("@Timestamp", Timestamp);
-				command.AddParameter("@Count", Count);
-				return command;
-			}
-
-			public void LoadFromReader(IDataRecord reader)
-			{
-				Id = Convert.ToInt64(reader["Id"]);
-				Input = Convert.ToString(reader["Input"]);
-				Output = Convert.ToString(reader["Output"]);
-				CreatedAt = Convert.ToDateTime(reader["CreatedAt"]);
-				Timestamp = Convert.ToDateTime(reader["Timestamp"]);
-				Count = Convert.ToInt32(reader["Count"]);
-			}
-		}
-		public DACollection<long, CachedTranslation> SqliteTranslations { get; private set; }
+		public DACollection<string, GoogleTranslation> SqliteTranslations { get; private set; }
 
 		public HappyReaderDatabase(string dbFile) : base("name=HappyReaderDatabase")
 		{
-			Connection = new SQLiteConnection($@"Data Source={dbFile}");
+			SqliteConnection = new SQLiteConnection($@"Data Source={dbFile}");
 			InitialiseSqliteDatabase(dbFile, true);
 		}
 
 		private void InitialiseSqliteDatabase(string dbFile, bool loadAllTables)
 		{
-			SqliteTranslations = new DACollection<long, CachedTranslation>(Connection);
-			if (!File.Exists(dbFile)) Seed();
+			SqliteTranslations = new DACollection<string, GoogleTranslation>(SqliteConnection);
+			if (!File.Exists(dbFile)) SeedSqlite();
 			if (!loadAllTables) return;
-			LoadAllTables();
+			LoadAllSqliteTables();
 		}
 
-		private void LoadAllTables()
+		private void LoadAllSqliteTables()
 		{
-			Connection.Open();
+			SqliteConnection.Open();
 			try
 			{
 				SqliteTranslations.Load(false);
@@ -84,75 +51,33 @@ namespace Happy_Reader.Database
 			}
 			finally
 			{
-				Connection.Close();
+				SqliteConnection.Close();
 			}
 		}
 
-		private void Seed()
+		private void SeedSqlite()
 		{
-			Connection.Open();
+			SqliteConnection.Open();
 			try
 			{
-				DatabaseTableBuilder.ExecuteSql(Connection, @"CREATE TABLE ""CachedTranslations"" (
-	`Id`	INTEGER NOT NULL UNIQUE,
-	`Input`	TEXT,
+				DatabaseTableBuilder.ExecuteSql(SqliteConnection, $@"CREATE TABLE ""{nameof(GoogleTranslation)}"" (
+	`Input`	TEXT NOT NULL UNIQUE,
 	`Output`	TEXT,
 	`CreatedAt`	DATETIME,
 	`Timestamp`	DATETIME,
 	`Count`	INTEGER,
-	PRIMARY KEY(`Id`)
+	PRIMARY KEY(`Input`)
 )");
 			}
 			finally
 			{
-				Connection.Close();
-			}
-		}
-
-		public void SaveTranslationsToSqlite()
-		{
-			if (SqliteTranslations.Count != 0) return;
-			Connection.Open();
-			SQLiteTransaction transaction = null;
-			try
-			{
-				transaction = Connection.BeginTransaction();
-				/*var count = CachedTranslations.Count();
-				int skip = 0;
-				while (skip < count)
-				{*/
-				foreach (var translation in CachedTranslations/*.Skip(skip).Take(100)*/)
-				{
-					var cTranslation = new CachedTranslation()
-					{
-						Id = translation.Id,
-						Input = translation.Input,
-						Output = translation.Output,
-						CreatedAt = translation.CreatedAt,
-						Timestamp = translation.Timestamp,
-						Count = translation.Count,
-					};
-					SqliteTranslations.Add(cTranslation, false, true, transaction);
-				}/*
-					skip += 100;
-				}*/
-				transaction.Commit();
-			}
-			catch
-			{
-				transaction?.Rollback();
-				throw;
-			}
-			finally
-			{
-				Connection.Close();
+				SqliteConnection.Close();
 			}
 		}
 		#endregion
 
 		public virtual DbSet<Entry> Entries { get; set; }
 		public virtual DbSet<UserGame> UserGames { get; set; }
-		public virtual DbSet<GoogleTranslation> CachedTranslations { get; set; }
 		public virtual DbSet<Log> Logs { get; set; }
 		public virtual DbSet<GameTextThread> GameThreads { get; set; }
 
@@ -168,11 +93,17 @@ namespace Happy_Reader.Database
 
 		public override int SaveChanges()
 		{
-			int result = base.SaveChanges();
+			var exceptions = new List<Exception>();
+			int totalResult = 0;
+			try { SqliteTranslations.SaveChanges(); }
+			catch (Exception ex) { exceptions.Add(ex); }
+			try { totalResult += base.SaveChanges(); }
+			catch (Exception ex) { exceptions.Add(ex); }
 			var caller = new StackFrame(1).GetMethod();
 			var callerName = $"{caller.DeclaringType?.Name}.{caller.Name}";
-			StaticHelpers.Logger.ToDebug($"{DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.{nameof(SaveChanges)} called by {callerName} - returned {result}");
-			return result;
+			StaticHelpers.Logger.ToDebug($"{DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.{nameof(SaveChanges)} called by {callerName} - returned {totalResult}");
+			if (exceptions.Any()) throw new AggregateException(exceptions);
+			return totalResult;
 		}
 
 		public override async Task<int> SaveChangesAsync()
@@ -187,16 +118,16 @@ namespace Happy_Reader.Database
 		public void DeleteCachedTranslationsOlderThan(DateTime dateTime)
 		{
 			var sql = $"DELETE FROM {nameof(GoogleTranslation)}s WHERE Timestamp < @Timestamp";
-			Database.Connection.Open();
+			SqliteConnection.Open();
 			try
 			{
-				var cmd = Database.Connection.CreateCommand();
+				var cmd = SqliteConnection.CreateCommand();
 				cmd.CommandText = sql;
 				cmd.AddParameter("@Timestamp", dateTime);
 				var result = cmd.ExecuteNonQuery();
 				StaticHelpers.Logger.ToFile($"Deleted Cached Translations older than {dateTime}: {result} records.");
 				if (result == 0) return;
-				CachedTranslations.Load();
+				SqliteTranslations.Load(false);
 			}
 			catch (Exception ex)
 			{
@@ -204,7 +135,7 @@ namespace Happy_Reader.Database
 			}
 			finally
 			{
-				Database.Connection.Close();
+				SqliteConnection.Close();
 			}
 		}
 	}
