@@ -121,6 +121,7 @@ namespace Happy_Reader.ViewModel
 		{
 			Application.Current.Exit += ExitProcedures;
 			StaticMethods.Data = new HappyReaderDatabase(StaticMethods.ReaderDatabaseFile);
+			StaticMethods.Data.SaveToSqlite();
 			SettingsViewModel = Happy_Apps_Core.SettingsJsonFile.Load<SettingsViewModel>(StaticMethods.AllSettingsJson);
 			StaticMethods.Settings = SettingsViewModel;
 			CSettings = SettingsViewModel.CoreSettings;
@@ -264,10 +265,9 @@ namespace Happy_Reader.ViewModel
 
 		public void LoadLogs()
 		{
-			StaticMethods.Data.Logs.Load();
 			var logs = new List<DisplayLog>();
 			var now = DateTime.UtcNow;
-			foreach (var group in StaticMethods.Data.Logs.Local.GroupBy(i => (Date: i.GetGroupDate(now), i.Kind, i.AssociatedId)))
+			foreach (var group in StaticMethods.Data.SqliteLogs.GroupBy(i => (Date: i.GetGroupDate(now), i.Kind, i.AssociatedId)))
 			{
 				if (group.Key.Kind != LogKind.TimePlayed || group.Key.Date == DateTime.Now.Date)
 				{
@@ -290,7 +290,7 @@ namespace Happy_Reader.ViewModel
 
 		private void SetLastPlayed()
 		{
-			var lastPlayed = StaticMethods.Data.Logs.Local.Where(x => x.Kind == LogKind.TimePlayed).OrderByDescending(x => x.Timestamp).GroupBy(z => z.AssociatedId).Select(x => x.First()).ToList();
+			var lastPlayed = StaticMethods.Data.SqliteLogs.Where(x => x.Kind == LogKind.TimePlayed).OrderByDescending(x => x.Timestamp).GroupBy(z => z.AssociatedId).Select(x => x.First()).ToList();
 			UserGame.LastGamesPlayed.Clear();
 			foreach (var log in lastPlayed)
 			{

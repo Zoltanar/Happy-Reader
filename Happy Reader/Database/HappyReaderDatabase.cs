@@ -22,6 +22,7 @@ namespace Happy_Reader.Database
 		private SQLiteConnection SqliteConnection { get; }
 
 		public DACollection<string, GoogleTranslation> SqliteTranslations { get; private set; }
+		public DACollection<long, Log> SqliteLogs { get; private set; }
 
 		public HappyReaderDatabase(string dbFile) : base("name=HappyReaderDatabase")
 		{
@@ -32,6 +33,7 @@ namespace Happy_Reader.Database
 		private void InitialiseSqliteDatabase(string dbFile, bool loadAllTables)
 		{
 			SqliteTranslations = new DACollection<string, GoogleTranslation>(SqliteConnection);
+			SqliteLogs = new DACollection<long, Log>(SqliteConnection);
 			if (!File.Exists(dbFile)) SeedSqlite();
 			if (!loadAllTables) return;
 			LoadAllSqliteTables();
@@ -43,6 +45,7 @@ namespace Happy_Reader.Database
 			try
 			{
 				SqliteTranslations.Load(false);
+				SqliteLogs.Load(false);
 			}
 			catch (Exception ex)
 			{
@@ -60,13 +63,22 @@ namespace Happy_Reader.Database
 			SqliteConnection.Open();
 			try
 			{
-				DatabaseTableBuilder.ExecuteSql(SqliteConnection, $@"CREATE TABLE ""{nameof(GoogleTranslation)}"" (
+				DatabaseTableBuilder.ExecuteSql(SqliteConnection, $@"CREATE TABLE `{nameof(GoogleTranslation)}s` (
 	`Input`	TEXT NOT NULL UNIQUE,
 	`Output`	TEXT,
 	`CreatedAt`	DATETIME,
 	`Timestamp`	DATETIME,
 	`Count`	INTEGER,
 	PRIMARY KEY(`Input`)
+)");
+
+				DatabaseTableBuilder.ExecuteSql(SqliteConnection, $@"CREATE TABLE `{nameof(Log)}s` (
+	`Id`	INTEGER NOT NULL UNIQUE,
+	`Kind`	INTEGER,
+	`AssociatedId`	INTEGER,
+	`Data`	TEXT,
+	`Timestamp`	DATETIME,
+	PRIMARY KEY(`Id`)
 )");
 			}
 			finally
@@ -78,7 +90,6 @@ namespace Happy_Reader.Database
 
 		public virtual DbSet<Entry> Entries { get; set; }
 		public virtual DbSet<UserGame> UserGames { get; set; }
-		public virtual DbSet<Log> Logs { get; set; }
 		public virtual DbSet<GameTextThread> GameThreads { get; set; }
 
 		protected override void OnModelCreating(DbModelBuilder modelBuilder) { }
@@ -95,15 +106,27 @@ namespace Happy_Reader.Database
 		{
 			var exceptions = new List<Exception>();
 			int totalResult = 0;
-			try { SqliteTranslations.SaveChanges(); }
-			catch (Exception ex) { exceptions.Add(ex); }
-			try { totalResult += base.SaveChanges(); }
-			catch (Exception ex) { exceptions.Add(ex); }
+			totalResult += WrapInExceptionList(exceptions, () => SqliteTranslations.SaveChanges());
+			totalResult += WrapInExceptionList(exceptions, () => SqliteLogs.SaveChanges());
+			totalResult += WrapInExceptionList(exceptions, () => base.SaveChanges());
 			var caller = new StackFrame(1).GetMethod();
 			var callerName = $"{caller.DeclaringType?.Name}.{caller.Name}";
 			StaticHelpers.Logger.ToDebug($"{DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.{nameof(SaveChanges)} called by {callerName} - returned {totalResult}");
 			if (exceptions.Any()) throw new AggregateException(exceptions);
 			return totalResult;
+		}
+
+		private static T WrapInExceptionList<T>(ICollection<Exception> exceptionsCollection, Func<T> action)
+		{
+			try
+			{
+				return action();
+			}
+			catch (Exception ex)
+			{
+				exceptionsCollection.Add(ex);
+			}
+			return default;
 		}
 
 		public override async Task<int> SaveChangesAsync()
@@ -137,6 +160,32 @@ namespace Happy_Reader.Database
 			{
 				SqliteConnection.Close();
 			}
+		}
+
+		public void SaveToSqlite()
+		{
+			/*
+			if (SqliteLogs.Count != 0) return;
+			SqliteConnection.Open();
+			SQLiteTransaction transaction = null;
+			try
+			{
+				transaction = SqliteConnection.BeginTransaction();
+				foreach (var log in Logs)
+				{
+					SqliteLogs.Add(log, false, true, transaction);
+				}
+				transaction.Commit();
+			}
+			catch
+			{
+				transaction?.Rollback();
+				throw;
+			}
+			finally
+			{
+				SqliteConnection.Close();
+			}*/
 		}
 	}
 

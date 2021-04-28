@@ -2,26 +2,57 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data;
+using System.Data.Common;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Windows.Documents;
 using System.Windows.Media;
 using Happy_Apps_Core;
+using Happy_Apps_Core.DataAccess;
 
 namespace Happy_Reader.Database
 {
-	public class Log : ICloneable
+	public class Log : ICloneable, IDataItem<long>
 	{
 		private object _parsedData;
 		private List<Inline> _inlines;
 
+		public string KeyField { get; } = nameof(Id);
+		public long Key => Id;
+		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
+		{
+			if (!insertOnly || Id != 0) throw new InvalidOperationException("Logs should not be modified.");
+			string sql = $"INSERT INTO {nameof(Log)}s" +
+			             "(Id, Kind, AssociatedId, Data, Timestamp) VALUES " +
+									 "(@Id, @Kind, @AssociatedId, @Data, @Timestamp)";
+			var command = connection.CreateCommand();
+			command.CommandText = sql;
+			//Id is auto populated, so we pass null.
+			command.AddParameter("@Id", null);
+			command.AddParameter("@Kind", Kind);
+			command.AddParameter("@AssociatedId", AssociatedId);
+			command.AddParameter("@Data", Data);
+			command.AddParameter("@Timestamp", Timestamp);
+			return command;
+		}
+
+		public void LoadFromReader(IDataRecord reader)
+		{
+			Id = Convert.ToInt32(reader["Id"]);
+			Kind = (LogKind)Convert.ToInt32(reader["Kind"]);
+			AssociatedId = Convert.ToInt32(reader["AssociatedId"]);
+			Data = Convert.ToString(reader["Data"]);
+			Timestamp = Convert.ToDateTime(reader["Timestamp"]);
+		}
 		public Log() { }
 
 		public long Id { get; set; }
 		public LogKind Kind { get; set; }
 		public long AssociatedId { get; set; }
 		public string Data { get; set; }
+		public DateTime Timestamp { get; set; }
 
 		[NotMapped]
 		public List<Inline> Description => _inlines ??= GetInlines();
@@ -51,8 +82,6 @@ namespace Happy_Reader.Database
 			}
 			set => _parsedData = value;
 		}
-
-		public DateTime Timestamp { get; set; }
 
 		public delegate void LogNotificationEventHandler(Log log);
 

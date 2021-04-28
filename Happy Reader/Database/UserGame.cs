@@ -235,16 +235,14 @@ namespace Happy_Reader.Database
 			TimeOpen += timeToAdd;
 			Process = null;
 			var log = Log.NewTimePlayedLog(Id, timeToAdd, notify);
-			StaticMethods.Data.Logs.Add(log);
-			StaticMethods.Data.SaveChanges();
+			StaticMethods.Data.SqliteLogs.Add(log,true,true);
 		}
 
 		public void MergeTimePlayed(TimeSpan mergedTimePlayed)
 		{
 			TimeOpen += mergedTimePlayed;
 			var log = Log.NewMergedTimePlayedLog(Id, mergedTimePlayed, false);
-			StaticMethods.Data.Logs.Add(log);
-			StaticMethods.Data.SaveChanges();
+			StaticMethods.Data.SqliteLogs.Add(log, true, true);
 			OnPropertyChanged(nameof(TimeOpen));
 		}
 
@@ -252,8 +250,7 @@ namespace Happy_Reader.Database
 		{
 			TimeOpen = new TimeSpan();
 			var log = Log.NewResetTimePlayedLog(Id, false);
-			StaticMethods.Data.Logs.Add(log);
-			StaticMethods.Data.SaveChanges();
+			StaticMethods.Data.SqliteLogs.Add(log, true, true);
 			OnPropertyChanged(nameof(TimeOpen));
 		}
 

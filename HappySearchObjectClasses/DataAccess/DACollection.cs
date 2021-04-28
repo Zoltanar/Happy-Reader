@@ -11,7 +11,7 @@ namespace Happy_Apps_Core.DataAccess
 	public class DACollection<TKey, TValue> : IEnumerable<TValue> where TValue : IDataItem<TKey>, new()
 	{
 		private readonly IDictionary<TKey, TValue> _items = new Dictionary<TKey, TValue>();
-		private readonly Dictionary<TKey, TValue> _itemsToUpsert = new();
+		private readonly Dictionary<TKey, TValue> _itemsToUpsertLater = new();
 
 		private DbConnection Conn { get; }
 
@@ -28,7 +28,7 @@ namespace Happy_Apps_Core.DataAccess
 			{
 				StaticHelpers.Logger.ToDebug($"Loading {nameof(DACollection<TKey, TValue>)} after already loaded");
 				_items.Clear();
-				_itemsToUpsert.Clear();
+				_itemsToUpsertLater.Clear();
 			}
 			if (openAndCloseConnection) Conn.Open();
 			try
@@ -50,7 +50,7 @@ namespace Happy_Apps_Core.DataAccess
 			}
 		}
 
-		public void Upsert(TValue item, bool openNewConnection, bool insertOnly = false, DbTransaction transaction = null)
+		public int Upsert(TValue item, bool openNewConnection, bool insertOnly = false, DbTransaction transaction = null)
 		{
 			if (openNewConnection) Conn.Open();
 			try
@@ -60,7 +60,7 @@ namespace Happy_Apps_Core.DataAccess
 				var rowsAffected = command.ExecuteNonQuery();
 				var result = rowsAffected != 0;
 				if (result) _items[item.Key] = item;
-				if (!result) { }
+				return rowsAffected;
 			}
 			finally
 			{
@@ -106,20 +106,21 @@ namespace Happy_Apps_Core.DataAccess
 		}
 		
 
-		public void SaveChanges()
+		public int SaveChanges()
 		{
-			if (_itemsToUpsert.Count == 0) return;
+			if (_itemsToUpsertLater.Count == 0) return 0;
 			Conn.Open();
 			DbTransaction transaction = null;
+			int rowsAffected = 0;
 			try
 			{
 				transaction = Conn.BeginTransaction();
-				foreach (var item in _itemsToUpsert.Values)
+				foreach (var item in _itemsToUpsertLater.Values)
 				{
-					Upsert(item, false, false, transaction);
+					rowsAffected += Upsert(item, false, false, transaction);
 				}
-
 				transaction.Commit();
+				return rowsAffected;
 			}
 			catch
 			{
@@ -128,7 +129,7 @@ namespace Happy_Apps_Core.DataAccess
 			}
 			finally
 			{
-				_itemsToUpsert.Clear();
+				_itemsToUpsertLater.Clear();
 				Conn.Close();
 
 			}
@@ -137,7 +138,7 @@ namespace Happy_Apps_Core.DataAccess
 		public void UpsertLater(TValue item)
 		{
 			_items[item.Key] = item;
-			_itemsToUpsert[item.Key] = item;
+			_itemsToUpsertLater[item.Key] = item;
 		}
 	}
 }
