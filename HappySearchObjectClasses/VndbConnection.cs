@@ -76,7 +76,8 @@ namespace Happy_Apps_Core
 			}
 			_loginCredentials = loginCredentials;
 			_changeStatusAction?.Invoke(_status);
-			return $"{_logIn} {_lastResponse.JsonPayload}";
+
+			return $"{(_logIn == LogInStatus.No ? "Failed to log in." : "Log in successful.")} {_lastResponse.JsonPayload}";
 		}
 
 		/// <summary>

@@ -49,14 +49,15 @@ namespace Happy_Reader.Database
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
 		{
 			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO {nameof(UserGame)}s" +
-									 "(Id, UserDefinedName, LaunchPath, VNID, FilePath, HookCode, MergeByHookCode, ProcessName, Tag, RemoveRepetition, OutputWindow, TimeOpenDT, PrefEncodingEnum) " +
+									 "(Id, UserDefinedName, LaunchPath, HookProcess, VNID, FilePath, HookCode, MergeByHookCode, ProcessName, Tag, RemoveRepetition, OutputWindow, TimeOpenDT, PrefEncodingEnum) " +
 									 "VALUES " +
-									 "(@Id, @UserDefinedName, @LaunchPath, @VNID, @FilePath, @HookCode, @MergeByHookCode, @ProcessName, @Tag, @RemoveRepetition, @OutputWindow, @TimeOpenDT, @PrefEncodingEnum)";
+									 "(@Id, @UserDefinedName, @LaunchPath, @HookProcess, @VNID, @FilePath, @HookCode, @MergeByHookCode, @ProcessName, @Tag, @RemoveRepetition, @OutputWindow, @TimeOpenDT, @PrefEncodingEnum)";
 			var command = connection.CreateCommand();
 			command.CommandText = sql;
 			command.AddParameter("@Id", Id);
 			command.AddParameter("@UserDefinedName", UserDefinedName);
 			command.AddParameter("@LaunchPath", LaunchPath);
+			command.AddParameter("@HookProcess", HookProcess);
 			command.AddParameter("@VNID", VNID);
 			command.AddParameter("@FilePath", FilePath);
 			command.AddParameter("@HookCode", HookCode);
@@ -75,6 +76,7 @@ namespace Happy_Reader.Database
 			Id = Convert.ToInt32(reader["Id"]);
 			UserDefinedName = Convert.ToString(reader["UserDefinedName"]);
 			LaunchPath = Convert.ToString(reader["LaunchPath"]);
+			HookProcess = (HookMode)Convert.ToInt32(reader["HookProcess"]);
 			VNID = GetNullableInt(reader["VNID"]);
 			FilePath = Convert.ToString(reader["FilePath"]);
 			HookCode = Convert.ToString(reader["HookCode"]);
@@ -127,7 +129,6 @@ namespace Happy_Reader.Database
 		}
 		public string ProcessName { get; set; }
 		public string Tag { get; protected set; }
-
 		public bool RemoveRepetition
 		{
 			get => _removeRepetition;
@@ -159,8 +160,7 @@ namespace Happy_Reader.Database
 		public bool HasVN => VNID.HasValue;
 		public bool FileExists => File.Exists(FilePath);
 		public bool IsHooked => Process != null && HookProcess != HookMode.None;
-		[NotMapped]
-		public Rectangle OutputRectangle
+		[NotMapped] public Rectangle OutputRectangle
 		{
 			get
 			{
@@ -170,14 +170,12 @@ namespace Happy_Reader.Database
 			}
 			set => OutputWindow = string.Join(",", value.X, value.Y, value.Width, value.Height);
 		}
-		[NotMapped]
-		public TimeSpan TimeOpen
+		[NotMapped] public TimeSpan TimeOpen
 		{
 			get => TimeSpan.FromTicks(TimeOpenDT.Ticks + (_runningTime?.ElapsedTicks ?? 0));
 			set => TimeOpenDT = new DateTime(value.Ticks);
 		}
-		[NotMapped]
-		public ListedVN VN
+		[NotMapped] public ListedVN VN
 		{
 			get
 			{
@@ -196,8 +194,7 @@ namespace Happy_Reader.Database
 				_vnGot = true;
 			}
 		}
-		[NotMapped]
-		public Process Process
+		[NotMapped] public Process Process
 		{
 			get => _process;
 			set
@@ -214,8 +211,7 @@ namespace Happy_Reader.Database
 			}
 		}
 		[NotMapped] public string DisplayName => !string.IsNullOrWhiteSpace(UserDefinedName) ? UserDefinedName : StaticMethods.TruncateStringFunction30(VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath));
-		[NotMapped]
-		public BitmapImage Image
+		[NotMapped] public BitmapImage Image
 		{
 			get
 			{
@@ -246,7 +242,44 @@ namespace Happy_Reader.Database
 			}
 		}
 
-		public bool IconImageExists(out string iconPath)
+		[NotMapped] public Encoding PrefEncoding
+		{
+			get => Encodings[(int)PrefEncodingEnum];
+			set
+			{
+				var index = Array.IndexOf(Encodings, value);
+				PrefEncodingEnum = (EncodingEnum)index;
+			}
+		}
+
+		[NotMapped] public string DisplayNameGroup => DisplayName.Substring(0, Math.Min(DisplayName.Length, 1));
+
+		[NotMapped] public string TagSort => string.IsNullOrWhiteSpace(Tag) ? char.MaxValue.ToString() : Tag;
+
+		[NotMapped] public DateTime LastPlayedDate
+		{
+			[UsedImplicitly]
+			get
+			{
+				return LastGamesPlayed.ContainsValue(Id) ? LastGamesPlayed.First(x => x.Value == Id).Key : DateTime.MinValue;
+			}
+		}
+
+		[NotMapped] public ProcessStatus RunningStatus
+		{
+			get
+			{
+				if (_process == null) return ProcessStatus.Off; //off = no process running
+				if (_runningTime != null && !_runningTime.IsRunning) return ProcessStatus.Paused; //paused = process is running but timer is paused
+				return ProcessStatus.On; //on = process is running and timer is not paused
+			}
+		}
+
+		[NotMapped] public NativeMethods.RECT WindowLocation { get; set; }
+
+		[NotMapped] public static Action<NativeMethods.RECT> MoveOutputWindow { get; set; }
+
+		private bool IconImageExists(out string iconPath)
 		{
 			iconPath = Path.Combine(StaticMethods.UserGameIconsFolder, Id + ".bmp");
 			return File.Exists(iconPath);
@@ -262,46 +295,6 @@ namespace Happy_Reader.Database
 			image.Save(fileStream, ImageFormat.Bmp);
 			OnPropertyChanged(nameof(Image));
 		}
-
-		[NotMapped]
-		public Encoding PrefEncoding
-		{
-			get => Encodings[(int)PrefEncodingEnum];
-			set
-			{
-				var index = Array.IndexOf(Encodings, value);
-				PrefEncodingEnum = (EncodingEnum)index;
-			}
-		}
-
-		[NotMapped] public string DisplayNameGroup => DisplayName.Substring(0, Math.Min(DisplayName.Length, 1));
-
-		[NotMapped] public string TagSort => string.IsNullOrWhiteSpace(Tag) ? char.MaxValue.ToString() : Tag;
-
-		[NotMapped]
-		public DateTime LastPlayedDate
-		{
-			[UsedImplicitly]
-			get
-			{
-				return LastGamesPlayed.ContainsValue(Id) ? LastGamesPlayed.First(x => x.Value == Id).Key : DateTime.MinValue;
-			}
-		}
-
-		[NotMapped]
-		public ProcessStatus RunningStatus
-		{
-			get
-			{
-				if (_process == null) return ProcessStatus.Off; //off = no process running
-				if (_runningTime != null && !_runningTime.IsRunning) return ProcessStatus.Paused; //paused = process is running but timer is paused
-				return ProcessStatus.On; //on = process is running and timer is not paused
-			}
-		}
-
-		[NotMapped] public NativeMethods.RECT WindowLocation { get; set; }
-
-		[NotMapped] public static Action<NativeMethods.RECT> MoveOutputWindow { get; set; }
 
 		public void SaveTimePlayed(bool notify)
 		{

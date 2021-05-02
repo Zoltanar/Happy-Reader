@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Data.Entity;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -82,7 +81,7 @@ namespace Happy_Reader.ViewModel
 
 		public void RemoveUserGame(UserGame item)
 		{
-			var tile = UserGameItems.Single(x => x.UserGame == item);
+			var tile = UserGameItems.First(x => x.UserGame == item);
 			RemoveUserGame(tile);
 		}
 

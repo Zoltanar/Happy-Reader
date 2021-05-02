@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800" d:DataContext="{d:DesignInstance viewModel:UserGamesViewModel}">
+             d:DesignHeight="450" d:DesignWidth="800" d:DataContext="{d:DesignInstance viewModel:UserGamesViewModel}" Drop="DropFileOnGamesTab">
 	<UserControl.Resources>
 		<Style x:Key="ContainerStyle" TargetType="{x:Type GroupItem}">
 			<Setter Property="Template">
@@ -32,7 +32,7 @@
 			</Setter>
 		</Style>
 	</UserControl.Resources>
-	<Grid Background="#FFC9E1F5" AllowDrop="True" Drop="DropFileOnGamesTab">
+	<Grid Background="#FFC9E1F5" AllowDrop="True">
 		<ListBox x:Name="GameFiles" ItemsSource="{Binding UserGameItems}" Margin="10,10,10,30" 
 						         ScrollViewer.VerticalScrollBarVisibility="Visible" 
 						         ScrollViewer.HorizontalScrollBarVisibility="Disabled" 

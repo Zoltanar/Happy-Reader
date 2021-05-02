@@ -32,7 +32,8 @@ namespace Happy_Reader.View.Tabs
 
 		private void DropFileOnGamesTab(object sender, DragEventArgs e)
 		{
-			string file = (e.Data.GetData(DataFormats.FileDrop) as string[])?.First();
+			if (e.Data.GetData(DataFormats.FileDrop) is not string[] files || files.Length == 0) return;
+			var file = files.First();
 			if (string.IsNullOrWhiteSpace(file))
 			{
 				StaticMethods.MainWindow.ViewModel.StatusText = "Dragged item was not a file.";

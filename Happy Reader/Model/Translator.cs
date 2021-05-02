@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -9,7 +8,6 @@ using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
 using HRGoogleTranslate;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 
@@ -36,7 +34,7 @@ namespace Happy_Reader
 
 		public Translator(HappyReaderDatabase data) => _data = data;
 
-		public async Task SetCache(bool noApiTranslation, bool logVerbose, TranslatorSettings translatorSettings)
+		public void SetCache(bool noApiTranslation, bool logVerbose, TranslatorSettings translatorSettings)
 		{
 			_inclusiveSeparators = translatorSettings.InclusiveSeparators.ToCharArray();
 			_allSeparators = translatorSettings.ExclusiveSeparators.Concat(translatorSettings.InclusiveSeparators).ToArray();
@@ -50,30 +48,7 @@ namespace Happy_Reader
 				noApiTranslation,
 				logVerbose);
 		}
-
-		private static async Task<Dictionary<string, GoogleTranslation>> TryLoadCachedTranslations(DbSet<GoogleTranslation> cachedTranslations)
-		{
-			var tokenSource = new CancellationTokenSource(15000);
-			try
-			{
-				await cachedTranslations.LoadAsync(tokenSource.Token);
-				if (tokenSource.IsCancellationRequested) return new Dictionary<string, GoogleTranslation>();
-				var grouped = cachedTranslations.GroupBy(ct => ct.Input).Where(g=>g.Count()> 1).ToList();
-				foreach (var group in grouped)
-				{
-					var toRemove = group.OrderByDescending(t => t.Timestamp).Skip(1).ToList();
-					cachedTranslations.RemoveRange(toRemove);
-				}
-				return cachedTranslations.ToDictionary(x => x.Input);
-			}
-			catch (Exception ex)
-			{
-				StaticHelpers.Logger.ToFile(ex);
-			}
-
-			return new Dictionary<string, GoogleTranslation>();
-		}
-
+		
 		public Translation Translate(User user, ListedVN game, string input, bool saveEntriesUsed, bool removeRepetition)
 		{
 			if (removeRepetition)
@@ -172,7 +147,7 @@ namespace Happy_Reader
 			Entry[] specificEntries = { };
 			if (gamesInSeries != null)
 			{
-				specificEntries = _data.SqliteEntries.Where(e => (e.Private && e.UserId == user.Id || !e.Private) && e.SeriesSpecific && gamesInSeries.Contains(e.GameId.Value)).ToArray();
+				specificEntries = _data.SqliteEntries.Where(e => (e.Private && e.UserId == user.Id || !e.Private) && e.GameId.HasValue && e.SeriesSpecific && gamesInSeries.Contains(e.GameId.Value)).ToArray();
 			}
 			_entries = generalEntries.Concat(specificEntries).OrderBy(i => i.Id).ToArray();
 			StaticHelpers.Logger.ToDebug($"[Translator] General entries: {generalEntries.Length}. Specific entries: {specificEntries.Length}");

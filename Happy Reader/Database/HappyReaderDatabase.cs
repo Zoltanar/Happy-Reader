@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Data.Entity;
 using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Happy_Apps_Core;
 using Happy_Apps_Core.DataAccess;
 using Happy_Apps_Core.Database;
@@ -15,11 +13,10 @@ using StaticHelpers = Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Reader.Database
 {
-	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
-	public class HappyReaderDatabase : DbContext
+	public class HappyReaderDatabase
 	{
 		#region SQLite
-		private SQLiteConnection SqliteConnection { get; }
+		public SQLiteConnection SqliteConnection { get; }
 
 		public DACollection<string, GoogleTranslation> SqliteTranslations { get; private set; }
 		public DACollection<long, Log> SqliteLogs { get; private set; }
@@ -27,7 +24,7 @@ namespace Happy_Reader.Database
 		public DACollection<long, UserGame> SqliteUserGames { get; private set; }
 		public DACollection<long, Entry> SqliteEntries { get; private set; }
 
-		public HappyReaderDatabase(string dbFile) : base("name=HappyReaderDatabase")
+		public HappyReaderDatabase(string dbFile)
 		{
 			SqliteConnection = new SQLiteConnection($@"Data Source={dbFile}");
 			InitialiseSqliteDatabase(dbFile, true);
@@ -102,6 +99,7 @@ namespace Happy_Reader.Database
 	`Id`	INTEGER NOT NULL UNIQUE,
 	`UserDefinedName`	TEXT,
 	`LaunchPath`	TEXT,
+	`HookProcess`	INTEGER NOT NULL,
 	`VNID`	INTEGER,
 	`FilePath`	TEXT,
 	`HookCode`	TEXT,
@@ -114,7 +112,7 @@ namespace Happy_Reader.Database
 	`PrefEncodingEnum`	INTEGER,
 	PRIMARY KEY(`Id`)
 )");
-				DatabaseTableBuilder.ExecuteSql(SqliteConnection, $@"CREATE TABLE `{nameof(Happy_Reader.Database.Entry)}s` (
+				DatabaseTableBuilder.ExecuteSql(SqliteConnection, $@"CREATE TABLE `{nameof(Entry)}s` (
 	`Id`	INTEGER NOT NULL UNIQUE,
 	`UserId`	INTEGER,
 	`Input`	TEXT,
@@ -141,11 +139,7 @@ namespace Happy_Reader.Database
 			}
 		}
 		#endregion
-
-		//public virtual DbSet<Entry> Entries { get; set; }
-
-		protected override void OnModelCreating(DbModelBuilder modelBuilder) { }
-
+		
 		public IEnumerable<Entry> GetGameOnlyEntries(ListedVN game) => SqliteEntries.Where(x => x.GameId == game.VNID);
 
 		public IEnumerable<Entry> GetSeriesOnlyEntries(ListedVN game)
@@ -154,7 +148,7 @@ namespace Happy_Reader.Database
 			return SqliteEntries.Where(i => i.GameId != null && series.Contains(i.GameId.Value));
 		}
 
-		public override int SaveChanges()
+		public int SaveChanges()
 		{
 			var exceptions = new List<Exception>();
 			int totalResult = 0;
@@ -163,7 +157,6 @@ namespace Happy_Reader.Database
 			totalResult += WrapInExceptionList(exceptions, () => SqliteGameThreads.SaveChanges());
 			totalResult += WrapInExceptionList(exceptions, () => SqliteUserGames.SaveChanges());
 			totalResult += WrapInExceptionList(exceptions, () => SqliteEntries.SaveChanges());
-			totalResult += WrapInExceptionList(exceptions, () => base.SaveChanges());
 			var caller = new StackFrame(1).GetMethod();
 			var callerName = $"{caller.DeclaringType?.Name}.{caller.Name}";
 			StaticHelpers.Logger.ToDebug($"{DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.{nameof(SaveChanges)} called by {callerName} - returned {totalResult}");
@@ -183,16 +176,7 @@ namespace Happy_Reader.Database
 			}
 			return default;
 		}
-
-		public override async Task<int> SaveChangesAsync()
-		{
-			int result = await base.SaveChangesAsync();
-			var caller = new StackFrame(1).GetMethod();
-			var callerName = $"{caller.DeclaringType?.Name}.{caller.Name}";
-			StaticHelpers.Logger.ToDebug($"{DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.{nameof(SaveChangesAsync)} called by {callerName} - returned {result}");
-			return result;
-		}
-
+		
 		public void DeleteCachedTranslationsOlderThan(DateTime dateTime)
 		{
 			var sql = $"DELETE FROM {nameof(GoogleTranslation)}s WHERE Timestamp < @Timestamp";
@@ -216,36 +200,13 @@ namespace Happy_Reader.Database
 				SqliteConnection.Close();
 			}
 		}
-
-		public void SaveToSqlite()
+		
+		/// <summary>
+		/// Upserts entries into database, inserting Ids as required, opens own connection and transaction.
+		/// </summary>
+		public void AddEntries(ICollection<Entry> entries)
 		{
-			/*
-			if (SqliteEntries.Count != 0) return;
-			SqliteConnection.Open();
-			SQLiteTransaction transaction = null;
-			try
-			{
-				transaction = SqliteConnection.BeginTransaction();
-				foreach (var item in Entries)
-				{
-					SqliteEntries.Add(item, false, true, transaction);
-				}
-				transaction.Commit();
-			}
-			catch
-			{
-				transaction?.Rollback();
-				throw;
-			}
-			finally
-			{
-				SqliteConnection.Close();
-			}*/
-		}
-
-		public void AddEntries(Entry[] entries)
-		{
-			long id = SqliteEntries.HighestKey;
+			if (entries.Count == 0) return;
 			SqliteConnection.Open();
 			DbTransaction transaction = null;
 			try
@@ -253,7 +214,7 @@ namespace Happy_Reader.Database
 				transaction = SqliteConnection.BeginTransaction();
 				foreach (var entry in entries)
 				{
-					if (entry.Id == 0) entry.Id = id + 1;
+					if (entry.Id == 0) entry.Id = SqliteEntries.HighestKey + 1;
 					SqliteEntries.Upsert(entry, false, false, transaction);
 				}
 

@@ -95,7 +95,7 @@ namespace Happy_Reader.ViewModel
 
 		private void SetUserDatabaseData(HappyReaderDatabase userGameData)
 		{
-			UserDatabaseSize = $"User Database Size: {GetFileSizeStringForDb(userGameData.Database.Connection)}";
+			UserDatabaseSize = $"User Database Size: {GetFileSizeStringForDb(userGameData.SqliteConnection)}";
 			var cachedTranslations = userGameData.SqliteTranslations.Count();
 			var cachedTranslationsOld = userGameData.SqliteTranslations.Count(t => t.Timestamp < OldTranslationsTime);
 			TranslationsData = $"Cached Translations: {cachedTranslations}, 2+ Months Old: {cachedTranslationsOld}";

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data.Entity;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -121,7 +120,6 @@ namespace Happy_Reader.ViewModel
 		{
 			Application.Current.Exit += ExitProcedures;
 			StaticMethods.Data = new HappyReaderDatabase(StaticMethods.ReaderDatabaseFile);
-			StaticMethods.Data.SaveToSqlite();
 			SettingsViewModel = Happy_Apps_Core.SettingsJsonFile.Load<SettingsViewModel>(StaticMethods.AllSettingsJson);
 			StaticMethods.Settings = SettingsViewModel;
 			CSettings = SettingsViewModel.CoreSettings;
@@ -205,10 +203,10 @@ namespace Happy_Reader.ViewModel
 			if (initialiseEntries)
 			{
 				StatusText = "Loading Cached Translations...";
-				await Task.Run(async () =>
+				await Task.Run(() =>
 				{
 					var cacheLoadWatch = Stopwatch.StartNew();
-					await Translator.SetCache(noApiTranslation, logVerbose, SettingsViewModel.TranslatorSettings);
+					Translator.SetCache(noApiTranslation, logVerbose, SettingsViewModel.TranslatorSettings);
 					StaticHelpers.Logger.ToDebug($"Loaded cached translations in {cacheLoadWatch.ElapsedMilliseconds} ms");
 				});
 				StatusText = "Populating Proxies...";
@@ -305,22 +303,34 @@ namespace Happy_Reader.ViewModel
 			LocalDatabase.CurrentUser = User;
 		}
 
-		private static void PopulateProxies()
+		private void PopulateProxies()
 		{
-			var array = JArray.Parse(File.ReadAllText(StaticMethods.ProxiesJson));
-			// ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
-			foreach (JObject item in array)
+			var newProxies = new List<Entry>();
+			try
 			{
-				// ReSharper disable PossibleNullReferenceException
-				var r = item["role"].ToString();
-				var i = item["input"].ToString();
-				var o = item["output"].ToString();
-				// ReSharper restore PossibleNullReferenceException
-				var proxy = StaticMethods.Data.SqliteEntries.FirstOrDefault(x =>x.Type == EntryType.Proxy && x.RoleString.Equals(r) && x.Input.Equals(i));
-				if (proxy != null) continue;
-				proxy = new Entry { UserId = 0, Type = EntryType.Proxy, RoleString = r, Input = i, Output = o };
-				StaticMethods.Data.SqliteEntries.Add(proxy, true);
+				if (!File.Exists(StaticMethods.ProxiesJson)) return;
+				var array = JArray.Parse(File.ReadAllText(StaticMethods.ProxiesJson));
+				// ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
+				foreach (var item in array.OfType<JObject>())
+				{
+					// ReSharper disable PossibleNullReferenceException
+					var r = item["role"].ToString();
+					var i = item["input"].ToString();
+					var o = item["output"].ToString();
+					// ReSharper restore PossibleNullReferenceException
+					var proxy = StaticMethods.Data.SqliteEntries.FirstOrDefault(x =>
+						x.Type == EntryType.Proxy && x.RoleString.Equals(r) && x.Input.Equals(i));
+					if (proxy != null) continue;
+					newProxies.Add(new Entry {Type = EntryType.Proxy, RoleString = r, Input = i, Output = o});
+				}
 			}
+			catch (Exception ex)
+			{
+				//it's ok to fail here, proxies can be added via the UI anyway.
+				Logger.ToFile(ex);
+				NotificationEvent(this, ex.Message, "Populate Proxies failed");
+			}
+			StaticMethods.Data.AddEntries(newProxies);
 		}
 
 		private void MonitorStart()

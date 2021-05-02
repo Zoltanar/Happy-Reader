@@ -44,7 +44,7 @@ namespace Happy_Reader.View.Tabs
 
 		private void InitializeButton(object sender, RoutedEventArgs e)
 		{
-			_viewModel.ReInitialize(out var errorMessage);
+			_viewModel.ReInitialize(StaticMethods.MainWindow.ViewModel.RunTranslation, out var errorMessage);
 			if(!string.IsNullOrWhiteSpace(errorMessage)) _viewModel.DisplayThreads.Add(new TextBlock(new Run(errorMessage)));
 			Background = Brushes.White;
 		}
