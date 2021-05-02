@@ -57,7 +57,7 @@ namespace Happy_Reader.View.Tabs
 			var allInlines = new List<Inline>();
 			foreach (var group in groups)
 			{
-				if (@group.Key == null) continue;
+				if (@group.Key == null || !StaticMethods.Settings.GuiSettings.ShowTags(group.Key.Value)) continue;
 				allInlines.Add(new Run($"{@group.Key}: "));
 				foreach (var tag in @group.OrderBy(x => x.Print()))
 				{

@@ -65,7 +65,7 @@ namespace Happy_Reader.ViewModel
 				return null;
 			}
 			var vn = StaticMethods.ResolveVNForFile(file);
-			userGame = new UserGame(file, vn) { Id = StaticMethods.Data.UserGames.Max(x => x.Id) + 1 };
+			userGame = new UserGame(file, vn) { Id = StaticMethods.Data.UserGames.HighestKey + 1 };
 			userGame.SaveIconImage();
 			StaticMethods.Data.UserGames.Add(userGame,true);
 			MainViewModel.StatusText = vn == null ? "File was added without VN." : $"File was added as {userGame.DisplayName}.";

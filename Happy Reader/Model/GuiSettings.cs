@@ -227,5 +227,16 @@ namespace Happy_Reader
 		{
 			ExcludedNamesForVNResolve = excludedNamesForVnResolve.ToHashSet(StringComparer.OrdinalIgnoreCase);
 		}
+
+		public bool ShowTags(Happy_Apps_Core.Database.DbTag.TagCategory category)
+		{
+			return category switch
+			{
+				Happy_Apps_Core.Database.DbTag.TagCategory.Content => ContentTags,
+				Happy_Apps_Core.Database.DbTag.TagCategory.Sexual => SexualTags,
+				Happy_Apps_Core.Database.DbTag.TagCategory.Technical => TechnicalTags,
+				_ => throw new ArgumentOutOfRangeException()
+			};
+		}
 	}
 }

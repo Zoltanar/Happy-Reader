@@ -120,7 +120,7 @@ namespace Happy_Reader.Database
 				if (Loaded) ReadyToUpsert = true;
 			}
 		}
-		public bool HasVN => VNID.HasValue;
+		public bool HasVN => VNID.HasValue && VN != null;
 		public bool FileExists => File.Exists(FilePath);
 		public bool IsHooked => Process != null && HookProcess != HookMode.None;
 		public Rectangle OutputRectangle
@@ -456,6 +456,7 @@ namespace Happy_Reader.Database
 		public Process StartProcessThroughLocaleEmulator()
 		{
 			var proxyPath = StaticMethods.Settings.GuiSettings.LocaleEmulatorPath;
+			if (string.IsNullOrWhiteSpace(proxyPath) || !File.Exists(proxyPath)) throw new FileNotFoundException("Locale emulator path empty or not found (check settings).");
 			var args = $"\"{FilePath}\"";
 			return StartProcess(proxyPath, args, true);
 		}
