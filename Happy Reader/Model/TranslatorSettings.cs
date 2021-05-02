@@ -209,6 +209,7 @@ namespace Happy_Reader
 			get => _fontSize;
 			set
 			{
+				// ReSharper disable once CompareOfFloatsByEqualityOperator
 				if (_fontSize == value) return;
 				_fontSize = value;
 				if (Loaded) Save();
@@ -243,7 +244,7 @@ namespace Happy_Reader
 		public TextAlignment OutputHorizontalAlignment
 		{
 			get => _outputHorizontalAlignment;
-			set
+			private set
 			{
 				if (_outputHorizontalAlignment == value) return;
 				_outputHorizontalAlignment = value;
@@ -254,7 +255,7 @@ namespace Happy_Reader
 		public VerticalAlignment OutputVerticalAlignment
 		{
 			get => _outputVerticalAlignment;
-			set
+			private set
 			{
 				if (_outputVerticalAlignment == value) return;
 				_outputVerticalAlignment = value;

@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using IthVnrSharpLib.Properties;
+// ReSharper disable All
 
 namespace Happy_Reader
 {

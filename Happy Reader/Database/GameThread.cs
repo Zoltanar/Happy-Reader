@@ -8,16 +8,26 @@ namespace Happy_Reader.Database
 {
 	public class GameThread : Happy_Apps_Core.DataAccess.IDataItem<(long, string)>
 	{
+		public readonly GameTextThread Item;
+
+		public GameThread()
+		{
+			Item = new GameTextThread();
+		}
+
+		public GameThread(GameTextThread item)
+		{
+			Item = item;
+		}
+
 		public string KeyField { get; } = $"({nameof(GameTextThread.GameId)},{nameof(GameTextThread.Identifier)})";
 		public (long, string) Key => (Item.GameId, Item.Identifier);
 
-		public readonly GameTextThread Item;
-		
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
 		{
 			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO {nameof(GameThread)}s" +
-									 "(GameId, Identifier, IsDisplay, IsPaused, IsPosting, Encoding, Label) VALUES " +
-									 "(@GameId, @Identifier, @IsDisplay, @IsPaused, @IsPosting, @Encoding, @Label)";
+			             "(GameId, Identifier, IsDisplay, IsPaused, IsPosting, Encoding, Label) VALUES " +
+			             "(@GameId, @Identifier, @IsDisplay, @IsPaused, @IsPosting, @Encoding, @Label)";
 			var command = connection.CreateCommand();
 			command.CommandText = sql;
 			command.AddParameter("@GameId", Item.GameId);
@@ -28,16 +38,6 @@ namespace Happy_Reader.Database
 			command.AddParameter("@Encoding", Item.Encoding);
 			command.AddParameter("@Label", Item.Label);
 			return command;
-		}
-
-		public GameThread()
-		{
-			Item = new GameTextThread();
-		}
-
-		public GameThread(GameTextThread item)
-		{
-			Item = item;
 		}
 
 		public void LoadFromReader(IDataRecord reader)

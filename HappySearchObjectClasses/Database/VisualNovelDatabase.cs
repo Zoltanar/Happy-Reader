@@ -18,8 +18,8 @@ namespace Happy_Apps_Core.Database
 	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 	public class VisualNovelDatabase
 	{
-		public const string LatestDumpUpdateKey = @"LatestDumpUpdate";
-		public const string DateFormat = @"yyyy-MM-dd";
+		private const string LatestDumpUpdateKey = @"LatestDumpUpdate";
+		private const string DateFormat = @"yyyy-MM-dd";
 
 		public DACollection<int, ListedVN> VisualNovels { get; }
 		public DACollection<int, ListedProducer> Producers { get; }

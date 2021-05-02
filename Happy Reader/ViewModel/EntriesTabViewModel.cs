@@ -41,7 +41,7 @@ namespace Happy_Reader.ViewModel
 				? string.IsNullOrWhiteSpace(GetUserGame()?.VN.Series)
 					? StaticMethods.Data.GetGameOnlyEntries(GetUserGame()?.VN)
 					: StaticMethods.Data.GetSeriesOnlyEntries(GetUserGame()?.VN)
-				: StaticMethods.Data.SqliteEntries).ToArray();
+				: StaticMethods.Data.Entries).ToArray();
 			var entries = items.Select(x => new DisplayEntry(x)).ToArray();
 			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			Application.Current.Dispatcher.Invoke(() =>
@@ -53,7 +53,7 @@ namespace Happy_Reader.ViewModel
 		public void DeleteEntry(DisplayEntry displayEntry)
 		{
 			EntriesList.Remove(displayEntry);
-			StaticMethods.Data.SqliteEntries.Remove(displayEntry.Entry, true);
+			StaticMethods.Data.Entries.Remove(displayEntry.Entry, true);
 			Translation.Translator.RefreshEntries = true;
 			OnPropertyChanged(nameof(EntriesList));
 		}

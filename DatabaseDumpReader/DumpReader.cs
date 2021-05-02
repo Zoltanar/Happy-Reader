@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -20,18 +19,18 @@ namespace DatabaseDumpReader
 		public string OutputFilePath { get; }
 		public VisualNovelDatabase Database { get; }
 		public SuggestionScorer SuggestionScorer { get; }
-		public Dictionary<int, Release> Releases { get; } = new Dictionary<int, Release>();
-		public Dictionary<int, List<string>> LangReleases { get; } = new Dictionary<int, List<string>>();
-		public Dictionary<int, List<int>> ProducerReleases { get; } = new Dictionary<int, List<int>>();
-		public Dictionary<int, List<Release>> VnReleases { get; } = new Dictionary<int, List<Release>>();
-		public Dictionary<int, DumpAnime> Animes { get; } = new Dictionary<int, DumpAnime>();
-		public Dictionary<int, List<DumpVnAnime>> VnAnimes { get; } = new Dictionary<int, List<DumpVnAnime>>();
-		public Dictionary<string, DumpScreen> Images { get; } = new Dictionary<string, DumpScreen>();
-		public Dictionary<int, List<DumpVnScreen>> VnScreens { get; } = new Dictionary<int, List<DumpVnScreen>>();
-		public Dictionary<int, List<DumpRelation>> VnRelations { get; } = new Dictionary<int, List<DumpRelation>>();
-		public Dictionary<int, UserVN.LabelKind> UserLabels { get; } = new Dictionary<int, UserVN.LabelKind>();
-		public Dictionary<int, UserVn> UserVns { get; } = new Dictionary<int, UserVn>();
-		public List<VnTag> VnTags { get; } = new List<VnTag>();
+		public Dictionary<int, Release> Releases { get; } = new();
+		public Dictionary<int, List<string>> LangReleases { get; } = new();
+		public Dictionary<int, List<int>> ProducerReleases { get; } = new();
+		public Dictionary<int, List<Release>> VnReleases { get; } = new();
+		public Dictionary<int, DumpAnime> Animes { get; } = new();
+		public Dictionary<int, List<DumpVnAnime>> VnAnimes { get; } = new();
+		public Dictionary<string, DumpScreen> Images { get; } = new();
+		public Dictionary<int, List<DumpVnScreen>> VnScreens { get; } = new();
+		public Dictionary<int, List<DumpRelation>> VnRelations { get; } = new();
+		public Dictionary<int, UserVN.LabelKind> UserLabels { get; } = new();
+		public Dictionary<int, UserVn> UserVns { get; } = new();
+		public List<VnTag> VnTags { get; } = new();
 		public Dictionary<int, List<DumpVote>> Votes { get; private set; }
 
 		public DumpReader(string dumpFolder, string dbFilePath, int userId)
@@ -69,7 +68,7 @@ namespace DatabaseDumpReader
 			LoadStaff();
 			LoadCharacters();
 			var votesUngrouped = new List<DumpVote>();
-			Load<DumpVote>((i, t) => votesUngrouped.Add(i), votesFilePath, false);
+			Load<DumpVote>((i, _) => votesUngrouped.Add(i), votesFilePath, false);
 			Votes = votesUngrouped.GroupBy(vote => vote.VNId).ToDictionary(g => g.Key, g => g.ToList());
 			LoadAnimeScreensRelations();
 			LoadUserVn();
@@ -106,19 +105,19 @@ namespace DatabaseDumpReader
 
 		private void LoadAnimeScreensRelations()
 		{
-			Load<DumpAnime>((i, t) => Animes.Add(i.Id, i), "db\\anime");
-			Load<DumpVnAnime>((i, t) =>
+			Load<DumpAnime>((i, _) => Animes.Add(i.Id, i), "db\\anime");
+			Load<DumpVnAnime>((i, _) =>
 			{
 				if (!VnAnimes.ContainsKey(i.VnId)) VnAnimes[i.VnId] = new List<DumpVnAnime>();
 				VnAnimes[i.VnId].Add(i);
 			}, "db\\vn_anime");
-			Load<DumpScreen>((i, t) => Images.Add(i.Id, i), "db\\images");
-			Load<DumpVnScreen>((i, t) =>
+			Load<DumpScreen>((i, _) => Images.Add(i.Id, i), "db\\images");
+			Load<DumpVnScreen>((i, _) =>
 			{
 				if (!VnScreens.ContainsKey(i.VnId)) VnScreens[i.VnId] = new List<DumpVnScreen>();
 				VnScreens[i.VnId].Add(i);
 			}, "db\\vn_screenshots");
-			Load<DumpRelation>((i, t) =>
+			Load<DumpRelation>((i, _) =>
 			{
 				if (!VnRelations.ContainsKey(i.Id)) VnRelations[i.Id] = new List<DumpRelation>();
 				VnRelations[i.Id].Add(i);
@@ -145,22 +144,22 @@ namespace DatabaseDumpReader
 
 		private void LoadReleases()
 		{
-			Load<ProducerRelease>((i, t) =>
+			Load<ProducerRelease>((i, _) =>
 			{
 				if (!i.Developer) return;
 				if (!ProducerReleases.ContainsKey(i.ReleaseId)) ProducerReleases[i.ReleaseId] = new List<int>();
 				ProducerReleases[i.ReleaseId].Add(i.ProducerId);
 			}, "db\\releases_producers");
-			Load<LangRelease>((i, t) =>
+			Load<LangRelease>((i, _) =>
 			{
 				if (!LangReleases.ContainsKey(i.ReleaseId)) LangReleases[i.ReleaseId] = new List<string>();
 				LangReleases[i.ReleaseId].Add(i.Lang);
 			}, "db\\releases_lang");
-			Load<Release>((i, t) =>
+			Load<Release>((i, _) =>
 			{
 				if (i.Type != "trial") Releases[i.ReleaseId] = i;
 			}, "db\\releases");
-			Load<VnRelease>((i, t) =>
+			Load<VnRelease>((i, _) =>
 			{
 				if (!VnReleases.ContainsKey(i.VnId)) VnReleases[i.VnId] = new List<Release>();
 				if (!Releases.TryGetValue(i.ReleaseId, out var release)) return;
@@ -196,17 +195,17 @@ namespace DatabaseDumpReader
 
 		private void LoadUserVn()
 		{
-			Load<UserLabel>((i, t) =>
+			Load<UserLabel>((i, _) =>
 			{
 				if (i.UserId != UserId) return;
 				UserLabels.Add(i.LabelId, i.Label);
 			}, "db\\ulist_labels");
-			Load<UserVn>((i, t) =>
+			Load<UserVn>((i, _) =>
 			{
 				if (i.UserId != UserId) return;
 				UserVns.Add(i.VnId, i);
 			}, "db\\ulist_vns");
-			Load<UserVnLabel>((i, t) =>
+			Load<UserVnLabel>((i, _) =>
 			{
 				if (i.UserId != UserId) return;
 				UserVns[i.VnId].Labels.Add(UserLabels[i.LabelId]);
@@ -222,7 +221,7 @@ namespace DatabaseDumpReader
 
 		private void LoadAndResolveTags()
 		{
-			Load<VnTag>((i, t) =>
+			Load<VnTag>((i, _) =>
 			{
 				if (i.Ignore) return;
 				VnTags.Add(i);

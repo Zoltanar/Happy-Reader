@@ -8,7 +8,6 @@ using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
 using HRGoogleTranslate;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 namespace Happy_Reader
@@ -40,7 +39,7 @@ namespace Happy_Reader
 			_allSeparators = translatorSettings.ExclusiveSeparators.Concat(translatorSettings.InclusiveSeparators).ToArray();
 			_logVerbose = logVerbose;
 			GoogleTranslate.Initialize(
-				_data.SqliteTranslations,
+				_data.Translations,
 				Kakasi.JapaneseToRomaji,
 				translatorSettings.GoogleCredentialPath,
 				translatorSettings.FreeUserAgent,
@@ -143,11 +142,11 @@ namespace Happy_Reader
 					? new[] { game.VNID }
 					: StaticHelpers.LocalDatabase.VisualNovels.Where(g => g.Series == game.Series).Select(gg => gg.VNID).ToArray();
 			}
-			Entry[] generalEntries = _data.SqliteEntries.Where(e => (e.Private && e.UserId == user.Id || !e.Private) && !e.SeriesSpecific).ToArray();
+			Entry[] generalEntries = _data.Entries.Where(e => (e.Private && e.UserId == user.Id || !e.Private) && !e.SeriesSpecific).ToArray();
 			Entry[] specificEntries = { };
 			if (gamesInSeries != null)
 			{
-				specificEntries = _data.SqliteEntries.Where(e => (e.Private && e.UserId == user.Id || !e.Private) && e.GameId.HasValue && e.SeriesSpecific && gamesInSeries.Contains(e.GameId.Value)).ToArray();
+				specificEntries = _data.Entries.Where(e => (e.Private && e.UserId == user.Id || !e.Private) && e.GameId.HasValue && e.SeriesSpecific && gamesInSeries.Contains(e.GameId.Value)).ToArray();
 			}
 			_entries = generalEntries.Concat(specificEntries).OrderBy(i => i.Id).ToArray();
 			StaticHelpers.Logger.ToDebug($"[Translator] General entries: {generalEntries.Length}. Specific entries: {specificEntries.Length}");
@@ -349,7 +348,7 @@ namespace Happy_Reader
 			foreach (var role in roles)
 			{
 				if (role == null) continue;
-				Entry[] roleProxies = data.SqliteEntries.Where(i => i.Type == EntryType.Proxy && i.RoleString == role).ToArray();
+				Entry[] roleProxies = data.Entries.Where(i => i.Type == EntryType.Proxy && i.RoleString == role).ToArray();
 				if (proxies.ContainsKey(role))
 				{
 					foreach (var roleProxy in roleProxies.Select(

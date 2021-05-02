@@ -80,15 +80,15 @@ namespace Happy_Reader.ViewModel
 		{
 			if (_mainViewModel.UserGame == null) return;
 			gameTextThread.GameId = _mainViewModel.UserGame.Id;
-			StaticMethods.Data.SqliteGameThreads.UpsertLater(new GameThread(gameTextThread));
+			StaticMethods.Data.GameThreads.UpsertLater(new GameThread(gameTextThread));
 		}
 		
 		protected override void SaveGameTextThreads()
 		{
-			var threads = StaticMethods.Data.SqliteGameThreads.WithKeyIn(GameTextThreads.Select(x => (x.GameId, x.Identifier)).ToArray()).ToArray();
+			var threads = StaticMethods.Data.GameThreads.WithKeyIn(GameTextThreads.Select(x => (x.GameId, x.Identifier)).ToArray()).ToArray();
 			foreach (var gameThread in threads)
 			{
-				StaticMethods.Data.SqliteGameThreads.UpsertLater(gameThread);
+				StaticMethods.Data.GameThreads.UpsertLater(gameThread);
 			}
 			StaticMethods.Data.SaveChanges();
 		}

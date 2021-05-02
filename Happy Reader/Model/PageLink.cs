@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 
 namespace Happy_Reader
 {

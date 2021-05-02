@@ -129,6 +129,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Database\EntryType.cs" />
     <Compile Include="Database\GameThread.cs" />
     <Compile Include="Database\Log.cs" />
     <Compile Include="Model\VnFilters\CustomFilter.cs" />

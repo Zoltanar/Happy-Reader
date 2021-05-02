@@ -48,7 +48,7 @@ namespace Happy_Reader.ViewModel
 			var recordedTime = new TimeSpan();
 			var approxVnTime = new TimeSpan();
 			var approxOverallTime = new TimeSpan();
-			foreach (var gameGroup in userGameData.SqliteUserGames.GroupBy(u => u.VNID))
+			foreach (var gameGroup in userGameData.UserGames.GroupBy(u => u.VNID))
 			{
 				if (gameGroup.Key == null || gameGroup.Count() == 1)
 				{
@@ -95,11 +95,11 @@ namespace Happy_Reader.ViewModel
 
 		private void SetUserDatabaseData(HappyReaderDatabase userGameData)
 		{
-			UserDatabaseSize = $"User Database Size: {GetFileSizeStringForDb(userGameData.SqliteConnection)}";
-			var cachedTranslations = userGameData.SqliteTranslations.Count();
-			var cachedTranslationsOld = userGameData.SqliteTranslations.Count(t => t.Timestamp < OldTranslationsTime);
+			UserDatabaseSize = $"User Database Size: {GetFileSizeStringForDb(userGameData.Connection)}";
+			var cachedTranslations = userGameData.Translations.Count();
+			var cachedTranslationsOld = userGameData.Translations.Count(t => t.Timestamp < OldTranslationsTime);
 			TranslationsData = $"Cached Translations: {cachedTranslations}, 2+ Months Old: {cachedTranslationsOld}";
-			var mostUsedTranslation = userGameData.SqliteTranslations.OrderByDescending(t => t.Count).FirstOrDefault();
+			var mostUsedTranslation = userGameData.Translations.OrderByDescending(t => t.Count).FirstOrDefault();
 			if (mostUsedTranslation != null) TranslationsData += $", Most Used: {mostUsedTranslation.Input}>{mostUsedTranslation.Output} ({mostUsedTranslation.Count} times)";
 		}
 
@@ -126,10 +126,12 @@ namespace Happy_Reader.ViewModel
 				var parts = s.Split('=');
 				if(parts.Length != 2) { }
 				return new[] {parts[0].ToLowerInvariant(), parts[1]};
-			});
+			}).ToList();
+			// ReSharper disable StringLiteralTypo
 			var sourcePart = parameters.FirstOrDefault(p => p[0].Equals("attachdbfilename")) ??
 			                 parameters.FirstOrDefault(p => p[0].Equals("datasource")) ??
 			                 parameters.FirstOrDefault(p => p[0].Equals("data source"));
+			// ReSharper restore StringLiteralTypo
 			var source = sourcePart?[1] ?? connection.DataSource;
 			return source;
 		}

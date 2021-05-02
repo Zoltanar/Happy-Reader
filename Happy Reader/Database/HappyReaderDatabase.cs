@@ -15,43 +15,36 @@ namespace Happy_Reader.Database
 {
 	public class HappyReaderDatabase
 	{
-		#region SQLite
-		public SQLiteConnection SqliteConnection { get; }
+		public SQLiteConnection Connection { get; }
+		public DACollection<string, GoogleTranslation> Translations { get; }
+		public DACollection<long, Log> Logs { get; }
+		public DACollection<(long, string), GameThread> GameThreads { get; }
+		public DACollection<long, UserGame> UserGames { get; }
+		public DACollection<long, Entry> Entries { get; }
 
-		public DACollection<string, GoogleTranslation> SqliteTranslations { get; private set; }
-		public DACollection<long, Log> SqliteLogs { get; private set; }
-		public DACollection<(long, string), GameThread> SqliteGameThreads { get; private set; }
-		public DACollection<long, UserGame> SqliteUserGames { get; private set; }
-		public DACollection<long, Entry> SqliteEntries { get; private set; }
-
-		public HappyReaderDatabase(string dbFile)
+		public HappyReaderDatabase(string dbFile, bool loadAllTables)
 		{
-			SqliteConnection = new SQLiteConnection($@"Data Source={dbFile}");
-			InitialiseSqliteDatabase(dbFile, true);
-		}
-
-		private void InitialiseSqliteDatabase(string dbFile, bool loadAllTables)
-		{
-			SqliteTranslations = new DACollection<string, GoogleTranslation>(SqliteConnection);
-			SqliteLogs = new DACollection<long, Log>(SqliteConnection);
-			SqliteGameThreads = new DACollection<(long, string), GameThread>(SqliteConnection);
-			SqliteUserGames = new DACollection<long, UserGame>(SqliteConnection);
-			SqliteEntries = new DACollection<long, Entry>(SqliteConnection);
-			if (!File.Exists(dbFile)) SeedSqlite();
+			Connection = new SQLiteConnection($@"Data Source={dbFile}");
+			Translations = new DACollection<string, GoogleTranslation>(Connection);
+			Logs = new DACollection<long, Log>(Connection);
+			GameThreads = new DACollection<(long, string), GameThread>(Connection);
+			UserGames = new DACollection<long, UserGame>(Connection);
+			Entries = new DACollection<long, Entry>(Connection);
+			if (!File.Exists(dbFile)) CreateDatabase();
 			if (!loadAllTables) return;
-			LoadAllSqliteTables();
+			LoadAllTables();
 		}
-
-		private void LoadAllSqliteTables()
+		
+		private void LoadAllTables()
 		{
-			SqliteConnection.Open();
+			Connection.Open();
 			try
 			{
-				SqliteTranslations.Load(false);
-				SqliteLogs.Load(false);
-				SqliteGameThreads.Load(false);
-				SqliteUserGames.Load(false);
-				SqliteEntries.Load(false);
+				Translations.Load(false);
+				Logs.Load(false);
+				GameThreads.Load(false);
+				UserGames.Load(false);
+				Entries.Load(false);
 			}
 			catch (Exception ex)
 			{
@@ -60,16 +53,16 @@ namespace Happy_Reader.Database
 			}
 			finally
 			{
-				SqliteConnection.Close();
+				Connection.Close();
 			}
 		}
 
-		private void SeedSqlite()
+		private void CreateDatabase()
 		{
-			SqliteConnection.Open();
+			Connection.Open();
 			try
 			{
-				DatabaseTableBuilder.ExecuteSql(SqliteConnection, $@"CREATE TABLE `{nameof(GoogleTranslation)}s` (
+				DatabaseTableBuilder.ExecuteSql(Connection, $@"CREATE TABLE `{nameof(GoogleTranslation)}s` (
 	`Input`	TEXT NOT NULL UNIQUE,
 	`Output`	TEXT,
 	`CreatedAt`	DATETIME,
@@ -77,7 +70,7 @@ namespace Happy_Reader.Database
 	`Count`	INTEGER,
 	PRIMARY KEY(`Input`)
 )");
-				DatabaseTableBuilder.ExecuteSql(SqliteConnection, $@"CREATE TABLE `{nameof(Log)}s` (
+				DatabaseTableBuilder.ExecuteSql(Connection, $@"CREATE TABLE `{nameof(Log)}s` (
 	`Id`	INTEGER NOT NULL UNIQUE,
 	`Kind`	INTEGER,
 	`AssociatedId`	INTEGER,
@@ -85,7 +78,7 @@ namespace Happy_Reader.Database
 	`Timestamp`	DATETIME,
 	PRIMARY KEY(`Id`)
 )");
-				DatabaseTableBuilder.ExecuteSql(SqliteConnection, $@"CREATE TABLE `{nameof(GameThread)}s` (
+				DatabaseTableBuilder.ExecuteSql(Connection, $@"CREATE TABLE `{nameof(GameThread)}s` (
 	`GameId`	INTEGER NOT NULL,
 	`Identifier`	TEXT NOT NULL,
 	`IsDisplay`	INTEGER,
@@ -95,7 +88,7 @@ namespace Happy_Reader.Database
 	`Label`	TEXT,
 	PRIMARY KEY(`GameId`, `Identifier`)
 )");
-				DatabaseTableBuilder.ExecuteSql(SqliteConnection, $@"CREATE TABLE `{nameof(UserGame)}s` (
+				DatabaseTableBuilder.ExecuteSql(Connection, $@"CREATE TABLE `{nameof(UserGame)}s` (
 	`Id`	INTEGER NOT NULL UNIQUE,
 	`UserDefinedName`	TEXT,
 	`LaunchPath`	TEXT,
@@ -112,7 +105,7 @@ namespace Happy_Reader.Database
 	`PrefEncodingEnum`	INTEGER,
 	PRIMARY KEY(`Id`)
 )");
-				DatabaseTableBuilder.ExecuteSql(SqliteConnection, $@"CREATE TABLE `{nameof(Entry)}s` (
+				DatabaseTableBuilder.ExecuteSql(Connection, $@"CREATE TABLE `{nameof(Entry)}s` (
 	`Id`	INTEGER NOT NULL UNIQUE,
 	`UserId`	INTEGER,
 	`Input`	TEXT,
@@ -135,33 +128,8 @@ namespace Happy_Reader.Database
 			}
 			finally
 			{
-				SqliteConnection.Close();
+				Connection.Close();
 			}
-		}
-		#endregion
-		
-		public IEnumerable<Entry> GetGameOnlyEntries(ListedVN game) => SqliteEntries.Where(x => x.GameId == game.VNID);
-
-		public IEnumerable<Entry> GetSeriesOnlyEntries(ListedVN game)
-		{
-			var series = StaticHelpers.LocalDatabase.VisualNovels.Where(i => i.Series == game.Series).Select(i => i.VNID).ToArray();
-			return SqliteEntries.Where(i => i.GameId != null && series.Contains(i.GameId.Value));
-		}
-
-		public int SaveChanges()
-		{
-			var exceptions = new List<Exception>();
-			int totalResult = 0;
-			totalResult += WrapInExceptionList(exceptions, () => SqliteTranslations.SaveChanges());
-			totalResult += WrapInExceptionList(exceptions, () => SqliteLogs.SaveChanges());
-			totalResult += WrapInExceptionList(exceptions, () => SqliteGameThreads.SaveChanges());
-			totalResult += WrapInExceptionList(exceptions, () => SqliteUserGames.SaveChanges());
-			totalResult += WrapInExceptionList(exceptions, () => SqliteEntries.SaveChanges());
-			var caller = new StackFrame(1).GetMethod();
-			var callerName = $"{caller.DeclaringType?.Name}.{caller.Name}";
-			StaticHelpers.Logger.ToDebug($"{DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.{nameof(SaveChanges)} called by {callerName} - returned {totalResult}");
-			if (exceptions.Any()) throw new AggregateException(exceptions);
-			return totalResult;
 		}
 
 		private static T WrapInExceptionList<T>(ICollection<Exception> exceptionsCollection, Func<T> action)
@@ -176,20 +144,44 @@ namespace Happy_Reader.Database
 			}
 			return default;
 		}
-		
+
+		public IEnumerable<Entry> GetGameOnlyEntries(ListedVN game) => Entries.Where(x => x.GameId == game.VNID);
+
+		public IEnumerable<Entry> GetSeriesOnlyEntries(ListedVN game)
+		{
+			var series = StaticHelpers.LocalDatabase.VisualNovels.Where(i => i.Series == game.Series).Select(i => i.VNID).ToArray();
+			return Entries.Where(i => i.GameId != null && series.Contains(i.GameId.Value));
+		}
+
+		public int SaveChanges()
+		{
+			var exceptions = new List<Exception>();
+			int totalResult = 0;
+			totalResult += WrapInExceptionList(exceptions, () => Translations.SaveChanges());
+			totalResult += WrapInExceptionList(exceptions, () => Logs.SaveChanges());
+			totalResult += WrapInExceptionList(exceptions, () => GameThreads.SaveChanges());
+			totalResult += WrapInExceptionList(exceptions, () => UserGames.SaveChanges());
+			totalResult += WrapInExceptionList(exceptions, () => Entries.SaveChanges());
+			var caller = new StackFrame(1).GetMethod();
+			var callerName = $"{caller.DeclaringType?.Name}.{caller.Name}";
+			StaticHelpers.Logger.ToDebug($"{DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.{nameof(SaveChanges)} called by {callerName} - returned {totalResult}");
+			if (exceptions.Any()) throw new AggregateException(exceptions);
+			return totalResult;
+		}
+
 		public void DeleteCachedTranslationsOlderThan(DateTime dateTime)
 		{
 			var sql = $"DELETE FROM {nameof(GoogleTranslation)}s WHERE Timestamp < @Timestamp";
-			SqliteConnection.Open();
+			Connection.Open();
 			try
 			{
-				var cmd = SqliteConnection.CreateCommand();
+				var cmd = Connection.CreateCommand();
 				cmd.CommandText = sql;
 				cmd.AddParameter("@Timestamp", dateTime);
 				var result = cmd.ExecuteNonQuery();
 				StaticHelpers.Logger.ToFile($"Deleted Cached Translations older than {dateTime}: {result} records.");
 				if (result == 0) return;
-				SqliteTranslations.Load(false);
+				Translations.Load(false);
 			}
 			catch (Exception ex)
 			{
@@ -197,7 +189,7 @@ namespace Happy_Reader.Database
 			}
 			finally
 			{
-				SqliteConnection.Close();
+				Connection.Close();
 			}
 		}
 		
@@ -207,15 +199,15 @@ namespace Happy_Reader.Database
 		public void AddEntries(ICollection<Entry> entries)
 		{
 			if (entries.Count == 0) return;
-			SqliteConnection.Open();
+			Connection.Open();
 			DbTransaction transaction = null;
 			try
 			{
-				transaction = SqliteConnection.BeginTransaction();
+				transaction = Connection.BeginTransaction();
 				foreach (var entry in entries)
 				{
-					if (entry.Id == 0) entry.Id = SqliteEntries.HighestKey + 1;
-					SqliteEntries.Upsert(entry, false, false, transaction);
+					if (entry.Id == 0) entry.Id = Entries.HighestKey + 1;
+					Entries.Upsert(entry, false, false, transaction);
 				}
 
 				transaction.Commit();
@@ -227,34 +219,8 @@ namespace Happy_Reader.Database
 			}
 			finally
 			{
-				SqliteConnection.Close();
+				Connection.Close();
 			}
 		}
-	}
-
-	public enum EntryType
-	{
-		// ReSharper disable All
-		Proxy = -40,
-		Macro = -30,
-		OCR = -20,
-		TTS = -10,
-		//stage zero
-		Game = 0,
-		//stage 1
-		Input = 10,
-		PreRomaji = 12,
-		PostRomaji = 15,
-		Yomi = 20,
-		//stage 2
-		Translation = 30,
-		Trans = 30,
-		Name = 40,
-		ProxyMod = 41,
-		Prefix = 45,
-		Suffix = 46,
-		//stage 3
-		Output = 50,
-		// ReSharper restore All
 	}
 }

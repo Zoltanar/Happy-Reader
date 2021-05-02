@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
@@ -23,35 +22,233 @@ using static Happy_Apps_Core.StaticHelpers;
 namespace Happy_Reader.Database
 {
 	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
-	public class UserGame : INotifyPropertyChanged, IDataItem<long>, IReadyToUpsert
+	public sealed class UserGame : INotifyPropertyChanged, IDataItem<long>, IReadyToUpsert
 	{
+		public enum HookMode
+		{
+			None = 0,
+			VnrHook = 1,
+			VnrAgent = 2
+		}
+
+		public enum ProcessStatus
+		{
+			Off = 0,
+			Paused = 1,
+			On = 2
+		}
+
 		public static readonly SortedList<DateTime, long> LastGamesPlayed = new();
-		public static Encoding[] Encodings => IthVnrSharpLib.IthVnrViewModel.Encodings;
-		public static HookMode[] HookModes { get; } = (HookMode[])Enum.GetValues(typeof(HookMode));
-
-		public event PropertyChangedEventHandler PropertyChanged;
-
-		private Stopwatch _runningTime;
-		private Process _process;
-		private ListedVN _vn;
-		private bool _vnGot;
-		private NativeMethods.RECT? _locationOnMoveStart;
-		private WinAPI.WindowHook _windowHook;
-		private BitmapImage _image;
-		private bool _mergeByHookCode;
 		private HookMode _hookProcess;
+		private BitmapImage _image;
+		private NativeMethods.RECT? _locationOnMoveStart;
+		private bool _mergeByHookCode;
 		private EncodingEnum _prefEncodingEnum;
+		private Process _process;
 		private bool _removeRepetition;
 
-		public string KeyField { get; } = nameof(Id);
+		private Stopwatch _runningTime;
+		private ListedVN _vn;
+		private bool _vnGot;
+		private WinAPI.WindowHook _windowHook;
+
+		public UserGame(string file, ListedVN vn)
+		{
+			FilePath = file;
+			VNID = vn?.VNID;
+			VN = vn;
+			if (VN != null) VN.IsOwned = FileExists ? OwnedStatus.CurrentlyOwned : OwnedStatus.PastOwned;
+		}
+
+		public UserGame()
+		{
+		}
+
+		public static Encoding[] Encodings => IthVnrSharpLib.IthVnrViewModel.Encodings;
+		public static HookMode[] HookModes { get; } = (HookMode[]) Enum.GetValues(typeof(HookMode));
+		public long Id { get; set; }
+		public string UserDefinedName { get; private set; }
+		public string LaunchPath { get; private set; }
+		public HookMode HookProcess
+		{
+			get => _hookProcess;
+			set
+			{
+				if (_hookProcess == value) return;
+				_hookProcess = value;
+				if (Loaded) ReadyToUpsert = true;
+			}
+		}
+		public int? VNID { get; private set; }
+		public string FilePath { get; private set; }
+		public string HookCode { get; private set; }
+		public bool MergeByHookCode
+		{
+			get => _mergeByHookCode;
+			set
+			{
+				if (_mergeByHookCode == value) return;
+				_mergeByHookCode = value;
+				if (Loaded) ReadyToUpsert = true;
+			}
+		}
+		public string ProcessName { get; set; }
+		public string Tag { get; private set; }
+		public bool RemoveRepetition
+		{
+			get => _removeRepetition;
+			set
+			{
+				if (_removeRepetition == value) return;
+				_removeRepetition = value;
+				if (Loaded) ReadyToUpsert = true;
+			}
+		}
+		/// <summary>
+		/// Store output window location and dimensions as a string in the 'form x,y,width,height' 
+		/// </summary>
+		private string OutputWindow { get; set; }
+		// ReSharper disable once InconsistentNaming
+		private DateTime TimeOpenDT { get; set; }
+		private EncodingEnum PrefEncodingEnum
+		{
+			get => _prefEncodingEnum;
+			set
+			{
+				if (_prefEncodingEnum == value) return;
+				_prefEncodingEnum = value;
+				if (Loaded) ReadyToUpsert = true;
+			}
+		}
+		public bool HasVN => VNID.HasValue;
+		public bool FileExists => File.Exists(FilePath);
+		public bool IsHooked => Process != null && HookProcess != HookMode.None;
+		public Rectangle OutputRectangle
+		{
+			get
+			{
+				if (string.IsNullOrEmpty(OutputWindow)) return StaticMethods.OutputWindowStartPosition;
+				List<int> parts = OutputWindow.Split(',').Select(int.Parse).ToList();
+				return new Rectangle(parts[0], parts[1], parts[2], parts[3]);
+			}
+			set => OutputWindow = string.Join(",", value.X, value.Y, value.Width, value.Height);
+		}
+		public TimeSpan TimeOpen
+		{
+			get => TimeSpan.FromTicks(TimeOpenDT.Ticks + (_runningTime?.ElapsedTicks ?? 0));
+			set => TimeOpenDT = new DateTime(value.Ticks);
+		}
+		public ListedVN VN
+		{
+			get
+			{
+				if (Id == 0) return _vn;
+				if (!_vnGot)
+				{
+					if (LocalDatabase == null) return null;
+					if (VNID != null) _vn = LocalDatabase.VisualNovels[VNID.Value];
+					_vnGot = true;
+				}
+
+				return _vn;
+			}
+			set
+			{
+				_vn = value;
+				_vnGot = true;
+			}
+		}
+		public Process Process
+		{
+			get => _process;
+			set
+			{
+				if (value == null) _process?.Dispose();
+				_process = value;
+				OnPropertyChanged(nameof(TimeOpen));
+				OnPropertyChanged(nameof(RunningStatus));
+				if (value == null) return;
+				Log.NewStartedPlayingLog(Id, DateTime.Now);
+				_runningTime = Stopwatch.StartNew();
+				_process.Exited += ProcessExited;
+				_process.EnableRaisingEvents = true;
+			}
+		}
+		public string DisplayName => !string.IsNullOrWhiteSpace(UserDefinedName)
+			? UserDefinedName
+			: StaticMethods.TruncateStringFunction30(VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath));
+		public BitmapImage Image
+		{
+			get
+			{
+				Bitmap image;
+				if (!File.Exists(FilePath))
+				{
+					// ReSharper disable once PossibleNullReferenceException
+					return Theme.FileNotFoundImage;
+				}
+
+				if ((VN?.ImageNSFW ?? false) && !StaticMethods.ShowNSFWImages()) return Theme.NsfwImage;
+				if (_image != null) return _image;
+				// ReSharper disable once PossibleNullReferenceException
+				if (VN?.ImageSource == null)
+				{
+					if (!IconImageExists(out var iconPath)) return Theme.ImageNotFoundImage;
+					image = new Bitmap(iconPath);
+				}
+				else image = new Bitmap(VN.ImageSource);
+
+				using var memory = new MemoryStream();
+				image.Save(memory, ImageFormat.Bmp);
+				memory.Position = 0;
+				_image = new BitmapImage();
+				_image.BeginInit();
+				_image.StreamSource = memory;
+				_image.CacheOption = BitmapCacheOption.OnLoad;
+				_image.EndInit();
+				return _image;
+			}
+		}
+		public Encoding PrefEncoding
+		{
+			get => Encodings[(int) PrefEncodingEnum];
+			set
+			{
+				var index = Array.IndexOf(Encodings, value);
+				PrefEncodingEnum = (EncodingEnum) index;
+			}
+		}
+		public string DisplayNameGroup => DisplayName.Substring(0, Math.Min(DisplayName.Length, 1));
+		public string TagSort => string.IsNullOrWhiteSpace(Tag) ? char.MaxValue.ToString() : Tag;
+		public DateTime LastPlayedDate
+		{
+			[UsedImplicitly]
+			get
+			{
+				return LastGamesPlayed.ContainsValue(Id) ? LastGamesPlayed.First(x => x.Value == Id).Key : DateTime.MinValue;
+			}
+		}
+		public ProcessStatus RunningStatus
+		{
+			get
+			{
+				if (_process == null) return ProcessStatus.Off; //off = no process running
+				if (_runningTime != null && !_runningTime.IsRunning)
+					return ProcessStatus.Paused; //paused = process is running but timer is paused
+				return ProcessStatus.On; //on = process is running and timer is not paused
+			}
+		}
+		public NativeMethods.RECT WindowLocation { get; private set; }
+		public static Action<NativeMethods.RECT> MoveOutputWindow { get; set; }
+		public string KeyField => nameof(Id);
 		public long Key => Id;
 
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
 		{
 			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO {nameof(UserGame)}s" +
-									 "(Id, UserDefinedName, LaunchPath, HookProcess, VNID, FilePath, HookCode, MergeByHookCode, ProcessName, Tag, RemoveRepetition, OutputWindow, TimeOpenDT, PrefEncodingEnum) " +
-									 "VALUES " +
-									 "(@Id, @UserDefinedName, @LaunchPath, @HookProcess, @VNID, @FilePath, @HookCode, @MergeByHookCode, @ProcessName, @Tag, @RemoveRepetition, @OutputWindow, @TimeOpenDT, @PrefEncodingEnum)";
+			             "(Id, UserDefinedName, LaunchPath, HookProcess, VNID, FilePath, HookCode, MergeByHookCode, ProcessName, Tag, RemoveRepetition, OutputWindow, TimeOpenDT, PrefEncodingEnum) " +
+			             "VALUES " +
+			             "(@Id, @UserDefinedName, @LaunchPath, @HookProcess, @VNID, @FilePath, @HookCode, @MergeByHookCode, @ProcessName, @Tag, @RemoveRepetition, @OutputWindow, @TimeOpenDT, @PrefEncodingEnum)";
 			var command = connection.CreateCommand();
 			command.CommandText = sql;
 			command.AddParameter("@Id", Id);
@@ -76,7 +273,7 @@ namespace Happy_Reader.Database
 			Id = Convert.ToInt32(reader["Id"]);
 			UserDefinedName = Convert.ToString(reader["UserDefinedName"]);
 			LaunchPath = Convert.ToString(reader["LaunchPath"]);
-			HookProcess = (HookMode)Convert.ToInt32(reader["HookProcess"]);
+			HookProcess = (HookMode) Convert.ToInt32(reader["HookProcess"]);
 			VNID = GetNullableInt(reader["VNID"]);
 			FilePath = Convert.ToString(reader["FilePath"]);
 			HookCode = Convert.ToString(reader["HookCode"]);
@@ -86,198 +283,13 @@ namespace Happy_Reader.Database
 			RemoveRepetition = Convert.ToInt32(reader["RemoveRepetition"]) == 1;
 			OutputWindow = Convert.ToString(reader["OutputWindow"]);
 			TimeOpenDT = Convert.ToDateTime(reader["TimeOpenDT"]);
-			PrefEncodingEnum = (EncodingEnum)Convert.ToInt32(reader["PrefEncodingEnum"]);
+			PrefEncodingEnum = (EncodingEnum) Convert.ToInt32(reader["PrefEncodingEnum"]);
 			Loaded = true;
 		}
 
-		public UserGame(string file, ListedVN vn)
-		{
-			FilePath = file;
-			VNID = vn?.VNID;
-			VN = vn;
-			if (VN != null) VN.IsOwned = FileExists ? OwnedStatus.CurrentlyOwned : OwnedStatus.PastOwned;
-		}
-		public UserGame() { }
-		[NotMapped] public bool Loaded { get; protected set; }
-		[NotMapped] public bool ReadyToUpsert { get; set; }
-		[DatabaseGenerated(DatabaseGeneratedOption.None)]
-		public long Id { get; set; }
-		public string UserDefinedName { get; protected set; }
-		public string LaunchPath { get; protected set; }
-		public HookMode HookProcess
-		{
-			get => _hookProcess;
-			set
-			{
-				if (_hookProcess == value) return;
-				_hookProcess = value;
-				if (Loaded) ReadyToUpsert = true;
-			}
-		}
-		public int? VNID { get; protected set; }
-		public string FilePath { get; protected set; }
-		public string HookCode { get; protected set; }
-		public bool MergeByHookCode
-		{
-			get => _mergeByHookCode;
-			set
-			{
-				if (_mergeByHookCode == value) return;
-				_mergeByHookCode = value;
-				if (Loaded) ReadyToUpsert = true;
-			}
-		}
-		public string ProcessName { get; set; }
-		public string Tag { get; protected set; }
-		public bool RemoveRepetition
-		{
-			get => _removeRepetition;
-			set
-			{
-				if (_removeRepetition == value) return;
-				_removeRepetition = value;
-				if (Loaded) ReadyToUpsert = true;
-			}
-		}
-
-		/// <summary>
-		/// Store output window location and dimensions as a string in the 'form x,y,width,height' 
-		/// </summary>
-		public string OutputWindow { get; set; }
-		// ReSharper disable once InconsistentNaming
-		public DateTime TimeOpenDT { get; set; }
-		public EncodingEnum PrefEncodingEnum
-		{
-			get => _prefEncodingEnum;
-			set
-			{
-				if (_prefEncodingEnum == value) return;
-				_prefEncodingEnum = value;
-				if (Loaded) ReadyToUpsert = true;
-			}
-		}
-
-		public bool HasVN => VNID.HasValue;
-		public bool FileExists => File.Exists(FilePath);
-		public bool IsHooked => Process != null && HookProcess != HookMode.None;
-		[NotMapped] public Rectangle OutputRectangle
-		{
-			get
-			{
-				if (string.IsNullOrEmpty(OutputWindow)) return StaticMethods.OutputWindowStartPosition;
-				List<int> parts = OutputWindow.Split(',').Select(int.Parse).ToList();
-				return new Rectangle(parts[0], parts[1], parts[2], parts[3]);
-			}
-			set => OutputWindow = string.Join(",", value.X, value.Y, value.Width, value.Height);
-		}
-		[NotMapped] public TimeSpan TimeOpen
-		{
-			get => TimeSpan.FromTicks(TimeOpenDT.Ticks + (_runningTime?.ElapsedTicks ?? 0));
-			set => TimeOpenDT = new DateTime(value.Ticks);
-		}
-		[NotMapped] public ListedVN VN
-		{
-			get
-			{
-				if (Id == 0) return _vn;
-				if (!_vnGot)
-				{
-					if (LocalDatabase == null) return null;
-					if (VNID != null) _vn = LocalDatabase.VisualNovels[VNID.Value];
-					_vnGot = true;
-				}
-				return _vn;
-			}
-			set
-			{
-				_vn = value;
-				_vnGot = true;
-			}
-		}
-		[NotMapped] public Process Process
-		{
-			get => _process;
-			set
-			{
-				if (value == null) _process?.Dispose();
-				_process = value;
-				OnPropertyChanged(nameof(TimeOpen));
-				OnPropertyChanged(nameof(RunningStatus));
-				if (value == null) return;
-				Log.NewStartedPlayingLog(Id, DateTime.Now);
-				_runningTime = Stopwatch.StartNew();
-				_process.Exited += ProcessExited;
-				_process.EnableRaisingEvents = true;
-			}
-		}
-		[NotMapped] public string DisplayName => !string.IsNullOrWhiteSpace(UserDefinedName) ? UserDefinedName : StaticMethods.TruncateStringFunction30(VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath));
-		[NotMapped] public BitmapImage Image
-		{
-			get
-			{
-				Bitmap image;
-				if (!File.Exists(FilePath))
-				{
-					// ReSharper disable once PossibleNullReferenceException
-					return Theme.FileNotFoundImage;
-				}
-				if ((VN?.ImageNSFW ?? false) && !StaticMethods.ShowNSFWImages()) return Theme.NsfwImage;
-				if (_image != null) return _image;
-				// ReSharper disable once PossibleNullReferenceException
-				if (VN?.ImageSource == null)
-				{
-					if (!IconImageExists(out var iconPath)) return Theme.ImageNotFoundImage;
-					image = new Bitmap(iconPath);
-				}
-				else image = new Bitmap(VN.ImageSource);
-				using var memory = new MemoryStream();
-				image.Save(memory, ImageFormat.Bmp);
-				memory.Position = 0;
-				_image = new BitmapImage();
-				_image.BeginInit();
-				_image.StreamSource = memory;
-				_image.CacheOption = BitmapCacheOption.OnLoad;
-				_image.EndInit();
-				return _image;
-			}
-		}
-
-		[NotMapped] public Encoding PrefEncoding
-		{
-			get => Encodings[(int)PrefEncodingEnum];
-			set
-			{
-				var index = Array.IndexOf(Encodings, value);
-				PrefEncodingEnum = (EncodingEnum)index;
-			}
-		}
-
-		[NotMapped] public string DisplayNameGroup => DisplayName.Substring(0, Math.Min(DisplayName.Length, 1));
-
-		[NotMapped] public string TagSort => string.IsNullOrWhiteSpace(Tag) ? char.MaxValue.ToString() : Tag;
-
-		[NotMapped] public DateTime LastPlayedDate
-		{
-			[UsedImplicitly]
-			get
-			{
-				return LastGamesPlayed.ContainsValue(Id) ? LastGamesPlayed.First(x => x.Value == Id).Key : DateTime.MinValue;
-			}
-		}
-
-		[NotMapped] public ProcessStatus RunningStatus
-		{
-			get
-			{
-				if (_process == null) return ProcessStatus.Off; //off = no process running
-				if (_runningTime != null && !_runningTime.IsRunning) return ProcessStatus.Paused; //paused = process is running but timer is paused
-				return ProcessStatus.On; //on = process is running and timer is not paused
-			}
-		}
-
-		[NotMapped] public NativeMethods.RECT WindowLocation { get; set; }
-
-		[NotMapped] public static Action<NativeMethods.RECT> MoveOutputWindow { get; set; }
+		public event PropertyChangedEventHandler PropertyChanged;
+		public bool Loaded { get; private set; }
+		public bool ReadyToUpsert { get; set; }
 
 		private bool IconImageExists(out string iconPath)
 		{
@@ -304,14 +316,14 @@ namespace Happy_Reader.Database
 			TimeOpen += timeToAdd;
 			Process = null;
 			var log = Log.NewTimePlayedLog(Id, timeToAdd, notify);
-			StaticMethods.Data.SqliteLogs.Add(log, true, true);
+			StaticMethods.Data.Logs.Add(log, true, true);
 		}
 
 		public void MergeTimePlayed(TimeSpan mergedTimePlayed)
 		{
 			TimeOpen += mergedTimePlayed;
 			var log = Log.NewMergedTimePlayedLog(Id, mergedTimePlayed, false);
-			StaticMethods.Data.SqliteLogs.Add(log, true, true);
+			StaticMethods.Data.Logs.Add(log, true, true);
 			OnPropertyChanged(nameof(TimeOpen));
 		}
 
@@ -319,7 +331,7 @@ namespace Happy_Reader.Database
 		{
 			TimeOpen = new TimeSpan();
 			var log = Log.NewResetTimePlayedLog(Id, false);
-			StaticMethods.Data.SqliteLogs.Add(log, true, true);
+			StaticMethods.Data.Logs.Add(log, true, true);
 			OnPropertyChanged(nameof(TimeOpen));
 		}
 
@@ -331,26 +343,27 @@ namespace Happy_Reader.Database
 		}
 
 		[NotifyPropertyChangedInvocator]
-		public void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		public void OnPropertyChanged([CallerMemberName] string propertyName = null) =>
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
 		public void SaveUserDefinedName([NotNull] string text)
 		{
 			UserDefinedName = string.IsNullOrWhiteSpace(text) ? null : text.Trim();
-			StaticMethods.Data.SqliteUserGames.Upsert(this, true);
+			StaticMethods.Data.UserGames.Upsert(this, true);
 			OnPropertyChanged(nameof(DisplayName));
 		}
 
 		public void SaveTag([NotNull] string text)
 		{
 			Tag = string.IsNullOrWhiteSpace(text) ? null : text.Trim();
-			StaticMethods.Data.SqliteUserGames.Upsert(this, true);
+			StaticMethods.Data.UserGames.Upsert(this, true);
 			OnPropertyChanged(nameof(Tag));
 		}
 
 		public bool SaveVNID(int? vnid)
 		{
 			VNID = vnid;
-			StaticMethods.Data.SqliteUserGames.Upsert(this, true);
+			StaticMethods.Data.UserGames.Upsert(this, true);
 			VN = vnid == null ? null : LocalDatabase.VisualNovels[vnid.Value];
 			if (VN != null) VN.IsOwned = FileExists ? OwnedStatus.CurrentlyOwned : OwnedStatus.PastOwned;
 			OnPropertyChanged(nameof(DisplayName));
@@ -362,7 +375,7 @@ namespace Happy_Reader.Database
 		public void SaveHookCode(string hookCode)
 		{
 			HookCode = string.IsNullOrWhiteSpace(hookCode) ? null : hookCode.Trim();
-			StaticMethods.Data.SqliteUserGames.Upsert(this, true);
+			StaticMethods.Data.UserGames.Upsert(this, true);
 			OnPropertyChanged(nameof(HookCode));
 		}
 
@@ -370,7 +383,7 @@ namespace Happy_Reader.Database
 		{
 			FilePath = newFilePath;
 			SaveIconImage();
-			StaticMethods.Data.SqliteUserGames.Upsert(this, true);
+			StaticMethods.Data.UserGames.Upsert(this, true);
 			OnPropertyChanged(nameof(FilePath));
 			OnPropertyChanged(nameof(FileExists));
 			OnPropertyChanged(nameof(Image));
@@ -383,7 +396,9 @@ namespace Happy_Reader.Database
 			OnPropertyChanged(nameof(LaunchPath));
 		}
 
-		public override string ToString() => !string.IsNullOrWhiteSpace(UserDefinedName) ? UserDefinedName : VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath);
+		public override string ToString() => !string.IsNullOrWhiteSpace(UserDefinedName)
+			? UserDefinedName
+			: VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath);
 
 		public void SetActiveProcess(Process process, EventHandler hookedProcessOnExited)
 		{
@@ -462,6 +477,7 @@ namespace Happy_Reader.Database
 				proxyPath = LaunchPath.Substring(0, firstSpace);
 				args = LaunchPath.Substring(firstSpace + 1).Trim();
 			}
+
 			return StartProcess(proxyPath, args, true);
 		}
 
@@ -470,8 +486,9 @@ namespace Happy_Reader.Database
 			var processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(FilePath));
 			var existing = processes.FirstOrDefault();
 			if (existing != null) return existing;
-			string exeParentFolder = Path.GetDirectoryName(filePath);
-			if (exeParentFolder == null) throw new ArgumentNullException(nameof(exeParentFolder), "Parent folder of exe was not found.");
+			var exeParentFolder = Path.GetDirectoryName(filePath);
+			if (exeParentFolder == null)
+				throw new ArgumentNullException(nameof(exeParentFolder), "Parent folder of exe was not found.");
 			var pi = new ProcessStartInfo
 			{
 				FileName = filePath,
@@ -486,30 +503,21 @@ namespace Happy_Reader.Database
 				processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(FilePath));
 				return processes.FirstOrDefault();
 			}
+
 			Debug.Assert(processStarted != null, nameof(processStarted) + " != null");
 			if (!processStarted.HasExited) processStarted.WaitForInputIdle(3000);
 			return processStarted;
 		}
 
-		public enum EncodingEnum
+		private enum EncodingEnum
 		{
-			// ReSharper disable once InconsistentNaming
-			ShiftJis, UTF8, Unicode
-		}
-
-		public enum ProcessStatus
-		{
-			Off = 0,
-			Paused = 1,
-			On = 2
-		}
-
-		public enum HookMode
-		{
-			None = 0,
-			VnrHook = 1,
-			VnrAgent = 2
+			// ReSharper disable InconsistentNaming
+			// ReSharper disable UnusedMember.Local
+			ShiftJis,
+			UTF8,
+			Unicode
+			// ReSharper restore UnusedMember.Local
+			// ReSharper restore InconsistentNaming
 		}
 	}
-
 }

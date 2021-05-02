@@ -158,9 +158,7 @@ namespace Happy_Apps_Core
 				return null;
 			}
 		}
-
-		//public static DateTime StringToDate()
-
+		
 		/// <summary>
 		/// Convert a string containing a date (in the format YYYY-MM-DD) to a DateTime.
 		/// </summary>

@@ -6,12 +6,14 @@ using Happy_Apps_Core;
 using Newtonsoft.Json;
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedAutoPropertyAccessor.Global
+// ReSharper disable InconsistentNaming
 
 namespace Happy_Reader
 {
 	public static class Jisho
 	{
-		private static readonly HttpClient HttpClient = new HttpClient();
+		private static readonly HttpClient HttpClient = new();
 		private const string ApiUrl = @"http://jisho.org/api/v1/search/words?keyword=";
 		
 		public static async Task<JishoResponse> Search(string searchString)

@@ -84,7 +84,7 @@ namespace Happy_Reader.View
 			Debug.Assert(Dispatcher != null, nameof(Dispatcher) + " != null");
 			await Dispatcher.InvokeAsync(() =>
 			{
-				mergeGames = StaticMethods.Data.SqliteUserGames.Where(g => g.Id != UserGame.Id).Select(g => new MergeGame(g)).OrderBy(g => g.Name).ToArray();
+				mergeGames = StaticMethods.Data.UserGames.Where(g => g.Id != UserGame.Id).Select(g => new MergeGame(g)).OrderBy(g => g.Name).ToArray();
 			}, DispatcherPriority.Background);
 			MergeGames = mergeGames;
 			// ReSharper disable once PossibleNullReferenceException

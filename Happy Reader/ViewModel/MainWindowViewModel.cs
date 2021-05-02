@@ -119,7 +119,7 @@ namespace Happy_Reader.ViewModel
 		public MainWindowViewModel()
 		{
 			Application.Current.Exit += ExitProcedures;
-			StaticMethods.Data = new HappyReaderDatabase(StaticMethods.ReaderDatabaseFile);
+			StaticMethods.Data = new HappyReaderDatabase(StaticMethods.ReaderDatabaseFile, true);
 			SettingsViewModel = Happy_Apps_Core.SettingsJsonFile.Load<SettingsViewModel>(StaticMethods.AllSettingsJson);
 			StaticMethods.Settings = SettingsViewModel;
 			CSettings = SettingsViewModel.CoreSettings;
@@ -265,7 +265,7 @@ namespace Happy_Reader.ViewModel
 		{
 			var logs = new List<DisplayLog>();
 			var now = DateTime.UtcNow;
-			foreach (var group in StaticMethods.Data.SqliteLogs.GroupBy(i => (Date: i.GetGroupDate(now), i.Kind, i.AssociatedId)))
+			foreach (var group in StaticMethods.Data.Logs.GroupBy(i => (Date: i.GetGroupDate(now), i.Kind, i.AssociatedId)))
 			{
 				if (group.Key.Kind != LogKind.TimePlayed || group.Key.Date == DateTime.Now.Date)
 				{
@@ -288,11 +288,11 @@ namespace Happy_Reader.ViewModel
 
 		private void SetLastPlayed()
 		{
-			var lastPlayed = StaticMethods.Data.SqliteLogs.Where(x => x.Kind == LogKind.TimePlayed).OrderByDescending(x => x.Timestamp).GroupBy(z => z.AssociatedId).Select(x => x.First()).ToList();
+			var lastPlayed = StaticMethods.Data.Logs.Where(x => x.Kind == LogKind.TimePlayed).OrderByDescending(x => x.Timestamp).GroupBy(z => z.AssociatedId).Select(x => x.First()).ToList();
 			UserGame.LastGamesPlayed.Clear();
 			foreach (var log in lastPlayed)
 			{
-				var userGame = StaticMethods.Data.SqliteUserGames.FirstOrDefault(x => x.Id == log.AssociatedId);
+				var userGame = StaticMethods.Data.UserGames.FirstOrDefault(x => x.Id == log.AssociatedId);
 				if (userGame != null) UserGame.LastGamesPlayed.Add(log.Timestamp, log.AssociatedId);
 			}
 		}
@@ -318,7 +318,7 @@ namespace Happy_Reader.ViewModel
 					var i = item["input"].ToString();
 					var o = item["output"].ToString();
 					// ReSharper restore PossibleNullReferenceException
-					var proxy = StaticMethods.Data.SqliteEntries.FirstOrDefault(x =>
+					var proxy = StaticMethods.Data.Entries.FirstOrDefault(x =>
 						x.Type == EntryType.Proxy && x.RoleString.Equals(r) && x.Input.Equals(i));
 					if (proxy != null) continue;
 					newProxies.Add(new Entry {Type = EntryType.Proxy, RoleString = r, Input = i, Output = o});
@@ -364,13 +364,13 @@ namespace Happy_Reader.ViewModel
 			var processes = Process.GetProcesses();
 			try
 			{
-				var userGameProcesses = StaticMethods.Data.SqliteUserGames.Select(x => x.ProcessName).ToArray();
+				var userGameProcesses = StaticMethods.Data.UserGames.Select(x => x.ProcessName).ToArray();
 				var gameProcess = processes.FirstOrDefault(p => userGameProcesses.Contains(p.ProcessName));
 				try
 				{
 					if (gameProcess == null || gameProcess.HasExited) return false;
 					var processFileName = StaticMethods.GetProcessFileName(gameProcess);
-					var possibleUserGames = StaticMethods.Data.SqliteUserGames.Where(x => x.ProcessName == gameProcess.ProcessName);
+					var possibleUserGames = StaticMethods.Data.UserGames.Where(x => x.ProcessName == gameProcess.ProcessName);
 					foreach (var userGame in possibleUserGames)
 					{
 						if (_closing) return true;
@@ -480,7 +480,7 @@ namespace Happy_Reader.ViewModel
 					if (UserGame.ProcessName == null)
 					{
 						UserGame.ProcessName = process.ProcessName;
-						StaticMethods.Data.SqliteUserGames.Upsert(UserGame, true);
+						StaticMethods.Data.UserGames.Upsert(UserGame, true);
 					}
 					UserGame.SetActiveProcess(process, HookedProcessOnExited);
 					TestViewModel.Game = UserGame.VN;
@@ -527,7 +527,7 @@ namespace Happy_Reader.ViewModel
 		{
 			IthViewModel.MergeByHookCode = UserGame.MergeByHookCode;
 			IthViewModel.PrefEncoding = UserGame.PrefEncoding;
-			IthViewModel.GameTextThreads = StaticMethods.Data.SqliteGameThreads.Where(t => t.Item.GameId == UserGame.Id).Select(t=>t.Item).ToArray();
+			IthViewModel.GameTextThreads = StaticMethods.Data.GameThreads.Where(t => t.Item.GameId == UserGame.Id).Select(t=>t.Item).ToArray();
 			if (UserGame.HookProcess == UserGame.HookMode.VnrAgent)
 			{
 				if(!IthViewModel.EmbedHost.Initialized) IthViewModel.EmbedHost.Initialize();
@@ -552,7 +552,7 @@ namespace Happy_Reader.ViewModel
 							outputRectangle.Size);
 					UserGame.OutputRectangle = newRect;
 				});
-				StaticMethods.Data.SqliteUserGames.Upsert(UserGame, true);
+				StaticMethods.Data.UserGames.Upsert(UserGame, true);
 			}
 			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			Application.Current.Dispatcher.Invoke(() => OutputWindow.Hide());

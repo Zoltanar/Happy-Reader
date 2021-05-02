@@ -131,7 +131,7 @@
     <Compile Include="Database\User.cs" />
     <Compile Include="Database\UserListedProducer.cs" />
     <Compile Include="Database\UserVN.cs" />
-    <Compile Include="Database\VNDBContext.cs" />
+    <Compile Include="Database\VisualNovelDatabase.cs" />
     <Compile Include="Database\VNLanguages.cs" />
     <Compile Include="DumpFiles.cs" />
     <Compile Include="Database\ListedVN.cs" />

@@ -15,46 +15,31 @@ namespace Happy_Reader.Database
 {
 	public class Log : ICloneable, IDataItem<long>
 	{
-		private object _parsedData;
+		public delegate void LogNotificationEventHandler(Log log);
+
 		private List<Inline> _inlines;
+		private object _parsedData;
 
-		public string KeyField { get; } = nameof(Id);
-		public long Key => Id;
-		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
+		public Log()
 		{
-			if (!insertOnly || Id != 0) throw new InvalidOperationException("Logs should not be modified.");
-			string sql = $"INSERT INTO {nameof(Log)}s" +
-			             "(Id, Kind, AssociatedId, Data, Timestamp) VALUES " +
-									 "(@Id, @Kind, @AssociatedId, @Data, @Timestamp)";
-			var command = connection.CreateCommand();
-			command.CommandText = sql;
-			//Id is auto populated, so we pass null.
-			command.AddParameter("@Id", null);
-			command.AddParameter("@Kind", Kind);
-			command.AddParameter("@AssociatedId", AssociatedId);
-			command.AddParameter("@Data", Data);
-			command.AddParameter("@Timestamp", Timestamp);
-			return command;
 		}
 
-		public void LoadFromReader(IDataRecord reader)
+		private Log(LogKind kind, long associatedId, string serializedData, object data)
 		{
-			Id = Convert.ToInt32(reader["Id"]);
-			Kind = (LogKind)Convert.ToInt32(reader["Kind"]);
-			AssociatedId = Convert.ToInt32(reader["AssociatedId"]);
-			Data = Convert.ToString(reader["Data"]);
-			Timestamp = Convert.ToDateTime(reader["Timestamp"]);
+			Timestamp = DateTime.UtcNow;
+			Kind = kind;
+			AssociatedId = associatedId;
+			Data = serializedData;
+			ParsedData = data;
 		}
-		public Log() { }
 
 		public long Id { get; set; }
-		public LogKind Kind { get; set; }
-		public long AssociatedId { get; set; }
-		public string Data { get; set; }
+		public LogKind Kind { get; private set; }
+		public long AssociatedId { get; private set; }
+		private string Data { get; set; }
 		public DateTime Timestamp { get; set; }
 
-		[NotMapped]
-		public List<Inline> Description => _inlines ??= GetInlines();
+		[NotMapped] public List<Inline> Description => _inlines ??= GetInlines();
 
 		[NotMapped]
 		public object ParsedData
@@ -77,26 +62,75 @@ namespace Happy_Reader.Database
 						_parsedData = Data;
 						break;
 				}
+
 				return _parsedData;
 			}
 			set => _parsedData = value;
 		}
 
-		public delegate void LogNotificationEventHandler(Log log);
+		public bool AssociatedIdExists
+		{
+			get
+			{
+				switch (Kind)
+				{
+					case LogKind.TimePlayed:
+					case LogKind.StartedPlaying:
+					case LogKind.MergeTimePlayed:
+					case LogKind.ResetTimePlayed:
+						return StaticMethods.Data.UserGames[AssociatedId] != null;
+					default:
+						return true;
+				}
+			}
+		}
+
+		public object Clone()
+		{
+			var newLog = new Log
+			{
+				ParsedData = this.ParsedData,
+				AssociatedId = this.AssociatedId,
+				Data = this.Data,
+				Kind = this.Kind,
+				Timestamp = this.Timestamp
+			};
+			return newLog;
+		}
+
+		public string KeyField { get; } = nameof(Id);
+		public long Key => Id;
+
+		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
+		{
+			if (!insertOnly || Id != 0) throw new InvalidOperationException("Logs should not be modified.");
+			string sql = $"INSERT INTO {nameof(Log)}s" +
+			             "(Id, Kind, AssociatedId, Data, Timestamp) VALUES " +
+			             "(@Id, @Kind, @AssociatedId, @Data, @Timestamp)";
+			var command = connection.CreateCommand();
+			command.CommandText = sql;
+			//Id is auto populated, so we pass null.
+			command.AddParameter("@Id", null);
+			command.AddParameter("@Kind", Kind);
+			command.AddParameter("@AssociatedId", AssociatedId);
+			command.AddParameter("@Data", Data);
+			command.AddParameter("@Timestamp", Timestamp);
+			return command;
+		}
+
+		public void LoadFromReader(IDataRecord reader)
+		{
+			Id = Convert.ToInt32(reader["Id"]);
+			Kind = (LogKind) Convert.ToInt32(reader["Kind"]);
+			AssociatedId = Convert.ToInt32(reader["AssociatedId"]);
+			Data = Convert.ToString(reader["Data"]);
+			Timestamp = Convert.ToDateTime(reader["Timestamp"]);
+		}
 
 		public static event LogNotificationEventHandler NotificationEvent;
 		public static event Action<Log> AddToList;
 
-		private Log(LogKind kind, long associatedId, string serializedData, object data)
-		{
-			Timestamp = DateTime.UtcNow;
-			Kind = kind;
-			AssociatedId = associatedId;
-			Data = serializedData;
-			ParsedData = data;
-		}
-
-		public void Notify()
+		private void Notify()
 		{
 			NotificationEvent?.Invoke(this);
 		}
@@ -141,55 +175,43 @@ namespace Happy_Reader.Database
 			switch (Kind)
 			{
 				case LogKind.TimePlayed:
-					var userGame1 = StaticMethods.Data.SqliteUserGames[AssociatedId];
+					var userGame1 = StaticMethods.Data.UserGames[AssociatedId];
 					inlines.Add(new Run("Played "));
-					inlines.Add(new Run(userGame1?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame") { Foreground = Brushes.Green });
-					inlines.Add(new Run($" for {((TimeSpan)ParsedData).ToHumanReadable()}."));
+					inlines.Add(new Run(userGame1?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame")
+						{Foreground = Brushes.Green});
+					inlines.Add(new Run($" for {((TimeSpan) ParsedData).ToHumanReadable()}."));
 					break;
 				case LogKind.StartedPlaying:
-					var userGame2 = StaticMethods.Data.SqliteUserGames[AssociatedId];
+					var userGame2 = StaticMethods.Data.UserGames[AssociatedId];
 					inlines.Add(new Run("Started playing "));
-					inlines.Add(new Run(userGame2?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame") { Foreground = Brushes.Green });
-					inlines.Add(new Run($" at {((DateTime)ParsedData):hh\\:mm}"));
+					inlines.Add(new Run(userGame2?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame")
+						{Foreground = Brushes.Green});
+					inlines.Add(new Run($" at {((DateTime) ParsedData):hh\\:mm}"));
 					break;
 				case LogKind.MergeTimePlayed:
-					var userGame3 = StaticMethods.Data.SqliteUserGames[AssociatedId];
+					var userGame3 = StaticMethods.Data.UserGames[AssociatedId];
 					inlines.Add(new Run("Merged time played to "));
-					inlines.Add(new Run(userGame3?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame") { Foreground = Brushes.Green });
-					inlines.Add(new Run($" for {((TimeSpan)ParsedData).ToHumanReadable()}."));
+					inlines.Add(new Run(userGame3?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame")
+						{Foreground = Brushes.Green});
+					inlines.Add(new Run($" for {((TimeSpan) ParsedData).ToHumanReadable()}."));
 					break;
 				case LogKind.ResetTimePlayed:
-					var userGame4 = StaticMethods.Data.SqliteUserGames[AssociatedId];
+					var userGame4 = StaticMethods.Data.UserGames[AssociatedId];
 					inlines.Add(new Run("Reset time played for "));
-					inlines.Add(new Run(userGame4?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame") { Foreground = Brushes.Green });
+					inlines.Add(new Run(userGame4?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame")
+						{Foreground = Brushes.Green});
 					break;
 				case LogKind.Simple:
 					inlines.Add(new Run(Data));
 					break;
 				default:
 					inlines.Add(new Run($"[{Kind}] Unknown Kind - "));
-					inlines.Add(new Run($"AssociatedId {AssociatedId}") { Foreground = Brushes.Green });
+					inlines.Add(new Run($"AssociatedId {AssociatedId}") {Foreground = Brushes.Green});
 					inlines.Add(new Run($" - Data {Data}"));
 					break;
 			}
-			return inlines;
-		}
 
-		public bool AssociatedIdExists
-		{
-			get
-			{
-				switch (Kind)
-				{
-					case LogKind.TimePlayed:
-					case LogKind.StartedPlaying:
-					case LogKind.MergeTimePlayed:
-					case LogKind.ResetTimePlayed:
-						return StaticMethods.Data.SqliteUserGames[AssociatedId] != null;
-					default:
-						return true;
-				}
-			}
+			return inlines;
 		}
 
 		public static Log NewSimpleLog(string message)
@@ -206,15 +228,15 @@ namespace Happy_Reader.Database
 			{
 				case LogKind.TimePlayed:
 					sb.Append($"Played {GetGameDisplayName()}");
-					sb.Append($" for {((TimeSpan)ParsedData).ToHumanReadable()}.");
+					sb.Append($" for {((TimeSpan) ParsedData).ToHumanReadable()}.");
 					break;
 				case LogKind.StartedPlaying:
 					sb.Append($"Started playing {GetGameDisplayName()}");
-					sb.Append($" at {((DateTime)ParsedData).GetLocalizedTime()}.");
+					sb.Append($" at {((DateTime) ParsedData).GetLocalizedTime()}.");
 					break;
 				case LogKind.MergeTimePlayed:
 					sb.Append($"Merged time played to {GetGameDisplayName()}");
-					sb.Append($" for {((TimeSpan)ParsedData).ToHumanReadable()}.");
+					sb.Append($" for {((TimeSpan) ParsedData).ToHumanReadable()}.");
 					break;
 				case LogKind.ResetTimePlayed:
 					sb.Append($"Reset Time Played for {GetGameDisplayName()}.");
@@ -228,26 +250,14 @@ namespace Happy_Reader.Database
 					sb.Append($" - Data {Data}");
 					break;
 			}
+
 			return sb.ToString();
 		}
 
 		private string GetGameDisplayName()
 		{
-			var userGame1 = StaticMethods.Data.SqliteUserGames[AssociatedId];
+			var userGame1 = StaticMethods.Data.UserGames[AssociatedId];
 			return userGame1?.DisplayName ?? $"[{AssociatedId}] Unknown UserGame";
-		}
-
-		public object Clone()
-		{
-			var newLog = new Log
-			{
-				ParsedData = this.ParsedData,
-				AssociatedId = this.AssociatedId,
-				Data = this.Data,
-				Kind = this.Kind,
-				Timestamp = this.Timestamp
-			};
-			return newLog;
 		}
 
 		public DateTime GetGroupDate(DateTime now)
@@ -262,14 +272,10 @@ namespace Happy_Reader.Database
 
 	public enum LogKind
 	{
-		[Description("Time Played")]
-		TimePlayed = 0,
-		[Description("Started Played")]
-		StartedPlaying = 1,
+		[Description("Time Played")] TimePlayed = 0,
+		[Description("Started Played")] StartedPlaying = 1,
 		Simple = 2,
-		[Description("Merged Time Played")]
-		MergeTimePlayed = 3,
-		[Description("Reset Time Played")]
-		ResetTimePlayed = 4,
+		[Description("Merged Time Played")] MergeTimePlayed = 3,
+		[Description("Reset Time Played")] ResetTimePlayed = 4,
 	}
 }

@@ -1,15 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.Data.Common;
 using System.Runtime.CompilerServices;
 using Happy_Apps_Core;
 using Happy_Apps_Core.DataAccess;
 using Happy_Apps_Core.Database;
-using Happy_Reader.View;
 using JetBrains.Annotations;
 
 namespace Happy_Reader.Database
@@ -17,10 +14,10 @@ namespace Happy_Reader.Database
 
 	public class Entry : INotifyPropertyChanged, IDataItem<long>, IReadyToUpsert
 	{
-		public string KeyField { get; } = nameof(Id);
+		public string KeyField => nameof(Id);
 		public long Key => Id;
-		[NotMapped] public bool ReadyToUpsert { get; set; }
-		[NotMapped] public bool Loaded { get; private set; }
+		public bool ReadyToUpsert { get; set; }
+		public bool Loaded { get; private set; }
 
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
 		{
@@ -75,12 +72,9 @@ namespace Happy_Reader.Database
 			UpdateComment = Convert.ToString(reader["UpdateComment"]);
 			Loaded = true;
 		}
-
-		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+		
 		public long Id { get; set; }
 		public int UserId { get; set; }
-
-		[Required]
 		public string Input { get; set; }
 		public string Output { get; set; } = string.Empty;
 		public int? GameId { get; set; }
@@ -96,18 +90,12 @@ namespace Happy_Reader.Database
 		public DateTime? UpdateTime { get; set; }
 		public long UpdateUserId { get; set; }
 		public string UpdateComment { get; set; }
-
-
-		[NotMapped]
 		public ListedVN Game => GameId == null ? null : StaticHelpers.LocalDatabase.VisualNovels[GameId.Value];
-		[NotMapped]
 		public User User => StaticHelpers.LocalDatabase.Users[UserId];
-		[NotMapped]
 		public RoleProxy AssignedProxy { get; set; }
 		/// <summary>
 		/// Location in string
 		/// </summary>
-		[NotMapped]
 		public int Location { get; set; }
 
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -116,15 +104,6 @@ namespace Happy_Reader.Database
 		public void OnPropertyChanged([CallerMemberName] string propertyName = null)
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-		}
-
-		public Entry() { }
-
-		public Entry(string input, string output)
-		{
-			Input = input;
-			Output = output;
-			Type = EntryType.Name;
 		}
 
 		public override string ToString() => $"[{Id}] {Input} > {Output}";
