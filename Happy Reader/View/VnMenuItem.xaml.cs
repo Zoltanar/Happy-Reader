@@ -207,7 +207,7 @@ namespace Happy_Reader.View
 		private void ImportNames(object sender, RoutedEventArgs e)
 		{
 			var cvns = StaticHelpers.LocalDatabase.CharacterVNs[VN.VNID].ToList();
-			var characterEntries = cvns.SelectMany(GetEntriesFromCharacter).Distinct(Entry.ValueComparer).ToArray();
+			var characterEntries = cvns.SelectMany(GetEntriesFromCharacter).Distinct(Entry.ClashComparer).ToArray();
 			StaticMethods.MainWindow.CreateAddEntriesTab(characterEntries);
 		}
 
@@ -216,8 +216,8 @@ namespace Happy_Reader.View
 			var entries = new List<Entry>();
 			var character = StaticHelpers.LocalDatabase.Characters[cvn.CharacterId];
 			if (string.IsNullOrWhiteSpace(character.Name) || string.IsNullOrWhiteSpace(character.Original)) return entries;
-			var outputParts = character.Name.Split(' ');
-			var inputParts = character.Original.Split(' ');
+			var outputParts = character.Name.Split(' ', '・');
+			var inputParts = character.Original.Split(' ', '・');
 			if (outputParts.Length != inputParts.Length)
 			{
 				var entry = new Entry

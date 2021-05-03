@@ -72,7 +72,7 @@ namespace Happy_Reader.Database
 			UpdateComment = Convert.ToString(reader["UpdateComment"]);
 			Loaded = true;
 		}
-		
+
 		public long Id { get; set; }
 		public int UserId { get; set; }
 		public string Input { get; set; }
@@ -108,7 +108,7 @@ namespace Happy_Reader.Database
 
 		public override string ToString() => $"[{Id}] {Input} > {Output}";
 
-		private sealed class EntryEqualityComparer : IEqualityComparer<Entry>
+		private sealed class EntryClashComparer : IEqualityComparer<Entry>
 		{
 			public bool Equals(Entry x, Entry y)
 			{
@@ -116,27 +116,36 @@ namespace Happy_Reader.Database
 				if (ReferenceEquals(x, null)) return false;
 				if (ReferenceEquals(y, null)) return false;
 				if (x.GetType() != y.GetType()) return false;
-				return x.UserId == y.UserId && x.Input == y.Input && x.Output == y.Output && x.GameId == y.GameId && x.SeriesSpecific == y.SeriesSpecific && x.Private == y.Private && x.Priority.Equals(y.Priority) && x.Type == y.Type && x.RoleString == y.RoleString;
+				//both private to same user OR neither private
+				//if one is private and another isn't, they don't clash
+				var result = 
+					((x.UserId == y.UserId && x.Private && y.Private) || !x.Private && !y.Private)
+							 //both series-specific to same game OR neither series specific
+							 //if one is series specific and another isn't, they don't clash
+							 && ((x.GameId == y.GameId && x.SeriesSpecific && y.SeriesSpecific) || !x.SeriesSpecific && !y.SeriesSpecific)
+							 && x.Type == y.Type
+							 && x.RoleString == y.RoleString
+							 //only one entry can be used for the input, regardless of output or priority
+							 && x.Input == y.Input;
+				return result;
 			}
 
 			public int GetHashCode(Entry obj)
 			{
 				unchecked
 				{
-					var hashCode = obj.UserId;
-					hashCode = (hashCode * 397) ^ (obj.Input != null ? obj.Input.GetHashCode() : 0);
-					hashCode = (hashCode * 397) ^ (obj.Output != null ? obj.Output.GetHashCode() : 0);
-					hashCode = (hashCode * 397) ^ obj.GameId.GetHashCode();
-					hashCode = (hashCode * 397) ^ obj.SeriesSpecific.GetHashCode();
-					hashCode = (hashCode * 397) ^ obj.Private.GetHashCode();
-					hashCode = (hashCode * 397) ^ obj.Priority.GetHashCode();
-					hashCode = (hashCode * 397) ^ (int) obj.Type;
+					//if not private, user id doesn't matter
+					var hashCode = obj.Private ? obj.UserId.GetHashCode() : 0;
+					//if not series specific, game id doesn't matter
+					if(obj.SeriesSpecific) hashCode = (hashCode * 397) ^ obj.GameId.GetHashCode();
+					hashCode = (hashCode * 397) ^ (int)obj.Type;
 					hashCode = (hashCode * 397) ^ (obj.RoleString != null ? obj.RoleString.GetHashCode() : 0);
+					hashCode = (hashCode * 397) ^ (obj.Input != null ? obj.Input.GetHashCode() : 0);
 					return hashCode;
 				}
 			}
 		}
 
-		public static IEqualityComparer<Entry> ValueComparer { get; } = new EntryEqualityComparer();
+		public static IEqualityComparer<Entry> ClashComparer { get; } = new EntryClashComparer();
 	}
 }
