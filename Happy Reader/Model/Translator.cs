@@ -148,7 +148,7 @@ namespace Happy_Reader
 			{
 				specificEntries = _data.Entries.Where(e => (e.Private && e.UserId == user.Id || !e.Private) && e.GameId.HasValue && e.SeriesSpecific && gamesInSeries.Contains(e.GameId.Value)).ToArray();
 			}
-			_entries = generalEntries.Concat(specificEntries).OrderBy(i => i.Id).ToArray();
+			_entries = generalEntries.Concat(specificEntries).Where(e=>!e.Disabled).OrderBy(i => i.Id).ToArray();
 			StaticHelpers.Logger.ToDebug($"[Translator] General entries: {generalEntries.Length}. Specific entries: {specificEntries.Length}");
 		}
 
@@ -394,6 +394,20 @@ namespace Happy_Reader
 				foreach (var entry in entriesOnProxies)
 				{
 					var input = Stage4P1InputRegex.Replace(entry.Input, @"\[\[$1#(\d+)]]");
+					/*var matches1 = Stage4P1InputRegex.Matches(entry.Input);
+					var input1 = entry.Input;
+					int matchCount1 = 1;
+					int diffLength = 0;
+					foreach (var match1 in matches1.Cast<Match>())
+					{
+						if (!match1.Success) continue;
+						var matchValue1 = match1.Groups[1].Value;
+						var p1 = input1.Substring(0, match1.Groups[1].Index + diffLength);
+						var p2 = $"${matchCount1++}#(\\d+)";
+						var p3 = input1.Substring(diffLength + match1.Groups[1].Index + matchValue1.Length);
+						input1 =  p1 + p2 + p3;
+						diffLength = input1.Length - entry.Input.Length;
+					}*/
 					var matches = Regex.Matches(sb.ToString(), input).Cast<Match>().Select(x => int.Parse(x.Groups[1].Value)).Distinct().ToList();
 					if (matches.Count == 0) continue;
 					foreach (int match in matches)

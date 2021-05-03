@@ -1,4 +1,5 @@
-﻿0 - test tab: list entries used per stage.
+﻿2 - Set Hook Code should use HookTextThread.HookCode
+0 - test tab: list entries used per stage.
 0 - warn if an instance is already running (maybe show database file for opening instance)
 0 - launch title from VN context menu
 0 - CachedTranslations: remove from cache if not used recently or originally cached too long ago.
@@ -11,8 +12,18 @@
 0 - use ithvnr tab to also show captured clipboard text format like: [process/pid] [outputted] [text]
 0 - outputwindow: add entry from selected text should default type to output when latin only.
 0 - ithvnr: better saving/loading game text threads, let user name threads and delete saved
+0 - ithvnr: once any thread has been saved as posting, change default for new threads to stop/hide.
 0 - vnrhook: handle maximum threads either change limit or reset ability
+0 - default entry fields when adding new row in add entries
+1 - split names with ・ on import names
+0 - allow proxy mods with multiple proxies ([[m#1]]-[[m#2]])
+0 - entries: show disabled column
+0 - cached translations: save source name (for now only google free and google credential)
 allow to specify vndb-img folder path
+
+before release:
+set up database versioning/upgrade system
+
 look at global hooks for managing infinite text via global hotkeys, etc (https://github.com/gmamaladze/globalmousekeyhook)
 allow keeping time played for multiple games
 allow monitor to keep running always

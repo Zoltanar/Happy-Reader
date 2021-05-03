@@ -83,7 +83,7 @@ namespace Happy_Reader.ViewModel
 			StaticMethods.Data.GameThreads.UpsertLater(new GameThread(gameTextThread));
 		}
 		
-		protected override void SaveGameTextThreads()
+		public override void SaveGameTextThreads()
 		{
 			var threads = StaticMethods.Data.GameThreads.WithKeyIn(GameTextThreads.Select(x => (x.GameId, x.Identifier)).ToArray()).ToArray();
 			foreach (var gameThread in threads)
@@ -91,6 +91,7 @@ namespace Happy_Reader.ViewModel
 				StaticMethods.Data.GameThreads.UpsertLater(gameThread);
 			}
 			StaticMethods.Data.SaveChanges();
+			GameTextThreads = null;
 		}
 	}
 }

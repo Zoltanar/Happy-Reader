@@ -15,6 +15,8 @@ namespace Happy_Reader.Database
 {
 	public class HappyReaderDatabase
 	{
+		private readonly object _saveChangesLock = new();
+
 		public SQLiteConnection Connection { get; }
 		public DACollection<string, GoogleTranslation> Translations { get; }
 		public DACollection<long, Log> Logs { get; }
@@ -152,21 +154,25 @@ namespace Happy_Reader.Database
 			var series = StaticHelpers.LocalDatabase.VisualNovels.Where(i => i.Series == game.Series).Select(i => i.VNID).ToArray();
 			return Entries.Where(i => i.GameId != null && series.Contains(i.GameId.Value));
 		}
-
+		
 		public int SaveChanges()
 		{
-			var exceptions = new List<Exception>();
-			int totalResult = 0;
-			totalResult += WrapInExceptionList(exceptions, () => Translations.SaveChanges());
-			totalResult += WrapInExceptionList(exceptions, () => Logs.SaveChanges());
-			totalResult += WrapInExceptionList(exceptions, () => GameThreads.SaveChanges());
-			totalResult += WrapInExceptionList(exceptions, () => UserGames.SaveChanges());
-			totalResult += WrapInExceptionList(exceptions, () => Entries.SaveChanges());
-			var caller = new StackFrame(1).GetMethod();
-			var callerName = $"{caller.DeclaringType?.Name}.{caller.Name}";
-			StaticHelpers.Logger.ToDebug($"{DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.{nameof(SaveChanges)} called by {callerName} - returned {totalResult}");
-			if (exceptions.Any()) throw new AggregateException(exceptions);
-			return totalResult;
+			lock (_saveChangesLock)
+			{
+				var exceptions = new List<Exception>();
+				int totalResult = 0;
+				totalResult += WrapInExceptionList(exceptions, () => Translations.SaveChanges());
+				totalResult += WrapInExceptionList(exceptions, () => Logs.SaveChanges());
+				totalResult += WrapInExceptionList(exceptions, () => GameThreads.SaveChanges());
+				totalResult += WrapInExceptionList(exceptions, () => UserGames.SaveChanges());
+				totalResult += WrapInExceptionList(exceptions, () => Entries.SaveChanges());
+				var caller = new StackFrame(1).GetMethod();
+				var callerName = $"{caller.DeclaringType?.Name}.{caller.Name}";
+				StaticHelpers.Logger.ToDebug(
+					$"{DateTime.Now.ToShortTimeString()} - {nameof(HappyReaderDatabase)}.{nameof(SaveChanges)} called by {callerName} - returned {totalResult}");
+				if (exceptions.Any()) throw new AggregateException(exceptions);
+				return totalResult;
+			}
 		}
 
 		public void DeleteCachedTranslationsOlderThan(DateTime dateTime)
