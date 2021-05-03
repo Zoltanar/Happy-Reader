@@ -11,8 +11,11 @@
 			<DataGrid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
 			          x:Name="EntriesGrid" Margin="0" 
 			          AutoGenerateColumns="False" CanUserAddRows="True" CanUserDeleteRows="True" CanUserSortColumns="False" IsReadOnly="False" 
-			          d:DataContext="{d:DesignInstance Type=viewModel:DisplayEntry}">
+			          d:DataContext="{d:DesignInstance Type=viewModel:DisplayEntry}"
+			          LoadingRow="EntriesGrid_OnLoadingRow">
 				<DataGrid.Columns>
+					<DataGridCheckBoxColumn Header="Disabled" Binding="{Binding Disabled, Mode=TwoWay}" />
+					<DataGridTextColumn Header="User" Binding="{Binding User, Mode=OneWay}" />
 					<DataGridComboBoxColumn Header="Type" SelectedItemBinding="{Binding Type, Mode=TwoWay}" x:Name="TypeDropdownColumn" />
 					<DataGridComboBoxColumn Header="Game" 
 					                        SelectedItemBinding="{Binding Game, Mode=TwoWay}" 

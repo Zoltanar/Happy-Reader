@@ -14,10 +14,8 @@
 0 - ithvnr: better saving/loading game text threads, let user name threads and delete saved
 0 - ithvnr: once any thread has been saved as posting, change default for new threads to stop/hide.
 0 - vnrhook: handle maximum threads either change limit or reset ability
-0 - default entry fields when adding new row in add entries
 1 - split names with ・ on import names
 0 - allow proxy mods with multiple proxies ([[m#1]]-[[m#2]])
-0 - entries: show disabled column
 0 - cached translations: save source name (for now only google free and google credential)
 allow to specify vndb-img folder path
 
@@ -32,9 +30,5 @@ apply translate stage 4 to pre-romaji
 if response is error with id 'needlogin' show user that credentials are wrong
 offline dictionary for faster (mouseover?) word lookups
 
-
 great outstanding problems:
 can't show outputwindow on top of some fullscreen games, steals focus on games where it works
-
-VNRAGENT:
-Must inject dependency dlls (Qt done but maybe MSVC also required)

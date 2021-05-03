@@ -87,5 +87,14 @@ namespace Happy_Reader.View.Tabs
 			ResponseLabel.Content = @"Input field must not be empty.";
 			return false;
 		}
+
+		private void EntriesGrid_OnLoadingRow(object sender, DataGridRowEventArgs e)
+		{
+			var item = e.Row.DataContext as DisplayEntry;
+			if (item == null || item.Entry == null) return;
+			item.Entry.UserId = StaticMethods.MainWindow.ViewModel.User.Id;
+			item.Entry.GameId = StaticMethods.MainWindow.ViewModel.UserGame?.VNID;
+			item.Type = EntryType.Name;
+		}
 	}
 }

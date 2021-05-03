@@ -123,10 +123,12 @@ namespace Happy_Apps_Core.DataAccess
 		{
 			return _items.Where(i => keyCollection.Contains(i.Key)).Select(i => i.Value);
 		}
-		
+
+		private static readonly bool ImplementsIReadyToUpsert = typeof(IReadyToUpsert).IsAssignableFrom(typeof(TValue));
+
 		public int SaveChanges()
 		{
-			var otherItemsToUpsert = typeof(TValue).IsSubclassOf(typeof(IReadyToUpsert))
+			var otherItemsToUpsert = ImplementsIReadyToUpsert
 				? _items.Values.Where(i => ((IReadyToUpsert) i).ReadyToUpsert).ToArray() : Array.Empty<TValue>();
 			if (_itemsToUpsertLater.Count == 0 && otherItemsToUpsert.Length == 0) return 0;
 			Conn.Open();

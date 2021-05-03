@@ -85,6 +85,7 @@ namespace Happy_Reader.ViewModel
 		
 		public override void SaveGameTextThreads()
 		{
+			if (GameTextThreads == null || !GameTextThreads.Any()) return;
 			var threads = StaticMethods.Data.GameThreads.WithKeyIn(GameTextThreads.Select(x => (x.GameId, x.Identifier)).ToArray()).ToArray();
 			foreach (var gameThread in threads)
 			{

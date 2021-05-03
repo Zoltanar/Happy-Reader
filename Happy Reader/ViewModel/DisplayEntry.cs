@@ -21,12 +21,18 @@ namespace Happy_Reader.ViewModel
 		public DisplayEntry(Entry entry)
 		{
 			Entry = entry;
-			Type = entry.Type;
-			Role = entry.RoleString;
-			Input = entry.Input;
-			Output = entry.Output;
-			SeriesSpecific = entry.SeriesSpecific;
-			Regex = entry.Regex;
+		}
+
+		public bool Disabled
+		{
+			get => Entry.Disabled;
+			set
+			{
+				if (Entry.Disabled == value) return;
+				Entry.Disabled = value;
+				StaticMethods.MainWindow.ViewModel.Translator.RefreshEntries = true;
+				Entry.ReadyToUpsert = true;
+			}
 		}
 
 		public bool Regex

@@ -12,15 +12,16 @@
 		<Button Content="Add Entries" Margin="83,0,0,0" VerticalAlignment="Top" Click="AddEntries_Click" HorizontalAlignment="Left" Width="90"/>
 		<DataGrid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding EntriesList}" Margin="0,25,0,0" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="False" >
 			<DataGrid.Columns>
+				<DataGridCheckBoxColumn Header="Disabled" Binding="{Binding Disabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 				<DataGridTextColumn Header="Id" Binding="{Binding Id, Mode=OneWay}" />
 				<DataGridTextColumn Header="User" Binding="{Binding User, Mode=OneWay}" />
-				<DataGridComboBoxColumn Header="Type" SelectedItemBinding="{Binding Type, Mode=TwoWay}" x:Name="TypeDropdownColumn" />
-				<DataGridComboBoxColumn Header="Game" SelectedItemBinding="{Binding Game, Mode=TwoWay}" 	x:Name="GameDropdownColumn"/>
-				<DataGridTextColumn Header="Role" Binding="{Binding Role}" />
-				<DataGridTextColumn Header="Input" Binding="{Binding Input}" />
-				<DataGridTextColumn Header="Output" Binding="{Binding Output, Mode=TwoWay}"  />
-				<DataGridCheckBoxColumn Header="Series-specific" Binding="{Binding SeriesSpecific}" />
-				<DataGridCheckBoxColumn Header="Regex" Binding="{Binding Regex}" />
+				<DataGridComboBoxColumn Header="Type" SelectedItemBinding="{Binding Type, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" x:Name="TypeDropdownColumn" />
+				<DataGridComboBoxColumn Header="Game" SelectedItemBinding="{Binding Game, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 	x:Name="GameDropdownColumn"/>
+				<DataGridTextColumn Header="Role" Binding="{Binding Role, UpdateSourceTrigger=PropertyChanged}" />
+				<DataGridTextColumn Header="Input" Binding="{Binding Input, UpdateSourceTrigger=PropertyChanged}" />
+				<DataGridTextColumn Header="Output" Binding="{Binding Output, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  />
+				<DataGridCheckBoxColumn Header="Series-specific" Binding="{Binding SeriesSpecific, UpdateSourceTrigger=PropertyChanged}" />
+				<DataGridCheckBoxColumn Header="Regex" Binding="{Binding Regex, UpdateSourceTrigger=PropertyChanged}" />
 				<DataGridTemplateColumn Header="Delete" >
 					<DataGridTemplateColumn.CellTemplate>
 						<DataTemplate>
