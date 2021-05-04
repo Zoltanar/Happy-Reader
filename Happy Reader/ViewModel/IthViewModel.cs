@@ -74,7 +74,11 @@ namespace Happy_Reader.ViewModel
 			OnPropertyChanged(nameof(DisplayThreads));
 		}
 
-		public void SetHookCode() => _mainViewModel.UserGame?.SaveHookCode(SelectedTextThread.PersistentIdentifier);
+		public void SetHookCode()
+		{
+			if (SelectedTextThread is not HookTextThread hookTextThread) return;
+			_mainViewModel.UserGame?.SaveHookCode(hookTextThread.HookCode);
+		}
 
 		public override void AddGameThread(GameTextThread gameTextThread)
 		{

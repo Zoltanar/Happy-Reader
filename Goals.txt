@@ -1,5 +1,4 @@
-﻿2 - Set Hook Code should use HookTextThread.HookCode
-0 - test tab: list entries used per stage.
+﻿0 - test tab: list entries used per stage.
 0 - warn if an instance is already running (maybe show database file for opening instance)
 0 - launch title from VN context menu
 0 - CachedTranslations: option to do this automatically: remove from cache if not used recently or originally cached too long ago.
