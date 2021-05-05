@@ -90,12 +90,12 @@ namespace Happy_Reader.ViewModel
 		public override void SaveGameTextThreads()
 		{
 			if (GameTextThreads == null || !GameTextThreads.Any()) return;
-			var threads = StaticMethods.Data.GameThreads.WithKeyIn(GameTextThreads.Select(x => (x.GameId, x.Identifier)).ToArray()).ToArray();
+			var threads = StaticMethods.Data.GameThreads.WithKeyIn(GameTextThreads.Select(x => (x.GameId, x.Identifier)).ToList()).ToList();
 			foreach (var gameThread in threads)
 			{
 				StaticMethods.Data.GameThreads.UpsertLater(gameThread);
 			}
-			StaticMethods.Data.SaveChanges();
+			//this data will be persisted on HookedProcessOnExited callback.
 			GameTextThreads = null;
 		}
 	}

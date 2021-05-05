@@ -43,10 +43,11 @@ namespace Happy_Reader.Database
 		private BitmapImage _image;
 		private NativeMethods.RECT? _locationOnMoveStart;
 		private bool _mergeByHookCode;
+		private string _processName;
 		private EncodingEnum _prefEncodingEnum;
 		private Process _process;
 		private bool _removeRepetition;
-
+		private string _outputWindow;
 		private Stopwatch _runningTime;
 		private ListedVN _vn;
 		private bool _vnGot;
@@ -65,7 +66,7 @@ namespace Happy_Reader.Database
 		}
 
 		public static Encoding[] Encodings => IthVnrSharpLib.IthVnrViewModel.Encodings;
-		public static HookMode[] HookModes { get; } = (HookMode[]) Enum.GetValues(typeof(HookMode));
+		public static HookMode[] HookModes { get; } = (HookMode[])Enum.GetValues(typeof(HookMode));
 		public long Id { get; set; }
 		public string UserDefinedName { get; private set; }
 		public string LaunchPath { get; private set; }
@@ -92,7 +93,16 @@ namespace Happy_Reader.Database
 				if (Loaded) ReadyToUpsert = true;
 			}
 		}
-		public string ProcessName { get; set; }
+		public string ProcessName
+		{
+			get => _processName;
+			set
+			{
+				if (_processName == value) return;
+				_processName = value;
+				if (Loaded) ReadyToUpsert = true;
+			}
+		}
 		public string Tag { get; private set; }
 		public bool RemoveRepetition
 		{
@@ -107,7 +117,16 @@ namespace Happy_Reader.Database
 		/// <summary>
 		/// Store output window location and dimensions as a string in the 'form x,y,width,height' 
 		/// </summary>
-		private string OutputWindow { get; set; }
+		private string OutputWindow
+		{
+			get => _outputWindow;
+			set
+			{
+				if (_outputWindow == value) return;
+				_outputWindow = value;
+				if (Loaded) ReadyToUpsert = true;
+			}
+		}
 		// ReSharper disable once InconsistentNaming
 		private DateTime TimeOpenDT { get; set; }
 		private EncodingEnum PrefEncodingEnum
@@ -211,11 +230,11 @@ namespace Happy_Reader.Database
 		}
 		public Encoding PrefEncoding
 		{
-			get => Encodings[(int) PrefEncodingEnum];
+			get => Encodings[(int)PrefEncodingEnum];
 			set
 			{
 				var index = Array.IndexOf(Encodings, value);
-				PrefEncodingEnum = (EncodingEnum) index;
+				PrefEncodingEnum = (EncodingEnum)index;
 			}
 		}
 		public string DisplayNameGroup => DisplayName.Substring(0, Math.Min(DisplayName.Length, 1));
@@ -246,9 +265,9 @@ namespace Happy_Reader.Database
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
 		{
 			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO {nameof(UserGame)}s" +
-			             "(Id, UserDefinedName, LaunchPath, HookProcess, VNID, FilePath, HookCode, MergeByHookCode, ProcessName, Tag, RemoveRepetition, OutputWindow, TimeOpenDT, PrefEncodingEnum) " +
-			             "VALUES " +
-			             "(@Id, @UserDefinedName, @LaunchPath, @HookProcess, @VNID, @FilePath, @HookCode, @MergeByHookCode, @ProcessName, @Tag, @RemoveRepetition, @OutputWindow, @TimeOpenDT, @PrefEncodingEnum)";
+									 "(Id, UserDefinedName, LaunchPath, HookProcess, VNID, FilePath, HookCode, MergeByHookCode, ProcessName, Tag, RemoveRepetition, OutputWindow, TimeOpenDT, PrefEncodingEnum) " +
+									 "VALUES " +
+									 "(@Id, @UserDefinedName, @LaunchPath, @HookProcess, @VNID, @FilePath, @HookCode, @MergeByHookCode, @ProcessName, @Tag, @RemoveRepetition, @OutputWindow, @TimeOpenDT, @PrefEncodingEnum)";
 			var command = connection.CreateCommand();
 			command.CommandText = sql;
 			command.AddParameter("@Id", Id);
@@ -273,7 +292,7 @@ namespace Happy_Reader.Database
 			Id = Convert.ToInt32(reader["Id"]);
 			UserDefinedName = Convert.ToString(reader["UserDefinedName"]);
 			LaunchPath = Convert.ToString(reader["LaunchPath"]);
-			HookProcess = (HookMode) Convert.ToInt32(reader["HookProcess"]);
+			HookProcess = (HookMode)Convert.ToInt32(reader["HookProcess"]);
 			VNID = GetNullableInt(reader["VNID"]);
 			FilePath = Convert.ToString(reader["FilePath"]);
 			HookCode = Convert.ToString(reader["HookCode"]);
@@ -283,7 +302,7 @@ namespace Happy_Reader.Database
 			RemoveRepetition = Convert.ToInt32(reader["RemoveRepetition"]) == 1;
 			OutputWindow = Convert.ToString(reader["OutputWindow"]);
 			TimeOpenDT = Convert.ToDateTime(reader["TimeOpenDT"]);
-			PrefEncodingEnum = (EncodingEnum) Convert.ToInt32(reader["PrefEncodingEnum"]);
+			PrefEncodingEnum = (EncodingEnum)Convert.ToInt32(reader["PrefEncodingEnum"]);
 			Loaded = true;
 		}
 
@@ -392,7 +411,7 @@ namespace Happy_Reader.Database
 		public void SaveLaunchPath([NotNull] string text)
 		{
 			LaunchPath = string.IsNullOrWhiteSpace(text) ? null : text.Trim();
-			StaticMethods.Data.SaveChanges();
+			StaticMethods.Data.UserGames.Upsert(this, true);
 			OnPropertyChanged(nameof(LaunchPath));
 		}
 

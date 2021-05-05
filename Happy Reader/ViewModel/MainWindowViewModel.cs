@@ -113,7 +113,7 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged(nameof(UserGame.RunningStatus));
 			}
 		}
-		
+
 		public ClipboardManager ClipboardManager;
 
 		public MainWindowViewModel()
@@ -321,7 +321,7 @@ namespace Happy_Reader.ViewModel
 					var proxy = StaticMethods.Data.Entries.FirstOrDefault(x =>
 						x.Type == EntryType.Proxy && x.RoleString.Equals(r) && x.Input.Equals(i));
 					if (proxy != null) continue;
-					newProxies.Add(new Entry {Type = EntryType.Proxy, RoleString = r, Input = i, Output = o});
+					newProxies.Add(new Entry { Type = EntryType.Proxy, RoleString = r, Input = i, Output = o });
 				}
 			}
 			catch (Exception ex)
@@ -480,7 +480,6 @@ namespace Happy_Reader.ViewModel
 					if (UserGame.ProcessName == null)
 					{
 						UserGame.ProcessName = process.ProcessName;
-						StaticMethods.Data.UserGames.Upsert(UserGame, true);
 					}
 					UserGame.SetActiveProcess(process, HookedProcessOnExited);
 					TestViewModel.Game = UserGame.VN;
@@ -516,7 +515,7 @@ namespace Happy_Reader.ViewModel
 					UserGame.OutputRectangle.Size);
 				OutputWindow.SetLocation(outputWindowLocation);
 			}
-			if(!IthViewModel.Finalized && UserGame.HookProcess == UserGame.HookMode.VnrHook && !string.IsNullOrWhiteSpace(UserGame.HookCode))
+			if (!IthViewModel.Finalized && UserGame.HookProcess == UserGame.HookMode.VnrHook && !string.IsNullOrWhiteSpace(UserGame.HookCode))
 			{
 				IthViewModel.Commands?.ProcessCommand(UserGame.HookCode, UserGame.Process.Id);
 			}
@@ -527,10 +526,10 @@ namespace Happy_Reader.ViewModel
 		{
 			IthViewModel.MergeByHookCode = UserGame.MergeByHookCode;
 			IthViewModel.PrefEncoding = UserGame.PrefEncoding;
-			IthViewModel.GameTextThreads = StaticMethods.Data.GameThreads.Where(t => t.Item.GameId == UserGame.Id).Select(t=>t.Item).ToArray();
+			IthViewModel.GameTextThreads = StaticMethods.Data.GameThreads.Where(t => t.Item.GameId == UserGame.Id).Select(t => t.Item).ToArray();
 			if (UserGame.HookProcess == UserGame.HookMode.VnrAgent)
 			{
-				if(!IthViewModel.EmbedHost.Initialized) IthViewModel.EmbedHost.Initialize();
+				if (!IthViewModel.EmbedHost.Initialized) IthViewModel.EmbedHost.Initialize();
 				IthViewModel.Commands?.ProcessCommand($"/PA{UserGame.Process.Id}", UserGame.Process.Id);
 			}
 			else IthViewModel.Commands?.ProcessCommand($"/P{UserGame.Process.Id}", UserGame.Process.Id);
@@ -538,24 +537,21 @@ namespace Happy_Reader.ViewModel
 
 		private void HookedProcessOnExited(object sender, EventArgs eventArgs)
 		{
-			if (Application.Current == null) return;
-			OutputWindow.InitialisedWindowLocation = false;
-			if (UserGame == null || UserGame.WindowLocation.IsEmpty) { }
-			else
+			if (Application.Current?.Dispatcher == null) return;
+			Application.Current.Dispatcher.Invoke(() =>
 			{
-				Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
-				Application.Current.Dispatcher.Invoke(() =>
+				OutputWindow.InitialisedWindowLocation = false;
+				if (UserGame != null)
 				{
 					var outputRectangle = OutputWindow.GetRectangle();
 					var newRect = new Rectangle(
 						new System.Drawing.Point(outputRectangle.X - UserGame.WindowLocation.Left, outputRectangle.Y - UserGame.WindowLocation.Top),
-							outputRectangle.Size);
+						outputRectangle.Size);
 					UserGame.OutputRectangle = newRect;
-				});
-				StaticMethods.Data.UserGames.Upsert(UserGame, true);
-			}
-			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
-			Application.Current.Dispatcher.Invoke(() => OutputWindow.Hide());
+				}
+				StaticMethods.Data.SaveChanges();
+				OutputWindow.Hide();
+			});
 			_globalHook?.Dispose();
 			UserGame = null;
 			//restart monitor

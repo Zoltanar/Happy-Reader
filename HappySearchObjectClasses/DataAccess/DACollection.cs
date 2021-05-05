@@ -119,7 +119,7 @@ namespace Happy_Apps_Core.DataAccess
 		/// </summary>
 		public TValue this[TKey key] => _items.ContainsKey(key) ? _items[key] : default;
 		
-		public IEnumerable<TValue> WithKeyIn(IList<TKey> keyCollection)
+		public IEnumerable<TValue> WithKeyIn(ICollection<TKey> keyCollection)
 		{
 			return _items.Where(i => keyCollection.Contains(i.Key)).Select(i => i.Value);
 		}
