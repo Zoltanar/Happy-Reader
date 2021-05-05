@@ -44,7 +44,11 @@ namespace Happy_Reader.View
 		private void CreateNotifyIcon()
 		{
 			var contextMenu = new ContextMenuStrip();
-			EventHandler open = (_, _) => Show();
+			EventHandler open = (_, _) =>
+			{
+				Show();
+				Activate();
+			};
 			contextMenu.Items.Add(new ToolStripMenuItem("Open", null, open));
 			contextMenu.Items.Add(new ToolStripMenuItem("Exit", null, Exit));
 			// ReSharper disable once PossibleNullReferenceException

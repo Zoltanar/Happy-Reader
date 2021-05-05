@@ -119,7 +119,7 @@ namespace Happy_Reader.ViewModel
 		{
 			Application.Current.Exit += ExitProcedures;
 			StaticMethods.Data = new HappyReaderDatabase(StaticMethods.ReaderDatabaseFile, true);
-			SettingsViewModel = Happy_Apps_Core.SettingsJsonFile.Load<SettingsViewModel>(StaticMethods.AllSettingsJson);
+			SettingsViewModel = Happy_Apps_Core.SettingsJsonFile.Load<SettingsViewModel>(AllSettingsJson);
 			StaticMethods.Settings = SettingsViewModel;
 			CSettings = SettingsViewModel.CoreSettings;
 			SettingsViewModel.TranslatorSettings.CaptureClipboardChanged = CaptureClipboardSettingChanged;

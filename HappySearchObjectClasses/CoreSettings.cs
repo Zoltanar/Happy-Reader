@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Happy_Apps_Core
 {
@@ -9,6 +10,7 @@ namespace Happy_Apps_Core
 		private int _userID;
 		private DateTime _dumpfileDate = DateTime.MinValue;
 		private bool _clearOldDumpsAndBackups = true;
+		private string _imageFolderPath = Path.Combine(StaticHelpers.StoredDataFolder, "vndb-img\\");
 
 		/// <summary>
 		/// Username of user.
@@ -63,18 +65,29 @@ namespace Happy_Apps_Core
 			}
 		}
 
-		//todo make editable
-		public List<int> AlertTagIDs { get; } = new();
+		public string ImageFolderPath
+		{
+			get => _imageFolderPath;
+			set
+			{
+				if (_imageFolderPath == value) return;
+				_imageFolderPath = value;
+				if (Loaded) Save();
+			}
+		}
 
 		//todo make editable
-		public List<int> AlertTraitIDs { get; } = new();
+		public List<int> AlertTagIDs { get; set;  } = new();
 
 		//todo make editable
-		public List<double> AlertTagValues { get; } = new();
+		public List<int> AlertTraitIDs { get; set; } = new();
 
 		//todo make editable
-		public List<double> AlertTraitValues { get; } = new();
-		
+		public List<double> AlertTagValues { get; set; } = new();
+
+		//todo make editable
+		public List<double> AlertTraitValues { get; set; } = new();
+
 		public Dictionary<DumpFiles.WrittenTag, double> GetTagScoreDictionary()
 		{
 			var tagScoreDict = new Dictionary<DumpFiles.WrittenTag, double>();

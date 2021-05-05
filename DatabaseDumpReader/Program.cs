@@ -26,10 +26,10 @@ namespace DatabaseDumpReader
 		{
 			try
 			{
-				if (args.Length != 1) throw new ArgumentException("Must pass 1 argument: Path to Settings file.");
+				string settingsPath = args.Length < 1 ? StaticHelpers.AllSettingsJson : args[0];
+				if (!File.Exists(settingsPath)) throw new FileNotFoundException("Settings File not found.", settingsPath);
 				var dumpFolder = DumpFolder;
-				var cSettings = args[0];
-				StaticHelpers.CSettings = SettingsJsonFile.Load<SettingsViewModel>(cSettings).CoreSettings;
+				StaticHelpers.CSettings = SettingsJsonFile.Load<SettingsViewModel>(settingsPath).CoreSettings;
 				var result = Run(dumpFolder, StaticHelpers.CSettings.UserID);
 				return (int)result;
 			}

@@ -27,16 +27,17 @@ namespace Happy_Apps_Core
 		public const string TagsURL = "http://vndb.org/api/tags.json.gz";
 		public const string TraitsURL = "http://vndb.org/api/traits.json.gz";
 		public const string ProjectURL = "https://github.com/Zoltanar/Happy-Reader";
-		public static readonly string ProgramDataFolder = Path.Combine(Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName, "Program Data\\");
+		// ReSharper disable once PossibleNullReferenceException
+		private static readonly string ProgramDataFolder = Path.Combine(Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName, "Program Data\\");
 		public static readonly string DefaultTraitsJson = Path.Combine(ProgramDataFolder, "Default Files\\traits.json");
 		public static readonly string DefaultTagsJson = Path.Combine(ProgramDataFolder, "Default Files\\tags.json");
-		public static readonly string FlagsFolder = Path.Combine(ProgramDataFolder, "Flags\\");
+		private static readonly string FlagsFolder = Path.Combine(ProgramDataFolder, "Flags\\");
 		public static readonly string CertificatesFolder = Path.Combine(ProgramDataFolder, "Certificates");
 		public static readonly string AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Happy Reader");
 		public static readonly string StoredDataFolder = Path.Combine(AppDataFolder, "Stored Data");
 		public static readonly string LogsFolder = Path.Combine(AppDataFolder, "Logs");
-		public static readonly string ImagesFolder = Path.Combine(StoredDataFolder, "vndb-img\\");
 		public static readonly string DatabaseFile = Path.Combine(StoredDataFolder, "Happy-Apps.sqlite");
+		public static readonly string AllSettingsJson = Path.Combine(StoredDataFolder, "HR_Settings.json");
 		#endregion
 
 		public const string ClientName = "Happy Reader";
@@ -299,17 +300,17 @@ namespace Happy_Apps_Core
 
 		public static DateTime? GetNullableDate(object dbObject)
 		{
-			return dbObject == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(dbObject);
+			return dbObject == DBNull.Value ? null : Convert.ToDateTime(dbObject);
 		}
 
 		public static int? GetNullableInt(object dbObject)
 		{
-			return dbObject == DBNull.Value ? (int?)null : Convert.ToInt32(dbObject);
+			return dbObject == DBNull.Value ? null : Convert.ToInt32(dbObject);
 		}
 
 		public static double? GetNullableDouble(object dbObject)
 		{
-			return dbObject == DBNull.Value ? (double?)null : Convert.ToDouble(dbObject);
+			return dbObject == DBNull.Value ? null : Convert.ToDouble(dbObject);
 		}
 
 		public static string GetNullableString(object dbObject)
@@ -346,7 +347,7 @@ namespace Happy_Apps_Core
 				return true;
 			}
 			catch (Exception ex) when (ex is NotSupportedException || ex is ArgumentNullException ||
-																 ex is SecurityException || ex is UriFormatException || ex is ExternalException)
+			                           ex is SecurityException || ex is UriFormatException || ex is ExternalException)
 			{
 				Logger.ToFile(ex);
 				return false;
@@ -392,11 +393,11 @@ namespace Happy_Apps_Core
 			throw new InvalidOperationException($"Method '{nameof(RunWithRetries)}' should not return here.");
 		}
 
-		public static string GetImageLocation(string imageId)
+		private static string GetImageLocation(string imageId)
 		{
 			var folder = imageId.Substring(0, 2);
 			var id = int.Parse(imageId.Substring(2));
-			var filePath = Path.GetFullPath($"{ImagesFolder}\\{folder}\\{id % 100:00}\\{id}.jpg");
+			var filePath = Path.GetFullPath($"{CSettings.ImageFolderPath}\\{folder}\\{id % 100:00}\\{id}.jpg");
 			return filePath;
 		}
 
