@@ -39,7 +39,7 @@ namespace Happy_Reader
 		public static readonly string AllFiltersJson = Path.Combine(StaticHelpers.StoredDataFolder, "HR_Filters.json");
 		public static readonly string UserGameIconsFolder = Path.Combine(StaticHelpers.StoredDataFolder, "Usergame_Icons\\");
 		public static readonly JsonSerializerSettings SerialiserSettings = new() { TypeNameHandling = TypeNameHandling.Objects };
-		public static readonly System.Drawing.Rectangle OutputWindowStartPosition = new(20, 20, 400, 200);
+		public static readonly NativeMethods.RECT OutputWindowStartPosition = new() { Left = 20, Top = 20, Right = 420, Bottom = 220 };
 		private static SettingsViewModel _settings;
 		public static FiltersData AllFilters { get; set; }
 		public static HappyReaderDatabase Data { get; set; }
@@ -65,7 +65,7 @@ namespace Happy_Reader
 			bool isAmPm = culture.DateTimeFormat.AMDesignator != string.Empty;
 			return dateTime.ToString(isAmPm ? "hh:mm tt" : "HH:mm", culture);
 		}
-		
+
 		public static T FindParent<T>(this DependencyObject child) where T : DependencyObject
 		{
 			while (true)
@@ -193,7 +193,7 @@ namespace Happy_Reader
 			var field = value.GetType().GetField(value.ToString());
 			return Attribute.IsDefined(field, attributeType);
 		}
-		
+
 		public static ListedVN ResolveVNForFile(string file)
 		{
 			var filename = Path.GetFileNameWithoutExtension(file);
@@ -280,7 +280,7 @@ namespace Happy_Reader
 				HorizontalAlignment = HorizontalAlignment.Center,
 				Margin = new Thickness(2)
 			};
-			if (headerBinding != null) headerTextBlock.SetBinding(TextBlock.TextProperty, headerBinding); 
+			if (headerBinding != null) headerTextBlock.SetBinding(TextBlock.TextProperty, headerBinding);
 			var header = new Grid
 			{
 				Width = 100,

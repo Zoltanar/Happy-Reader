@@ -16,7 +16,6 @@
 0 - allow proxy mods with multiple proxies ([[m#1]]-[[m#2]])
 0 - cached translations: save source name (for now only google free and google credential)
 0 - check if output window is in visible area of screens, if not, reset it.
-0 - only store one of UserGame.OutputRectangle/UserGame.WindowLocation/UserGame.OutputWindow and update when it changes (currently, windowlocation is absolute, outputwindow is relative to game window.)
 allow to specify vndb-img folder path
 
 before release:

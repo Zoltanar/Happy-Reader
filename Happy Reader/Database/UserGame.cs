@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -47,7 +48,7 @@ namespace Happy_Reader.Database
 		private EncodingEnum _prefEncodingEnum;
 		private Process _process;
 		private bool _removeRepetition;
-		private string _outputWindow;
+		private NativeMethods.RECT _outputRectangle;
 		private Stopwatch _runningTime;
 		private ListedVN _vn;
 		private bool _vnGot;
@@ -114,21 +115,6 @@ namespace Happy_Reader.Database
 				if (Loaded) ReadyToUpsert = true;
 			}
 		}
-		/// <summary>
-		/// Store output window location and dimensions as a string in the 'form x,y,width,height' 
-		/// </summary>
-		private string OutputWindow
-		{
-			get => _outputWindow;
-			set
-			{
-				if (_outputWindow == value) return;
-				_outputWindow = value;
-				if (Loaded) ReadyToUpsert = true;
-			}
-		}
-		// ReSharper disable once InconsistentNaming
-		private DateTime TimeOpenDT { get; set; }
 		private EncodingEnum PrefEncodingEnum
 		{
 			get => _prefEncodingEnum;
@@ -142,20 +128,30 @@ namespace Happy_Reader.Database
 		public bool HasVN => VNID.HasValue && VN != null;
 		public bool FileExists => File.Exists(FilePath);
 		public bool IsHooked => Process != null && HookProcess != HookMode.None;
-		public Rectangle OutputRectangle
+		/// <summary>
+		/// Stores position of output window, relative to game window.
+		/// </summary>
+		public NativeMethods.RECT OutputRectangle
 		{
-			get
+			get => _outputRectangle;
+			private set
 			{
-				if (string.IsNullOrEmpty(OutputWindow)) return StaticMethods.OutputWindowStartPosition;
-				List<int> parts = OutputWindow.Split(',').Select(int.Parse).ToList();
-				return new Rectangle(parts[0], parts[1], parts[2], parts[3]);
+				if (_outputRectangle.Equals(value)) return;
+				_outputRectangle = value;
+				if (Loaded) ReadyToUpsert = true;
 			}
-			set => OutputWindow = string.Join(",", value.X, value.Y, value.Width, value.Height);
 		}
+
+		private TimeSpan _timeOpen;
 		public TimeSpan TimeOpen
 		{
-			get => TimeSpan.FromTicks(TimeOpenDT.Ticks + (_runningTime?.ElapsedTicks ?? 0));
-			set => TimeOpenDT = new DateTime(value.Ticks);
+			get => TimeSpan.FromTicks(_timeOpen.Ticks + (_runningTime?.ElapsedTicks ?? 0));
+			set
+			{
+				if (_timeOpen == value) return;
+				_timeOpen = value;
+				if (Loaded) ReadyToUpsert = true;
+			}
 		}
 		public ListedVN VN
 		{
@@ -257,8 +253,7 @@ namespace Happy_Reader.Database
 				return ProcessStatus.On; //on = process is running and timer is not paused
 			}
 		}
-		public NativeMethods.RECT WindowLocation { get; private set; }
-		public static Action<NativeMethods.RECT> MoveOutputWindow { get; set; }
+		public OutputWindow OutputWindow { get; set; }
 		public string KeyField => nameof(Id);
 		public long Key => Id;
 
@@ -281,11 +276,14 @@ namespace Happy_Reader.Database
 			command.AddParameter("@ProcessName", ProcessName);
 			command.AddParameter("@Tag", Tag);
 			command.AddParameter("@RemoveRepetition", RemoveRepetition);
-			command.AddParameter("@OutputWindow", OutputWindow);
-			command.AddParameter("@TimeOpenDT", TimeOpenDT);
+			command.AddParameter("@TimeOpenDT", new DateTime(TimeOpen.Ticks));
 			command.AddParameter("@PrefEncodingEnum", PrefEncodingEnum);
+			command.AddParameter("@OutputWindow", GetOutputWindowString(OutputRectangle));
 			return command;
 		}
+
+		private static string GetOutputWindowString(NativeMethods.RECT outputRectangle)
+			=> string.Join(",", outputRectangle.Left, outputRectangle.Top, outputRectangle.Width, outputRectangle.Height);
 
 		public void LoadFromReader(IDataRecord reader)
 		{
@@ -300,10 +298,28 @@ namespace Happy_Reader.Database
 			ProcessName = Convert.ToString(reader["ProcessName"]);
 			Tag = Convert.ToString(reader["Tag"]);
 			RemoveRepetition = Convert.ToInt32(reader["RemoveRepetition"]) == 1;
-			OutputWindow = Convert.ToString(reader["OutputWindow"]);
-			TimeOpenDT = Convert.ToDateTime(reader["TimeOpenDT"]);
+			TimeOpen = TimeSpan.FromTicks(Convert.ToDateTime(reader["TimeOpenDT"]).Ticks);
 			PrefEncodingEnum = (EncodingEnum)Convert.ToInt32(reader["PrefEncodingEnum"]);
+			var outputWindow = Convert.ToString(reader["OutputWindow"]);
+			OutputRectangle = GetOutputRectangle(outputWindow);
 			Loaded = true;
+		}
+
+		private static NativeMethods.RECT GetOutputRectangle(string outputWindow)
+		{
+			if (string.IsNullOrEmpty(outputWindow)) return StaticMethods.OutputWindowStartPosition;
+			try
+			{
+				//invariant culture required to ensure comma is not treated as decimal.
+				var parts = outputWindow.Split(',').Select(i => int.Parse(i, CultureInfo.InvariantCulture)).ToList();
+				var rect = new NativeMethods.RECT { Left = parts[0], Top = parts[1], Right = parts[2] + parts[0], Bottom = parts[3] + parts[1] };
+				if (rect.Width < 0 || rect.Height < 0) return StaticMethods.OutputWindowStartPosition;
+				return rect;
+			}
+			catch
+			{
+				return StaticMethods.OutputWindowStartPosition;
+			}
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -424,8 +440,6 @@ namespace Happy_Reader.Database
 			Process = process;
 			Process.EnableRaisingEvents = true;
 			_windowHook = new WinAPI.WindowHook(process);
-			var success = NativeMethods.GetWindowRect(_process.MainWindowHandle, out var location);
-			if (success) WindowLocation = location;
 			_windowHook.OnWindowMinimizeStart += WindowIsMinimised;
 			_windowHook.OnWindowMinimizeEnd += WindowsIsRestored;
 			_windowHook.OnWindowMoveSizeStart += WindowMoveStarts;
@@ -436,31 +450,35 @@ namespace Happy_Reader.Database
 
 		private void WindowMoveStarts(IntPtr windowPointer)
 		{
-			if (MoveOutputWindow == null) return;
+			if (OutputWindow == null) return;
 			var success = NativeMethods.GetWindowRect(windowPointer, out var location);
 			if (success) _locationOnMoveStart = location;
 		}
 
 		private void WindowMoveEnds(IntPtr windowPointer)
 		{
-			if (MoveOutputWindow == null) return;
-			var success = NativeMethods.GetWindowRect(windowPointer, out var newLocation);
+			var success = NativeMethods.GetWindowRect(windowPointer, out var gameRectangle);
 			if (!success || !_locationOnMoveStart.HasValue) return;
-			WindowLocation = newLocation;
-			var diff = newLocation - _locationOnMoveStart.Value;
-			MoveOutputWindow?.Invoke(diff);
+			var difference = gameRectangle.GetDifference(_locationOnMoveStart.Value,false);
+			OutputWindow.MoveByDifference(difference);
 			_locationOnMoveStart = null;
+		}
+
+		public void SaveOutputRectangle(NativeMethods.RECT absoluteRectangle)
+		{
+			var windowPointer = _process.MainWindowHandle;
+			var success = NativeMethods.GetWindowRect(windowPointer, out var gameRectangle);
+			if (!success) return;
+			var relativeRectangle = absoluteRectangle.GetDifference(gameRectangle,true);
+			OutputRectangle = relativeRectangle;
 		}
 
 		private void WindowsIsRestored(IntPtr windowPointer)
 		{
-			var success = NativeMethods.GetWindowRect(windowPointer, out var location);
-			if (success) WindowLocation = location;
 			Logger.ToDebug($"Restored {DisplayName}, starting running time at {_runningTime.Elapsed}");
 			_runningTime.Start();
 			OnPropertyChanged(nameof(RunningStatus));
-			var outputWindow = StaticMethods.MainWindow.ViewModel.OutputWindow;
-			if (outputWindow.InitialisedWindowLocation) StaticMethods.MainWindow.ViewModel.OutputWindow.Show();
+			if (OutputWindow?.InitialisedWindowLocation ?? false) OutputWindow.Show();
 		}
 
 		private void WindowIsMinimised(IntPtr windowPointer)
@@ -469,7 +487,7 @@ namespace Happy_Reader.Database
 			Logger.ToDebug($"Minimized {DisplayName}, stopped running time at {_runningTime.Elapsed}");
 			OnPropertyChanged(nameof(RunningStatus));
 			OnPropertyChanged(nameof(TimeOpen));
-			StaticMethods.MainWindow.ViewModel.OutputWindow.Hide();
+			if (OutputWindow?.InitialisedWindowLocation ?? false) OutputWindow.Hide();
 		}
 
 		public Process StartProcessThroughLocaleEmulator()

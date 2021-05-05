@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -141,7 +140,6 @@ namespace Happy_Reader.ViewModel
 			ProducersViewModel = new ProducersTabViewModel(this);
 			IthViewModel = new IthViewModel(this, InitialiseOutputWindowForGame);
 			OutputWindow = new OutputWindow(InitialiseOutputWindowForGame);
-			UserGame.MoveOutputWindow = r => OutputWindow.MoveByDifference(r);
 			Log.AddToList += AddLogToList;
 		}
 
@@ -169,7 +167,7 @@ namespace Happy_Reader.ViewModel
 			Logger.ToDebug($"[{nameof(MainWindowViewModel)}] Starting exit procedures...");
 			_finalizing = true;
 			if (UserGame?.IsHooked ?? false) HookedProcessOnExited(sender, args);
-			var ithFinalize = new Thread(() => IthViewModel.Finalize(null, null)) { IsBackground = true };
+			var ithFinalize = new Thread(() => IthViewModel.Finalize(null, null)) { IsBackground = true, Name = "IthVnrFinalizeThread"};
 			ithFinalize.Start();
 			bool terminated = ithFinalize.Join(5000); //false if timed out
 			if (!terminated) { }
@@ -477,14 +475,12 @@ namespace Happy_Reader.ViewModel
 						UserGame = null;
 						return;
 					}
-					if (UserGame.ProcessName == null)
-					{
-						UserGame.ProcessName = process.ProcessName;
-					}
+					UserGame.ProcessName ??= process.ProcessName;
 					UserGame.SetActiveProcess(process, HookedProcessOnExited);
 					TestViewModel.Game = UserGame.VN;
 					UserGame.OnPropertyChanged(null);
 					OnPropertyChanged(nameof(UserGame));
+					UserGame.OutputWindow = OutputWindow;
 					if (UserGame.HookProcess == UserGame.HookMode.None) return;
 					if (SettingsViewModel.GuiSettings.HookGlobalMouse) _globalHook = WinAPI.HookMouseEvents(GlobalMouseClick);
 					while (!_loadingComplete) Thread.Sleep(25);
@@ -493,8 +489,12 @@ namespace Happy_Reader.ViewModel
 				//todo catch more specific exception
 				catch (Exception ex)
 				{
-					if (UserGame != null) UserGame.Process = null;
-					UserGame = null;
+					if (UserGame != null)
+					{
+						UserGame.Process = null;
+						UserGame.OutputWindow = null;
+						UserGame = null;
+					}
 					Logger.ToFile(ex);
 					throw;
 				}
@@ -509,10 +509,7 @@ namespace Happy_Reader.ViewModel
 			if (!success) OutputWindow.SetLocation(StaticMethods.OutputWindowStartPosition);
 			else
 			{
-				var outputWindowLocation = new Rectangle(
-					new System.Drawing.Point(windowLocation.Left + UserGame.OutputRectangle.X,
-						windowLocation.Top + UserGame.OutputRectangle.Y),
-					UserGame.OutputRectangle.Size);
+				var outputWindowLocation = UserGame.OutputRectangle.MovePosition(windowLocation);
 				OutputWindow.SetLocation(outputWindowLocation);
 			}
 			if (!IthViewModel.Finalized && UserGame.HookProcess == UserGame.HookMode.VnrHook && !string.IsNullOrWhiteSpace(UserGame.HookCode))
@@ -541,18 +538,12 @@ namespace Happy_Reader.ViewModel
 			Application.Current.Dispatcher.Invoke(() =>
 			{
 				OutputWindow.InitialisedWindowLocation = false;
-				if (UserGame != null)
-				{
-					var outputRectangle = OutputWindow.GetRectangle();
-					var newRect = new Rectangle(
-						new System.Drawing.Point(outputRectangle.X - UserGame.WindowLocation.Left, outputRectangle.Y - UserGame.WindowLocation.Top),
-						outputRectangle.Size);
-					UserGame.OutputRectangle = newRect;
-				}
-				StaticMethods.Data.SaveChanges();
 				OutputWindow.Hide();
+				StaticMethods.Data.SaveChanges();
 			});
 			_globalHook?.Dispose();
+			UserGame.Process = null;
+			UserGame.OutputWindow = null;
 			UserGame = null;
 			//restart monitor
 			if (_finalizing || _monitor != null && _monitor.IsAlive) return;

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,12 +10,13 @@ namespace Happy_Reader.View
 {
 	public partial class OutputWindow
 	{
+		private readonly Action _initialiseWindowForGame;
 		private readonly GridLength _settingsColumnLength;
 		private OutputWindowViewModel _viewModel;
 		private bool _loaded;
 		private bool _isResizing;
 		private bool _settingsOn = true;
-		private System.Windows.Point _startPosition;
+		private Point _startPosition;
 
 		public bool SettingsOn
 		{
@@ -33,10 +33,10 @@ namespace Happy_Reader.View
 		public OutputWindow(Action initialiseOutputWindowForGame)
 		{
 			InitializeComponent();
-			InitialiseWindowForGame = initialiseOutputWindowForGame;
+			_initialiseWindowForGame = initialiseOutputWindowForGame;
 			_settingsColumnLength = SettingsColumn.Width;
 		}
-		
+
 		private void UpdateSettingToggles()
 		{
 			StaticMethods.Settings.TranslatorSettings.SettingsViewState = SettingsOn;
@@ -53,25 +53,23 @@ namespace Happy_Reader.View
 
 		public bool InitialisedWindowLocation { get; set; }
 
-		public Action InitialiseWindowForGame { get; }
-
 		public void AddTranslation(Translation translation)
 		{
-			if (!InitialisedWindowLocation) InitialiseWindowForGame?.Invoke();
+			if (!InitialisedWindowLocation) _initialiseWindowForGame?.Invoke();
 			if (!IsVisible && !translation.IsError) Show();
-			if(!_loaded) OutputWindow_OnLoaded(null,null);
+			if (!_loaded) OutputWindow_OnLoaded(null, null);
 			_viewModel.AddTranslation(translation);
 			_viewModel.UpdateOutput();
 			if (FullScreenOn) Activate();
 		}
 
-		internal void SetLocation(Rectangle rectangle)
+		internal void SetLocation(NativeMethods.RECT rectangle)
 		{
 			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			Application.Current.Dispatcher.Invoke(() =>
 			{
-				Left = rectangle.X;
-				Top = rectangle.Y;
+				Left = rectangle.Left;
+				Top = rectangle.Top;
 				Width = rectangle.Width;
 				Height = rectangle.Height;
 			});
@@ -89,7 +87,7 @@ namespace Happy_Reader.View
 		{
 			if (_loaded) return;
 			_viewModel = (OutputWindowViewModel)DataContext;
-			_viewModel.Initialize(() => OutputTextBox.Selection.Text, OutputTextBox.Document, () => Dispatcher.Invoke(()=> OutputTextBox.ScrollToEnd()));
+			_viewModel.Initialize(() => OutputTextBox.Selection.Text, OutputTextBox.Document, () => Dispatcher.Invoke(OutputTextBox.ScrollToEnd));
 			SettingsOn = StaticMethods.Settings.TranslatorSettings.SettingsViewState;
 			var tColor = StaticMethods.Settings.TranslatorSettings.TranslatedColor.Color.Color;
 			var darkerColor = System.Windows.Media.Color.FromRgb((byte)(tColor.R * 0.75), (byte)(tColor.G * 0.75), (byte)(tColor.B * 0.75));
@@ -99,14 +97,6 @@ namespace Happy_Reader.View
 			};
 			OutputTextBox.Effect = dropShadowEffect;
 			_loaded = true;
-		}
-
-		public Rectangle GetRectangle()
-		{
-			Rectangle result = default;
-			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
-			Application.Current.Dispatcher.Invoke(() => result = new Rectangle((int)Left, (int)Top, (int)Width, (int)Height));
-			return result;
 		}
 
 		private void Resizer_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -165,6 +155,19 @@ namespace Happy_Reader.View
 			var newState = StaticMethods.Settings.TranslatorSettings.SetNextVerticalAlignmentState();
 			_viewModel.UpdateOutput();
 			if (newState == VerticalAlignment.Top) OutputTextBox.ScrollToHome();
+		}
+
+		private void SizeOrLocationChanged(object sender, EventArgs e)
+		{
+			if (!InitialisedWindowLocation || StaticMethods.MainWindow.ViewModel.UserGame == null) return;
+			var outputWindowLocation = new NativeMethods.RECT
+			{
+				Left = (int)Left,
+				Top = (int)Top,
+				Right = (int)Left + (int)Width,
+				Bottom = (int)Top + (int)Height
+			};
+			StaticMethods.MainWindow.ViewModel.UserGame.SaveOutputRectangle(outputWindowLocation);
 		}
 	}
 }

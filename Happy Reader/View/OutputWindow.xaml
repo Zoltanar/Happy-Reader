@@ -10,7 +10,8 @@
         ShowInTaskbar="False" WindowStyle="None" AllowsTransparency="True"  
         Topmost="True" 
         Loaded="OutputWindow_OnLoaded"
-        ResizeMode="CanResizeWithGrip">
+        ResizeMode="CanResizeWithGrip"
+        SizeChanged="SizeOrLocationChanged" LocationChanged="SizeOrLocationChanged">
 	<Window.DataContext>
 		<viewModel:OutputWindowViewModel/>
 	</Window.DataContext>
