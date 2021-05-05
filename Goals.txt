@@ -9,13 +9,13 @@
 0 - TestTab: show if translation was cached or not and give option to re-fetch
 0 - report error when setting google credential path
 0 - use ithvnr tab to also show captured clipboard text format like: [process/pid] [outputted] [text]
-0 - outputwindow: add entry from selected text should default type to output when latin only.
 0 - ithvnr: better saving/loading game text threads, let user name threads and delete saved
 0 - ithvnr: once any thread has been saved as posting, change default for new threads to stop/hide.
 0 - vnrhook: handle maximum threads either change limit or reset ability
 0 - allow proxy mods with multiple proxies ([[m#1]]-[[m#2]])
 0 - cached translations: save source name (for now only google free and google credential)
 0 - check if output window is in visible area of screens, if not, reset it.
+0 - text thread panel max height (scrollbar if needed)
 
 before release:
 set up database versioning/upgrade system

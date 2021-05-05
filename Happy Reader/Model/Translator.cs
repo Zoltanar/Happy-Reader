@@ -17,10 +17,11 @@ namespace Happy_Reader
 		//TODO add regex to all stages
 
 		private static readonly object TranslateLock = new();
-		private static readonly Regex LatinOnlyRegex = new(@"^[a-zA-Z0-9:+|\-[\]\/\\\r\n .!?,;@()_$^""]+$", RegexOptions.Compiled);
 		private static readonly Regex Stage4P1InputRegex = new(@"\[\[(.+?)]]", RegexOptions.Compiled);
 		private static readonly Regex Stage4P1OutputRegex = new(@"^.*?\[\[(.+)]].*?$", RegexOptions.Compiled);
 		private static readonly Dictionary<string, Regex> RegexDict = new();
+
+		public static readonly Regex LatinOnlyRegex = new(@"^[a-zA-Z0-9:+|\-[\]\/\\\r\n .!?,;@()_$^""]+$", RegexOptions.Compiled);
 
 		private readonly HappyReaderDatabase _data;
 		private User _lastUser;

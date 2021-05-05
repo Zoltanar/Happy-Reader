@@ -86,17 +86,32 @@ namespace Happy_Reader.ViewModel
 
 		private void AddEntry()
 		{
-			var input = _getSelectedText();
-			var output = Kakasi.JapaneseToRomaji(input);
-			if (output.Length > 0) output = char.ToUpper(output[0]) + output.Substring(1);
-			var entry = new Entry
+			var input = _getSelectedText().Trim();
+			Entry entry;
+			if (Translator.LatinOnlyRegex.IsMatch(input))
 			{
-				Input = input,
-				Output = output.Replace(" ", ""),
-				SeriesSpecific = true,
-				GameId = StaticMethods.MainWindow.ViewModel.UserGame?.VNID,
-				Type = EntryType.Name
-			};
+				entry = new Entry
+				{
+					Input = input,
+					Output = input,
+					SeriesSpecific = true,
+					GameId = StaticMethods.MainWindow.ViewModel.UserGame?.VNID,
+					Type = EntryType.Output
+				};
+			}
+			else
+			{
+				var output = Kakasi.JapaneseToRomaji(input);
+				if (output.Length > 0) output = char.ToUpper(output[0]) + output.Substring(1);
+				entry = new Entry
+				{
+					Input = input,
+					Output = output.Replace(" ", ""),
+					SeriesSpecific = true,
+					GameId = StaticMethods.MainWindow.ViewModel.UserGame?.VNID,
+					Type = EntryType.Name
+				};
+			}
 			StaticMethods.MainWindow.CreateAddEntriesTab(new List<Entry> { entry });
 		}
 

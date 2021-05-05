@@ -92,9 +92,12 @@ namespace Happy_Reader.View.Tabs
 		{
 			var item = e.Row.DataContext as DisplayEntry;
 			if (item == null || item.Entry == null) return;
-			if(item.Entry.UserId == 0) item.Entry.UserId = StaticMethods.MainWindow.ViewModel.User.Id;
+			if (string.IsNullOrWhiteSpace(item.Entry.Input))
+			{
+				item.Type = EntryType.Name;
+			}
+			item.Entry.UserId = StaticMethods.MainWindow.ViewModel.User.Id;
 			item.Entry.GameId ??= StaticMethods.MainWindow.ViewModel.UserGame?.VNID;
-			item.Type = EntryType.Name;
 		}
 	}
 }
