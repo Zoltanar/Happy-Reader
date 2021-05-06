@@ -80,7 +80,7 @@
 				</DataTemplate>
 			</ComboBox.ItemTemplate>
 		</ComboBox>
-		<Label Foreground="{Binding ReplyColor}" Content="{Binding ReplyText}" Margin="214,0,125,0" VerticalAlignment="Stretch" VerticalContentAlignment="Center" Grid.Row="3"/>
+		<Label Foreground="{Binding ReplyColor, Mode=OneWay}" Content="{Binding ReplyText, Mode=OneWay}" Margin="214,0,125,0" VerticalAlignment="Stretch" VerticalContentAlignment="Center" Grid.Row="3"/>
 		<TextBlock Grid.Row="3" Width="120" Background="Aquamarine" HorizontalAlignment="Right" TextAlignment="Right" Padding="5">
 			<Run Text="{Binding Tiles.Count, Mode=OneWay}"/>
 			<Run Text="/"/>

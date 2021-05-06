@@ -9,6 +9,7 @@ namespace Happy_Reader
 {
 	public class GuiSettings : SettingsJsonFile
 	{
+		public const int VotesRequiredForRatingSort = 10; //todo make editable?
 		private bool _nsfwImages;
 		private bool _advancedMode;
 		private bool _contentTags;
@@ -139,7 +140,7 @@ namespace Happy_Reader
 				if (Loaded) Save();
 			}
 		}
-
+		
 		public bool ExcludeLowVotesForRatingSort
 		{
 			get => _excludeLowVotesForRatingSort;

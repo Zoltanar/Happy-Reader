@@ -24,6 +24,7 @@ namespace Happy_Reader.ViewModel
 		private const int PageSize = 50;
 		private int _currentPage;
 		private bool _finalPage;
+		private bool _orderingByRating;
 		private string _replyText;
 		private Brush _replyColor;
 		private Brush _vndbConnectionBackground;
@@ -33,11 +34,12 @@ namespace Happy_Reader.ViewModel
 		protected abstract Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> GetAll { get; }
 		protected abstract IEnumerable<IDataItem<int>> GetAllWithKeyIn(VisualNovelDatabase db, int[] keys);
 		protected abstract Func<string, Func<IDataItem<int>, bool>> SearchByText { get; }
-		protected abstract Func<IDataItem<int>, ListedProducer> GetProducer { get; }
+		protected abstract Func<IDataItem<int>, ListedVN> GetVisualNovel { get; }
+		protected abstract Func<IDataItem<int>, double?> GetSuggestion { get; }
+		protected abstract Func<IDataItem<int>, string> GetName { get; }
 		protected abstract Func<IDataItem<int>, UserControl> GetTile { get; }
 		protected abstract NamedFunction DbFunction { get; set; }
-		protected abstract Func<IEnumerable<IDataItem<int>>, IEnumerable<IDataItem<int>>> Ordering { get; set; }
-		protected Func<IDataItem<int>, bool> Exclude;
+		private Func<IEnumerable<IDataItem<int>>, IEnumerable<IDataItem<int>>> _ordering;
 		public abstract FiltersViewModel FiltersViewModel { get; }
 		public PausableUpdateList<UserControl> Tiles { get; set; } = new();
 		private SuggestionScorer _suggestionScorer;
@@ -65,31 +67,31 @@ namespace Happy_Reader.ViewModel
 		public string ReplyText
 		{
 			get => _replyText;
-			set { _replyText = value; OnPropertyChanged(); }
+			private set { _replyText = value; OnPropertyChanged(); }
 		}
 		
 		public Brush ReplyColor
 		{
 			get => _replyColor;
-			set { _replyColor = value; OnPropertyChanged(); }
+			private set { _replyColor = value; OnPropertyChanged(); }
 		}
 
 		public Brush VndbConnectionForeground
 		{
 			get => _vndbConnectionForeground;
-			set { _vndbConnectionForeground = value; OnPropertyChanged(); }
+			private set { _vndbConnectionForeground = value; OnPropertyChanged(); }
 		}
 
 		public Brush VndbConnectionBackground
 		{
 			get => _vndbConnectionBackground;
-			set { _vndbConnectionBackground = value; OnPropertyChanged(); }
+			private set { _vndbConnectionBackground = value; OnPropertyChanged(); }
 		}
 
 		public string VndbConnectionStatus
 		{
 			get => _vndbConnectionStatus;
-			set { _vndbConnectionStatus = value; OnPropertyChanged(); }
+			private set { _vndbConnectionStatus = value; OnPropertyChanged(); }
 		}
 
 		public SuggestionScorer SuggestionScorer
@@ -105,10 +107,15 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 
-		protected DatabaseViewModelBase(MainWindowViewModel mainWindowViewModel) => MainViewModel = mainWindowViewModel;
+		protected DatabaseViewModelBase(MainWindowViewModel mainWindowViewModel)
+		{
+			_ordering = items => items.OrderByDescending(i => GetVisualNovel(i)?.ReleaseDate ?? DateTime.MaxValue);
+			MainViewModel = mainWindowViewModel;
+		}
 
 		[NotifyPropertyChangedInvocator]
-		public void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		protected void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
 
 		public abstract Task Initialize();
 
@@ -150,7 +157,7 @@ namespace Happy_Reader.ViewModel
 			});
 		}
 
-		public void SetReplyText(string text, VndbConnection.MessageSeverity severity)
+		protected void SetReplyText(string text, VndbConnection.MessageSeverity severity)
 		{
 			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			Application.Current.Dispatcher.Invoke(() =>
@@ -171,7 +178,7 @@ namespace Happy_Reader.ViewModel
 			});
 		}
 
-		public async Task RefreshTiles()
+		protected async Task RefreshTiles()
 		{
 			var watch = Stopwatch.StartNew();
 			_finalPage = false;
@@ -183,14 +190,12 @@ namespace Happy_Reader.ViewModel
 			{
 				var items = DbFunction.SelectAndInvoke(StaticHelpers.LocalDatabase);
 				OnPropertyChanged(nameof(SelectedFunctionIndex));
-				if (Exclude != null)
+				if (_orderingByRating && StaticMethods.Settings.GuiSettings.ExcludeLowVotesForRatingSort)
 				{
-					var exclude = Exclude;
-					items = items.Where(x=> !exclude(x));
-					Exclude = null;
+					items = items.Where(i => !((GetVisualNovel(i)?.VoteCount ?? 0) < GuiSettings.VotesRequiredForRatingSort));
 				}
 				var filteredResults = items.Intersect(FiltersViewModel.PermanentFilter.GetAllResults(StaticHelpers.LocalDatabase, GetAll, GetAllWithKeyIn));
-				AllResults = Ordering(filteredResults).ToArray();
+				AllResults = _ordering(filteredResults).ToArray();
 				var firstPage = AllResults.Take(PageSize).ToArray();
 				return firstPage;
 			});
@@ -282,14 +287,14 @@ namespace Happy_Reader.ViewModel
 		public async Task ShowForProducer(string producerName)
 		{
 			var lowerName = producerName.ToLowerInvariant();
-			DbFunction = new NamedFunction(db => GetAll(db).Where(item => GetProducer(item)?.Name.ToLowerInvariant() == lowerName),
+			DbFunction = new NamedFunction(db => GetAll(db).Where(i => GetVisualNovel(i)?.Producer?.Name.ToLowerInvariant() == lowerName),
 				$"Producer {producerName}");
 			await RefreshTiles();
 		}
 
 		public async Task ShowForProducer(ListedProducer producer)
 		{
-			DbFunction = new NamedFunction(db => GetAll(db).Where(item => GetProducer(item) == producer),
+			DbFunction = new NamedFunction(db => GetAll(db).Where(i => GetVisualNovel(i)?.Producer == producer),
 				$"Producer {producer.Name}");
 			await RefreshTiles();
 		}
@@ -301,34 +306,55 @@ namespace Happy_Reader.ViewModel
 				$"Character {character.Name}");
 			await RefreshTiles();
 		}
-
-		protected abstract Func<IDataItem<int>, double?> GetSuggestion { get; }
-
+		
 		public async Task ShowSuggested()
 		{
 			var scoredKeys = GetAll(StaticHelpers.LocalDatabase).Where(i=> GetSuggestion(i) >= 0d).Select(i=>i.Key).ToArray();
 			DbFunction = new NamedFunction(db => GetAllWithKeyIn(db,scoredKeys), "Suggested");
-			Ordering = lvn => lvn.OrderByDescending(i => GetSuggestion(i));
+			_ordering = lvn => lvn.OrderByDescending(i => GetSuggestion(i));
+			_orderingByRating = false;
 			await RefreshTiles();
 		}
 		
 		public async Task SortBySuggestion()
 		{
-			Ordering = chars => chars.OrderByDescending(ch => GetSuggestion(ch));
+			_ordering = items => items.OrderByDescending(ch => GetSuggestion(ch));
+			_orderingByRating = false;
+			await RefreshTiles();
+		}
+		
+		public async Task SortByRating()
+		{
+			_ordering = items => items.OrderByDescending(i => GetVisualNovel(i)?.Rating ?? 0d).ThenByDescending(i => GetVisualNovel(i)?.ReleaseDate ?? DateTime.MinValue);
+			_orderingByRating = true;
 			await RefreshTiles();
 		}
 
-		public abstract Task SortByMyScore();
+		public async Task SortByMyScore()
+		{
+			_ordering = items => items.OrderByDescending(i => GetVisualNovel(i)?.UserVN?.Vote ?? 0);
+			_orderingByRating = false;
+			await RefreshTiles();
+		}
 
-		public abstract Task SortByRating();
+		public async Task SortByReleaseDate()
+		{
+			_ordering = items => items.OrderByDescending(i => GetVisualNovel(i).ReleaseDate);
+			_orderingByRating = false;
+			await RefreshTiles();
+		}
 
-		public abstract Task SortByReleaseDate();
-
-		public abstract Task SortByName();
+		public async Task SortByName()
+		{
+			_ordering = items => items.OrderBy(i => GetName(i)).ThenByDescending(i => GetVisualNovel(i).ReleaseDate);
+			_orderingByRating = false;
+			await RefreshTiles();
+		}
 
 		public async Task SortByID()
 		{
-			Ordering = chars => chars.OrderByDescending(ch => ch.Key);
+			_ordering = items => items.OrderByDescending(i => i.Key);
+			_orderingByRating = false;
 			await RefreshTiles();
 		}
 
@@ -345,7 +371,7 @@ namespace Happy_Reader.ViewModel
 			await RefreshTiles();
 		}
 
-		public virtual async Task ShowForStaffWithAlias(string searchHeader, ICollection<int> aliasIds)
+		public async Task ShowForStaffWithAlias(string searchHeader, ICollection<int> aliasIds)
 		{
 			var staffIds = aliasIds.Select(a=> StaticHelpers.LocalDatabase.StaffAliases[a].StaffID).ToList();
 			var allAliasIds = StaticHelpers.LocalDatabase.StaffAliases.Where(sa => staffIds.Contains(sa.StaffID)).Select(sa=>sa.AliasID).ToArray();
@@ -387,6 +413,9 @@ namespace Happy_Reader.ViewModel
 			await RefreshTiles();
 		}
 
-		public abstract int[] GetRelatedTitles(IDataItem<int> item);
+		private int[] GetRelatedTitles(IDataItem<int> item)
+		{
+			return GetVisualNovel(item)?.AllRelations?.Select(i => i.ID).ToArray() ?? Array.Empty<int>();
+		}
 	}
 }

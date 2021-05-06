@@ -41,9 +41,6 @@ namespace Happy_Apps_Core
 		}
 		public CharacterVN CharacterVN { get; set; }
 		public ListedVN VisualNovel => CharacterVN == null ? null : StaticHelpers.LocalDatabase.VisualNovels[CharacterVN.VNId];
-		public string VisualNovelName => VisualNovel?.Title;
-		public string VisualNovelReleaseDate => VisualNovel?.ReleaseDateString;
-		public DateTime? VisualNovelSortingDate => VisualNovel?.ReleaseDate;
 		public ListedProducer Producer => VisualNovel?.Producer;
 		public IEnumerable<CharacterVN> VisualNovels => StaticHelpers.LocalDatabase.CharacterVNs.Where(cvn => cvn.CharacterId == ID);
 		public string ImageSource => StaticHelpers.GetImageSource(ImageId, ref _imageSourceSet, ref _imageSource);
