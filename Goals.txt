@@ -1,21 +1,22 @@
-﻿0 - test tab: list entries used per stage.
-0 - warn if an instance is already running (maybe show database file for opening instance)
+﻿0 - warn if an instance is already running (maybe show database file for opening instance)
 0 - launch title from VN context menu
-0 - CachedTranslations: option to do this automatically: remove from cache if not used recently or originally cached too long ago.
 0 - show written tag description on tooltip
 0 - staff filter by name instead of id
 0 - add seiyuu filter to character
 0 - allow scrolling on main window tab control when too many tabs and add close all tabs button
 0 - TestTab: show if translation was cached or not and give option to re-fetch
+0 - TestTab: list entries used per stage.
 0 - report error when setting google credential path
-0 - use ithvnr tab to also show captured clipboard text format like: [process/pid] [outputted] [text]
+0 - ithvnr: use ithvnr tab to also show captured clipboard text format like: [process/pid] [outputted] [text]
 0 - ithvnr: better saving/loading game text threads, let user name threads and delete saved
 0 - ithvnr: once any thread has been saved as posting, change default for new threads to stop/hide.
+0 - ithvnr: text thread panel max height (scrollbar if needed)
 0 - vnrhook: handle maximum threads either change limit or reset ability
-0 - allow proxy mods with multiple proxies ([[m#1]]-[[m#2]])
-0 - cached translations: save source name (for now only google free and google credential)
-0 - check if output window is in visible area of screens, if not, reset it.
-0 - text thread panel max height (scrollbar if needed)
+0 - entries: allow proxy mods with multiple proxies ([[m#1]]-[[m#2]])
+0 - CachedTranslations: save source name (for now only google free and google credential)
+0 - CachedTranslations: option to do this automatically: remove from cache if not used recently or originally cached too long ago.
+0 - outputwindow: check if output window is in visible area of screens, if not, reset it.
+0 - outputwindow: alternate colors between blocks
 
 before release:
 set up database versioning/upgrade system

@@ -79,7 +79,7 @@ namespace Happy_Reader
 				if (user != _lastUser || game != _lastGame || RefreshEntries) SetEntries(user, game);
 				if (LatinOnlyRegex.IsMatch(input)) return Translation.Error("Input was Latin only.");
 				var item = new Translation(input, true);
-				SplitInputIntoParts(item);
+				SplitInputIntoParts(item.Original, item.Parts);
 				item.TranslateParts(saveEntriesUsed);
 				return item;
 			}
@@ -101,9 +101,8 @@ namespace Happy_Reader
 			return skip != indexOfSecondBracket ? input : input.Substring(skip);
 		}
 
-		private void SplitInputIntoParts(Translation item)
+		private void SplitInputIntoParts(string input, List<(string Part, bool Translate)> parts)
 		{
-			var input = item.Original;
 			int index = 0;
 			string currentPart = "";
 			while (index < input.Length)
@@ -114,12 +113,12 @@ namespace Happy_Reader
 					if (_inclusiveSeparators.Contains(@char))
 					{
 						currentPart += @char;
-						item.Parts.Add((currentPart, !currentPart.All(c => _allSeparators.Contains(c))));
+						parts.Add((currentPart, !currentPart.All(c => _allSeparators.Contains(c))));
 					}
 					else
 					{
-						if (currentPart.Length > 0) item.Parts.Add((currentPart, !string.IsNullOrWhiteSpace(currentPart) && !currentPart.All(c => _allSeparators.Contains(c))));
-						item.Parts.Add((@char.ToString(), false));
+						if (currentPart.Length > 0) parts.Add((currentPart, !string.IsNullOrWhiteSpace(currentPart) && !currentPart.All(c => _allSeparators.Contains(c))));
+						parts.Add((@char.ToString(), false));
 					}
 					currentPart = "";
 					index++;
@@ -128,7 +127,7 @@ namespace Happy_Reader
 				currentPart += @char;
 				index++;
 			}
-			if (currentPart.Length > 0) item.Parts.Add((currentPart, !string.IsNullOrWhiteSpace(currentPart) && !currentPart.All(c => _allSeparators.Contains(c))));
+			if (currentPart.Length > 0) parts.Add((currentPart, !string.IsNullOrWhiteSpace(currentPart) && !currentPart.All(c => _allSeparators.Contains(c))));
 		}
 
 		private void SetEntries([NotNull] User user, ListedVN game)
