@@ -145,8 +145,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GoogleTranslate.cs" />
+    <Compile Include="GoogleTranslateApi.cs" />
+    <Compile Include="GoogleTranslateFree.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="GoogleTranslation.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

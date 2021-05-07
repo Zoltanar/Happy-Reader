@@ -481,12 +481,11 @@ namespace Happy_Reader
 		private static void TranslateStageFive(StringBuilder sb, TranslationResults result)
 		{
 			result.SetStage(5);
-			if (StaticMethods.Settings.TranslatorSettings.GoogleUseCredential) GoogleTranslate.Translate(sb);
-			else GoogleTranslate.TranslateFree(sb);
+			GoogleTranslate.Translate(sb, StaticMethods.Settings.TranslatorSettings.GoogleUseCredential);
 			StaticHelpers.Logger.Verbose($"Stage 5: {sb}");
 			result[5] = sb.ToString();
 		}
-
+		
 		/// <summary>
 		/// Replace Name and Translation proxies to entry outputs.
 		/// </summary>

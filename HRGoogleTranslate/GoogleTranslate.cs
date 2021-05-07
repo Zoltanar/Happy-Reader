@@ -1,42 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Google;
-using Google.Cloud.Translation.V2;
 using Happy_Apps_Core.DataAccess;
-using HtmlAgilityPack;
+using Happy_Apps_Core.Translation;
 using JetBrains.Annotations;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace HRGoogleTranslate
 {
 	public static class GoogleTranslate
 	{
-		private const string GoogleDetectedString = @"Our systems have detected unusual traffic from your computer network.  This page checks to see if it&#39;s really you sending the requests, and not a robot.";
-		private const string GoogleDetectedString2 = @"This page appears when Google automatically detects requests coming from your computer network";
-		//todo make this an external string?
-		private const string TranslateFreeUrl = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=en&dt=t&q=";
 		private static readonly HashSet<string> UntouchedStrings = new HashSet<string>();
-		private static DACollection<string, GoogleTranslation> _cache;
-		private static bool _noApiTranslation;
+		private static DACollection<string, CachedTranslation> _cache;
 		private static bool _logVerbose;
-		private static string _googleCredentialPath;
-		private static bool _canUseGoogleCredential;
-		private static TranslationClient _client;
-		private static readonly HttpClient FreeClient = new HttpClient();
+		private static ITranslator _credentialTranslator;
+		private static ITranslator _freeTranslator;
 		private static Func<string, string> _japaneseToRomaji;
+		private static bool _useAnyCached = true; //todo keep cache collection grouped by source and change primary key to input + source
 		private static uint GotFromCacheCount { get; set; }
-		private static uint GotFromAPICount { get; set; }
+		private static uint GotFromApiCount { get; set; }
 
 		public static void Initialize(
-			[NotNull] DACollection<string, GoogleTranslation> existingCache,
+			[NotNull] DACollection<string, CachedTranslation> existingCache,
 			[NotNull] Func<string, string> japaneseToRomaji,
 			string credentialLocation,
 			string userAgentString,
@@ -47,147 +33,51 @@ namespace HRGoogleTranslate
 			_logVerbose = logVerbose;
 			_japaneseToRomaji = japaneseToRomaji;
 			_cache = existingCache;
-			_noApiTranslation = noApiTranslation;
-			_googleCredentialPath = credentialLocation;
-			FreeClient.DefaultRequestHeaders.Add(@"user-agent", userAgentString);
-			SetGoogleCredential();
 			UntouchedStrings.Clear();
 			foreach (var untouchedString in untouchedStrings)
 			{
 				UntouchedStrings.Add(untouchedString);
 			}
-		}
-
-		private static void SetGoogleCredential()
-		{
-			_canUseGoogleCredential = !_noApiTranslation && !string.IsNullOrWhiteSpace(_googleCredentialPath) && File.Exists(_googleCredentialPath);
-			if (_canUseGoogleCredential)
+			_credentialTranslator = new GoogleTranslateApi();
+			_freeTranslator = new GoogleTranslateFree();
+			if (!noApiTranslation)
 			{
-				try
+				InitialiseTranslator(_credentialTranslator, new Dictionary<string, object>()
 				{
-					Debug.Assert(_googleCredentialPath != null, nameof(_googleCredentialPath) + " != null");
-					using (var stream = File.OpenRead(_googleCredentialPath))
-					{
-						_client = TranslationClient.Create(Google.Apis.Auth.OAuth2.GoogleCredential.FromStream(stream));
-					}
-				}
-				catch (Exception ex)
-				{
-					LogVerbose($"Exception initialising Google API client: {ex}");
-					_canUseGoogleCredential = false;
-				}
+					{GoogleTranslateApi.CredentialPropertyName, credentialLocation}
+				});
 			}
+			else _credentialTranslator.Error = "Disabled by user.";
+			InitialiseTranslator(_freeTranslator, new Dictionary<string, object>()
+			{
+				{GoogleTranslateFree.UserAgentPropertyName, userAgentString}
+			});
 		}
 
-		public static void TranslateFree(StringBuilder text)
+		private static void InitialiseTranslator(ITranslator translator, Dictionary<string, object> properties)
 		{
-			if (TryGetWithoutAPI(text, _noApiTranslation, out var input)) return;
-			LogVerbose($"HRTranslate.Google - Getting string from API, input: {input}");
-			string translated;
 			try
 			{
-				var jsonString = GetPostResultAsString(FreeClient, TranslateFreeUrl + Uri.EscapeDataString(input));
-				if (jsonString.Contains(GoogleDetectedString) || jsonString.Contains(GoogleDetectedString2))
-				{
-					var extracted = ExtractText(jsonString);
-					text.Append($"Failed to translate, detected by Google: {extracted}");
-					return;
-				}
-				if (!TryDeserializeJsonResponse(text, jsonString, out translated)) return;
-				GotFromAPICount++;
+				translator.Initialise(properties);
 			}
 			catch (Exception ex)
 			{
-				//todo if result is html, extract visible text
-				text.Append($"Failed to translate. ({ex.Message})");
-				return;
+				translator.Error = $"Failed to initialise: {ex.Message}";
 			}
-			if (string.IsNullOrWhiteSpace(translated)) return;
-			SetTranslationAndSaveToCache(text, translated, input);
 		}
 
-		private static readonly Regex CombineEmptyLinesRegex = new Regex(@"^(\s*\n){2,}");
-
-		public static string ExtractText(string html)
+		private static void SetTranslationAndSaveToCache(StringBuilder text, string translated, string input, string sourceName)
 		{
-			// Where m_whitespaceRegex is a Regex with [\s].
-			// Where sampleHtmlText is a raw HTML string.
-
-			var extractedSampleText = new StringBuilder();
-			HtmlDocument doc = new HtmlDocument();
-			doc.LoadHtml(html);
-
-			if (doc.DocumentNode == null) return string.Empty;
-			foreach (var node in doc.DocumentNode.Descendants("script")
-				.Concat(doc.DocumentNode.Descendants("style"))
-				.Concat(doc.DocumentNode.Descendants("head")).ToArray())
-			{
-				node.Remove();
-			}
-			var allTextNodes = doc.DocumentNode.SelectNodes("//text()");
-			if (allTextNodes != null && allTextNodes.Count > 0)
-			{
-				foreach (var node in allTextNodes)
-				{
-					if (string.IsNullOrWhiteSpace(node.InnerText) || AnyParentHasAttribute(node, "style", v => v.Contains("display:none"))) continue;
-					extractedSampleText.Append(node.InnerText);
-				}
-			}
-			var text = extractedSampleText.ToString();
-			var finalText = CombineEmptyLinesRegex.Replace(text, "\n").Trim();
-			return finalText;
-		}
-
-		private static bool AnyParentHasAttribute(HtmlNode startNode, string name, Func<string, bool> function)
-		{
-			var node = startNode;
-			while (node.ParentNode != null)
-			{
-				if (node.ParentNode.Attributes.Any(a => a.Name == name && function(a.Value))) return true;
-				node = node.ParentNode;
-			}
-			return false;
-		}
-
-		private static void SetTranslationAndSaveToCache(StringBuilder text, string translated, string input)
-		{
+			GotFromApiCount++;
 			text.Append(translated);
-			var translation = new GoogleTranslation(input, translated);
+			var translation = new CachedTranslation(input, translated, sourceName);
 			_cache.UpsertLater(translation);
 		}
 
-		private static bool TryDeserializeJsonResponse(StringBuilder text, string jsonString, out string translated)
+		private static bool GetFromCache(string cacheSource, StringBuilder text, string input)
 		{
-			translated = null;
-			try
-			{
-				var jArray = JsonConvert.DeserializeObject<JArray>(jsonString);
-				var translatedObject = jArray[0][0];
-				Debug.Assert(translatedObject != null, nameof(translatedObject) + " != null");
-				translated = (translatedObject[0] ?? throw new InvalidOperationException("Json object was not o expected format.")).Value<string>();
-				return true;
-			}
-			catch (Exception ex)
-			{
-				text.Append($"Failed to deserialize: {ex}");
-				return false;
-			}
-		}
-
-		private static string GetPostResultAsString(HttpClient client, string url)
-		{
-			LogVerbose($"Posting to url: {url}");
-			Task<HttpResponseMessage> task = client.PostAsync(url, null);
-			task.Wait(2500);
-			Task<string> task2 = task.Result.Content.ReadAsStringAsync();
-			task2.Wait(2500);
-			string jsonString = task2.Result;
-			return jsonString;
-		}
-
-		private static bool GetFromCache(StringBuilder text, string input)
-		{
-			var item = _cache[input];
+			//todo keep cache collection grouped by source and change primary key to input + source
+			var item = cacheSource == null ? _cache[input] : _cache.FirstOrDefault(i=>i.Source == cacheSource && i.Key == input);
 			if (item == null) return false;
 			LogVerbose($"HRTranslate.Google - Getting string from cache, input: {input}");
 			GotFromCacheCount++;
@@ -197,24 +87,12 @@ namespace HRGoogleTranslate
 			return true;
 		}
 
-		public static void Translate(StringBuilder text)
+		public static void Translate(StringBuilder text, bool useCredential)
 		{
-			if (TryGetWithoutAPI(text, !_canUseGoogleCredential, out var input)) return;
-			try
-			{
-				LogVerbose($"{nameof(HRGoogleTranslate)} - Getting string from API, input: {input}");
-				var response = _client.TranslateText(input, "en", "ja", TranslationModel.NeuralMachineTranslation);
-				GotFromAPICount++;
-				if (!string.IsNullOrWhiteSpace(response?.TranslatedText))
-				{
-					SetTranslationAndSaveToCache(text, response.TranslatedText, input);
-				}
-				else text.Append("Failed to translate");
-			}
-			catch (Exception ex)
-			{
-				text.Append($"Failed: {(ex is GoogleApiException gex ? gex.Error.Message : ex.Message)}");
-			}
+			var translator = useCredential ? _credentialTranslator : _freeTranslator;
+			if (TryGetWithoutApi(_useAnyCached ? null : translator.SourceName, text, false, out var input)) return;
+			var success = translator.Translate(input, out var translated);
+			if (success) SetTranslationAndSaveToCache(text, translated, input, translator.SourceName);
 		}
 
 		public static bool TranslateSingleKana(StringBuilder text, string input)
@@ -225,16 +103,16 @@ namespace HRGoogleTranslate
 			//if character is 'tsu' on its own, we remove it.
 			var output = character == 'っ' || character == 'ッ' ? string.Empty : _japaneseToRomaji(input);
 			text.Clear();
-			SetTranslationAndSaveToCache(text,output,input);
+			SetTranslationAndSaveToCache(text, output, input, "Single Kana");
 			return true;
 		}
 
-		private static bool TryGetWithoutAPI(StringBuilder text, bool isBlocked, out string input)
+		private static bool TryGetWithoutApi(string cacheSource, StringBuilder text, bool isBlocked, out string input)
 		{
 			input = text.ToString();
 			if (UntouchedStrings.Contains(input)) return true;
 			text.Clear();
-			if (GetFromCache(text, input)) return true;
+			if (GetFromCache(cacheSource, text, input)) return true;
 			if (TranslateSingleKana(text, input)) return true;
 			if (!isBlocked) return false;
 			text.Append("Failed: Translation is blocked.");
@@ -261,7 +139,7 @@ namespace HRGoogleTranslate
 		public static void ExitProcedures(Func<int> saveData)
 		{
 			Debug.WriteLine($"[{nameof(GoogleTranslate)}] Got from cache {GotFromCacheCount}");
-			Debug.WriteLine($"[{nameof(GoogleTranslate)}] Got from API {GotFromAPICount}");
+			Debug.WriteLine($"[{nameof(GoogleTranslate)}] Got from API {GotFromApiCount}");
 			saveData();
 		}
 	}

@@ -8,7 +8,7 @@ using System.Linq;
 using Happy_Apps_Core;
 using Happy_Apps_Core.DataAccess;
 using Happy_Apps_Core.Database;
-using HRGoogleTranslate;
+using Happy_Apps_Core.Translation;
 using StaticHelpers = Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Reader.Database
@@ -18,7 +18,7 @@ namespace Happy_Reader.Database
 		private readonly object _saveChangesLock = new();
 
 		public SQLiteConnection Connection { get; }
-		public DACollection<string, GoogleTranslation> Translations { get; }
+		public DACollection<string, CachedTranslation> Translations { get; }
 		public DACollection<long, Log> Logs { get; }
 		public DACollection<(long, string), GameThread> GameThreads { get; }
 		public DACollection<long, UserGame> UserGames { get; }
@@ -27,7 +27,7 @@ namespace Happy_Reader.Database
 		public HappyReaderDatabase(string dbFile, bool loadAllTables)
 		{
 			Connection = new SQLiteConnection($@"Data Source={dbFile}");
-			Translations = new DACollection<string, GoogleTranslation>(Connection);
+			Translations = new DACollection<string, CachedTranslation>(Connection);
 			Logs = new DACollection<long, Log>(Connection);
 			GameThreads = new DACollection<(long, string), GameThread>(Connection);
 			UserGames = new DACollection<long, UserGame>(Connection);
@@ -64,12 +64,13 @@ namespace Happy_Reader.Database
 			Connection.Open();
 			try
 			{
-				DatabaseTableBuilder.ExecuteSql(Connection, $@"CREATE TABLE `{nameof(GoogleTranslation)}s` (
+				DatabaseTableBuilder.ExecuteSql(Connection, $@"CREATE TABLE `{nameof(CachedTranslation)}s` (
 	`Input`	TEXT NOT NULL UNIQUE,
 	`Output`	TEXT,
 	`CreatedAt`	DATETIME,
 	`Timestamp`	DATETIME,
 	`Count`	INTEGER,
+  `Source` TEXT NOT NULL,
 	PRIMARY KEY(`Input`)
 )");
 				DatabaseTableBuilder.ExecuteSql(Connection, $@"CREATE TABLE `{nameof(Log)}s` (
@@ -177,7 +178,7 @@ namespace Happy_Reader.Database
 
 		public void DeleteCachedTranslationsOlderThan(DateTime dateTime)
 		{
-			var sql = $"DELETE FROM {nameof(GoogleTranslation)}s WHERE Timestamp < @Timestamp";
+			var sql = $"DELETE FROM {nameof(CachedTranslation)}s WHERE Timestamp < @Timestamp";
 			Connection.Open();
 			try
 			{
