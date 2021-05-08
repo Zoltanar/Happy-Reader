@@ -20,7 +20,6 @@ using Newtonsoft.Json.Linq;
 using Happy_Reader.View;
 using Happy_Reader.View.Tabs;
 using Happy_Reader.View.Tiles;
-using HRGoogleTranslate;
 using IthVnrSharpLib;
 using static Happy_Apps_Core.StaticHelpers;
 using StaticHelpers = Happy_Apps_Core.StaticHelpers;
@@ -167,16 +166,15 @@ namespace Happy_Reader.ViewModel
 			Logger.ToDebug($"[{nameof(MainWindowViewModel)}] Starting exit procedures...");
 			_finalizing = true;
 			if (UserGame?.IsHooked ?? false) HookedProcessOnExited(sender, args);
-			var ithFinalize = new Thread(() => IthViewModel.Finalize(null, null)) { IsBackground = true, Name = "IthVnrFinalizeThread"};
+			var ithFinalize = new Thread(() => IthViewModel.Finalize(null, null)) { IsBackground = true, Name = "IthVnrFinalizeThread" };
 			ithFinalize.Start();
-			bool terminated = ithFinalize.Join(5000); //false if timed out
-			if (!terminated) { }
+			ithFinalize.Join(5000);
 			try
 			{
 				_closing = true;
 				OutputWindow?.Close();
 				UserGame?.SaveTimePlayed(false);
-				GoogleTranslate.ExitProcedures(StaticMethods.Data.SaveChanges);
+				Translator.ExitProcedures(StaticMethods.Data.SaveChanges);
 				_monitor?.Join();
 			}
 			catch (Exception ex)
@@ -186,7 +184,7 @@ namespace Happy_Reader.ViewModel
 			Logger.ToDebug($"[{nameof(MainWindowViewModel)}] Completed exit procedures, took {exitWatch.Elapsed}");
 		}
 
-		public async Task Initialize(Stopwatch watch, RoutedEventHandler defaultUserGameGrouping, bool initialiseEntries, bool noApiTranslation, bool logVerbose)
+		public async Task Initialize(Stopwatch watch, RoutedEventHandler defaultUserGameGrouping, bool initialiseEntries, bool logVerbose)
 		{
 			StaticHelpers.Logger.LogVerbose = logVerbose;
 			Directory.CreateDirectory(StaticMethods.UserGameIconsFolder);
@@ -200,13 +198,13 @@ namespace Happy_Reader.ViewModel
 			await CharactersViewModel.Initialize();
 			if (initialiseEntries)
 			{
+				StatusText = "Loading Translation Plugins...";
+				SettingsViewModel.TranslatorSettings.LoadTranslationPlugins(TranslationPluginsFolder);
+				StaticMethods.MainWindow.SettingsTab.LoadTranslationPlugins(SettingsViewModel.TranslatorSettings.Translators);
 				StatusText = "Loading Cached Translations...";
-				await Task.Run(() =>
-				{
-					var cacheLoadWatch = Stopwatch.StartNew();
-					Translator.SetCache(noApiTranslation, logVerbose, SettingsViewModel.TranslatorSettings);
-					StaticHelpers.Logger.ToDebug($"Loaded cached translations in {cacheLoadWatch.ElapsedMilliseconds} ms");
-				});
+				var cacheLoadWatch = Stopwatch.StartNew();
+				Translator.SetCache(logVerbose, SettingsViewModel.TranslatorSettings);
+				StaticHelpers.Logger.ToDebug($"Loaded cached translations in {cacheLoadWatch.ElapsedMilliseconds} ms");
 				StatusText = "Populating Proxies...";
 				PopulateProxies();
 				StatusText = "Loading Entries...";

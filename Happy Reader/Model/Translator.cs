@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
-using HRGoogleTranslate;
 using System.Runtime.CompilerServices;
+using Happy_Apps_Core.Translation;
 using JetBrains.Annotations;
 
 namespace Happy_Reader
@@ -30,25 +31,21 @@ namespace Happy_Reader
 		private bool _logVerbose;
 		private char[] _inclusiveSeparators = { };
 		private char[] _allSeparators = { };
+		private static bool _useAnyCached = true; //todo keep cache collection grouped by source and change primary key to input + source
+		private static uint GotFromCacheCount { get; set; }
+		private static uint GotFromApiCount { get; set; }
 		public bool RefreshEntries = true;
+		private static ITranslator SelectedTranslator => StaticMethods.Settings.TranslatorSettings.SelectedTranslator;
 
 		public Translator(HappyReaderDatabase data) => _data = data;
 
-		public void SetCache(bool noApiTranslation, bool logVerbose, TranslatorSettings translatorSettings)
+		public void SetCache(bool logVerbose, TranslatorSettings translatorSettings)
 		{
 			_inclusiveSeparators = translatorSettings.InclusiveSeparators.ToCharArray();
 			_allSeparators = translatorSettings.ExclusiveSeparators.Concat(translatorSettings.InclusiveSeparators).ToArray();
 			_logVerbose = logVerbose;
-			GoogleTranslate.Initialize(
-				_data.Translations,
-				Kakasi.JapaneseToRomaji,
-				translatorSettings.GoogleCredentialPath,
-				translatorSettings.FreeUserAgent,
-				translatorSettings.UntouchedStrings,
-				noApiTranslation,
-				logVerbose);
 		}
-		
+
 		public Translation Translate(User user, ListedVN game, string input, bool saveEntriesUsed, bool removeRepetition)
 		{
 			if (removeRepetition)
@@ -90,7 +87,7 @@ namespace Happy_Reader
 		/// </summary>
 		/// <param name="input">String to be reduced.</param>
 		/// <returns>String without repeated segment at the start.</returns>
-		private string ReduceRepeatedString(string input)
+		private static string ReduceRepeatedString(string input)
 		{
 			if (input.Length == 1) return input;
 			var firstChar = input[0];
@@ -101,7 +98,7 @@ namespace Happy_Reader
 			return skip != indexOfSecondBracket ? input : input.Substring(skip);
 		}
 
-		private void SplitInputIntoParts(string input, List<(string Part, bool Translate)> parts)
+		private void SplitInputIntoParts(string input, ICollection<(string Part, bool Translate)> parts)
 		{
 			int index = 0;
 			string currentPart = "";
@@ -148,7 +145,7 @@ namespace Happy_Reader
 			{
 				specificEntries = _data.Entries.Where(e => (e.Private && e.UserId == user.Id || !e.Private) && e.GameId.HasValue && e.SeriesSpecific && gamesInSeries.Contains(e.GameId.Value)).ToArray();
 			}
-			_entries = generalEntries.Concat(specificEntries).Where(e=>!e.Disabled).OrderBy(i => i.Id).ToArray();
+			_entries = generalEntries.Concat(specificEntries).Where(e => !e.Disabled).OrderBy(i => i.Id).ToArray();
 			StaticHelpers.Logger.ToDebug($"[Translator] General entries: {generalEntries.Length}. Specific entries: {specificEntries.Length}");
 		}
 
@@ -433,7 +430,7 @@ namespace Happy_Reader
 		{
 			var result = new TranslationResults(saveEntriesUsed);
 			var sb = new StringBuilder(input);
-			if (GoogleTranslate.TranslateSingleKana(sb, input))
+			if (TranslateSingleKana(sb, input))
 			{
 				result[0] = input;
 				result[1] = input;
@@ -463,7 +460,7 @@ namespace Happy_Reader
 				result[7] = ex.Message;
 				return result;
 			}
-			var singleEntry = usefulEntriesWithProxies.Select(e=>e.AssignedProxy.Entry).FirstOrDefault(e => e.Input == sb.ToString());
+			var singleEntry = usefulEntriesWithProxies.Select(e => e.AssignedProxy.Entry).FirstOrDefault(e => e.Input == sb.ToString());
 			if (singleEntry != null)
 			{
 				sb.Clear();
@@ -478,14 +475,14 @@ namespace Happy_Reader
 			return result;
 		}
 
-		private static void TranslateStageFive(StringBuilder sb, TranslationResults result)
+		private void TranslateStageFive(StringBuilder sb, TranslationResults result)
 		{
 			result.SetStage(5);
-			GoogleTranslate.Translate(sb, StaticMethods.Settings.TranslatorSettings.GoogleUseCredential);
+			Translate(sb);
 			StaticHelpers.Logger.Verbose($"Stage 5: {sb}");
 			result[5] = sb.ToString();
 		}
-		
+
 		/// <summary>
 		/// Replace Name and Translation proxies to entry outputs.
 		/// </summary>
@@ -565,6 +562,86 @@ namespace Happy_Reader
 			LogReplaceRegex(sb, entry.Input, entry.Output, result, entry);
 		}
 
+		/// <summary>
+		/// Character is between points \u3040 and \u309f
+		/// </summary>
+		private static bool IsHiragana(char character) => character >= 0x3040 && character <= 0x309f;
+
+		/// <summary>
+		/// Character is between points \u30a0 and \u30ff
+		/// </summary>
+		private static bool IsKatakana(char character) => character >= 0x30a0 && character <= 0x30ff;
+
+		private bool GetFromCache(string cacheSource, StringBuilder text, string input)
+		{
+			//todo keep cache collection grouped by source and change primary key to input + source
+			var item = cacheSource == null ? _data.Translations[input] : _data.Translations.FirstOrDefault(i => i.Source == cacheSource && i.Key == input);
+			if (item == null) return false;
+			LogVerbose($"HRTranslate.Google - Getting string from cache, input: {input}");
+			GotFromCacheCount++;
+			item.Update();
+			_data.Translations.UpsertLater(item);
+			text.Append(item.Output);
+			return true;
+		}
+
+		private bool TryGetWithoutApi(string cacheSource, StringBuilder text, bool isBlocked, out string input)
+		{
+			input = text.ToString();
+			if (StaticMethods.Settings.TranslatorSettings.UntouchedStrings.Contains(input)) return true;
+			text.Clear();
+			if (GetFromCache(cacheSource, text, input)) return true;
+			if (TranslateSingleKana(text, input)) return true;
+			if (!isBlocked) return false;
+			text.Append("Failed: Translation is blocked.");
+			return true;
+		}
+
+		private bool TranslateSingleKana(StringBuilder text, string input)
+		{
+			if (input.Length != 1) return false;
+			var character = input[0];
+			if (!IsHiragana(character) && !IsKatakana(character)) return false;
+			//if character is 'tsu' on its own, we remove it.
+			var output = character == 'っ' || character == 'ッ' ? string.Empty : Kakasi.JapaneseToRomaji(input);
+			text.Clear();
+			SetTranslationAndSaveToCache(text, output, input, "Single Kana");
+			return true;
+		}
+		
+		private void SetTranslationAndSaveToCache(StringBuilder text, string translated, string input, string sourceName)
+		{
+			GotFromApiCount++;
+			text.Append(translated);
+			var translation = new CachedTranslation(input, translated, sourceName);
+			_data.Translations.UpsertLater(translation);
+		}
+
+		/// <summary>
+		/// Tries to get a translation from cache, if not, tries to use selected translator and saves result to cache if successful.
+		/// </summary>
+		/// <param name="text"></param>
+		private void Translate(StringBuilder text)
+		{
+			if (TryGetWithoutApi(_useAnyCached ? null : SelectedTranslator.SourceName, text, false, out var input)) return;
+			var success = SelectedTranslator.Translate(input, out var translated);
+			if (success) SetTranslationAndSaveToCache(text, translated, input, SelectedTranslator.SourceName);
+			else text.Append(translated);
+		}
+
+		private void LogVerbose(string text)
+		{
+			if (!_logVerbose) return;
+			Debug.WriteLine(text);
+		}
+
+		public static void ExitProcedures(Func<int> saveData)
+		{
+			Debug.WriteLine($"[{nameof(Translator)}] Got from cache {GotFromCacheCount}");
+			Debug.WriteLine($"[{nameof(Translator)}] Got from API {GotFromApiCount}");
+			saveData();
+		}
+		
 		private class ProxiesWithCount
 		{
 			public Queue<RoleProxy> Proxies { get; }

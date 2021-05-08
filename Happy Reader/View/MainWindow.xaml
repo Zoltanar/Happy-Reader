@@ -70,7 +70,7 @@
 				<tabs:ProducersTab DataContext="{Binding ProducersViewModel}"/>
 			</TabItem>
 			<TabItem Header="Settings">
-				<tabs:SettingsTab DataContext="{Binding SettingsViewModel}"/>
+				<tabs:SettingsTab DataContext="{Binding SettingsViewModel}" x:Name="SettingsTab"/>
 			</TabItem>
 			<TabItem Header="Information">
 				<tabs:InfoTab DataContext="{Binding InformationViewModel}"/>

@@ -33,11 +33,13 @@ namespace Happy_Apps_Core
 		public static readonly string DefaultTagsJson = Path.Combine(ProgramDataFolder, "Default Files\\tags.json");
 		private static readonly string FlagsFolder = Path.Combine(ProgramDataFolder, "Flags\\");
 		public static readonly string CertificatesFolder = Path.Combine(ProgramDataFolder, "Certificates");
+		public static readonly string TranslationPluginsFolder = Path.Combine(ProgramDataFolder, "Translation Plugins");
 		public static readonly string AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Happy Reader");
 		public static readonly string StoredDataFolder = Path.Combine(AppDataFolder, "Stored Data");
 		public static readonly string LogsFolder = Path.Combine(AppDataFolder, "Logs");
 		public static readonly string DatabaseFile = Path.Combine(StoredDataFolder, "Happy-Apps.sqlite");
 		public static readonly string AllSettingsJson = Path.Combine(StoredDataFolder, "HR_Settings.json");
+		public static readonly string TranslationPluginsSettingsFolder = Path.Combine(StoredDataFolder, "Translation Plugins");
 		#endregion
 
 		public const string ClientName = "Happy Reader";
@@ -45,7 +47,7 @@ namespace Happy_Apps_Core
 		private const string PasswordRegistryKey = "SOFTWARE\\" + ClientName;
 		private const string PasswordRegistryCipherValueName = "Data1";
 		private const string PasswordRegistryEntropyValueName = "Data2";
-		private static readonly Dictionary<string, bool> FlagExistsDictionary = new ();
+		private static readonly Dictionary<string, bool> FlagExistsDictionary = new();
 
 		public static VisualNovelDatabase LocalDatabase;
 		public static readonly MultiLogger Logger;
@@ -61,14 +63,18 @@ namespace Happy_Apps_Core
 			}
 			set
 			{
-				if (_cSettings != null) throw new InvalidOperationException( $"{nameof(CoreSettings)} must only be set once.");
+				if (_cSettings != null) throw new InvalidOperationException($"{nameof(CoreSettings)} must only be set once.");
 				_cSettings = value;
 			}
 		}
 
 		static StaticHelpers()
 		{
+			Directory.CreateDirectory(ProgramDataFolder);
+			Directory.CreateDirectory(TranslationPluginsFolder);
+			Directory.CreateDirectory(AppDataFolder);
 			Directory.CreateDirectory(StoredDataFolder);
+			Directory.CreateDirectory(TranslationPluginsSettingsFolder);
 			Logger = new MultiLogger(LogsFolder);
 		}
 
@@ -159,7 +165,7 @@ namespace Happy_Apps_Core
 				return null;
 			}
 		}
-		
+
 		/// <summary>
 		/// Convert a string containing a date (in the format YYYY-MM-DD) to a DateTime.
 		/// </summary>
@@ -251,7 +257,7 @@ namespace Happy_Apps_Core
 		}
 
 		public static string ToSeconds(this TimeSpan time) => $"{(int)(time.TotalSeconds):N0}.{time.Milliseconds} seconds";
-		
+
 		/// <summary>
 		/// Save user's VNDB login password to Windows Registry (encrypted).
 		/// </summary>
@@ -347,7 +353,7 @@ namespace Happy_Apps_Core
 				return true;
 			}
 			catch (Exception ex) when (ex is NotSupportedException || ex is ArgumentNullException ||
-			                           ex is SecurityException || ex is UriFormatException || ex is ExternalException)
+																 ex is SecurityException || ex is UriFormatException || ex is ExternalException)
 			{
 				Logger.ToFile(ex);
 				return false;
@@ -436,5 +442,7 @@ namespace Happy_Apps_Core
 			}
 			return exists ? Path.GetFullPath(languageFile) : null;
 		}
+
+		public static string GetTranslatorSettings(string sourceName) => Path.Combine(TranslationPluginsSettingsFolder, $"{sourceName}.json");
 	}
 }

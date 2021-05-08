@@ -31,7 +31,7 @@ namespace Happy_Reader
 	public static class StaticMethods
 	{
 		public delegate void NotificationEventHandler(object sender, string message, string title = null);
-
+		
 		public static readonly string ReaderDatabaseFile = Path.Combine(StaticHelpers.StoredDataFolder, "Happy-Reader.sqlite");
 		public static readonly string ProxiesJson = Path.Combine(StaticHelpers.StoredDataFolder, "proxies.json");
 		public static readonly string SavedDataJson = Path.Combine(StaticHelpers.StoredDataFolder, "HR_SavedData.json");
@@ -57,7 +57,7 @@ namespace Happy_Reader
 				_settings = value;
 			}
 		}
-
+		
 		public static string GetLocalizedTime(this DateTime dateTime)
 		{
 			var culture = Settings.GuiSettings.CultureInfo;

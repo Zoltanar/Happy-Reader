@@ -1,35 +1,73 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
+using Happy_Apps_Core;
 using Happy_Apps_Core.Translation;
 using HtmlAgilityPack;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace HRGoogleTranslate
 {
+	[UsedImplicitly]
 	public class GoogleTranslateFree : ITranslator
 	{
 		private const string GoogleDetectedString = @"Our systems have detected unusual traffic from your computer network.  This page checks to see if it&#39;s really you sending the requests, and not a robot.";
 		private const string GoogleDetectedString2 = @"This page appears when Google automatically detects requests coming from your computer network";
-		public const string UserAgentPropertyName = "Credential Location";
+		private const string UserAgentPropertyKey = "Credential Location";
 		private static readonly Regex CombineEmptyLinesRegex = new Regex(@"^(\s*\n){2,}");
 		//todo make this an external string?
 		private const string TranslateFreeUrl = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=en&dt=t&q=";
-		private static readonly HttpClient FreeClient = new HttpClient();
+		private static readonly HttpClient FreeClient = new();
 		public string Error { get; set; }
-
+		public string Version => "1.0";
 		public string SourceName => "Google Translate Free";
-		public Dictionary<string, Type> Properties { get; } = new Dictionary<string, Type>();
-		public void Initialise(Dictionary<string, object> properties)
+		public IReadOnlyDictionary<string, Type> Properties { get; } = new ReadOnlyDictionary<string, Type>(new Dictionary<string, Type>()
 		{
-			properties.TryGetValue(UserAgentPropertyName, out var userAgentObject);
-			var userAgentString = userAgentObject as string;
-			FreeClient.DefaultRequestHeaders.Add(@"user-agent", userAgentString);
+			{
+				UserAgentPropertyKey, typeof(string)
+			}
+		});
+		private FreeSettings Settings { get; set; }
+		public void Initialise()
+		{
+			SetUserAgent(Settings.FreeUserAgent);
+		}
+
+		public void LoadProperties(string filePath)
+		{
+			Settings = SettingsJsonFile.Load<FreeSettings>(filePath);
+			SetUserAgent(Settings.FreeUserAgent);
+		}
+
+		public void SaveProperties(string filePath)
+		{
+			//done automatically via Settings object.
+		}
+
+		public void SetProperty(string propertyKey, object value)
+		{
+			if (propertyKey != UserAgentPropertyKey || value is not string userAgentString) return;
+			SetUserAgent(userAgentString);
+		}
+
+		public object GetProperty(string propertyKey)
+		{
+			if (propertyKey != UserAgentPropertyKey) throw new NotSupportedException($"Property not supported: '{propertyKey}'");
+			return Settings.FreeUserAgent;
+		}
+
+		private void SetUserAgent(string userAgent)
+		{
+			Settings.FreeUserAgent = userAgent;
+			FreeClient.DefaultRequestHeaders.Clear();
+			FreeClient.DefaultRequestHeaders.Add(@"user-agent", userAgent);
 		}
 
 		public bool Translate(string input, out string output)
@@ -63,7 +101,7 @@ namespace HRGoogleTranslate
 			}
 			return false;
 		}
-		
+
 		private static string ExtractText(string html)
 		{
 			// Where m_whitespaceRegex is a Regex with [\s].
@@ -122,5 +160,21 @@ namespace HRGoogleTranslate
 			return jsonString;
 		}
 
+		private class FreeSettings : SettingsJsonFile
+		{
+			// ReSharper disable once StringLiteralTypo
+			private string _freeUserAgent = @"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)";
+
+			public string FreeUserAgent
+			{
+				get => _freeUserAgent;
+				set
+				{
+					if (_freeUserAgent == value) return;
+					_freeUserAgent = value;
+					if (Loaded) Save();
+				}
+			}
+		}
 	}
 }

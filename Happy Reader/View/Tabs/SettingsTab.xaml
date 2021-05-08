@@ -67,7 +67,6 @@
 				<CheckBox Content="Use ITHVNR" IsChecked="{Binding HookIthVnr}" />
 				<CheckBox Content="Hook Global Mouse Events" IsChecked="{Binding HookGlobalMouse}" ToolTip="If enabled, text in output window should not be combined when a mouse click happens in between text lines, useful when clicking through text rapidly.This feature can result in some slow performance when enabled."/>
 				<view:LabeledTextBox LabelWidth="120" Label="Locale Emulator Path:" Text="{Binding LocaleEmulatorPath}" ToolTip="Path to locale emulator executable (LEProc.exe)"/>
-				<!--<view:LabeledTextBox LabelWidth="120" Label="Extra Page Link:" Text="{Binding ExtraPageLink}" ToolTip="A link that can be visited when right clicking a VN tile, for searching purposes (%s is replaced by original title)"/>-->
 				<Grid>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="Auto"/>
@@ -86,7 +85,7 @@
 			</StackPanel>
 		</GroupBox>
 		<GroupBox Header="Translation Settings" Grid.Row="2" DataContext="{Binding TranslatorSettings}">
-			<StackPanel>
+			<StackPanel x:Name="PluginSettingsPanel">
 				<CheckBox Content="Capture Clipboard" IsChecked="{Binding CaptureClipboard}"/>
 				<Grid>
 					<Grid.ColumnDefinitions>
@@ -116,17 +115,13 @@
 					<view:ColorSelector Grid.Row="2" Grid.Column="1"  x:Name="TranslatedColorSelector"  Text="{Binding TranslatedColorString}" />
 				</Grid>
 				<view:LabeledTextBox LabelWidth="120" Label="Font Size:" Text="{Binding FontSize}"/>
-				<view:LabeledTextBox LabelWidth="120" Label="Google Credentials:" Text="{Binding GoogleCredentialPath}" ToolTip="Path to file with credentials for Google API"/>
-				<view:LabeledTextBox LabelWidth="120" Label="Free User Agent:" Text="{Binding FreeUserAgent}" ToolTip="User Agent string for sending Google API requests without credentials."/>
 				<Grid>
 					<Grid.ColumnDefinitions>
-						<ColumnDefinition/>
-						<ColumnDefinition/>
-						<ColumnDefinition/>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="*"/>
 					</Grid.ColumnDefinitions>
-					<Label Grid.Column="0" Content="Google Translate Mode:"/>
-					<RadioButton Grid.Column="1" Content="Credential" Foreground="White" VerticalAlignment="Center"  IsChecked="{Binding GoogleUseCredential, Converter={StaticResource RadioButtonCheckedConverter},    ConverterParameter={StaticResource True}}" />
-					<RadioButton Grid.Column="2" Content="Free" Foreground="White" VerticalAlignment="Center"  IsChecked="{Binding GoogleUseCredential, Converter={StaticResource RadioButtonCheckedConverter},    ConverterParameter={StaticResource False}}" />
+					<Label Grid.Column="0" Content="Translator"/>
+					<ComboBox Grid.Column="1" ItemsSource="{Binding Translators}" DisplayMemberPath="SourceName" SelectedValue="{Binding SelectedTranslator}"/>
 				</Grid>
 			</StackPanel>
 		</GroupBox>

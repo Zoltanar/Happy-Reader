@@ -1,25 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Media;
 using Happy_Apps_Core;
+using Happy_Apps_Core.Translation;
+using IthVnrSharpLib.Properties;
 using Newtonsoft.Json;
 
 namespace Happy_Reader
 {
 	public class TranslatorSettings : SettingsJsonFile
 	{
-		private bool _googleUseCredential;
-		// ReSharper disable StringLiteralTypo
-		private string _googleCredentialPath = @"C:\Google\hrtranslate-credential.json";
-		private string _freeUserAgent = @"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)";
-		// ReSharper restore StringLiteralTypo
 		private int _maxOutputSize = 700;
 		private double _fontSize = 22d;
 		private bool _captureClipboard;
 		private string _originalTextFont;
 		private string _romajiTextFont;
 		private string _translatedTextFont;
+		private string _selectedTranslatorName;
 		private bool _settingsViewState = true;
 		private VerticalAlignment _outputVerticalAlignment = VerticalAlignment.Top;
 		private TextAlignment _outputHorizontalAlignment = TextAlignment.Center;
@@ -27,46 +29,13 @@ namespace Happy_Reader
 		[JsonIgnore]
 		public Action<bool> CaptureClipboardChanged;
 
-		public bool GoogleUseCredential
-		{
-			get => _googleUseCredential;
-			set
-			{
-				if (_googleUseCredential == value) return;
-				_googleUseCredential = value;
-				if (Loaded) Save();
-			}
-		}
-
-		public string GoogleCredentialPath
-		{
-			get => _googleCredentialPath;
-			set
-			{
-				if (_googleCredentialPath == value) return;
-				_googleCredentialPath = value;
-				if (Loaded) Save();
-			}
-		}
-
-		public string FreeUserAgent
-		{
-			get => _freeUserAgent;
-			set
-			{
-				if (_freeUserAgent == value) return;
-				_freeUserAgent = value;
-				if (Loaded) Save();
-			}
-		}
-
 		//todo make editable
 		public HashSet<string> UntouchedStrings { get; set; } = new() { "", "\r\n" };
 
 		//not sure if this has to be made editable in GUI
 		public string ExclusiveSeparators { get; set; } = "『「」』…♥";
 		public string InclusiveSeparators { get; set; } = "。？！";
-		
+
 		public string OriginalTextFont
 		{
 			get => _originalTextFont;
@@ -133,7 +102,7 @@ namespace Happy_Reader
 					// ReSharper disable once PossibleNullReferenceException
 					var newColor = (Color)ColorConverter.ConvertFromString(value);
 					if (OriginalColor.Color.Color == newColor) return;
-					OriginalColor = (new SolidColorBrush(newColor),value);
+					OriginalColor = (new SolidColorBrush(newColor), value);
 				}
 				catch
 				{
@@ -201,8 +170,7 @@ namespace Happy_Reader
 		[JsonIgnore]
 		public (SolidColorBrush Color, string Name) TranslatedColor { get; private set; } = (new(Colors.GreenYellow), "GreenYellow");
 
-		[JsonIgnore]
-		public Brush ErrorColor => Brushes.Red;
+		[JsonIgnore] public Brush ErrorColor => Brushes.Red;
 
 		public double FontSize
 		{
@@ -263,6 +231,40 @@ namespace Happy_Reader
 			}
 		}
 
+		// ReSharper disable once MemberCanBePrivate.Global
+		[UsedImplicitly] public string SelectedTranslatorName
+		{
+			get => _selectedTranslatorName;
+			set
+			{
+				if (_selectedTranslatorName == value) return;
+				_selectedTranslatorName = value;
+				if (Loaded) Save();
+			}
+		}
+
+		private static readonly NoTranslator NoTranslator = new();
+
+		[JsonIgnore] public ICollection<ITranslator> Translators { get; set; } = new List<ITranslator>() { NoTranslator };
+
+		[JsonIgnore]
+		public ITranslator SelectedTranslator
+		{
+			get => Translators.FirstOrDefault(t => t.SourceName == _selectedTranslatorName) ?? NoTranslator;
+			set
+			{
+				var selectedTranslator = SelectedTranslator;
+				if (selectedTranslator == value) return;
+				//save previous translator properties
+				selectedTranslator.SaveProperties(StaticHelpers.GetTranslatorSettings(selectedTranslator.SourceName));
+				//load and initialise new translator
+				value.LoadProperties(StaticHelpers.GetTranslatorSettings(value.SourceName));
+				value.Initialise();
+				SelectedTranslatorName = value.SourceName;
+				if (Loaded) Save();
+			}
+		}
+
 		public TextAlignment SetNextHorizontalAlignmentState()
 		{
 			return OutputHorizontalAlignment switch
@@ -282,5 +284,67 @@ namespace Happy_Reader
 				_ => OutputVerticalAlignment = VerticalAlignment.Top,
 			};
 		}
+
+
+		public void LoadTranslationPlugins(string folder)
+		{
+			var directory = new DirectoryInfo(folder);
+			if (!directory.Exists) return;
+			Translators.Clear();
+			Translators.Add(NoTranslator);
+			foreach (var file in directory.GetFiles("*.dll", SearchOption.TopDirectoryOnly))
+			{
+				try
+				{
+					LoadPlugin(Translators, file);
+				}
+				catch (Exception ex)
+				{
+					StaticHelpers.Logger.ToFile($"Failed to load translation plugin from {file}", ex.ToString());
+				}
+			}
+			SelectedTranslator.LoadProperties(StaticHelpers.GetTranslatorSettings(SelectedTranslator.SourceName));
+			SelectedTranslator.Initialise();
+			OnPropertyChanged(nameof(Translators));
+			OnPropertyChanged(nameof(SelectedTranslator));
+		}
+
+		private void LoadPlugin(ICollection<ITranslator> translators, FileInfo file)
+		{
+			var assembly = Assembly.LoadFile(file.FullName);
+			var translatorsDefined = assembly.ExportedTypes.Where(t => t.GetInterfaces().Any(i => i == typeof(ITranslator)))
+				.ToList();
+			foreach (var translatorType in translatorsDefined)
+			{
+				var translator = (ITranslator)translatorType.GetConstructors().First().Invoke(new object[0]);
+				translator.LoadProperties(StaticHelpers.GetTranslatorSettings(translator.SourceName));
+				translators.Add(translator);
+			}
+		}
+
 	}
+	public class NoTranslator : ITranslator
+	{
+		public string Version => "1.0";
+		public string SourceName => "No Translator";
+
+		public IReadOnlyDictionary<string, Type> Properties { get; } = new ReadOnlyDictionary<string, Type>(new Dictionary<string, Type>());
+		public string Error { get; set; } = "No Translator Selected";
+
+		public void Initialise() {/*ignore*/}
+
+		public void LoadProperties(string filePath) {/*ignore*/}
+
+		public void SaveProperties(string filePath) {/*ignore*/}
+
+		public void SetProperty(string propertyName, object value) => throw new NotSupportedException();
+		public object GetProperty(string propertyName) => throw new NotSupportedException();
+
+		public bool Translate(string input, out string output)
+		{
+			output = input;
+			return false;
+		}
+	}
+
 }

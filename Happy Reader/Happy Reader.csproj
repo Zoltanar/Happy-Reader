@@ -423,10 +423,6 @@
       <Project>{c5e4c647-35ba-4525-b78a-f2263a628a5a}</Project>
       <Name>Happy_Apps_Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\HRGoogleTranslate\HRGoogleTranslate.csproj">
-      <Project>{e78de42e-834a-4baa-8e7f-c876d2be8a01}</Project>
-      <Name>HRGoogleTranslate</Name>
-    </ProjectReference>
     <ProjectReference Include="..\IthVnrSharpLib\IthVnrSharpLib\IthVnrSharpLib.csproj">
       <Project>{46B6F714-D2A3-48AA-A89E-694BC18FC39E}</Project>
       <Name>IthVnrSharpLib</Name>

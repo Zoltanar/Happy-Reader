@@ -70,9 +70,8 @@ namespace Happy_Reader.View
 			ViewModel.CaptureClipboardSettingChanged(ViewModel.SettingsViewModel.TranslatorSettings.CaptureClipboard);
 			var commandLineArgs = Environment.GetCommandLineArgs();
 			var noEntries = commandLineArgs.Contains("-ne");
-			var noTranslation = commandLineArgs.Contains("-nt");
 			var logVerbose = commandLineArgs.Contains("-lv");
-			await ViewModel.Initialize(watch, UserGamesTabItem.GroupByAdded, !noEntries, noTranslation, logVerbose);
+			await ViewModel.Initialize(watch, UserGamesTabItem.GroupByAdded, !noEntries, logVerbose);
 			LoadSavedData();
 		}
 
