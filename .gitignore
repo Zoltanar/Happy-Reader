@@ -259,12 +259,5 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
-/Happy Reader/View/OutputWindow bits.txt
-/Happy Reader/image-template.psd
-/Happy Reader/Stored Data/Saved Cover Images
-/Happy Reader/Stored Data/Saved Screenshots
-/Happy Reader/Stored Data/guisettings.json
-/Happy Reader/Stored Data/coresettings2.json
-/Stored Data
-/Happy Reader/Debug - Copy
 /Debug64
+/Ignored

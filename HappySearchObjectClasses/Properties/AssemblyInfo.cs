@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Happy Apps Core")]
-[assembly: AssemblyDescription("Core library for Happy Search and Happy Reader")]
+[assembly: AssemblyDescription("Core library for Happy Reader")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Happy Apps Core")]
-[assembly: AssemblyCopyright("Copyright © Gustavo Abranches 2015-2020")]
+[assembly: AssemblyCopyright("Copyright © Gustavo Abranches 2015-2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

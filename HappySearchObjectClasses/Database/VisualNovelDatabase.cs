@@ -287,7 +287,7 @@ select AliasID from StaffAliass join StaffItems on StaffAliass.StaffID = StaffIt
 				TableDetails.Upsert(new TableDetail { Key = "programname", Value = "Happy Reader" }, false);
 				TableDetails.Upsert(new TableDetail { Key = "author", Value = "Zoltanar" }, false);
 				TableDetails.Upsert(new TableDetail { Key = "projecturl", Value = StaticHelpers.ProjectURL }, false);
-				TableDetails.Upsert(new TableDetail { Key = "databaseversion", Value = "2.0.0" }, false);
+				TableDetails.Upsert(new TableDetail { Key = "databaseversion", Value = StaticHelpers.ClientVersion }, false);
 				//ExecuteSqlCommand("CREATE UNIQUE INDEX `UniqueCIDToAliasToVN` ON `CharacterStaffs` (`AliasId` ,`ListedVNId` ,`CharacterItem_Id` )", false);
 				//ExecuteSqlCommand("CREATE UNIQUE INDEX `UniqueCIDToTrait` ON `DbTraits` (`TraitId` ,`CharacterItem_ID` )", false);
 				//ExecuteSqlCommand("CREATE UNIQUE INDEX `UniqueCIDToVNID` ON `CharacterVNs` (`ListedVNId` ,`CharacterItem_Id` )", false);

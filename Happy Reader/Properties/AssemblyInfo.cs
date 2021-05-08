@@ -6,11 +6,11 @@ using System.Windows;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Happy Reader")]
-[assembly: AssemblyDescription("WPF Front-end for browsing VNDB data, plus process hooking and translation for Visual novels.")]
+[assembly: AssemblyDescription("WPF Front-end for browsing VNDB data, plus process hooking and translation for visual novels.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Happy Reader")]
-[assembly: AssemblyCopyright("Copyright © Gustavo Abranches 2015-2020")]
+[assembly: AssemblyCopyright("Copyright © Gustavo Abranches 2015-2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

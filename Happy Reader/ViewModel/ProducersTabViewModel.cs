@@ -23,11 +23,7 @@ namespace Happy_Reader.ViewModel
 
 		private int _listedProducersPage;
 		private bool _finalPage;
-#if DEBUG
 		private const int PageSize = 100;
-#else
-        private const int PageSize = 1000;
-#endif
 		private string _vndbConnectionReply;
 		private Brush _vndbConnectionColor;
 		private readonly MainWindowViewModel _mainViewModel;
