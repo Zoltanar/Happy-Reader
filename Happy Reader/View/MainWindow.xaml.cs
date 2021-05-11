@@ -141,15 +141,9 @@ namespace Happy_Reader.View
 
 		public void CreateAddEntriesTab(IEnumerable<Entry> entries)
 		{
-			var newEntries = entries.Except(StaticMethods.Data.Entries, Entry.ClashComparer).ToList();
-			if (newEntries.Count == 0)
-			{
-				ViewModel.NotificationEvent(this, "No new names to import.", "Import Names");
-				return;
-			}
-			var vnEntries = ViewModel.UserGamesViewModel.UserGameItems
+			var vns = ViewModel.UserGamesViewModel.UserGameItems
 				.Select(i => i.UserGame.VN)
-				.Concat(newEntries.Select(e => e.Game))
+				.Concat(entries.Select(e => e.Game))
 				.Distinct()
 				.Where(i => i != null)
 				.ToArray();
@@ -157,7 +151,7 @@ namespace Happy_Reader.View
 			{
 				Header = "Add Entries",
 				Name = nameof(AddEntriesTab),
-				Content = new AddEntriesTab(ViewModel, vnEntries, newEntries)
+				Content = new AddEntriesTab(ViewModel, vns, entries)
 			};
 			AddTabItem(tabItem, null, true);
 		}

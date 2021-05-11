@@ -6,19 +6,20 @@
 0 - allow scrolling on main window tab control when too many tabs and add close all tabs button
 0 - TestTab: show if translation was cached or not and give option to re-fetch
 0 - TestTab: list entries used per stage.
-0 - report error when setting google credential path
 0 - ithvnr: use ithvnr tab to also show captured clipboard text format like: [process/pid] [outputted] [text]
 0 - ithvnr: better saving/loading game text threads, let user name threads and delete saved
 0 - ithvnr: once any thread has been saved as posting, change default for new threads to stop/hide.
 0 - ithvnr: text thread panel max height (scrollbar if needed)
+0 - ithvnr: only start up vnrhost when required and close when not.
 0 - vnrhook: handle maximum threads either change limit or reset ability
 0 - entries: allow proxy mods with multiple proxies ([[m#1]]-[[m#2]])
 0 - CachedTranslations: save source name (for now only google free and google credential)
 0 - CachedTranslations: option to do this automatically: remove from cache if not used recently or originally cached too long ago.
-0 - CachedTranslations: implement plug-in model for translators (create interface and make HRGoogleTranslate implement it)
 0 - outputwindow: check if output window is in visible area of screens, if not, reset it.
 0 - outputwindow: alternate colors between blocks
 0 - option to always launch games with some locale if windows locale is not already set to that, and option to override it.
+
+google tl: avoid translating sections with short onomatopoeias somehow
 
 before release:
 set up database versioning/upgrade system

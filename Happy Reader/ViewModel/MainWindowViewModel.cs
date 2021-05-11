@@ -473,7 +473,7 @@ namespace Happy_Reader.ViewModel
 						UserGame = null;
 						return;
 					}
-					UserGame.ProcessName ??= process.ProcessName;
+					UserGame.ProcessName = process.ProcessName;
 					UserGame.SetActiveProcess(process, HookedProcessOnExited);
 					TestViewModel.Game = UserGame.VN;
 					UserGame.OnPropertyChanged(null);

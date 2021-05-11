@@ -424,7 +424,7 @@
       <Name>Happy_Apps_Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\IthVnrSharpLib\IthVnrSharpLib\IthVnrSharpLib.csproj">
-      <Project>{46B6F714-D2A3-48AA-A89E-694BC18FC39E}</Project>
+      <Project>{46b6f714-d2a3-48aa-a89e-694bc18fc39e}</Project>
       <Name>IthVnrSharpLib</Name>
     </ProjectReference>
     <ProjectReference Include="..\Kakasi.NET.Interop\KakasiNET.csproj">

@@ -208,7 +208,13 @@ namespace Happy_Reader.View
 		{
 			var cvns = StaticHelpers.LocalDatabase.CharacterVNs[VN.VNID].ToList();
 			var characterEntries = cvns.SelectMany(GetEntriesFromCharacter).Distinct(Entry.ClashComparer).ToArray();
-			StaticMethods.MainWindow.CreateAddEntriesTab(characterEntries);
+			var newEntries = characterEntries.Except(StaticMethods.Data.Entries, Entry.ClashComparer).ToList();
+			if (newEntries.Count == 0)
+			{
+				StaticMethods.MainWindow.ViewModel.NotificationEvent(this, "No new names to import.", "Import Names");
+				return;
+			}
+			StaticMethods.MainWindow.CreateAddEntriesTab(newEntries);
 		}
 
 		private static List<Entry> GetEntriesFromCharacter(CharacterVN cvn)
