@@ -110,6 +110,8 @@ namespace Happy_Reader.Database
 
 		private sealed class EntryClashComparer : IEqualityComparer<Entry>
 		{
+			//todo remove rolestring?
+
 			public bool Equals(Entry x, Entry y)
 			{
 				if (ReferenceEquals(x, y)) return true;

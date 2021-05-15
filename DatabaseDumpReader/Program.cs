@@ -24,22 +24,31 @@ namespace DatabaseDumpReader
 		/// <param name="args">Must pass 1 argument, Path to folder with DB Dump, or no arguments, to use default path.</param>
 		private static int Main(string[] args)
 		{
+			ExitCode result;
 			try
 			{
 				string settingsPath = args.Length < 1 ? StaticHelpers.AllSettingsJson : args[0];
 				if (!File.Exists(settingsPath)) throw new FileNotFoundException("Settings File not found.", settingsPath);
 				var dumpFolder = DumpFolder;
 				StaticHelpers.CSettings = SettingsJsonFile.Load<SettingsViewModel>(settingsPath).CoreSettings;
-				var result = Run(dumpFolder, StaticHelpers.CSettings.UserID);
-				return (int)result;
+				result = Run(dumpFolder, StaticHelpers.CSettings.UserID);
+				if (result == ExitCode.Update && StaticHelpers.CSettings.SyncImages == ImageSyncMode.All)
+				{
+					var success = RSync.Run(@"rsync://dl.vndb.org/vndb-img/", StaticHelpers.CSettings.ImageFolderPath, out var error);
+					if (!success) StaticHelpers.Logger.ToFile($"Failed to sync images: {error}");
+				}
 			}
 			catch (Exception ex)
 			{
 				Console.ForegroundColor = ConsoleColor.Red;
 				StaticHelpers.Logger.ToFile(ex);
 				Console.ResetColor();
-				return (int)ExitCode.Error;
+				result = ExitCode.Error;
 			}
+			Console.WriteLine("Press any key to exit...");
+			Console.ReadKey();
+			return (int)result;
+
 		}
 
 		private static void RemovePastBackups(string dumpFolder, DumpFileInfo dumpFileInfo)
@@ -70,10 +79,12 @@ namespace DatabaseDumpReader
 
 		private static void RemovePastDatabaseFiles()
 		{
+			if (string.IsNullOrWhiteSpace(StaticHelpers.DatabaseFile)) throw new InvalidOperationException("Database file path was empty.");
 			//remove all but one DB backups
 			var fileNoExt = Path.GetFileNameWithoutExtension(StaticHelpers.DatabaseFile);
 			var fileExt = Path.GetExtension(StaticHelpers.DatabaseFile);
 			var databaseDirectory = Directory.GetParent(StaticHelpers.DatabaseFile);
+			if (databaseDirectory == null) throw new InvalidOperationException("Database directory was null.");
 			var files = databaseDirectory.GetFiles($"{fileNoExt}*", SearchOption.TopDirectoryOnly)
 				//only files of same extension and exclude the database file.
 				.Where(f => f.Extension == fileExt && f.FullName != StaticHelpers.DatabaseFile)
@@ -85,7 +96,7 @@ namespace DatabaseDumpReader
 				DeleteFileOrFolder(null, file);
 			}
 		}
-		
+
 		private static ExitCode Run(string dumpFolder, int userId)
 		{
 			var previousDumpUpdate = DumpReader.GetLatestDumpUpdate(StaticHelpers.DatabaseFile);
@@ -146,7 +157,7 @@ namespace DatabaseDumpReader
 				StaticHelpers.Logger.ToFile(ex);
 			}
 		}
-		
+
 		private static void ExtractGzToFolder(FileInfo file, DirectoryInfo folder)
 		{
 			var destFileName = Path.Combine(folder.FullName, Path.GetFileNameWithoutExtension(file.Name));
@@ -238,8 +249,8 @@ namespace DatabaseDumpReader
 			public bool Contains(FileSystemInfo info)
 			{
 				return (info is DirectoryInfo && info.FullName == LatestDumpFolder) ||
-				       (info is FileInfo && info.FullName == LatestDumpFile.FullName) ||
-				       (info is FileInfo && info.FullName == LatestVoteDumpFile.FullName);
+							 (info is FileInfo && info.FullName == LatestDumpFile.FullName) ||
+							 (info is FileInfo && info.FullName == LatestVoteDumpFile.FullName);
 			}
 		}
 

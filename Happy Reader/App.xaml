@@ -5,6 +5,7 @@
              xmlns:system="clr-namespace:System;assembly=mscorlib"
              xmlns:view="clr-namespace:Happy_Reader.View"
              xmlns:converters="clr-namespace:Happy_Reader.View.Converters"
+             xmlns:collections="clr-namespace:System.Collections;assembly=mscorlib"
              StartupUri="View/MainWindow.xaml" 
              ShutdownMode="OnMainWindowClose">
 	<Application.Resources>
@@ -80,5 +81,6 @@
 			<Setter Property="Foreground" Value="White"/>
 			<Setter Property="VerticalAlignment" Value="Stretch"/>
 		</Style>
+		<collections:ArrayList x:Key="ImageSyncModes" />
 	</Application.Resources>
 </Application>

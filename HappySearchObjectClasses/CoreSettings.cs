@@ -11,6 +11,7 @@ namespace Happy_Apps_Core
 		private DateTime _dumpfileDate = DateTime.MinValue;
 		private bool _clearOldDumpsAndBackups = true;
 		private string _imageFolderPath = Path.Combine(StaticHelpers.StoredDataFolder, "vndb-img\\");
+		private ImageSyncMode _imageSync = ImageSyncMode.None;
 
 		/// <summary>
 		/// Username of user.
@@ -41,7 +42,7 @@ namespace Happy_Apps_Core
 		}
 
 		/// <summary>
-		/// Date of last time that dump files were downloaded.
+		/// Date of last time that tag/trait dump files were downloaded.
 		/// </summary>
 		public DateTime DumpfileDate
 		{
@@ -54,6 +55,9 @@ namespace Happy_Apps_Core
 			}
 		}
 
+		/// <summary>
+		/// Delete old database dump files and database backups, when updating.
+		/// </summary>
 		public bool ClearOldDumpsAndBackups
 		{
 			get => _clearOldDumpsAndBackups;
@@ -65,6 +69,9 @@ namespace Happy_Apps_Core
 			}
 		}
 
+		/// <summary>
+		/// Path to folder containing images for VNDB data.
+		/// </summary>
 		public string ImageFolderPath
 		{
 			get => _imageFolderPath;
@@ -72,6 +79,20 @@ namespace Happy_Apps_Core
 			{
 				if (_imageFolderPath == value) return;
 				_imageFolderPath = value;
+				if (Loaded) Save();
+			}
+		}
+
+		/// <summary>
+		/// Mode for downloading/updating images when updating database.
+		/// </summary>
+		public ImageSyncMode SyncImages
+		{
+			get => _imageSync;
+			set
+			{
+				if (_imageSync == value) return;
+				_imageSync = value;
 				if (Loaded) Save();
 			}
 		}

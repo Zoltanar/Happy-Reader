@@ -13,11 +13,11 @@
 0 - ithvnr: only start up vnrhost when required and close when not.
 0 - vnrhook: handle maximum threads either change limit or reset ability
 0 - entries: allow proxy mods with multiple proxies ([[m#1]]-[[m#2]])
-0 - CachedTranslations: save source name (for now only google free and google credential)
 0 - CachedTranslations: option to do this automatically: remove from cache if not used recently or originally cached too long ago.
 0 - outputwindow: check if output window is in visible area of screens, if not, reset it.
 0 - outputwindow: alternate colors between blocks
 0 - option to always launch games with some locale if windows locale is not already set to that, and option to override it.
+0 - filters: set default filter (different from permanent filter)
 
 google tl: avoid translating sections with short onomatopoeias somehow
 

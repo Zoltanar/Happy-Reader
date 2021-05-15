@@ -126,6 +126,7 @@
     <Compile Include="Database\StaffItem.cs" />
     <Compile Include="Database\VnSeiyuu.cs" />
     <Compile Include="Database\VnStaff.cs" />
+    <Compile Include="ImageSyncMode.cs" />
     <Compile Include="SuggestionScorer.cs" />
     <Compile Include="SuggestionScoreObject.cs" />
     <Compile Include="Database\User.cs" />

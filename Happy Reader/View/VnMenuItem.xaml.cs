@@ -207,8 +207,8 @@ namespace Happy_Reader.View
 		private void ImportNames(object sender, RoutedEventArgs e)
 		{
 			var cvns = StaticHelpers.LocalDatabase.CharacterVNs[VN.VNID].ToList();
-			var characterEntries = cvns.SelectMany(GetEntriesFromCharacter).Distinct(Entry.ClashComparer).ToArray();
-			var newEntries = characterEntries.Except(StaticMethods.Data.Entries, Entry.ClashComparer).ToList();
+			var characterEntries = cvns.SelectMany(GetEntriesFromCharacter);
+			var newEntries = characterEntries.Except(StaticMethods.Data.Entries, Entry.ClashComparer).OrderBy(i=>i.Input).ToList();
 			if (newEntries.Count == 0)
 			{
 				StaticMethods.MainWindow.ViewModel.NotificationEvent(this, "No new names to import.", "Import Names");
