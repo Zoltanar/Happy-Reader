@@ -43,7 +43,7 @@ namespace Happy_Reader.View
 
 						if (!_ithViewModel.HookManager.Processes.TryGetValue(process.Id, out var processInfo))
 						{
-							processInfo = new ProcessInfo(process, false,false);
+							processInfo = new ProcessInfo(process, false, false);
 						}
 						processList.Add(processInfo);
 					}
@@ -65,7 +65,9 @@ namespace Happy_Reader.View
 		{
 			if (ProcessGrid.SelectedItem is not ProcessInfo item) return; //todo return error
 			uint pid = (uint)item.Id;
-			var result = _ithViewModel.VnrHost.Host_InjectByPID(pid, out var errorMessage, false);
+			var initialised = _ithViewModel.InitialiseVnrHost();
+			if (!initialised) return;
+			var result = _ithViewModel.VnrHost.InjectIntoProcess(pid, out var errorMessage);
 			if (result)
 			{
 				var result2 = _ithViewModel.VnrHost.Host_HijackProcess(pid);

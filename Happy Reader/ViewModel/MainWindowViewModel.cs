@@ -9,8 +9,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Input;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
@@ -48,6 +46,7 @@ namespace Happy_Reader.ViewModel
 		private bool _closing;
 		private bool _finalizing;
 		private WinAPI.HookProcedureHandle _globalHook;
+		private readonly object _exitLock = new();
 
 		public string StatusText
 		{
@@ -71,7 +70,7 @@ namespace Happy_Reader.ViewModel
 		[NotNull] public SettingsViewModel SettingsViewModel { get; }
 		[NotNull] public InformationViewModel InformationViewModel { get; }
 		[NotNull] public ApiLogViewModel ApiLogViewModel { get; }
-		public OutputWindowViewModel OutputWindowViewModel => (OutputWindowViewModel)OutputWindow.DataContext;
+		private OutputWindowViewModel OutputWindowViewModel => (OutputWindowViewModel)OutputWindow.DataContext;
 
 		public bool TranslatePaused
 		{
@@ -121,6 +120,9 @@ namespace Happy_Reader.ViewModel
 			SettingsViewModel = Happy_Apps_Core.SettingsJsonFile.Load<SettingsViewModel>(AllSettingsJson);
 			StaticMethods.Settings = SettingsViewModel;
 			CSettings = SettingsViewModel.CoreSettings;
+			IthVnrSharpLib.StaticHelpers.LogToFileAction = StaticHelpers.Logger.ToFile;
+			IthVnrSharpLib.StaticHelpers.LogToDebugAction = StaticHelpers.Logger.ToDebug;
+			IthVnrSharpLib.StaticHelpers.LogExceptionToFileAction = StaticHelpers.Logger.ToFile;
 			SettingsViewModel.TranslatorSettings.CaptureClipboardChanged = CaptureClipboardSettingChanged;
 			StaticMethods.AllFilters = Happy_Apps_Core.SettingsJsonFile.Load<FiltersData>(StaticMethods.AllFiltersJson, StaticMethods.SerialiserSettings);
 			InformationViewModel = new InformationViewModel();
@@ -162,26 +164,28 @@ namespace Happy_Reader.ViewModel
 		public void ExitProcedures(object sender, ExitEventArgs args)
 		{
 			if (_finalizing) return;
-			var exitWatch = Stopwatch.StartNew();
-			Logger.ToDebug($"[{nameof(MainWindowViewModel)}] Starting exit procedures...");
-			_finalizing = true;
-			if (UserGame?.IsHooked ?? false) HookedProcessOnExited(sender, args);
-			var ithFinalize = new Thread(() => IthViewModel.Finalize(null, null)) { IsBackground = true, Name = "IthVnrFinalizeThread" };
-			ithFinalize.Start();
-			ithFinalize.Join(5000);
-			try
+			lock (_exitLock)
 			{
-				_closing = true;
-				OutputWindow?.Close();
-				UserGame?.SaveTimePlayed(false);
-				Translator.ExitProcedures(StaticMethods.Data.SaveChanges);
-				_monitor?.Join();
+				if (_finalizing) return;
+				var exitWatch = Stopwatch.StartNew();
+				Logger.ToDebug($"[{nameof(MainWindowViewModel)}] Starting exit procedures...");
+				if (UserGame?.IsHooked ?? false) HookedProcessOnExited(sender, args);
+				IthViewModel.Dispose();
+				try
+				{
+					_closing = true;
+					OutputWindow?.Close();
+					UserGame?.SaveTimePlayed(false);
+					Translator.ExitProcedures(StaticMethods.Data.SaveChanges);
+					_monitor?.Join();
+				}
+				catch (Exception ex)
+				{
+					Logger.ToFile(ex);
+				}
+				_finalizing = true;
+				Logger.ToDebug($"[{nameof(MainWindowViewModel)}] Completed exit procedures, took {exitWatch.Elapsed}");
 			}
-			catch (Exception ex)
-			{
-				Logger.ToFile(ex);
-			}
-			Logger.ToDebug($"[{nameof(MainWindowViewModel)}] Completed exit procedures, took {exitWatch.Elapsed}");
 		}
 
 		public async Task Initialize(Stopwatch watch, RoutedEventHandler defaultUserGameGrouping, bool initialiseEntries, bool logVerbose)
@@ -220,17 +224,7 @@ namespace Happy_Reader.ViewModel
 			if (SettingsViewModel.GuiSettings.HookIthVnr)
 			{
 				StatusText = "Initializing ITHVNR...";
-				string errorMessage;
-				try
-				{
-					IthViewModel.Initialize(RunTranslation, out errorMessage);
-				}
-				catch (Exception ex)
-				{
-					StaticHelpers.Logger.ToFile(ex);
-					errorMessage = ex.Message;
-				}
-				if (!string.IsNullOrWhiteSpace(errorMessage)) IthViewModel.DisplayThreads.Add(new TextBlock(new Run(errorMessage)));
+				IthViewModel.Initialize(RunTranslation);
 			}
 			_monitor = GetAndStartMonitorThread();
 			_loadingComplete = true;
@@ -522,12 +516,23 @@ namespace Happy_Reader.ViewModel
 			IthViewModel.MergeByHookCode = UserGame.MergeByHookCode;
 			IthViewModel.PrefEncoding = UserGame.PrefEncoding;
 			IthViewModel.GameTextThreads = StaticMethods.Data.GameThreads.Where(t => t.Item.GameId == UserGame.Id).Select(t => t.Item).ToArray();
-			if (UserGame.HookProcess == UserGame.HookMode.VnrAgent)
+			switch (UserGame.HookProcess)
 			{
-				if (!IthViewModel.EmbedHost.Initialized) IthViewModel.EmbedHost.Initialize();
-				IthViewModel.Commands?.ProcessCommand($"/PA{UserGame.Process.Id}", UserGame.Process.Id);
+				case UserGame.HookMode.VnrAgent:
+				{
+					if (!IthViewModel.EmbedHost.Initialized) IthViewModel.EmbedHost.Initialize();
+					IthViewModel.Commands?.ProcessCommand($"/PA{UserGame.Process.Id}", UserGame.Process.Id);
+					break;
+				}
+				case UserGame.HookMode.VnrHook:
+				{
+					var initialised = IthViewModel.InitialiseVnrHost();
+					if(initialised) IthViewModel.Commands?.ProcessCommand($"/P{UserGame.Process.Id}", UserGame.Process.Id);
+					break;
+				}
+				default:
+					throw new ArgumentOutOfRangeException();
 			}
-			else IthViewModel.Commands?.ProcessCommand($"/P{UserGame.Process.Id}", UserGame.Process.Id);
 		}
 
 		private void HookedProcessOnExited(object sender, EventArgs eventArgs)
@@ -540,6 +545,7 @@ namespace Happy_Reader.ViewModel
 				StaticMethods.Data.SaveChanges();
 			});
 			_globalHook?.Dispose();
+			IthViewModel.FinaliseVnrHost(1000);
 			UserGame.Process = null;
 			UserGame.OutputWindow = null;
 			UserGame = null;

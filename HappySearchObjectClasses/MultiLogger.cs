@@ -45,8 +45,7 @@ namespace Happy_Apps_Core
 			if (!LogVerbose) return;
 			Debug.WriteLine(TimeString + text);
 		}
-
-		[Conditional("DEBUG")]
+		
 		public void ToDebug(string text)
 		{
 			Debug.WriteLine(TimeString + text);

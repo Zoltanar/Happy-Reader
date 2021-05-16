@@ -61,8 +61,6 @@
 		</Grid.RowDefinitions>
 		<!-- row 0 -->
 		<UniformGrid Columns="4" Grid.Row="0" Height="100">
-			<Button Margin="2" Content="Turn Off" Style="{StaticResource GeneralButtonStyle}" Click="FinalizeButton"/>
-			<Button Margin="2" Content="Turn On"  Style="{StaticResource GeneralButtonStyle}"  Click="InitializeButton"/>
 			<Button Margin="2" Content="Show Output Window" Style="{StaticResource GeneralButtonStyle}" Click="ShowOutputWindow"/>
 			<Button Margin="2" Content="Reset Output Window" Style="{StaticResource GeneralButtonStyle}" Click="ResetOutputWindow"/>
 			<ToggleButton Margin="2" Content="Merge By Hook Code" Style="{StaticResource GeneralToggleStyle}" IsChecked="{Binding MergeByHookCode}"/>
