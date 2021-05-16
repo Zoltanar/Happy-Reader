@@ -69,7 +69,7 @@ namespace Happy_Reader.View.Tabs
 		private UIElement GetPropertyControl(Action<string, object> action, string header, Type type, object value)
 		{
 			var grid = new Grid();
-			grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+			grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(120) });
 			grid.ColumnDefinitions.Add(new ColumnDefinition());
 			var tb = new TextBlock(new Run(header));
 			tb.SetValue(Grid.ColumnProperty, 0);
@@ -87,13 +87,14 @@ namespace Happy_Reader.View.Tabs
 			if (type.IsEnum)
 			{
 				var enumArray = StaticMethods.GetEnumValues(type);
-				var selectedIndex = enumArray.Select(e => e.Tag).ToList().FindIndex(t => t == value);
+				var enumValues = enumArray.Select(e => e.Tag).ToList();
+				var selectedIndex = enumValues.FindIndex(t => t.Equals(value));
 				var cb = new ComboBox
 				{
 					ItemsSource = enumArray,
-					SelectedIndex = Math.Max(selectedIndex, 0),
 					SelectedValuePath = nameof(Tag)
 				};
+				cb.SelectedIndex = Math.Max(selectedIndex, 0);
 				cb.SelectionChanged += (_, e) => action(header, e.AddedItems[0]);
 				control = cb;
 			}

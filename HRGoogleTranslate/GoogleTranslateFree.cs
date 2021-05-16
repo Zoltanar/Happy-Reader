@@ -20,8 +20,8 @@ namespace HRGoogleTranslate
 	{
 		private const string GoogleDetectedString = @"Our systems have detected unusual traffic from your computer network.  This page checks to see if it&#39;s really you sending the requests, and not a robot.";
 		private const string GoogleDetectedString2 = @"This page appears when Google automatically detects requests coming from your computer network";
-		private const string UserAgentPropertyKey = "Credential Location";
-		private static readonly Regex CombineEmptyLinesRegex = new Regex(@"^(\s*\n){2,}");
+		private const string UserAgentPropertyKey = "User Agent";
+		private static readonly Regex CombineEmptyLinesRegex = new(@"^(\s*\n){2,}");
 		//todo make this an external string?
 		private const string TranslateFreeUrl = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=en&dt=t&q=";
 		private static readonly HttpClient FreeClient = new();
@@ -137,7 +137,7 @@ namespace HRGoogleTranslate
 			translated = null;
 			try
 			{
-				var jArray = JsonConvert.DeserializeObject<JArray>(jsonString);
+				var jArray = JsonConvert.DeserializeObject<JArray>(jsonString) ?? throw new InvalidOperationException("Json Response was null.");
 				var translatedObject = jArray[0][0];
 				Debug.Assert(translatedObject != null, nameof(translatedObject) + " != null");
 				translated = (translatedObject[0] ?? throw new InvalidOperationException("Json object was not o expected format.")).Value<string>();

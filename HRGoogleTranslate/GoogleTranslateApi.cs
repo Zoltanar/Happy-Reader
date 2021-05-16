@@ -12,10 +12,11 @@ using JetBrains.Annotations;
 namespace HRGoogleTranslate
 {
 	[UsedImplicitly]
-	public class GoogleTranslateApi :  ITranslator
+	public class GoogleTranslateApi : ITranslator
 	{
 		private const string CredentialPropertyKey = "Credential Location";
-		
+		private const string ModelPropertyKey = "Translation Model";
+
 		private static TranslationClient _client;
 
 		public string Version => "1.0";
@@ -24,7 +25,8 @@ namespace HRGoogleTranslate
 		public string Error { get; set; }
 		public IReadOnlyDictionary<string, Type> Properties { get; } = new ReadOnlyDictionary<string, Type>(new Dictionary<string, Type>()
 		{
-			{"Credential Location", typeof(string)}
+			{CredentialPropertyKey, typeof(string)},
+			{ModelPropertyKey, typeof(TranslationModel)}
 		});
 
 		public void Initialise()
@@ -46,7 +48,7 @@ namespace HRGoogleTranslate
 		{
 			try
 			{
-				var response = _client.TranslateText(input, "en", "ja", TranslationModel.NeuralMachineTranslation);
+				var response = _client.TranslateText(input, "en", "ja", Settings.TranslationModel);
 				if (!string.IsNullOrWhiteSpace(response?.TranslatedText))
 				{
 					output = response.TranslatedText;
@@ -64,14 +66,27 @@ namespace HRGoogleTranslate
 
 		public void SetProperty(string propertyKey, object value)
 		{
-			if (propertyKey != CredentialPropertyKey || value is not string credentialLocation) return;
-			SetGoogleCredential(credentialLocation);
+			switch (propertyKey)
+			{
+				case CredentialPropertyKey when value is string credentialLocation:
+					SetGoogleCredential(credentialLocation);
+					break;
+				case ModelPropertyKey when value is TranslationModel translationModel:
+					Settings.TranslationModel = translationModel;
+					break;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(propertyKey), $"Unrecognized property key: {propertyKey}");
+			}
 		}
 
 		public object GetProperty(string propertyKey)
 		{
-			if (propertyKey != CredentialPropertyKey) throw new NotSupportedException($"Property not supported: '{propertyKey}'");
-			return Settings.GoogleCredentialPath;
+			return propertyKey switch
+			{
+				CredentialPropertyKey => Settings.GoogleCredentialPath,
+				ModelPropertyKey => Settings.TranslationModel,
+				_ => throw new ArgumentOutOfRangeException(nameof(propertyKey), $"Unrecognized property key: {propertyKey}")
+			};
 		}
 
 		public void LoadProperties(string filePath)
@@ -107,6 +122,8 @@ namespace HRGoogleTranslate
 			private string _googleCredentialPath = @"C:\Google\hrtranslate-credential.json";
 			// ReSharper restore StringLiteralTypo
 
+			private TranslationModel _translationModel = TranslationModel.NeuralMachineTranslation;
+
 			public string GoogleCredentialPath
 			{
 				get => _googleCredentialPath;
@@ -114,6 +131,17 @@ namespace HRGoogleTranslate
 				{
 					if (_googleCredentialPath == value) return;
 					_googleCredentialPath = value;
+					if (Loaded) Save();
+				}
+			}
+
+			public TranslationModel TranslationModel
+			{
+				get => _translationModel;
+				set
+				{
+					if (_translationModel == value) return;
+					_translationModel = value;
 					if (Loaded) Save();
 				}
 			}
