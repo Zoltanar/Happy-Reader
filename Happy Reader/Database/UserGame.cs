@@ -537,7 +537,7 @@ namespace Happy_Reader.Database
 			var processStarted = Process.Start(pi);
 			if (usingProxy)
 			{
-				Thread.Sleep(1500);
+				Thread.Sleep(3000);
 				processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(FilePath));
 				return processes.FirstOrDefault();
 			}

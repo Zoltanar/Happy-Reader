@@ -18,7 +18,6 @@
 0 - outputwindow: alternate colors between blocks
 0 - option to always launch games with some locale if windows locale is not already set to that, and option to override it.
 0 - filters: set default filter (different from permanent filter)
-1 - google tl: avoid translating sections with short onomatopoeias somehow
 
 before release:
 set up database versioning/upgrade system

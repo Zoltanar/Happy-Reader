@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using Google;
 using Google.Cloud.Translation.V2;
 using Happy_Apps_Core;
@@ -16,19 +18,24 @@ namespace HRGoogleTranslate
 	{
 		private const string CredentialPropertyKey = "Credential Location";
 		private const string ModelPropertyKey = "Translation Model";
+		private const string BadRepetitionKey = "Prevent Bad Repetition";
+		private const string TargetLanguage = "en";
+		private const string SourceLanguage = "ja";
+		private const string EmptyResponseMessage = "Failed to translate, empty response.";
+		private readonly Regex _badRepetitionPattern = new(@"(.)\1{5,}", RegexOptions.Compiled);
 
-		private static TranslationClient _client;
+		private TranslationClient _client;
 
 		public string Version => "1.0";
-
 		public string SourceName => "Google Translate API";
 		public string Error { get; set; }
 		public IReadOnlyDictionary<string, Type> Properties { get; } = new ReadOnlyDictionary<string, Type>(new Dictionary<string, Type>()
 		{
 			{CredentialPropertyKey, typeof(string)},
-			{ModelPropertyKey, typeof(TranslationModel)}
+			{ModelPropertyKey, typeof(TranslationModel)},
+			{BadRepetitionKey, typeof(bool)}
 		});
-
+		
 		public void Initialise()
 		{
 			Error = null;
@@ -48,13 +55,18 @@ namespace HRGoogleTranslate
 		{
 			try
 			{
-				var response = _client.TranslateText(input, "en", "ja", Settings.TranslationModel);
+				var response = _client.TranslateText(input, TargetLanguage, SourceLanguage, Settings.TranslationModel);
 				if (!string.IsNullOrWhiteSpace(response?.TranslatedText))
 				{
 					output = response.TranslatedText;
+					if (Settings.PreventBadRepetition)
+					{
+						var success = PreventBadRepetition(input, ref output);
+						return success;
+					}
 					return true;
 				}
-				output = "Failed to translate";
+				output = EmptyResponseMessage;
 				return false;
 			}
 			catch (Exception ex)
@@ -62,6 +74,26 @@ namespace HRGoogleTranslate
 				output = $"Failed: {(ex is GoogleApiException gex ? gex.Error.Message : ex.Message)}";
 				return false;
 			}
+		}
+
+		/// <summary>
+		/// If translation output has an incorrect repetition pattern
+		/// like 'Hmmmmmmm...', and input has Japanese comma,
+		/// split the text by the commas and translate each part individually.
+		/// </summary>
+		private bool PreventBadRepetition(string input, ref string output)
+		{
+			const char jComma = '、';
+			if (!input.Any(c => c.Equals(jComma)) || !_badRepetitionPattern.IsMatch(output)) return true;
+			var parts = input.Split(jComma);
+			var outputParts = _client.TranslateText(parts, TargetLanguage, SourceLanguage, Settings.TranslationModel);
+			if (outputParts.Any(p => string.IsNullOrWhiteSpace(p.TranslatedText)))
+			{
+				output = EmptyResponseMessage;
+				return false;
+			}
+			output = string.Join(", ", outputParts.Select(p => p.TranslatedText));
+			return true;
 		}
 
 		public void SetProperty(string propertyKey, object value)
@@ -74,6 +106,9 @@ namespace HRGoogleTranslate
 				case ModelPropertyKey when value is TranslationModel translationModel:
 					Settings.TranslationModel = translationModel;
 					break;
+				case BadRepetitionKey when value is bool preventBadRepetition:
+					Settings.PreventBadRepetition = preventBadRepetition;
+					break;
 				default:
 					throw new ArgumentOutOfRangeException(nameof(propertyKey), $"Unrecognized property key: {propertyKey}");
 			}
@@ -85,6 +120,7 @@ namespace HRGoogleTranslate
 			{
 				CredentialPropertyKey => Settings.GoogleCredentialPath,
 				ModelPropertyKey => Settings.TranslationModel,
+				BadRepetitionKey => Settings.PreventBadRepetition,
 				_ => throw new ArgumentOutOfRangeException(nameof(propertyKey), $"Unrecognized property key: {propertyKey}")
 			};
 		}
@@ -118,11 +154,10 @@ namespace HRGoogleTranslate
 
 		private class ApiSettings : SettingsJsonFile
 		{
-			// ReSharper disable StringLiteralTypo
+			// ReSharper disable once StringLiteralTypo
 			private string _googleCredentialPath = @"C:\Google\hrtranslate-credential.json";
-			// ReSharper restore StringLiteralTypo
-
 			private TranslationModel _translationModel = TranslationModel.NeuralMachineTranslation;
+			private bool _preventBadRepetition = true;
 
 			public string GoogleCredentialPath
 			{
@@ -142,6 +177,22 @@ namespace HRGoogleTranslate
 				{
 					if (_translationModel == value) return;
 					_translationModel = value;
+					if (Loaded) Save();
+				}
+			}
+
+			/// <summary>
+			/// If translation output has an incorrect repetition pattern
+			/// like 'Hmmmmmmm...', and input has Japanese comma,
+			/// split the text by the commas and translate each part individually.
+			/// </summary>
+			public bool PreventBadRepetition
+			{
+				get => _preventBadRepetition;
+				set
+				{
+					if (_preventBadRepetition == value) return;
+					_preventBadRepetition = value;
 					if (Loaded) Save();
 				}
 			}

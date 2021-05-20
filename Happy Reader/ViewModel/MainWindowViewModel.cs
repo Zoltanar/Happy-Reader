@@ -459,6 +459,12 @@ namespace Happy_Reader.ViewModel
 				//process can be closed at any point
 				try
 				{
+					if (process == null)
+					{
+						NotificationEvent(this, $"Failed to get process for user game '{userGame.DisplayName}'");
+						UserGame = null;
+						return;
+					}
 					if (process.HasExited)
 					{
 						NotificationEvent(this,
