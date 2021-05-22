@@ -86,7 +86,6 @@ namespace Happy_Reader.ViewModel
 
 		public PausableUpdateList<DisplayLog> LogsList { get; } = new();
 		public string DisplayUser => $"User: {User?.ToString() ?? "(none)"}";
-		public string DisplayGame => $"Game: {UserGame?.ToString() ?? "(none)"}";
 
 		public User User
 		{
@@ -289,8 +288,14 @@ namespace Happy_Reader.ViewModel
 		public void SetUser(int userid)
 		{
 			CSettings.UserID = userid;
-			User = LocalDatabase.Users[CSettings.UserID];
-			LocalDatabase.CurrentUser = User;
+			var user = LocalDatabase.Users[CSettings.UserID];
+			if (user == null)
+			{
+				user = new User {Username = CSettings.Username, Id = CSettings.UserID};
+				LocalDatabase.Users.Add(user,true,true);
+			}
+			User = user;
+			LocalDatabase.CurrentUser = user;
 		}
 
 		private void PopulateProxies()

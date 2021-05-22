@@ -10,7 +10,6 @@
 0 - ithvnr: better saving/loading game text threads, let user name threads and delete saved
 0 - ithvnr: once any thread has been saved as posting, change default for new threads to stop/hide.
 0 - ithvnr: text thread panel max height (scrollbar if needed)
-0 - ithvnr: only start up vnrhost when required and close when not.
 0 - vnrhook: handle maximum threads either change limit or reset ability
 0 - entries: allow proxy mods with multiple proxies ([[m#1]]-[[m#2]])
 0 - CachedTranslations: option to do this automatically: remove from cache if not used recently or originally cached too long ago.

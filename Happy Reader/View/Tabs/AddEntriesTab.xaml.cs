@@ -90,8 +90,7 @@ namespace Happy_Reader.View.Tabs
 
 		private void EntriesGrid_OnLoadingRow(object sender, DataGridRowEventArgs e)
 		{
-			var item = e.Row.DataContext as DisplayEntry;
-			if (item == null || item.Entry == null) return;
+			if (e.Row?.DataContext is not DisplayEntry item || item.Entry == null) return;
 			if (string.IsNullOrWhiteSpace(item.Entry.Input))
 			{
 				item.Type = EntryType.Name;

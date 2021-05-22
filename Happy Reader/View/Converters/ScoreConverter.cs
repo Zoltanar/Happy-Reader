@@ -8,6 +8,7 @@ namespace Happy_Reader.View.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
+			if (value is null || value.Equals(System.Windows.DependencyProperty.UnsetValue)) return "None";
 			if (value is not IConvertible voteObject) throw new NotSupportedException();
 			var vote = voteObject.ToDouble(culture);
 			if (StaticMethods.Settings.GuiSettings.UseDecimalVoteScores)
