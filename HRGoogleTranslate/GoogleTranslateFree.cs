@@ -22,8 +22,7 @@ namespace HRGoogleTranslate
 		private const string GoogleDetectedString2 = @"This page appears when Google automatically detects requests coming from your computer network";
 		private const string UserAgentPropertyKey = "User Agent";
 		private static readonly Regex CombineEmptyLinesRegex = new(@"^(\s*\n){2,}");
-		//todo make this an external string?
-		private const string TranslateFreeUrl = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=en&dt=t&q=";
+		private const string TranslateFreeUrl = @"https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=en&dt=t&q="; //todo make editable
 		private static readonly HttpClient FreeClient = new();
 		public string Error { get; set; }
 		public string Version => "1.0";
