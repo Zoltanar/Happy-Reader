@@ -3,6 +3,8 @@ WPF Program to search for data from VNDB.org via API and data dump files, also a
   
 Supported by [JetBrains](https://www.jetbrains.com/?from=HappyReaderByZoltanar)
 
+Before reporting issues or requesting features, please see [Goals](https://github.com/Zoltanar/Happy-Reader/blob/master/Goals.txt)
+
 # Basic Guide
 
 - Launch Happy Reader.exe  
