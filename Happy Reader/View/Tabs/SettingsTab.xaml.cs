@@ -14,8 +14,9 @@ namespace Happy_Reader.View.Tabs
 {
 	public partial class SettingsTab : UserControl
 	{
+		private bool _loaded;
 		private SettingsViewModel ViewModel => DataContext as SettingsViewModel ?? throw new ArgumentNullException($"Expected view model to be of type {nameof(SettingsViewModel)}");
-
+		
 		public SettingsTab() => InitializeComponent();
 
 		private void SetMaxInputSize(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
@@ -45,12 +46,18 @@ namespace Happy_Reader.View.Tabs
 			//refresh images of active objects.
 			StaticMethods.MainWindow.ViewModel.RefreshActiveObjectImages();
 		}
-
+		
 		private void SettingsTab_OnLoaded(object sender, RoutedEventArgs e)
 		{
+			if (_loaded) return;
 			OriginalColorSelector.TrySetColor();
 			RomajiColorSelector.TrySetColor();
 			TranslatedColorSelector.TrySetColor();
+			ImageSyncCharacters.IsChecked = ViewModel.CoreSettings.SyncImages.HasFlag(ImageSyncMode.Characters);
+			ImageSyncCovers.IsChecked = ViewModel.CoreSettings.SyncImages.HasFlag(ImageSyncMode.Covers);
+			ImageSyncScreenshots.IsChecked = ViewModel.CoreSettings.SyncImages.HasFlag(ImageSyncMode.Screenshots);
+			ImageSyncScreenshotThumbnails.IsChecked = ViewModel.CoreSettings.SyncImages.HasFlag(ImageSyncMode.Thumbnails);
+			_loaded = true;
 		}
 
 		public void LoadTranslationPlugins(IEnumerable<ITranslator> translators)
@@ -145,6 +152,36 @@ namespace Happy_Reader.View.Tabs
 		private void OnDecimalVoteToggle(object sender, RoutedEventArgs e)
 		{
 			StaticMethods.MainWindow.ViewModel.RefreshActiveObjectUserVns();
+		}
+
+		private void ImageSyncChanged(object sender, RoutedEventArgs e)
+		{
+			if (!_loaded) return;
+			var set = ((CheckBox) sender).IsChecked ?? false;
+			if (ReferenceEquals(sender, ImageSyncCharacters))
+			{
+				ViewModel.CoreSettings.SyncImages = set
+					? ViewModel.CoreSettings.SyncImages |= ImageSyncMode.Characters
+					: ViewModel.CoreSettings.SyncImages &= ~ImageSyncMode.Characters;
+			}
+			if (ReferenceEquals(sender, ImageSyncCovers))
+			{
+				ViewModel.CoreSettings.SyncImages = set
+					? ViewModel.CoreSettings.SyncImages |= ImageSyncMode.Covers
+					: ViewModel.CoreSettings.SyncImages &= ~ImageSyncMode.Covers;
+			}
+			if (ReferenceEquals(sender, ImageSyncScreenshots))
+			{
+				ViewModel.CoreSettings.SyncImages = set
+					? ViewModel.CoreSettings.SyncImages |= ImageSyncMode.Screenshots
+					: ViewModel.CoreSettings.SyncImages &= ~ImageSyncMode.Screenshots;
+			}
+			if (ReferenceEquals(sender, ImageSyncScreenshotThumbnails))
+			{
+				ViewModel.CoreSettings.SyncImages = set
+					? ViewModel.CoreSettings.SyncImages |= ImageSyncMode.Thumbnails
+					: ViewModel.CoreSettings.SyncImages &= ~ImageSyncMode.Thumbnails;
+			}
 		}
 	}
 }

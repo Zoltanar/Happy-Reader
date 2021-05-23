@@ -103,7 +103,6 @@ namespace DatabaseDumpReader
 				errorMessage = "Destination folder cannot be a drive (or root path).";
 				return false;
 			}
-
 			if (!destinationFolder.Exists)
 			{
 				try

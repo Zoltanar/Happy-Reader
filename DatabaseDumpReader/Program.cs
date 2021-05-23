@@ -13,6 +13,7 @@ namespace DatabaseDumpReader
 		private static readonly string DumpFolder = Path.Combine(StaticHelpers.AppDataFolder, "Database Dumps");
 		private const string LatestDbDumpUrl = "https://dl.vndb.org/dump/vndb-db-latest.tar.zst";
 		private const string LatestVoteDumpUrl = "https://dl.vndb.org/dump/vndb-votes-latest.gz";
+		private const string RsyncUrlBase = @"rsync://dl.vndb.org/vndb-img/";
 		private const int UpToDateDays = 1;
 
 		/// <summary>
@@ -32,11 +33,7 @@ namespace DatabaseDumpReader
 				var dumpFolder = DumpFolder;
 				StaticHelpers.CSettings = SettingsJsonFile.Load<SettingsViewModel>(settingsPath).CoreSettings;
 				result = Run(dumpFolder, StaticHelpers.CSettings.UserID);
-				if (result == ExitCode.Update && StaticHelpers.CSettings.SyncImages == ImageSyncMode.All)
-				{
-					var success = RSync.Run(@"rsync://dl.vndb.org/vndb-img/", StaticHelpers.CSettings.ImageFolderPath, out var error);
-					if (!success) StaticHelpers.Logger.ToFile($"Failed to sync images: {error}");
-				}
+				if (result != ExitCode.Error && result != ExitCode.NoUpdate) SyncImages(StaticHelpers.CSettings.SyncImages);
 			}
 			catch (Exception ex)
 			{
@@ -49,6 +46,40 @@ namespace DatabaseDumpReader
 			Console.ReadKey();
 			return (int)result;
 
+		}
+
+		private static void SyncImages(ImageSyncMode syncMode)
+		{
+			if (syncMode == ImageSyncMode.None) return;
+			if (syncMode == ImageSyncMode.All)
+			{
+				SyncImagesForFolder(string.Empty);
+				return;
+			}
+			if (syncMode.HasFlag(ImageSyncMode.Characters))
+			{
+				SyncImagesForFolder("ch/");
+			}
+			if (syncMode.HasFlag(ImageSyncMode.Covers))
+			{
+				SyncImagesForFolder("cv/");
+			}
+			if (syncMode.HasFlag(ImageSyncMode.Screenshots))
+			{
+				SyncImagesForFolder("sf/");
+			}
+			if (syncMode.HasFlag(ImageSyncMode.Thumbnails))
+			{
+				SyncImagesForFolder("st/");
+			}
+		}
+
+		private static void SyncImagesForFolder(string folder)
+		{
+			var url = $"{RsyncUrlBase}{folder}";
+			var path = $"{StaticHelpers.CSettings.ImageFolderPath}{folder}";
+			var success = RSync.Run(url, path, out var error);
+			if (!success) StaticHelpers.Logger.ToFile($"Failed to sync images: {error}");
 		}
 
 		private static void RemovePastBackups(string dumpFolder, DumpFileInfo dumpFileInfo)
