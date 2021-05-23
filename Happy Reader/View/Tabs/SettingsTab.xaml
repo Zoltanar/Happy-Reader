@@ -62,7 +62,7 @@
 						<ColumnDefinition Width="Auto"/>
 						<ColumnDefinition/>
 					</Grid.ColumnDefinitions>
-					<Label Content="Image Sync" Width="120"></Label>
+					<Label Content="Image Sync" Width="120"/>
 					<ComboBox Grid.Column="1" ItemsSource="{Binding DataContext.ImageSyncModes, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type tabs:SettingsTab}}}" SelectedValue="{Binding SyncImages}" SelectedValuePath="Tag"/>
 				</Grid>
 			</StackPanel>
@@ -75,7 +75,6 @@
 				<CheckBox Content="Use Decimal Vote Scores (1-10) instead of 10-100" IsChecked="{Binding UseDecimalVoteScores}" Click="OnDecimalVoteToggle"/>
 				<CheckBox Content="Exclude Titles with under 10 votes when sorting by rating" IsChecked="{Binding ExcludeLowVotesForRatingSort}"/>
 				<CheckBox Content="Show NSFW Images" IsChecked="{Binding NSFWImages}" Click="OnNsfwToggle"/>
-				<CheckBox Content="Use ITHVNR" IsChecked="{Binding HookIthVnr}" />
 				<CheckBox Content="Hook Global Mouse Events" IsChecked="{Binding HookGlobalMouse}" ToolTip="If enabled, text in output window should not be combined when a mouse click happens in between text lines, useful when clicking through text rapidly.This feature can result in some slow performance when enabled."/>
 				<view:LabeledTextBox LabelWidth="120" Label="Locale Emulator Path:" Text="{Binding LocaleEmulatorPath}" ToolTip="Path to locale emulator executable (LEProc.exe)"/>
 				<Grid>

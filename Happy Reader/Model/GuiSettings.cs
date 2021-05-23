@@ -16,7 +16,6 @@ namespace Happy_Reader
 		private bool _sexualTags;
 		private bool _technicalTags;
 		private bool _hookGlobalMouse;
-		private bool _hookIthVnr;
 		private bool _useDecimalVoteScores = true;
 		private bool _excludeLowVotesForRatingSort = true;
 		private string _localeEmulatorPath;
@@ -118,18 +117,7 @@ namespace Happy_Reader
 				if (Loaded) Save();
 			}
 		}
-
-		public bool HookIthVnr
-		{
-			get => _hookIthVnr;
-			set
-			{
-				if (_hookIthVnr == value) return;
-				_hookIthVnr = value;
-				if (Loaded) Save();
-			}
-		}
-
+		
 		public bool UseDecimalVoteScores
 		{
 			get => _useDecimalVoteScores;

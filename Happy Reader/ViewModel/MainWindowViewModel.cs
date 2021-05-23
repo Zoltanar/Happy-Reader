@@ -220,11 +220,7 @@ namespace Happy_Reader.ViewModel
 			defaultUserGameGrouping(null, null);
 			TestViewModel.Initialize();
 			OnPropertyChanged(nameof(TestViewModel));
-			if (SettingsViewModel.GuiSettings.HookIthVnr)
-			{
-				StatusText = "Initializing ITHVNR...";
-				IthViewModel.Initialize(RunTranslation);
-			}
+			IthViewModel.Initialize(RunTranslation);
 			_monitor = GetAndStartMonitorThread();
 			_loadingComplete = true;
 			StatusText = "Loading complete.";
@@ -291,8 +287,8 @@ namespace Happy_Reader.ViewModel
 			var user = LocalDatabase.Users[CSettings.UserID];
 			if (user == null)
 			{
-				user = new User {Username = CSettings.Username, Id = CSettings.UserID};
-				LocalDatabase.Users.Add(user,true,true);
+				user = new User { Username = CSettings.Username, Id = CSettings.UserID };
+				LocalDatabase.Users.Add(user, true, true);
 			}
 			User = user;
 			LocalDatabase.CurrentUser = user;
@@ -530,17 +526,17 @@ namespace Happy_Reader.ViewModel
 			switch (UserGame.HookProcess)
 			{
 				case UserGame.HookMode.VnrAgent:
-				{
-					if (!IthViewModel.EmbedHost.Initialized) IthViewModel.EmbedHost.Initialize();
-					IthViewModel.Commands?.ProcessCommand($"/PA{UserGame.Process.Id}", UserGame.Process.Id);
-					break;
-				}
+					{
+						if (!IthViewModel.EmbedHost.Initialized) IthViewModel.EmbedHost.Initialize();
+						IthViewModel.Commands?.ProcessCommand($"/PA{UserGame.Process.Id}", UserGame.Process.Id);
+						break;
+					}
 				case UserGame.HookMode.VnrHook:
-				{
-					var initialised = IthViewModel.InitialiseVnrHost();
-					if(initialised) IthViewModel.Commands?.ProcessCommand($"/P{UserGame.Process.Id}", UserGame.Process.Id);
-					break;
-				}
+					{
+						var initialised = IthViewModel.InitialiseVnrHost();
+						if (initialised) IthViewModel.Commands?.ProcessCommand($"/P{UserGame.Process.Id}", UserGame.Process.Id);
+						break;
+					}
 				default:
 					throw new ArgumentOutOfRangeException();
 			}

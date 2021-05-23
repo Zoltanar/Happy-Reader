@@ -17,6 +17,7 @@
 0 - outputwindow: alternate colors between blocks
 0 - option to always launch games with some locale if windows locale is not already set to that, and option to override it.
 0 - filters: set default filter (different from permanent filter)
+0 - usergame: context option to launch without hooking.
 
 before release:
 set up database versioning/upgrade system
