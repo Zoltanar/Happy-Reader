@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Kakasi.NET.Interop")]
-[assembly: AssemblyCopyright("Copyright © Gustavo Abranches 2016-2021")]
+[assembly: AssemblyCopyright("Copyright © Zoltanar 2016-2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
