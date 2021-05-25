@@ -55,7 +55,8 @@
 			<ColumnDefinition Width="Auto" MinWidth="30" x:Name="DataColumn"/>
 			<ColumnDefinition Width="*" x:Name="ImageColumn"/>
 		</Grid.ColumnDefinitions>
-		<UniformGrid Grid.Column="0" Rows="11" Columns="1">
+		<UniformGrid Grid.Column="0" Rows="12" Columns="1">
+			<Label Style="{StaticResource Row0Label}" Content="UserGame ID" />
 			<StackPanel Orientation="Horizontal">
 				<Label Style="{StaticResource Row0Label}" Content="(❌ File Not Found)" Foreground="Red" Visibility="{Binding FileExists, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=1}" />
 				<Label Style="{StaticResource Row0Label}" Content="File"/>
@@ -69,7 +70,8 @@
 			<Label Style="{StaticResource Row0Label}" Content="Encoding" />
 			<Label Style="{StaticResource Row0Label}" Content="Hook Mode" />
 		</UniformGrid>
-		<UniformGrid Grid.Column="1" Rows="11">
+		<UniformGrid Grid.Column="1" Rows="12">
+			<TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding Id, Mode=OneWay}" />
 			<TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding FilePath, Mode=OneWay}" />
 			<Button  Style="{StaticResource UniformButton}" Content="Change File Path" Click="ChangeFileLocationClick"/>
 			<TextBox Style="{StaticResource Row1TextBox}" x:Name="DisplayNameBox" Text="{Binding UserDefinedName, Mode=OneWay}" KeyUp="SaveUserDefinedName" />

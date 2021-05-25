@@ -415,7 +415,7 @@ namespace Happy_Reader.ViewModel
 
 		private int[] GetRelatedTitles(IDataItem<int> item)
 		{
-			return GetVisualNovel(item)?.AllRelations?.Select(i => i.ID).ToArray() ?? Array.Empty<int>();
+			return GetVisualNovel(item)?.GetAllRelations()?.Select(i => i.ID).ToArray() ?? Array.Empty<int>();
 		}
 	}
 }

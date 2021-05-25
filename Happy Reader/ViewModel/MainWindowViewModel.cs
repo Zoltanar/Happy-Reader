@@ -103,8 +103,9 @@ namespace Happy_Reader.ViewModel
 			private set
 			{
 				_userGame = value;
-				TestViewModel.Game = _userGame?.VN;
-				TestViewModel.OnPropertyChanged(nameof(TestViewModel.Game));
+				var isVN = _userGame?.HasVN ?? false;
+				TestViewModel.EntryGame = new EntryGame(isVN ? _userGame.VNID : (int?)_userGame?.Id, !isVN, false);
+				TestViewModel.OnPropertyChanged(nameof(TestViewModel.EntryGame));
 				OnPropertyChanged();
 				OnPropertyChanged(nameof(UserGame.RunningStatus));
 			}
@@ -133,7 +134,7 @@ namespace Happy_Reader.ViewModel
 			Translator = new Translator(StaticMethods.Data);
 			Translation.Translator = Translator;
 			UserGamesViewModel = new UserGamesViewModel(this);
-			EntriesViewModel = new EntriesTabViewModel(() => UserGame);
+			EntriesViewModel = new EntriesTabViewModel();
 			TestViewModel = new TranslationTester(this);
 			DatabaseViewModel = new VNTabViewModel(this);
 			CharactersViewModel = new CharactersTabViewModel(this);
@@ -211,6 +212,7 @@ namespace Happy_Reader.ViewModel
 				StatusText = "Populating Proxies...";
 				PopulateProxies();
 				StatusText = "Loading Entries...";
+				EntriesViewModel.SetEntryGames();
 				EntriesViewModel.SetEntries();
 			}
 			await UserGamesViewModel.Initialize();
@@ -218,7 +220,6 @@ namespace Happy_Reader.ViewModel
 			LoadLogs();
 			SetLastPlayed();
 			defaultUserGameGrouping(null, null);
-			TestViewModel.Initialize();
 			OnPropertyChanged(nameof(TestViewModel));
 			IthViewModel.Initialize(RunTranslation);
 			_monitor = GetAndStartMonitorThread();
@@ -424,7 +425,7 @@ namespace Happy_Reader.ViewModel
 				Logger.Verbose($"{nameof(RunTranslation)} - {e}");
 				if (UserGame.Process == null) return false;
 				TestViewModel.OriginalText = e.Text;
-				var translation = Translator.Translate(User, UserGame?.VN, e.Text, false, UserGame?.RemoveRepetition ?? false);
+				var translation = Translator.Translate(User, TestViewModel.EntryGame, e.Text, false, UserGame?.RemoveRepetition ?? false);
 				if (string.IsNullOrWhiteSpace(translation?.Output)) return false;
 				StaticMethods.DispatchIfRequired(() => OutputWindow.AddTranslation(translation), new TimeSpan(0, 0, 5));
 			}
@@ -476,7 +477,6 @@ namespace Happy_Reader.ViewModel
 					}
 					UserGame.ProcessName = process.ProcessName;
 					UserGame.SetActiveProcess(process, HookedProcessOnExited);
-					TestViewModel.Game = UserGame.VN;
 					UserGame.OnPropertyChanged(null);
 					OnPropertyChanged(nameof(UserGame));
 					UserGame.OutputWindow = OutputWindow;

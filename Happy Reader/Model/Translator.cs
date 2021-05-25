@@ -26,7 +26,7 @@ namespace Happy_Reader
 
 		private readonly HappyReaderDatabase _data;
 		private User _lastUser;
-		private ListedVN _lastGame;
+		private EntryGame _lastGame;
 		private Entry[] _entries;
 		private bool _logVerbose;
 		private char[] _inclusiveSeparators = { };
@@ -46,7 +46,7 @@ namespace Happy_Reader
 			_logVerbose = logVerbose;
 		}
 
-		public Translation Translate(User user, ListedVN game, string input, bool saveEntriesUsed, bool removeRepetition)
+		public Translation Translate(User user, EntryGame game, string input, bool saveEntriesUsed, bool removeRepetition)
 		{
 			if (removeRepetition)
 			{
@@ -73,7 +73,7 @@ namespace Happy_Reader
 			}
 			lock (TranslateLock)
 			{
-				if (user != _lastUser || game != _lastGame || RefreshEntries) SetEntries(user, game);
+				if (user != _lastUser || !game.Equals(_lastGame) || RefreshEntries) SetEntries(user, game);
 				if (LatinOnlyRegex.IsMatch(input)) return Translation.Error("Input was Latin only.");
 				var item = new Translation(input, true);
 				SplitInputIntoParts(item.Original, item.Parts);
@@ -127,28 +127,25 @@ namespace Happy_Reader
 			if (currentPart.Length > 0) parts.Add((currentPart, !string.IsNullOrWhiteSpace(currentPart) && !currentPart.All(c => _allSeparators.Contains(c))));
 		}
 
-		private void SetEntries([NotNull] User user, ListedVN game)
+		private void SetEntries([NotNull] User user, EntryGame game)
 		{
 			RefreshEntries = false;
 			_lastUser = user;
 			_lastGame = game;
-			int[] gamesInSeries = null;
-			if (game != null)
-			{
-				gamesInSeries = string.IsNullOrWhiteSpace(game.Series)
-					? new[] { game.VNID }
-					: StaticHelpers.LocalDatabase.VisualNovels.Where(g => g.Series == game.Series).Select(gg => gg.VNID).ToArray();
-			}
-			Entry[] generalEntries = _data.Entries.Where(e => (e.Private && e.UserId == user.Id || !e.Private) && !e.SeriesSpecific).ToArray();
+			var gamesInSeries = HappyReaderDatabase.GetSeriesEntryGames(game);
+			var generalEntries = _data.Entries.Where(e => (e.Private && e.UserId == user.Id || !e.Private) && !e.SeriesSpecific).ToArray();
 			Entry[] specificEntries = { };
-			if (gamesInSeries != null)
+			if (gamesInSeries.Length > 0)
 			{
-				specificEntries = _data.Entries.Where(e => (e.Private && e.UserId == user.Id || !e.Private) && e.GameId.HasValue && e.SeriesSpecific && gamesInSeries.Contains(e.GameId.Value)).ToArray();
+				specificEntries = _data.Entries.Where(e => (e.Private && e.UserId == user.Id || !e.Private)
+				                                           && e.SeriesSpecific
+																									 && e.GameData.GameId.HasValue 
+				                                           && gamesInSeries.Contains(e.GameData)).ToArray();
 			}
 			_entries = generalEntries.Concat(specificEntries).Where(e => !e.Disabled).OrderBy(i => i.Id).ToArray();
 			StaticHelpers.Logger.ToDebug($"[Translator] General entries: {generalEntries.Length}. Specific entries: {specificEntries.Length}");
 		}
-
+		
 		/// <summary>
 		/// Replace entries of type Game.
 		/// </summary>
@@ -608,7 +605,7 @@ namespace Happy_Reader
 			SetTranslationAndSaveToCache(text, output, input, "Single Kana");
 			return true;
 		}
-		
+
 		private void SetTranslationAndSaveToCache(StringBuilder text, string translated, string input, string sourceName)
 		{
 			GotFromApiCount++;
@@ -641,7 +638,7 @@ namespace Happy_Reader
 			Debug.WriteLine($"[{nameof(Translator)}] Got from API {GotFromApiCount}");
 			saveData();
 		}
-		
+
 		private class ProxiesWithCount
 		{
 			public Queue<RoleProxy> Proxies { get; }

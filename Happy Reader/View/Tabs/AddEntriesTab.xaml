@@ -4,6 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
+             xmlns:database="clr-namespace:Happy_Reader.Database"
+             xmlns:controls="clr-namespace:System.Windows.Controls;assembly=DotNetProjects.Input.Toolkit"
              mc:Ignorable="d" 
              d:DesignHeight="250" d:DesignWidth="400">
 	<StackPanel>
@@ -17,9 +19,20 @@
 					<DataGridCheckBoxColumn Header="Disabled" Binding="{Binding Disabled, Mode=TwoWay}" />
 					<DataGridTextColumn Header="User" Binding="{Binding User, Mode=OneWay}" />
 					<DataGridComboBoxColumn Header="Type" SelectedItemBinding="{Binding Type, Mode=TwoWay}" x:Name="TypeDropdownColumn" />
-					<DataGridComboBoxColumn Header="Game" 
-					                        SelectedItemBinding="{Binding Game, Mode=TwoWay}" 
-					                        x:Name="GameDropdownColumn"/>
+					<DataGridTemplateColumn Header="Game">
+						<DataGridTemplateColumn.CellEditingTemplate>
+							<DataTemplate DataType="database:Entry">
+								<controls:AutoCompleteBox ItemsSource="{Binding Source={x:Static viewModel:EntriesTabViewModel.EntryGames}}" Text="{Binding GameData, Mode=TwoWay, Converter={StaticResource EntryGameConverter}, UpdateSourceTrigger=Explicit}"
+								                          FilterMode="Custom" ValueMemberPath="." ItemFilter="EntryGameFilter"
+								                          KeyUp="SetEntryGameEnter" MouseUp="SetEntryGameLeftClick"/>
+							</DataTemplate>
+						</DataGridTemplateColumn.CellEditingTemplate>
+						<DataGridTemplateColumn.CellTemplate>
+							<DataTemplate DataType="database:Entry">
+								<TextBlock Text="{Binding GameData}"/>
+							</DataTemplate>
+						</DataGridTemplateColumn.CellTemplate>
+					</DataGridTemplateColumn>
 					<DataGridTextColumn Header="Role" Binding="{Binding Role}" />
 					<DataGridTextColumn Header="Input" Binding="{Binding Input}" />
 					<DataGridTextColumn Header="Output" Binding="{Binding Output, Mode=TwoWay}"  />

@@ -208,7 +208,7 @@ namespace Happy_Reader.View
 		{
 			var cvns = StaticHelpers.LocalDatabase.CharacterVNs[VN.VNID].ToList();
 			var characterEntries = cvns.SelectMany(GetEntriesFromCharacter);
-			var newEntries = characterEntries.Except(StaticMethods.Data.Entries, Entry.ClashComparer).OrderBy(i=>i.Input).ToList();
+			var newEntries = characterEntries.Except(StaticMethods.Data.Entries, Entry.ClashComparer).OrderBy(i => i.Input).ToList();
 			if (newEntries.Count == 0)
 			{
 				StaticMethods.MainWindow.ViewModel.NotificationEvent(this, "No new names to import.", "Import Names");
@@ -231,10 +231,10 @@ namespace Happy_Reader.View
 					RoleString = "m",
 					Input = character.Original,
 					Output = character.Name,
-					GameId = cvn.VNId,
 					SeriesSpecific = true,
 					Type = EntryType.Name
 				};
+				entry.SetGameId(cvn.VNId, false);
 				entries.Add(entry);
 			}
 			else
@@ -247,10 +247,10 @@ namespace Happy_Reader.View
 						RoleString = roleString,
 						Input = inputParts[i],
 						Output = outputParts[i],
-						GameId = cvn.VNId,
 						SeriesSpecific = true,
 						Type = EntryType.Name
 					};
+					entry.SetGameId(cvn.VNId, false);
 					entries.Add(entry);
 				}
 			}
@@ -274,7 +274,7 @@ namespace Happy_Reader.View
 			try
 			{
 				var translation = StaticMethods.MainWindow.ViewModel.Translator.Translate(
-					StaticMethods.MainWindow.ViewModel.User, null, VN.KanjiTitle, false, false);
+					StaticMethods.MainWindow.ViewModel.User, new EntryGame(VN.VNID, false, false), VN.KanjiTitle, false, false);
 				message = translation.Output;
 			}
 			catch (Exception ex)

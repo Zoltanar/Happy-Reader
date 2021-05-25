@@ -5,6 +5,7 @@ using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Happy_Apps_Core;
 using Happy_Apps_Core.DataAccess;
 using Happy_Apps_Core.Database;
@@ -33,10 +34,68 @@ namespace Happy_Reader.Database
 			UserGames = new DACollection<long, UserGame>(Connection);
 			Entries = new DACollection<long, Entry>(Connection);
 			if (!File.Exists(dbFile)) CreateDatabase();
+			RunUpdates();
 			if (!loadAllTables) return;
 			LoadAllTables();
 		}
-		
+
+		private void RunUpdates()
+		{
+			const string updateTableName = @"Updates";
+			try
+			{
+				Connection.Open();
+				var command = Connection.CreateCommand();
+				command.CommandText = $"SELECT name FROM sqlite_master WHERE type='table' AND name='{updateTableName}';";
+				var responseObject = command.ExecuteScalar();
+				bool updateTableExists = responseObject != null && responseObject != DBNull.Value;
+				if (!updateTableExists)
+				{
+					DatabaseTableBuilder.ExecuteSql(Connection, $@"CREATE TABLE `{updateTableName}` (
+	`Id`	INTEGER NOT NULL UNIQUE,
+	`Timestamp`	DATETIME,
+	PRIMARY KEY(`Id`)
+)");
+				}
+
+				command.CommandText = $"SELECT MAX(Id) FROM {updateTableName};";
+				responseObject = command.ExecuteScalar();
+				var latestUpdate = responseObject == DBNull.Value ? 0 : Convert.ToInt32(responseObject);
+				RunUpdates(latestUpdate);
+			}
+			catch (Exception ex)
+			{
+				StaticHelpers.Logger.ToFile(ex);
+				//throw;
+			}
+			finally
+			{
+				Connection.Close();
+			}
+		}
+
+		private void RunUpdates(int currentUpdate)
+		{
+			bool backedUp = false;
+			var assembly = Assembly.GetExecutingAssembly();
+			do
+			{
+				currentUpdate++;
+				var nextUpdateFile = assembly.GetManifestResourceStream($"Happy_Reader.Database.Updates.Update{currentUpdate:#}.sql");
+				if (nextUpdateFile == null) return;
+				if (!backedUp)
+				{
+					var dbFile = new FileInfo(Connection.FileName);
+					var backupFile = $"{dbFile.DirectoryName}\\{Path.GetFileNameWithoutExtension(dbFile.FullName)}-UB{DateTime.Now:yyyyMMdd-HHmmss}{dbFile.Extension}";
+					dbFile.CopyTo(backupFile);
+					backedUp = true;
+				}
+				using var reader = new StreamReader(nextUpdateFile);
+				var contents = reader.ReadToEnd();
+				DatabaseTableBuilder.ExecuteSql(Connection, contents);
+			} while (true);
+		}
+
 		private void LoadAllTables()
 		{
 			Connection.Open();
@@ -126,6 +185,7 @@ namespace Happy_Reader.Database
 	`UpdateTime`	DATETIME,
 	`UpdateUserId`	INTEGER,
 	`UpdateComment`	TEXT,
+	`GameIdIsUserGame` INTEGER NOT NULL,
 	PRIMARY KEY(`Id`)
 )");
 			}
@@ -148,14 +208,23 @@ namespace Happy_Reader.Database
 			return default;
 		}
 
-		public IEnumerable<Entry> GetGameOnlyEntries(ListedVN game) => Entries.Where(x => x.GameId == game.VNID);
-
-		public IEnumerable<Entry> GetSeriesOnlyEntries(ListedVN game)
+		public static EntryGame[] GetSeriesEntryGames(EntryGame entryGame)
 		{
-			var series = StaticHelpers.LocalDatabase.VisualNovels.Where(i => i.Series == game.Series).Select(i => i.VNID).ToArray();
-			return Entries.Where(i => i.GameId != null && series.Contains(i.GameId.Value));
+			if (entryGame?.GameId == null) return Array.Empty<EntryGame>();
+			var array = new[] {entryGame};
+			if (entryGame.IsUserGame) return array;
+			var vn = StaticHelpers.LocalDatabase.VisualNovels[entryGame.GameId.Value];
+			if (vn == null) return array;
+			var gamesInSeries = array.Concat(vn.GetAllRelations().Select(r => new EntryGame(r.ID, false, false))).ToArray();
+			return gamesInSeries;
 		}
-		
+
+		public IEnumerable<Entry> GetSeriesOnlyEntries(EntryGame game)
+		{
+			var series = GetSeriesEntryGames(game);
+			return Entries.Where(i => i.GameData.GameId.HasValue && series.Contains(i.GameData));
+		}
+
 		public int SaveChanges()
 		{
 			lock (_saveChangesLock)
@@ -199,7 +268,7 @@ namespace Happy_Reader.Database
 				Connection.Close();
 			}
 		}
-		
+
 		/// <summary>
 		/// Upserts entries into database, inserting Ids as required, opens own connection and transaction.
 		/// </summary>

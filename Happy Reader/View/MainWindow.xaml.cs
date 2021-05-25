@@ -141,17 +141,11 @@ namespace Happy_Reader.View
 
 		public void CreateAddEntriesTab(IEnumerable<Entry> entries)
 		{
-			var vns = ViewModel.UserGamesViewModel.UserGameItems
-				.Select(i => i.UserGame.VN)
-				.Concat(entries.Select(e => e.Game))
-				.Distinct()
-				.Where(i => i != null)
-				.ToArray();
 			var tabItem = new TabItem
 			{
 				Header = "Add Entries",
 				Name = nameof(AddEntriesTab),
-				Content = new AddEntriesTab(ViewModel, vns, entries)
+				Content = new AddEntriesTab(ViewModel, entries)
 			};
 			AddTabItem(tabItem, null, true);
 		}
@@ -219,7 +213,7 @@ namespace Happy_Reader.View
 			AddTabItem(tabItem, headerBinding, select);
 		}
 
-		public static Grid GetTabHeader(string text, BindingBase headerBinding, object content, HashSet<SavedData.SavedTab> savedTabs)
+		private static Grid GetTabHeader(string text, BindingBase headerBinding, object content, HashSet<SavedData.SavedTab> savedTabs)
 		{
 			var headerTextBlock = new TextBlock
 			{

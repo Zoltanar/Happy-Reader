@@ -90,13 +90,13 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 
-		public ListedVN Game
+		public EntryGame GameData
 		{
-			get => Entry.Game;
+			get => Entry.GameData;
 			set
 			{
-				if (Entry.Game == value) return;
-				Entry.GameId = value.VNID;
+				if (Entry.GameData.Equals(value)) return;
+				Entry.SetGameId(value.GameId,value.IsUserGame);
 				Entry.ReadyToUpsert = true;
 			}
 		}

@@ -6,7 +6,6 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using Happy_Apps_Core.DataAccess;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -16,6 +15,8 @@ namespace Happy_Apps_Core.Database
 {
 	public class ListedVN : INotifyPropertyChanged, IDataItem<int>, IDumpItem
 	{
+		private bool _imageSourceSet;
+		private string _imageSource;
 
 		#region Columns
 		/// <summary>
@@ -227,24 +228,19 @@ namespace Happy_Apps_Core.Database
 
 		public OwnedStatus IsOwned { get; set; } = OwnedStatus.NeverOwned;
 
-		public HashSet<RelationsItem> AllRelations { get; set; }
+		private HashSet<RelationsItem> AllRelations { get; set; }
 
 		/// <summary>Returns a string that represents the current object.</summary>
 		/// <returns>A string that represents the current object.</returns>
 		/// <filterpriority>2</filterpriority>
 		public override string ToString() => $"[{VNID}] {Title}";
 		
-		private bool _imageSourceSet;
-		private string _imageSource;
-
 		/// <summary>
 		/// Get location of cover image in system (not online)
 		/// if there is no image or file is not found, returns null.
 		/// </summary>
 		public string ImageSource => StaticHelpers.GetImageSource(ImageId, ref _imageSourceSet, ref _imageSource);
-
-		public string Series { get; set; }
-
+		
 		public string FlagSource => StaticHelpers.GetFlag(LanguagesObject.Originals);
 
 		private bool? _specialFlag;
@@ -415,7 +411,6 @@ namespace Happy_Apps_Core.Database
 			command.AddParameter("@Anime", Anime);
 			command.AddParameter("@Aliases", Aliases);
 			command.AddParameter("@Languages", Languages);
-			command.AddParameter("@Series", Series);
 			command.AddParameter("@ReleaseDate", ReleaseDate);
 			command.AddParameter("@ReleaseLink", ReleaseLink);
 			command.AddParameter("@TagScore", Suggestion?.TagScore);
@@ -446,7 +441,6 @@ namespace Happy_Apps_Core.Database
 				Anime = Convert.ToString(reader["Anime"]);
 				Aliases = Convert.ToString(reader["Aliases"]);
 				Languages = Convert.ToString(reader["Languages"]);
-				Series = Convert.ToString(reader["Series"]);
 				ReleaseDate = Convert.ToDateTime(reader["ReleaseDate"]);
 				ReleaseLink = Convert.ToString(reader["ReleaseLink"]);
 				Suggestion = new SuggestionScoreObject(StaticHelpers.GetNullableDouble(reader["TagScore"]), StaticHelpers.GetNullableDouble(reader["TraitScore"]));

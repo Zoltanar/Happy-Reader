@@ -1,7 +1,6 @@
-﻿# For Version 2.3.0
+# For Latest Committed
 ## Future Features  
 #### Entries
-- allow saving to usergame instead of vn game
 - allow proxy mods with multiple proxies ([[m#1]]-[[m#2]])
 #### Translation
 - Offline dictionary for faster (mouseover?) word lookups
@@ -34,5 +33,6 @@
 - show written tag description on tooltip
 - MainWindow: allow scrolling on main window tab control when too many tabs and add close all tabs button
 - Settings: if login response is error with id 'needlogin' show user that credentials are wrong
+
 ## Issues  
-- can't show Output Window on top of some fullscreen games, steals focus on games where it works (might need direct draw)
+- can't show outputwindow on top of some fullscreen games, steals focus on games where it works (might need direct draw)

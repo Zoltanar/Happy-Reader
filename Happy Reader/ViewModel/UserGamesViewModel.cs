@@ -51,6 +51,10 @@ namespace Happy_Reader.ViewModel
 				}
 				orderedGames = StaticMethods.Data.UserGames.OrderBy(x => x.VNID ?? 0).ToList();
 				if (!showFileNotFound) orderedGames = orderedGames.Where(og => og.FileExists);
+				foreach (var entry in StaticMethods.Data.Entries)
+				{
+					entry.InitGameId();
+				}
 			});
 			foreach (var game in orderedGames) { UserGameItems.Add(new UserGameTile(game)); }
 			OnPropertyChanged(nameof(UserGameItems));
@@ -68,6 +72,8 @@ namespace Happy_Reader.ViewModel
 			userGame = new UserGame(file, vn) { Id = StaticMethods.Data.UserGames.HighestKey + 1 };
 			userGame.SaveIconImage();
 			StaticMethods.Data.UserGames.Add(userGame,true);
+			var entryGame = new EntryGame((int)userGame.Id, true, false);
+			if (!EntriesTabViewModel.EntryGames.Contains(entryGame)) EntriesTabViewModel.EntryGames.Add(entryGame);
 			MainViewModel.StatusText = vn == null ? "File was added without VN." : $"File was added as {userGame.DisplayName}.";
 			return new UserGameTile(userGame);
 		}
@@ -76,6 +82,8 @@ namespace Happy_Reader.ViewModel
 		{
 			UserGameItems.Remove(item);
 			StaticMethods.Data.UserGames.Remove(item.UserGame,true);
+			var entryGame = new EntryGame((int)item.UserGame.Id, true, false);
+			if (EntriesTabViewModel.EntryGames.Contains(entryGame)) EntriesTabViewModel.EntryGames.Remove(entryGame);
 			MainViewModel.OnPropertyChanged(nameof(MainViewModel.TestViewModel));
 		}
 

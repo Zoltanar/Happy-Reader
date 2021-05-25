@@ -16,9 +16,7 @@ namespace Happy_Reader.ViewModel
         private readonly MainWindowViewModel _mainViewModel;
 
         public TranslationTester(MainWindowViewModel mainViewModel) => _mainViewModel = mainViewModel;
-
-        public void Initialize() => OnPropertyChanged(nameof(UserGameNames));
-
+    
         private string _originalText = string.Empty;
         private bool _removeRepetition;
 
@@ -50,10 +48,10 @@ namespace Happy_Reader.ViewModel
         public string Stage5 { get; set; }
         public string Stage6 { get; set; }
         public string Stage7 { get; set; }
-        public ListedVN Game { get; set; }
-        public PausableUpdateList<DisplayEntry> EntriesUsed { get; } = new();
-        public string[] UserGameNames => StaticMethods.Data.UserGames.Select(x => x.DisplayName).ToArray();
-    
+        public EntryGame EntryGame { get; set; } = EntryGame.None;
+    public PausableUpdateList<DisplayEntry> EntriesUsed { get; } = new();
+
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
@@ -66,7 +64,7 @@ namespace Happy_Reader.ViewModel
         public void Test()
         {
             if (string.IsNullOrWhiteSpace(OriginalText)) return;
-            var translation = _mainViewModel.Translator.Translate(_mainViewModel.User, Game, OriginalText,true, RemoveRepetition);
+            var translation = _mainViewModel.Translator.Translate(_mainViewModel.User, EntryGame, OriginalText,true, RemoveRepetition);
             Romaji = translation.Romaji;
             Stage1 = translation.Results[1].Equals(OriginalText) ? "(no change)" : translation.Results[1];
             Stage2 = translation.Results[2].Equals(Stage1) ? "(no change)" : translation.Results[2];
@@ -78,20 +76,7 @@ namespace Happy_Reader.ViewModel
             SetEntries(translation.GetEntriesUsed());
             OnPropertyChanged(null);
         }
-
-        public bool SelectGame(string item, out string outputText)
-        {
-            //if text is just numbers, parse as vnid, else, look inside display names of user games
-            if (!int.TryParse(item, out int id))
-            {
-                id = StaticMethods.Data.UserGames.FirstOrDefault(x => x.DisplayName.Contains(item))?.VNID ?? 0;
-            }
-            Game = StaticHelpers.LocalDatabase.VisualNovels[id];
-            outputText = Game?.Title ?? item;
-            return Game != null;
-
-        }
-
+    
         public void SetEntries(IEnumerable<Entry> entries)
         {
 	        var displayEntries = entries.Select(x => new DisplayEntry(x)).ToArray();

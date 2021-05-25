@@ -13,9 +13,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B62534BD-0FB1-4832-A7C7-A5543B16582F}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
-		Goals.txt = Goals.txt
+		Goals-Latest.md = Goals-Latest.md
+		Goals.md = Goals.md
 		KakasiDocumentation.pdf = KakasiDocumentation.pdf
 		LicenseATF.txt = LicenseATF.txt
+		README-Latest.md = README-Latest.md
 		README.md = README.md
 	EndProjectSection
 EndProject

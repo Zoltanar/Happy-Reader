@@ -26,9 +26,9 @@ namespace Happy_Reader.Database
 				throw new InvalidOperationException("Id should have been set.");
 			}
 			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO {nameof(Entry)}s" +
-									 "(Id, UserId, Input, Output, GameId, SeriesSpecific, Private, Priority, Regex, Comment, Type, RoleString, Disabled, Time, UpdateTime, UpdateUserId, UpdateComment) " +
+									 "(Id, UserId, Input, Output, GameId, SeriesSpecific, Private, Priority, Regex, Comment, Type, RoleString, Disabled, Time, UpdateTime, UpdateUserId, UpdateComment, GameIdIsUserGame) " +
 									 "VALUES " +
-									 "(@Id, @UserId, @Input, @Output, @GameId, @SeriesSpecific, @Private, @Priority, @Regex, @Comment, @Type, @RoleString, @Disabled, @Time, @UpdateTime, @UpdateUserId, @UpdateComment)";
+									 "(@Id, @UserId, @Input, @Output, @GameId, @SeriesSpecific, @Private, @Priority, @Regex, @Comment, @Type, @RoleString, @Disabled, @Time, @UpdateTime, @UpdateUserId, @UpdateComment, @GameIdIsUserGame)";
 			var command = connection.CreateCommand();
 			command.CommandText = sql;
 			command.AddParameter("@Id", Id);
@@ -48,6 +48,7 @@ namespace Happy_Reader.Database
 			command.AddParameter("@UpdateTime", UpdateTime);
 			command.AddParameter("@UpdateUserId", UpdateUserId);
 			command.AddParameter("@UpdateComment", UpdateComment);
+			command.AddParameter("@GameIdIsUserGame", GameIdIsUserGame);
 			return command;
 		}
 
@@ -70,6 +71,7 @@ namespace Happy_Reader.Database
 			UpdateTime = StaticHelpers.GetNullableDate(reader["UpdateTime"]);
 			UpdateUserId = Convert.ToInt32(reader["UpdateUserId"]);
 			UpdateComment = Convert.ToString(reader["UpdateComment"]);
+			GameIdIsUserGame = Convert.ToInt32(reader["GameIdIsUserGame"]) == 1;
 			Loaded = true;
 		}
 
@@ -77,7 +79,7 @@ namespace Happy_Reader.Database
 		public int UserId { get; set; }
 		public string Input { get; set; }
 		public string Output { get; set; } = string.Empty;
-		public int? GameId { get; set; }
+		private int? GameId { get; set; }
 		public bool SeriesSpecific { get; set; }
 		public bool Private { get; set; }
 		public double Priority { get; set; }
@@ -90,7 +92,9 @@ namespace Happy_Reader.Database
 		public DateTime? UpdateTime { get; set; }
 		public long UpdateUserId { get; set; }
 		public string UpdateComment { get; set; }
-		public ListedVN Game => GameId == null ? null : StaticHelpers.LocalDatabase.VisualNovels[GameId.Value];
+		private bool GameIdIsUserGame { get; set; }
+		public EntryGame GameData { get; private set; }
+
 		public User User => StaticHelpers.LocalDatabase.Users[UserId];
 		public RoleProxy AssignedProxy { get; set; }
 		/// <summary>
@@ -108,6 +112,14 @@ namespace Happy_Reader.Database
 
 		public override string ToString() => $"[{Id}] {Input} > {Output}";
 
+		public void SetGameId(int? gameId, bool isUserGameId)
+		{
+			GameId = gameId; 
+			GameIdIsUserGame = isUserGameId;
+			GameData = new EntryGame(GameId, GameIdIsUserGame,false);
+			ReadyToUpsert = true;
+		}
+
 		private sealed class EntryClashComparer : IEqualityComparer<Entry>
 		{
 			//todo remove rolestring?
@@ -120,7 +132,7 @@ namespace Happy_Reader.Database
 				if (x.GetType() != y.GetType()) return false;
 				//both private to same user OR neither private
 				//if one is private and another isn't, they don't clash
-				var result = 
+				var result =
 					((x.UserId == y.UserId && x.Private && y.Private) || !x.Private && !y.Private)
 							 //both series-specific to same game OR neither series specific
 							 //if one is series specific and another isn't, they don't clash
@@ -139,7 +151,7 @@ namespace Happy_Reader.Database
 					//if not private, user id doesn't matter
 					var hashCode = obj.Private ? obj.UserId.GetHashCode() : 0;
 					//if not series specific, game id doesn't matter
-					if(obj.SeriesSpecific) hashCode = (hashCode * 397) ^ obj.GameId.GetHashCode();
+					if (obj.SeriesSpecific) hashCode = (hashCode * 397) ^ obj.GameId.GetHashCode();
 					hashCode = (hashCode * 397) ^ (int)obj.Type;
 					hashCode = (hashCode * 397) ^ (obj.RoleString != null ? obj.RoleString.GetHashCode() : 0);
 					hashCode = (hashCode * 397) ^ (obj.Input != null ? obj.Input.GetHashCode() : 0);
@@ -149,5 +161,11 @@ namespace Happy_Reader.Database
 		}
 
 		public static IEqualityComparer<Entry> ClashComparer { get; } = new EntryClashComparer();
+
+		public void InitGameId()
+		{
+			SetGameId(GameId, GameIdIsUserGame);
+			ReadyToUpsert = false;
+		}
 	}
 }

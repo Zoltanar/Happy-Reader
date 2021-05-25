@@ -35,7 +35,11 @@
         <TextBox Margin="10,45,10,71" Text="{Binding OriginalText}" IsReadOnly="False" AcceptsReturn="True" AcceptsTab="True" Grid.Row="0" Grid.Column="0" />
 		    <CheckBox Grid.Row="0" Grid.Column="0" Content="Remove Repetition" IsChecked="{Binding RemoveRepetition}" HorizontalAlignment="Left" Margin="10,0,0,53" VerticalAlignment="Bottom" Height="18" VerticalContentAlignment="Center" Padding="0"/>
         <Label Grid.Row="0" Grid.Column="0" Content="Game" HorizontalAlignment="Left" Margin="10,0,0,35" VerticalAlignment="Bottom" Height="18" VerticalContentAlignment="Center" Padding="0"/>
-				<controls:AutoCompleteBox Grid.Row="0" Grid.Column="0" Margin="46,0,31,35"  Text="None" VerticalContentAlignment="Center" Padding="0" Height="18" VerticalAlignment="Bottom" FilterMode="Contains" ItemsSource="{Binding UserGameNames}" KeyUp="EnterOnTester"/>
+				<controls:AutoCompleteBox Grid.Row="0" Grid.Column="0" Margin="46,0,10,35"  
+				                          Text="{Binding EntryGame, Mode=TwoWay, Converter={StaticResource EntryGameConverter}, UpdateSourceTrigger=Explicit}" VerticalContentAlignment="Center" Padding="0" Height="18" VerticalAlignment="Bottom"
+				                          ItemsSource="{Binding Source={x:Static viewModel:EntriesTabViewModel.EntryGames}}" 
+				                          FilterMode="Custom" ValueMemberPath="." ItemFilter="EntryGameFilter"
+				                          KeyUp="SetEntryGameEnter" MouseUp="SetEntryGameLeftClick"/>
         <Button Content="Test" Margin="10,0,10,10" VerticalAlignment="Bottom" Click="TestTranslationClick" Grid.Row="0" Grid.Column="0" />
         <Label Content="Stage 1 (Game)" Grid.Row="0" Grid.Column="1" />
         <Label Content="Stage 2 (Input)" Grid.Row="0" Grid.Column="2" />
@@ -51,7 +55,6 @@
         <TextBox Text="{Binding Stage5}" Grid.Row="1" Grid.Column="1" />
         <TextBox Text="{Binding Stage6}" Grid.Row="1" Grid.Column="2" />
         <TextBox Text="{Binding Stage7}" Grid.Row="1" Grid.Column="3" />
-        <Label Grid.Row="0" Grid.Column="0" x:Name="TesterGameValid" Content="❌" Margin="0,0,10,35" VerticalAlignment="Bottom" Height="18" VerticalContentAlignment="Center" Padding="0" HorizontalAlignment="Right" Width="16"/>
         <Label Grid.Row="0" Grid.Column="1" Content="Romaji" HorizontalAlignment="Left" Margin="10,0,0,80" VerticalAlignment="Bottom" Height="18" VerticalContentAlignment="Center" Padding="0"/>
         <TextBox Text="{Binding Romaji}" Grid.Row="0" Grid.Column="1" Margin="10,0,10,10" Height="65" VerticalAlignment="Bottom"/>
         <Label Grid.Row="2" Grid.Column="0" Content="Entries Used" HorizontalAlignment="Right"/>
@@ -60,7 +63,7 @@
 		        <DataGridTextColumn Header="Id" Binding="{Binding Id, Mode=OneWay}" />
 		        <DataGridTextColumn Header="User" Binding="{Binding User, Mode=OneWay}" />
 		        <DataGridTextColumn Header="Type" Binding="{Binding Type}" />
-		        <DataGridTextColumn Header="Game" Binding="{Binding Game}" />
+				<DataGridTextColumn Header="Game" Binding="{Binding GameData}" />
 		        <DataGridTextColumn Header="Role" Binding="{Binding Role}" />
 		        <DataGridTextColumn Header="Input" Binding="{Binding Input}" />
 		        <DataGridTextColumn Header="Output" Binding="{Binding Output, Mode=TwoWay}"  />

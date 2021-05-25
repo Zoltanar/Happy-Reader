@@ -95,9 +95,11 @@ namespace Happy_Reader.ViewModel
 					Input = input,
 					Output = input,
 					SeriesSpecific = true,
-					GameId = StaticMethods.MainWindow.ViewModel.UserGame?.VNID,
 					Type = EntryType.Output
 				};
+				var game = StaticMethods.MainWindow.ViewModel.UserGame;
+				if(game?.VNID.HasValue ?? false) entry.SetGameId(game.VNID, false);
+				else if(game != null) entry.SetGameId((int)game.Id, true);
 			}
 			else
 			{
@@ -108,9 +110,11 @@ namespace Happy_Reader.ViewModel
 					Input = input,
 					Output = output.Replace(" ", ""),
 					SeriesSpecific = true,
-					GameId = StaticMethods.MainWindow.ViewModel.UserGame?.VNID,
 					Type = EntryType.Name
 				};
+				var game = StaticMethods.MainWindow.ViewModel.UserGame;
+				if (game?.VNID.HasValue ?? false) entry.SetGameId(game.VNID, false);
+				else if (game != null) entry.SetGameId((int)game.Id, true);
 			}
 			StaticMethods.MainWindow.CreateAddEntriesTab(new List<Entry> { entry });
 		}

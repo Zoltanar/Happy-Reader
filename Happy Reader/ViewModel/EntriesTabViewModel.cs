@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -14,8 +13,10 @@ namespace Happy_Reader.ViewModel
 		private bool _onlyGameEntries;
 
 		public event PropertyChangedEventHandler PropertyChanged;
-		
-		public PausableUpdateList<DisplayEntry> EntriesList { get; } = new PausableUpdateList<DisplayEntry>();
+
+		public static PausableUpdateList<EntryGame> EntryGames { get; } = new();
+
+		public PausableUpdateList<DisplayEntry> EntriesList { get; } = new();
 
 		public bool OnlyGameEntries
 		{
@@ -27,26 +28,31 @@ namespace Happy_Reader.ViewModel
 				SetEntries();
 			}
 		}
-
-		public EntriesTabViewModel(Func<UserGame> getUserGame)
+		
+		public void SetEntryGames()
 		{
-			GetUserGame = getUserGame;
+				var entryGames = StaticMethods.Data.UserGames
+				.Select(i => i.VNID.HasValue ? new EntryGame(i.VNID, false,true) : new EntryGame((int)i.Id,true, true))
+				.Distinct()
+				.ToArray();
+			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
+			Application.Current.Dispatcher.Invoke(() =>
+			{
+				EntryGames.SetRange(entryGames);
+				OnPropertyChanged(nameof(EntryGames));
+			});
 		}
-
-		public Func<UserGame> GetUserGame { get; set; }
 
 		public void SetEntries()
 		{
-			var items = (OnlyGameEntries && GetUserGame()?.VN != null
-				? string.IsNullOrWhiteSpace(GetUserGame()?.VN.Series)
-					? StaticMethods.Data.GetGameOnlyEntries(GetUserGame()?.VN)
-					: StaticMethods.Data.GetSeriesOnlyEntries(GetUserGame()?.VN)
-				: StaticMethods.Data.Entries).ToArray();
+			var entryGame = StaticMethods.MainWindow.ViewModel.TestViewModel.EntryGame;
+			var items = (OnlyGameEntries && entryGame.GameId.HasValue ? StaticMethods.Data.GetSeriesOnlyEntries(entryGame) : StaticMethods.Data.Entries).ToArray();
 			var entries = items.Select(x => new DisplayEntry(x)).ToArray();
 			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			Application.Current.Dispatcher.Invoke(() =>
 			{
 				EntriesList.SetRange(entries);
+				OnPropertyChanged(nameof(EntriesList));
 			});
 		}
 

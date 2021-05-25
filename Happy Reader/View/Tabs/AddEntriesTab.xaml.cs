@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows.Controls;
-using Happy_Apps_Core.Database;
+using System.Windows.Input;
 using Happy_Reader.Database;
 using Happy_Reader.ViewModel;
+using JetBrains.Annotations;
 
 namespace Happy_Reader.View.Tabs
 {
@@ -13,11 +15,10 @@ namespace Happy_Reader.View.Tabs
 	{
 		private readonly MainWindowViewModel _mainViewModel;
 
-		public AddEntriesTab(MainWindowViewModel mainViewModel, IEnumerable<ListedVN> eligibleGames, IEnumerable<Entry> entries)
+		public AddEntriesTab(MainWindowViewModel mainViewModel, IEnumerable<Entry> entries)
 		{
 			_mainViewModel = mainViewModel;
 			InitializeComponent();
-			GameDropdownColumn.ItemsSource = eligibleGames.ToArray();
 			TypeDropdownColumn.ItemsSource = Enum.GetValues(typeof(EntryType));
 			EntriesGrid.ItemsSource = entries == null ? new ObservableCollection<DisplayEntry>() : new ObservableCollection<DisplayEntry>(entries.Select(e => new DisplayEntry(e)));
 		}
@@ -96,7 +97,39 @@ namespace Happy_Reader.View.Tabs
 				item.Type = EntryType.Name;
 			}
 			item.Entry.UserId = StaticMethods.MainWindow.ViewModel.User.Id;
-			item.Entry.GameId ??= StaticMethods.MainWindow.ViewModel.UserGame?.VNID;
+			var game = StaticMethods.MainWindow.ViewModel.UserGame;
+			if (game?.VNID.HasValue ?? false) item.Entry.SetGameId(game.VNID, false);
+			else if (game != null) item.Entry.SetGameId((int)game.Id, true);
+		}
+
+		[UsedImplicitly]
+		private bool EntryGameFilter(string input, object item)
+		{
+			//Short input is not filtered to prevent excessive loading times
+			if (input.Length <= 4) return false;
+			var gameData = (EntryGame)item;
+			var result = gameData.ToString().ToLowerInvariant().Contains(input.ToLowerInvariant());
+			return result;
+		}
+
+		private void SetEntryGameEnter(object sender, KeyEventArgs e)
+		{
+			if (e.Key != Key.Enter) return;
+			UpdateEntryGame(sender);
+		}
+
+		private void SetEntryGameLeftClick(object sender, MouseButtonEventArgs e)
+		{
+			if (e.LeftButton != MouseButtonState.Released) return;
+			UpdateEntryGame(sender);
+		}
+
+		private void UpdateEntryGame(object sender)
+		{
+			var acb = (AutoCompleteBox)sender;
+			var binding = acb.GetBindingExpression(AutoCompleteBox.TextProperty);
+			Debug.Assert(binding != null, nameof(binding) + " != null");
+			binding.UpdateSource();
 		}
 	}
 }

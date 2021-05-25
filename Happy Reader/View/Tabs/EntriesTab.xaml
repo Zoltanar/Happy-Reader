@@ -4,19 +4,34 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
+             xmlns:controls="clr-namespace:System.Windows.Controls;assembly=DotNetProjects.Input.Toolkit"
+             xmlns:database="clr-namespace:Happy_Reader.Database"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800" d:DataContext="{d:DesignInstance viewModel:EntriesTabViewModel}"
-             Loaded="EntriesTab_OnLoaded">
+             d:DesignHeight="450" d:DesignWidth="800" d:DataContext="{d:DesignInstance viewModel:EntriesTabViewModel}">
 	<Grid>
 		<CheckBox Content="Game-only" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="{Binding OnlyGameEntries, Mode=TwoWay}"/>
 		<Button Content="Add Entries" Margin="83,0,0,0" VerticalAlignment="Top" Click="AddEntries_Click" HorizontalAlignment="Left" Width="90"/>
-		<DataGrid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding EntriesList}" Margin="0,25,0,0" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="False" CanUserDeleteRows="False" >
+		<DataGrid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding EntriesList}" Margin="0,25,0,0" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="False" CanUserDeleteRows="False">
 			<DataGrid.Columns>
 				<DataGridCheckBoxColumn Header="Disabled" Binding="{Binding Disabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 				<DataGridTextColumn Header="Id" Binding="{Binding Id, Mode=OneWay}" />
 				<DataGridTextColumn Header="User" Binding="{Binding User, Mode=OneWay}" />
 				<DataGridComboBoxColumn Header="Type" SelectedItemBinding="{Binding Type, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" x:Name="TypeDropdownColumn" />
-				<DataGridComboBoxColumn Header="Game" SelectedItemBinding="{Binding Game, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 	x:Name="GameDropdownColumn"/>
+				<DataGridTemplateColumn Header="Game">
+					<DataGridTemplateColumn.CellEditingTemplate>
+						<DataTemplate DataType="database:Entry">
+							<controls:AutoCompleteBox ItemsSource="{Binding Source={x:Static viewModel:EntriesTabViewModel.EntryGames}}"
+							                          Text="{Binding GameData, Mode=TwoWay, Converter={StaticResource EntryGameConverter}, UpdateSourceTrigger=Explicit}"
+							                          FilterMode="Custom" ValueMemberPath="." ItemFilter="EntryGameFilter"
+							                          KeyUp="SetEntryGameEnter" MouseUp="SetEntryGameLeftClick"/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellEditingTemplate>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="database:Entry">
+							<TextBlock Text="{Binding GameData}"/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
 				<DataGridTextColumn Header="Role" Binding="{Binding Role, UpdateSourceTrigger=PropertyChanged}" />
 				<DataGridTextColumn Header="Input" Binding="{Binding Input, UpdateSourceTrigger=PropertyChanged}" />
 				<DataGridTextColumn Header="Output" Binding="{Binding Output, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  />

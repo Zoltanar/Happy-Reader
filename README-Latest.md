@@ -5,7 +5,7 @@ Supported by [JetBrains](https://www.jetbrains.com/?from=HappyReaderByZoltanar)
 
 Before reporting issues or requesting features, please see [Goals](https://github.com/Zoltanar/Happy-Reader/blob/master/Goals.md)
 
-# Basic Guide
+# Basic Guide (Latest Committed)
 
 - Launch Happy Reader.exe  
 - (To close the application, you must right click the icon in the Windows tray section, next to the time)
@@ -50,7 +50,7 @@ Entries can be added in different ways
 3. Import Names from VNDB title.  
 
 Once in the Add Entries tab, you can change various parameters.  
-Example of a name substitution: Type=Name, Game=Game Name (only VNDB titles currently), Role=m, Input=桜子, Output=Ouko, Series-Specific=True.  
+Example of a name substitution: Type=Name, Game=User or VNDB Game Name, Role=m, Input=桜子, Output=Ouko, Series-Specific=True.  
 These can be tested in the 'Test' tab.  
 Entries of type Name and Translation use 'Proxy' entries, which will be used in the translation process.  
 The text in the entry's 'Role' dictates what kind of proxies to use.  
