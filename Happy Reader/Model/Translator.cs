@@ -230,7 +230,11 @@ namespace Happy_Reader
 				foreach (var entry in usefulEntriesWithProxies)
 				{
 					var proxyAssigned = AssignProxy(proxies, entry);
-					if (proxyAssigned) LogReplace(sb, entry.Input, entry.AssignedProxy.FullRoleString, result, entry);
+					if (proxyAssigned)
+					{
+						if (entry.Regex) LogReplaceRegex(sb, entry.Input, entry.AssignedProxy.FullRoleString, result, entry);
+						else LogReplace(sb, entry.Input, entry.AssignedProxy.FullRoleString, result, entry);
+					}
 				}
 				usefulEntriesWithProxies = usefulEntriesWithProxies.Where(e => e.AssignedProxy != null).ToList();
 				StaticHelpers.Logger.Verbose($"Stage 4.0: {sb}");
@@ -441,7 +445,11 @@ namespace Happy_Reader
 			}
 			StaticHelpers.Logger.Verbose($"Stage 0: {sb}");
 			result[0] = sb.ToString();
-			TranslateStageOne(sb, result);
+			{
+				result?.SetStage(1);
+				result[1] = sb.ToString();
+			}
+			//todo skip stage one for parts? TranslateStageOne(sb, result);
 			TranslateStageTwo(sb, result);
 			TranslateStageThree(sb, result);
 			List<Entry> usefulEntriesWithProxies;

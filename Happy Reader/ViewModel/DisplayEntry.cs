@@ -53,6 +53,7 @@ namespace Happy_Reader.ViewModel
 			{
 				if (Entry.SeriesSpecific == value) return;
 				Entry.SeriesSpecific = value;
+				StaticMethods.MainWindow.ViewModel.Translator.RefreshEntries = true;
 				Entry.ReadyToUpsert = true;
 			}
 		}
