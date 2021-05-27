@@ -169,7 +169,7 @@ namespace Happy_Reader.ViewModel
 				if (_finalizing) return;
 				var exitWatch = Stopwatch.StartNew();
 				Logger.ToDebug($"[{nameof(MainWindowViewModel)}] Starting exit procedures...");
-				if (UserGame?.IsHooked ?? false) HookedProcessOnExited(sender, args);
+				if (UserGame?.GameHookSettings.IsHooked ?? false) HookedProcessOnExited(sender, args);
 				IthViewModel.Dispose();
 				try
 				{
@@ -234,7 +234,7 @@ namespace Happy_Reader.ViewModel
 			//By default, when the output window receives multiple messages in a short time, it combines them (this helps when ITHVNR captures text from a single line in multiple parts).
 			//If the user progresses through the messages faster than the mentioned short time, they would be erroneously combined.
 			//this prevents that from occurring, assuming that every time the user left clicks the mouse, a new line is shown.
-			if (args.Button != MouseButton.Left || !args.IsMouseButtonDown || !args.Clicked || (!UserGame?.IsHooked ?? true)) return true;
+			if (args.Button != MouseButton.Left || !args.IsMouseButtonDown || !args.Clicked || (!UserGame?.GameHookSettings.IsHooked ?? true)) return true;
 			OutputWindowViewModel.DisableCombine = true;
 			return true;
 		}
@@ -247,7 +247,7 @@ namespace Happy_Reader.ViewModel
 			return monitor;
 		}
 
-		public void LoadLogs()
+		private void LoadLogs()
 		{
 			var logs = new List<DisplayLog>();
 			var now = DateTime.UtcNow;
@@ -393,7 +393,7 @@ namespace Happy_Reader.ViewModel
 		[NotifyPropertyChangedInvocator]
 		public void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-		public void ClipboardChanged(object sender, EventArgs e)
+		private void ClipboardChanged(object sender, EventArgs e)
 		{
 			if (TranslatePaused || StaticMethods.CtrlKeyIsHeld()) return;
 			if (UserGame?.Process == null) return;
@@ -425,7 +425,7 @@ namespace Happy_Reader.ViewModel
 				Logger.Verbose($"{nameof(RunTranslation)} - {e}");
 				if (UserGame.Process == null) return false;
 				TestViewModel.OriginalText = e.Text;
-				var translation = Translator.Translate(User, TestViewModel.EntryGame, e.Text, false, UserGame?.RemoveRepetition ?? false);
+				var translation = Translator.Translate(User, TestViewModel.EntryGame, e.Text, false, UserGame?.GameHookSettings.RemoveRepetition ?? false);
 				if (string.IsNullOrWhiteSpace(translation?.Output)) return false;
 				StaticMethods.DispatchIfRequired(() => OutputWindow.AddTranslation(translation), new TimeSpan(0, 0, 5));
 			}
@@ -479,8 +479,8 @@ namespace Happy_Reader.ViewModel
 					UserGame.SetActiveProcess(process, HookedProcessOnExited);
 					UserGame.OnPropertyChanged(null);
 					OnPropertyChanged(nameof(UserGame));
-					UserGame.OutputWindow = OutputWindow;
-					if (UserGame.HookProcess == UserGame.HookMode.None) return;
+					UserGame.GameHookSettings.OutputWindow = OutputWindow;
+					if (UserGame.GameHookSettings.HookProcess == HookMode.None) return;
 					if (SettingsViewModel.GuiSettings.HookGlobalMouse) _globalHook = WinAPI.HookMouseEvents(GlobalMouseClick);
 					while (!_loadingComplete) Thread.Sleep(25);
 					SetIthUserGameParameters();
@@ -491,7 +491,7 @@ namespace Happy_Reader.ViewModel
 					if (UserGame != null)
 					{
 						UserGame.Process = null;
-						UserGame.OutputWindow = null;
+						UserGame.GameHookSettings.OutputWindow = null;
 						UserGame = null;
 					}
 					Logger.ToFile(ex);
@@ -508,30 +508,30 @@ namespace Happy_Reader.ViewModel
 			if (!success) OutputWindow.SetLocation(StaticMethods.OutputWindowStartPosition);
 			else
 			{
-				var outputWindowLocation = UserGame.OutputRectangle.MovePosition(windowLocation);
+				var outputWindowLocation = UserGame.GameHookSettings.OutputRectangle.MovePosition(windowLocation);
 				OutputWindow.SetLocation(outputWindowLocation);
 			}
-			if (!IthViewModel.Finalized && UserGame.HookProcess == UserGame.HookMode.VnrHook && !string.IsNullOrWhiteSpace(UserGame.HookCode))
+			if (!IthViewModel.Finalized && UserGame.GameHookSettings.HookProcess == HookMode.VnrHook && !string.IsNullOrWhiteSpace(UserGame.GameHookSettings.HookCode))
 			{
-				IthViewModel.Commands?.ProcessCommand(UserGame.HookCode, UserGame.Process.Id);
+				IthViewModel.Commands?.ProcessCommand(UserGame.GameHookSettings.HookCode, UserGame.Process.Id);
 			}
 			OutputWindow.InitialisedWindowLocation = true;
 		}
 
 		private void SetIthUserGameParameters()
 		{
-			IthViewModel.MergeByHookCode = UserGame.MergeByHookCode;
-			IthViewModel.PrefEncoding = UserGame.PrefEncoding;
+			IthViewModel.MergeByHookCode = UserGame.GameHookSettings.MergeByHookCode;
+			IthViewModel.PrefEncoding = UserGame.GameHookSettings.PrefEncoding;
 			IthViewModel.GameTextThreads = StaticMethods.Data.GameThreads.Where(t => t.Item.GameId == UserGame.Id).Select(t => t.Item).ToArray();
-			switch (UserGame.HookProcess)
+			switch (UserGame.GameHookSettings.HookProcess)
 			{
-				case UserGame.HookMode.VnrAgent:
+				case HookMode.VnrAgent:
 					{
 						if (!IthViewModel.EmbedHost.Initialized) IthViewModel.EmbedHost.Initialize();
 						IthViewModel.Commands?.ProcessCommand($"/PA{UserGame.Process.Id}", UserGame.Process.Id);
 						break;
 					}
-				case UserGame.HookMode.VnrHook:
+				case HookMode.VnrHook:
 					{
 						var initialised = IthViewModel.InitialiseVnrHost();
 						if (initialised) IthViewModel.Commands?.ProcessCommand($"/P{UserGame.Process.Id}", UserGame.Process.Id);
@@ -554,7 +554,7 @@ namespace Happy_Reader.ViewModel
 			_globalHook?.Dispose();
 			IthViewModel.FinaliseVnrHost(1000);
 			UserGame.Process = null;
-			UserGame.OutputWindow = null;
+			UserGame.GameHookSettings.OutputWindow = null;
 			UserGame = null;
 			//restart monitor
 			if (_finalizing || _monitor != null && _monitor.IsAlive) return;

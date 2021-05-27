@@ -167,7 +167,7 @@ namespace Happy_Reader.View
 				Right = (int)Left + (int)Width,
 				Bottom = (int)Top + (int)Height
 			};
-			StaticMethods.MainWindow.ViewModel.UserGame.SaveOutputRectangle(outputWindowLocation);
+			StaticMethods.MainWindow.ViewModel.UserGame.GameHookSettings.SaveOutputRectangle(outputWindowLocation);
 		}
 	}
 }

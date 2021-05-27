@@ -6,11 +6,9 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Windows.Media.Imaging;
 using Happy_Apps_Core;
@@ -22,16 +20,8 @@ using static Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Reader.Database
 {
-	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
-	public sealed class UserGame : INotifyPropertyChanged, IDataItem<long>, IReadyToUpsert
+	public class UserGame : INotifyPropertyChanged, IDataItem<long>, IReadyToUpsert
 	{
-		public enum HookMode
-		{
-			None = 0,
-			VnrHook = 1,
-			VnrAgent = 2
-		}
-
 		public enum ProcessStatus
 		{
 			Off = 0,
@@ -40,22 +30,18 @@ namespace Happy_Reader.Database
 		}
 
 		public static readonly SortedList<DateTime, long> LastGamesPlayed = new();
-		private HookMode _hookProcess;
+
 		private BitmapImage _image;
-		private NativeMethods.RECT? _locationOnMoveStart;
-		private bool _mergeByHookCode;
 		private string _processName;
-		private EncodingEnum _prefEncodingEnum;
 		private Process _process;
-		private bool _removeRepetition;
-		private NativeMethods.RECT _outputRectangle;
-		private Stopwatch _runningTime;
+		private TimeSpan _timeOpen;
+		internal Stopwatch RunningTime;
 		private ListedVN _vn;
 		private bool _vnGot;
-		private WinAPI.WindowHook _windowHook;
 
 		public UserGame(string file, ListedVN vn)
 		{
+			GameHookSettings = new GameHookSettings(this);
 			FilePath = file;
 			VNID = vn?.VNID;
 			VN = vn;
@@ -64,36 +50,14 @@ namespace Happy_Reader.Database
 
 		public UserGame()
 		{
+			GameHookSettings = new GameHookSettings(this);
 		}
 
-		public static Encoding[] Encodings => IthVnrSharpLib.IthVnrViewModel.Encodings;
-		public static HookMode[] HookModes { get; } = (HookMode[])Enum.GetValues(typeof(HookMode));
 		public long Id { get; set; }
 		public string UserDefinedName { get; private set; }
 		public string LaunchPath { get; private set; }
-		public HookMode HookProcess
-		{
-			get => _hookProcess;
-			set
-			{
-				if (_hookProcess == value) return;
-				_hookProcess = value;
-				if (Loaded) ReadyToUpsert = true;
-			}
-		}
 		public int? VNID { get; private set; }
 		public string FilePath { get; private set; }
-		public string HookCode { get; private set; }
-		public bool MergeByHookCode
-		{
-			get => _mergeByHookCode;
-			set
-			{
-				if (_mergeByHookCode == value) return;
-				_mergeByHookCode = value;
-				if (Loaded) ReadyToUpsert = true;
-			}
-		}
 		public string ProcessName
 		{
 			get => _processName;
@@ -105,47 +69,15 @@ namespace Happy_Reader.Database
 			}
 		}
 		public string Tag { get; private set; }
-		public bool RemoveRepetition
-		{
-			get => _removeRepetition;
-			set
-			{
-				if (_removeRepetition == value) return;
-				_removeRepetition = value;
-				if (Loaded) ReadyToUpsert = true;
-			}
-		}
-		private EncodingEnum PrefEncodingEnum
-		{
-			get => _prefEncodingEnum;
-			set
-			{
-				if (_prefEncodingEnum == value) return;
-				_prefEncodingEnum = value;
-				if (Loaded) ReadyToUpsert = true;
-			}
-		}
 		public bool HasVN => VNID.HasValue && VN != null;
 		public bool FileExists => File.Exists(FilePath);
-		public bool IsHooked => Process != null && HookProcess != HookMode.None;
-		/// <summary>
-		/// Stores position of output window, relative to game window.
-		/// </summary>
-		public NativeMethods.RECT OutputRectangle
-		{
-			get => _outputRectangle;
-			private set
-			{
-				if (_outputRectangle.Equals(value)) return;
-				_outputRectangle = value;
-				if (Loaded) ReadyToUpsert = true;
-			}
-		}
 
-		private TimeSpan _timeOpen;
+		#region Hooking
+
+		#endregion
 		public TimeSpan TimeOpen
 		{
-			get => TimeSpan.FromTicks(_timeOpen.Ticks + (_runningTime?.ElapsedTicks ?? 0));
+			get => TimeSpan.FromTicks(_timeOpen.Ticks + (RunningTime?.ElapsedTicks ?? 0));
 			set
 			{
 				if (_timeOpen == value) return;
@@ -184,7 +116,7 @@ namespace Happy_Reader.Database
 				OnPropertyChanged(nameof(RunningStatus));
 				if (value == null) return;
 				Log.NewStartedPlayingLog(Id, DateTime.Now);
-				_runningTime = Stopwatch.StartNew();
+				RunningTime = Stopwatch.StartNew();
 				_process.Exited += ProcessExited;
 				_process.EnableRaisingEvents = true;
 			}
@@ -224,15 +156,6 @@ namespace Happy_Reader.Database
 				return _image;
 			}
 		}
-		public Encoding PrefEncoding
-		{
-			get => Encodings[(int)PrefEncodingEnum];
-			set
-			{
-				var index = Array.IndexOf(Encodings, value);
-				PrefEncodingEnum = (EncodingEnum)index;
-			}
-		}
 		public string DisplayNameGroup => DisplayName.Substring(0, Math.Min(DisplayName.Length, 1));
 		public string TagSort => string.IsNullOrWhiteSpace(Tag) ? char.MaxValue.ToString() : Tag;
 		public DateTime LastPlayedDate
@@ -248,12 +171,11 @@ namespace Happy_Reader.Database
 			get
 			{
 				if (_process == null) return ProcessStatus.Off; //off = no process running
-				if (_runningTime != null && !_runningTime.IsRunning)
+				if (RunningTime != null && !RunningTime.IsRunning)
 					return ProcessStatus.Paused; //paused = process is running but timer is paused
 				return ProcessStatus.On; //on = process is running and timer is not paused
 			}
 		}
-		public OutputWindow OutputWindow { get; set; }
 		public string KeyField => nameof(Id);
 		public long Key => Id;
 
@@ -268,17 +190,17 @@ namespace Happy_Reader.Database
 			command.AddParameter("@Id", Id);
 			command.AddParameter("@UserDefinedName", UserDefinedName);
 			command.AddParameter("@LaunchPath", LaunchPath);
-			command.AddParameter("@HookProcess", HookProcess);
+			command.AddParameter("@HookProcess", GameHookSettings.HookProcess);
 			command.AddParameter("@VNID", VNID);
 			command.AddParameter("@FilePath", FilePath);
-			command.AddParameter("@HookCode", HookCode);
-			command.AddParameter("@MergeByHookCode", MergeByHookCode);
+			command.AddParameter("@HookCode", GameHookSettings.HookCode);
+			command.AddParameter("@MergeByHookCode", GameHookSettings.MergeByHookCode);
 			command.AddParameter("@ProcessName", ProcessName);
 			command.AddParameter("@Tag", Tag);
-			command.AddParameter("@RemoveRepetition", RemoveRepetition);
+			command.AddParameter("@RemoveRepetition", GameHookSettings.RemoveRepetition);
 			command.AddParameter("@TimeOpenDT", new DateTime(TimeOpen.Ticks));
-			command.AddParameter("@PrefEncodingEnum", PrefEncodingEnum);
-			command.AddParameter("@OutputWindow", GetOutputWindowString(OutputRectangle));
+			command.AddParameter("@PrefEncodingEnum", GameHookSettings.PrefEncodingEnum);
+			command.AddParameter("@OutputWindow", GetOutputWindowString(GameHookSettings.OutputRectangle));
 			return command;
 		}
 
@@ -290,41 +212,26 @@ namespace Happy_Reader.Database
 			Id = Convert.ToInt32(reader["Id"]);
 			UserDefinedName = Convert.ToString(reader["UserDefinedName"]);
 			LaunchPath = Convert.ToString(reader["LaunchPath"]);
-			HookProcess = (HookMode)Convert.ToInt32(reader["HookProcess"]);
+			GameHookSettings.HookProcess = (HookMode)Convert.ToInt32(reader["HookProcess"]);
 			VNID = GetNullableInt(reader["VNID"]);
 			FilePath = Convert.ToString(reader["FilePath"]);
-			HookCode = Convert.ToString(reader["HookCode"]);
-			MergeByHookCode = Convert.ToInt32(reader["MergeByHookCode"]) == 1;
+			GameHookSettings.HookCode = Convert.ToString(reader["HookCode"]);
+			GameHookSettings.MergeByHookCode = Convert.ToInt32(reader["MergeByHookCode"]) == 1;
 			ProcessName = Convert.ToString(reader["ProcessName"]);
 			Tag = Convert.ToString(reader["Tag"]);
-			RemoveRepetition = Convert.ToInt32(reader["RemoveRepetition"]) == 1;
+			GameHookSettings.RemoveRepetition = Convert.ToInt32(reader["RemoveRepetition"]) == 1;
 			TimeOpen = TimeSpan.FromTicks(Convert.ToDateTime(reader["TimeOpenDT"]).Ticks);
-			PrefEncodingEnum = (EncodingEnum)Convert.ToInt32(reader["PrefEncodingEnum"]);
+			GameHookSettings.PrefEncodingEnum = (EncodingEnum)Convert.ToInt32(reader["PrefEncodingEnum"]);
 			var outputWindow = Convert.ToString(reader["OutputWindow"]);
-			OutputRectangle = GetOutputRectangle(outputWindow);
+			GameHookSettings.OutputRectangle = GameHookSettings.GetOutputRectangle(outputWindow);
 			Loaded = true;
-		}
-
-		private static NativeMethods.RECT GetOutputRectangle(string outputWindow)
-		{
-			if (string.IsNullOrEmpty(outputWindow)) return StaticMethods.OutputWindowStartPosition;
-			try
-			{
-				//invariant culture required to ensure comma is not treated as decimal.
-				var parts = outputWindow.Split(',').Select(i => int.Parse(i, CultureInfo.InvariantCulture)).ToList();
-				var rect = new NativeMethods.RECT { Left = parts[0], Top = parts[1], Right = parts[2] + parts[0], Bottom = parts[3] + parts[1] };
-				if (rect.Width < 0 || rect.Height < 0) return StaticMethods.OutputWindowStartPosition;
-				return rect;
-			}
-			catch
-			{
-				return StaticMethods.OutputWindowStartPosition;
-			}
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
 		public bool Loaded { get; private set; }
 		public bool ReadyToUpsert { get; set; }
+
+		[NotNull] public GameHookSettings GameHookSettings { get; }
 
 		private bool IconImageExists(out string iconPath)
 		{
@@ -345,9 +252,9 @@ namespace Happy_Reader.Database
 
 		public void SaveTimePlayed(bool notify)
 		{
-			_runningTime.Stop();
-			var timeToAdd = _runningTime.Elapsed;
-			_runningTime = null;
+			RunningTime.Stop();
+			var timeToAdd = RunningTime.Elapsed;
+			RunningTime = null;
 			TimeOpen += timeToAdd;
 			Process = null;
 			var log = Log.NewTimePlayedLog(Id, timeToAdd, notify);
@@ -373,8 +280,7 @@ namespace Happy_Reader.Database
 		private void ProcessExited(object sender, EventArgs e)
 		{
 			SaveTimePlayed(true);
-			_windowHook?.Dispose();
-			_windowHook = null;
+			GameHookSettings.DisposeWindow();
 		}
 
 		[NotifyPropertyChangedInvocator]
@@ -407,13 +313,6 @@ namespace Happy_Reader.Database
 			return VN != null;
 		}
 
-		public void SaveHookCode(string hookCode)
-		{
-			HookCode = string.IsNullOrWhiteSpace(hookCode) ? null : hookCode.Trim();
-			StaticMethods.Data.UserGames.Upsert(this, true);
-			OnPropertyChanged(nameof(HookCode));
-		}
-
 		public void ChangeFilePath(string newFilePath)
 		{
 			FilePath = newFilePath;
@@ -439,55 +338,8 @@ namespace Happy_Reader.Database
 		{
 			Process = process;
 			Process.EnableRaisingEvents = true;
-			_windowHook = new WinAPI.WindowHook(process);
-			_windowHook.OnWindowMinimizeStart += WindowIsMinimised;
-			_windowHook.OnWindowMinimizeEnd += WindowsIsRestored;
-			_windowHook.OnWindowMoveSizeStart += WindowMoveStarts;
-			_windowHook.OnWindowMoveSizeEnd += WindowMoveEnds;
 			Process.Exited += hookedProcessOnExited;
-			if (WinAPI.IsIconic(process.MainWindowHandle)) WindowIsMinimised(process.MainWindowHandle);
-		}
-
-		private void WindowMoveStarts(IntPtr windowPointer)
-		{
-			if (OutputWindow == null) return;
-			var success = NativeMethods.GetWindowRect(windowPointer, out var location);
-			if (success) _locationOnMoveStart = location;
-		}
-
-		private void WindowMoveEnds(IntPtr windowPointer)
-		{
-			var success = NativeMethods.GetWindowRect(windowPointer, out var gameRectangle);
-			if (!success || !_locationOnMoveStart.HasValue) return;
-			var difference = gameRectangle.GetDifference(_locationOnMoveStart.Value,false);
-			OutputWindow.MoveByDifference(difference);
-			_locationOnMoveStart = null;
-		}
-
-		public void SaveOutputRectangle(NativeMethods.RECT absoluteRectangle)
-		{
-			var windowPointer = _process.MainWindowHandle;
-			var success = NativeMethods.GetWindowRect(windowPointer, out var gameRectangle);
-			if (!success) return;
-			var relativeRectangle = absoluteRectangle.GetDifference(gameRectangle,true);
-			OutputRectangle = relativeRectangle;
-		}
-
-		private void WindowsIsRestored(IntPtr windowPointer)
-		{
-			Logger.ToDebug($"Restored {DisplayName}, starting running time at {_runningTime.Elapsed}");
-			_runningTime.Start();
-			OnPropertyChanged(nameof(RunningStatus));
-			if (OutputWindow?.InitialisedWindowLocation ?? false) OutputWindow.Show();
-		}
-
-		private void WindowIsMinimised(IntPtr windowPointer)
-		{
-			_runningTime.Stop();
-			Logger.ToDebug($"Minimized {DisplayName}, stopped running time at {_runningTime.Elapsed}");
-			OnPropertyChanged(nameof(RunningStatus));
-			OnPropertyChanged(nameof(TimeOpen));
-			if (OutputWindow?.InitialisedWindowLocation ?? false) OutputWindow.Hide();
+			GameHookSettings.InitialiseWindow(process);
 		}
 
 		public Process StartProcessThroughLocaleEmulator()
@@ -545,17 +397,6 @@ namespace Happy_Reader.Database
 			Debug.Assert(processStarted != null, nameof(processStarted) + " != null");
 			if (!processStarted.HasExited) processStarted.WaitForInputIdle(3000);
 			return processStarted;
-		}
-
-		private enum EncodingEnum
-		{
-			// ReSharper disable InconsistentNaming
-			// ReSharper disable UnusedMember.Local
-			ShiftJis,
-			UTF8,
-			Unicode
-			// ReSharper restore UnusedMember.Local
-			// ReSharper restore InconsistentNaming
 		}
 	}
 }

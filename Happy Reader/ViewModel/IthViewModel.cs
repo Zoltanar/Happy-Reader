@@ -40,7 +40,7 @@ namespace Happy_Reader.ViewModel
 			get => HookManager?.MergeByHookCode ?? false;
 			set
 			{
-				if (_mainViewModel?.UserGame != null) _mainViewModel.UserGame.MergeByHookCode = value;
+				if (_mainViewModel?.UserGame != null) _mainViewModel.UserGame.GameHookSettings.MergeByHookCode = value;
 				if (HookManager != null) HookManager.MergeByHookCode = value;
 				OnPropertyChanged();
 			}
@@ -77,7 +77,7 @@ namespace Happy_Reader.ViewModel
 		public void SetHookCode()
 		{
 			if (SelectedTextThread is not HookTextThread hookTextThread) return;
-			_mainViewModel.UserGame?.SaveHookCode(hookTextThread.HookCode);
+			_mainViewModel.UserGame?.GameHookSettings.SaveHookCode(hookTextThread.HookCode);
 		}
 
 		public override void AddGameThread(GameTextThread gameTextThread)

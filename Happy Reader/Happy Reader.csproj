@@ -132,6 +132,7 @@
     </ApplicationDefinition>
     <Compile Include="Database\EntryGame.cs" />
     <Compile Include="Database\EntryType.cs" />
+    <Compile Include="Database\GameHookSettings.cs" />
     <Compile Include="Database\GameThread.cs" />
     <Compile Include="Database\Log.cs" />
     <Compile Include="Model\VnFilters\CustomFilter.cs" />

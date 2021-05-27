@@ -61,7 +61,7 @@ namespace Happy_Reader.View.Tabs
 		{
 			if (e.Key != Key.Enter) return;
 			var priorVN = ViewModel.VN;
-			var result = ViewModel.SaveVNID(VnidNameBox.Text.Length == 0 ? null : (int?)int.Parse(VnidNameBox.Text));
+			var result = ViewModel.SaveVNID(VnidNameBox.Text.Length == 0 ? null : int.Parse(VnidNameBox.Text));
 			if (result) StaticMethods.MainWindow.OpenVNPanel(ViewModel.VN);
 			else StaticMethods.MainWindow.OpenUserGamePanel(ViewModel, priorVN);
 		}
@@ -69,7 +69,7 @@ namespace Happy_Reader.View.Tabs
 		private void SaveHookCode(object sender, KeyEventArgs e)
 		{
 			if (e.Key != Key.Enter) return;
-			ViewModel.SaveHookCode(HookCodeBox.Text);
+			ViewModel.GameHookSettings.SaveHookCode(HookCodeBox.Text);
 		}
 
 		private void DigitsOnly(object sender, TextCompositionEventArgs e)

@@ -78,11 +78,11 @@
 			<TextBox Style="{StaticResource Row1TextBox}" x:Name="TagBox" Text="{Binding Tag, Mode=OneWay}" KeyUp="SaveTag" />
 			<TextBox Style="{StaticResource Row1TextBox}" x:Name="VnidNameBox" Text="{Binding VNID, Mode=OneWay}" KeyUp="SaveVNID" PreviewTextInput="DigitsOnly" />
 			<TextBox Style="{StaticResource Row1TextBox}" x:Name="LaunchPathBox" Text="{Binding LaunchPath, Mode=OneWay}" KeyUp="SaveLaunchPath" />
-			<TextBox Style="{StaticResource Row1TextBox}" x:Name="HookCodeBox" Text="{Binding HookCode, Mode=OneWay}" KeyUp="SaveHookCode" />
-			<ComboBox ItemsSource="{Binding Encodings}" DisplayMemberPath="EncodingName" SelectedItem="{Binding PrefEncoding}" />
-			<ComboBox ItemsSource="{Binding HookModes}" SelectedItem="{Binding HookProcess}" />
-			<CheckBox Style="{StaticResource UniformCheckbox}" Content="Merge By Hook Code" IsChecked="{Binding MergeByHookCode}"/>
-			<CheckBox Style="{StaticResource UniformCheckbox}" Content="Remove Repetition" IsChecked="{Binding RemoveRepetition}"
+			<TextBox Style="{StaticResource Row1TextBox}" x:Name="HookCodeBox" Text="{Binding GameHookSettings.HookCode, Mode=OneWay}" KeyUp="SaveHookCode" />
+			<ComboBox ItemsSource="{Binding GameHookSettings.Encodings}" DisplayMemberPath="EncodingName" SelectedItem="{Binding GameHookSettings.PrefEncoding}" />
+			<ComboBox ItemsSource="{Binding GameHookSettings.HookModes}" SelectedItem="{Binding GameHookSettings.HookProcess}" />
+			<CheckBox Style="{StaticResource UniformCheckbox}" Content="Merge By Hook Code" IsChecked="{Binding GameHookSettings.MergeByHookCode}"/>
+			<CheckBox Style="{StaticResource UniformCheckbox}" Content="Remove Repetition" IsChecked="{Binding GameHookSettings.RemoveRepetition}"
 			          ToolTip="Remove repeated text at the start of strings to be translated, this occurs before Stage 1."/>
 		</UniformGrid>
 		<Border x:Name="ImageBorder" BorderBrush="Black" BorderThickness="4" Grid.Column="2" Background="#FF3EAE8F" />
