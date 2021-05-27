@@ -33,7 +33,7 @@ namespace DatabaseDumpReader
 				var dumpFolder = DumpFolder;
 				StaticHelpers.CSettings = SettingsJsonFile.Load<SettingsViewModel>(settingsPath).CoreSettings;
 				result = Run(dumpFolder, StaticHelpers.CSettings.UserID);
-				if (result != ExitCode.Error && result != ExitCode.NoUpdate) SyncImages(StaticHelpers.CSettings.SyncImages);
+				if (result != ExitCode.Error) SyncImages(StaticHelpers.CSettings.SyncImages);
 			}
 			catch (Exception ex)
 			{
@@ -140,8 +140,7 @@ namespace DatabaseDumpReader
 				StaticHelpers.Logger.ToFile(oldDateString, "Already up to date.");
 				Console.WriteLine("Do you wish to reload latest dump? (y/n)");
 				var input = Console.ReadLine();
-				Debug.Assert(input != null, nameof(input) + " != null");
-				if (input.ToLowerInvariant() != "y")
+				if (input?.ToLowerInvariant() != "y")
 				{
 					Console.WriteLine("Not reloading.");
 					return ExitCode.NoUpdate;

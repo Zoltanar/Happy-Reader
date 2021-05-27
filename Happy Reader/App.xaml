@@ -82,6 +82,5 @@
 			<Setter Property="Foreground" Value="White"/>
 			<Setter Property="VerticalAlignment" Value="Stretch"/>
 		</Style>
-		<collections:ArrayList x:Key="ImageSyncModes" />
 	</Application.Resources>
 </Application>

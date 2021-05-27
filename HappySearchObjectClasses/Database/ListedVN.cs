@@ -389,9 +389,9 @@ namespace Happy_Apps_Core.Database
 		{
 			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO ListedVNs" +
 				"(VNID,Title,KanjiTitle,ReleaseDateString,ProducerID,Image,ImageNSFW,Description,LengthTime,Popularity," +
-				"Rating,VoteCount,Relations,Screens,Anime,Aliases,Languages,Series,ReleaseDate,ReleaseLink,TagScore,TraitScore) VALUES " +
+				"Rating,VoteCount,Relations,Screens,Anime,Aliases,Languages,ReleaseDate,ReleaseLink,TagScore,TraitScore) VALUES " +
 				"(@VNID,@Title,@KanjiTitle,@ReleaseDateString,@ProducerId,@Image,@ImageNSFW,@Description,@LengthTime,@Popularity," +
-				"@Rating,@VoteCount,@Relations,@Screens,@Anime,@Aliases,@Languages,@Series,@ReleaseDate,@ReleaseLink,@TagScore,@TraitScore)";
+				"@Rating,@VoteCount,@Relations,@Screens,@Anime,@Aliases,@Languages,@ReleaseDate,@ReleaseLink,@TagScore,@TraitScore)";
 			var command = connection.CreateCommand();
 			command.CommandText = sql;
 			command.AddParameter("@VNID", VNID);

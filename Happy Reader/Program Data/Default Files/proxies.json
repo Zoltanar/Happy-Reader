@@ -1,0 +1,42 @@
+﻿[
+	{
+		"role": "m",
+		"input": "本田",
+		"output": "Honda"
+	},
+	{
+		"role": "m",
+		"input": "武田",
+		"output": "Takeda"
+	},
+	{
+		"role": "m",
+		"input": "山澤",
+		"output": "Yamazawa"
+	},
+	{
+		"role": "m",
+		"input": "加奈川",
+		"output": "Kanagawa"
+	},
+	{
+		"role": "n",
+		"input": "ZXBC",
+		"output": "ZXBC"
+	},
+	{
+		"role": "n",
+		"input": "ZXXB",
+		"output": "ZXXB"
+	},
+	{
+		"role": "m.f",
+		"input": "由紀子",
+		"output": "Yukiko"
+	},
+	{
+		"role": "m.f",
+		"input": "花子",
+		"output": "Hanako"
+	}
+]

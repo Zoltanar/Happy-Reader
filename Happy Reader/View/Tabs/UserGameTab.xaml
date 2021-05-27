@@ -55,7 +55,7 @@
 			<ColumnDefinition Width="Auto" MinWidth="30" x:Name="DataColumn"/>
 			<ColumnDefinition Width="*" x:Name="ImageColumn"/>
 		</Grid.ColumnDefinitions>
-		<UniformGrid Grid.Column="0" Rows="12" Columns="1">
+		<UniformGrid Grid.Column="0" Rows="13" Columns="1">
 			<Label Style="{StaticResource Row0Label}" Content="UserGame ID" />
 			<StackPanel Orientation="Horizontal">
 				<Label Style="{StaticResource Row0Label}" Content="(❌ File Not Found)" Foreground="Red" Visibility="{Binding FileExists, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=1}" />
@@ -66,11 +66,12 @@
 			<Label Style="{StaticResource Row0Label}" Content="Tag" />
 			<Label Style="{StaticResource Row0Label}" Content="VNID" />
 			<Label Style="{StaticResource Row0Label}" Content="Launch Path" />
+			<Label Style="{StaticResource Row0Label}" Content="Launch Mode Override" />
 			<Label Style="{StaticResource Row0Label}" Content="Hook Code" />
 			<Label Style="{StaticResource Row0Label}" Content="Encoding" />
 			<Label Style="{StaticResource Row0Label}" Content="Hook Mode" />
 		</UniformGrid>
-		<UniformGrid Grid.Column="1" Rows="12">
+		<UniformGrid Grid.Column="1" Rows="13">
 			<TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding Id, Mode=OneWay}" />
 			<TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding FilePath, Mode=OneWay}" />
 			<Button  Style="{StaticResource UniformButton}" Content="Change File Path" Click="ChangeFileLocationClick"/>
@@ -78,6 +79,7 @@
 			<TextBox Style="{StaticResource Row1TextBox}" x:Name="TagBox" Text="{Binding Tag, Mode=OneWay}" KeyUp="SaveTag" />
 			<TextBox Style="{StaticResource Row1TextBox}" x:Name="VnidNameBox" Text="{Binding VNID, Mode=OneWay}" KeyUp="SaveVNID" PreviewTextInput="DigitsOnly" />
 			<TextBox Style="{StaticResource Row1TextBox}" x:Name="LaunchPathBox" Text="{Binding LaunchPath, Mode=OneWay}" KeyUp="SaveLaunchPath" />
+			<ComboBox ItemsSource="{Binding LaunchOverrideModes}" SelectedValuePath="Tag" SelectedValue="{Binding LaunchModeOverride}" />
 			<TextBox Style="{StaticResource Row1TextBox}" x:Name="HookCodeBox" Text="{Binding GameHookSettings.HookCode, Mode=OneWay}" KeyUp="SaveHookCode" />
 			<ComboBox ItemsSource="{Binding GameHookSettings.Encodings}" DisplayMemberPath="EncodingName" SelectedItem="{Binding GameHookSettings.PrefEncoding}" />
 			<ComboBox ItemsSource="{Binding GameHookSettings.HookModes}" SelectedItem="{Binding GameHookSettings.HookProcess}" />

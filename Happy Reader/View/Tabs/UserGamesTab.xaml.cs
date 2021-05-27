@@ -10,6 +10,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
 using Happy_Reader.View.Converters;
@@ -32,7 +33,12 @@ namespace Happy_Reader.View.Tabs
 
 		private void DropFileOnGamesTab(object sender, DragEventArgs e)
 		{
-			if (e.Data.GetData(DataFormats.FileDrop) is not string[] files || files.Length == 0) return;
+			var files = e.Data.GetData(DataFormats.FileDrop) as string[];
+			if (files == null || files.Length == 0)
+			{
+				StaticHelpers.Logger.ToFile($"FileDrop was null or empty: {files == null} {files?.Length}");
+				return;
+			}
 			var file = files.First();
 			if (string.IsNullOrWhiteSpace(file))
 			{
@@ -45,10 +51,18 @@ namespace Happy_Reader.View.Tabs
 				StaticMethods.MainWindow.ViewModel.StatusText = "Dragged file isn't an executable.";
 				return;
 			}
-			var titledImage = ViewModel.AddGameFile(file);
-			if (titledImage == null) return;
-			((IList<UserGameTile>)GameFiles.ItemsSource).Add(titledImage);
-			titledImage.ViewDetails(this, null);
+			try
+			{
+				var titledImage = ViewModel.AddGameFile(file);
+				if (titledImage == null) return;
+				((IList<UserGameTile>) GameFiles.ItemsSource).Add(titledImage);
+				titledImage.ViewDetails(this, null);
+			}
+			catch (Exception ex)
+			{
+				StaticHelpers.Logger.ToFile(ex);
+				ViewModel.MainViewModel.NotificationEvent(sender, ex.Message, "Error Dragging File");
+			}
 		}
 
 		private void GroupByProducer(object sender, RoutedEventArgs e)

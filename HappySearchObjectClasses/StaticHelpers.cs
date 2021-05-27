@@ -28,7 +28,7 @@ namespace Happy_Apps_Core
 		public const string TraitsURL = "http://vndb.org/api/traits.json.gz";
 		public const string ProjectURL = "https://github.com/Zoltanar/Happy-Reader";
 		// ReSharper disable once PossibleNullReferenceException
-		private static readonly string ProgramDataFolder = Path.Combine(Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName, "Program Data\\");
+		public static readonly string ProgramDataFolder = Path.Combine(Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName, "Program Data\\");
 		public static readonly string DefaultTraitsJson = Path.Combine(ProgramDataFolder, "Default Files\\traits.json");
 		public static readonly string DefaultTagsJson = Path.Combine(ProgramDataFolder, "Default Files\\tags.json");
 		private static readonly string FlagsFolder = Path.Combine(ProgramDataFolder, "Flags\\");

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using System.Windows.Controls;
 using Happy_Apps_Core;
 using Newtonsoft.Json;
 
@@ -20,6 +22,7 @@ namespace Happy_Reader
 		private bool _excludeLowVotesForRatingSort = true;
 		private string _localeEmulatorPath;
 		private string _culture;
+		private GameLaunchMode _launchMode;
 		private CultureInfo _cultureInfo = CultureInfo.DefaultThreadCurrentCulture ?? CultureInfo.CurrentCulture;
 		private List<PageLink> _pageLinks;
 		private HashSet<string> _vnResolveExcludedNames = new(StringComparer.OrdinalIgnoreCase)
@@ -42,6 +45,9 @@ namespace Happy_Reader
 
 		[JsonIgnore]
 		public CultureInfo[] Cultures { get; } = CultureInfo.GetCultures(CultureTypes.InstalledWin32Cultures);
+
+		[JsonIgnore]
+		public static ComboBoxItem[] LaunchModes { get; } = StaticMethods.GetEnumValues(typeof(GameLaunchMode));
 
 		public GuiSettings()
 		{
@@ -147,6 +153,27 @@ namespace Happy_Reader
 			{
 				if (_localeEmulatorPath == value) return;
 				_localeEmulatorPath = value;
+				if (Loaded) Save();
+			}
+		}
+
+		public enum GameLaunchMode
+		{
+			[Description("Launch Normally")]
+			Normal = 0,
+			[Description("Launch Hooked Games with LE")]
+			UseLeForHooked = 1,
+			[Description("Launch All Games with LE")]
+			UseLeForAll = 2,
+		}
+		
+		public GameLaunchMode LaunchMode
+		{
+			get => _launchMode;
+			set
+			{
+				if (_launchMode == value) return;
+				_launchMode = value;
 				if (Loaded) Save();
 			}
 		}

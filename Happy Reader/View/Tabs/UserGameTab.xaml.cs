@@ -89,7 +89,6 @@ namespace Happy_Reader.View.Tabs
 			ImageBorder.Visibility = _isForVN ? Visibility.Collapsed : Visibility.Visible;
 			ImageColumn.Width = _isForVN ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
 			DataColumn.Width = _isForVN ? new GridLength(1, GridUnitType.Star) : GridLength.Auto;
-			//ViewModel.OnPropertyChanged(nameof(ViewModel.FileExists));
 		}
 	}
 }

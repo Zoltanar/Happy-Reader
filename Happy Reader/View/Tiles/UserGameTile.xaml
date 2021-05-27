@@ -72,7 +72,7 @@
 	</Border>
 	<UserControl.ContextMenu>
 		<ContextMenu>
-			<MenuItem Header="Launch" Click="LaunchProcessClick"/>
+			<MenuItem Header="Launch Normally" Click="LaunchProcessNormallyClick"/>
 			<MenuItem Header="Launch with LE (Japan)" Click="LaunchWithLeJapan" />
 			<Separator/>
 			<MenuItem Header="See Details" Click="ViewDetails" FontWeight="Bold"/>

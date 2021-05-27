@@ -407,7 +407,7 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <None Include="app.config" />
-    <None Include="Config\proxies.json">
+    <None Include="Program Data\Default Files\proxies.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config">
@@ -435,6 +435,7 @@
   <ItemGroup>
     <Content Include="Database\FindDuplicateEntries.sql" />
     <Content Include="Database\ReturnVNRStyleEntries.sql" />
+    <EmbeddedResource Include="Database\Updates\Update2.sql" />
     <EmbeddedResource Include="Database\Updates\Update1.sql" />
     <EmbeddedResource Include="View\SampleData\ja.png" />
     <Resource Include="Resources\logo-hr.ico" />
@@ -472,6 +473,12 @@
     </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup> 
+    <ContentSQLiteInteropFiles>true</ContentSQLiteInteropFiles>
+    <CopySQLiteInteropFiles>false</CopySQLiteInteropFiles>
+    <CleanSQLiteInteropFiles>false</CleanSQLiteInteropFiles>
+    <CollectSQLiteInteropFiles>false</CollectSQLiteInteropFiles>
+ </PropertyGroup>
   <PropertyGroup>
     <PostBuildEvent>
     </PostBuildEvent>

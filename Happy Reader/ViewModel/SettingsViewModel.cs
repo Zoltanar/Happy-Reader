@@ -1,5 +1,4 @@
-﻿using System.Windows.Controls;
-using Happy_Apps_Core;
+﻿using Happy_Apps_Core;
 using Newtonsoft.Json;
 
 namespace Happy_Reader.ViewModel
@@ -35,9 +34,7 @@ namespace Happy_Reader.ViewModel
 		public CoreSettings CoreSettings { get; set; }
 		public GuiSettings GuiSettings { get; set; }
 		public TranslatorSettings TranslatorSettings { get; set; }
-
-		[JsonIgnore] public ComboBoxItem[] ImageSyncModes { get; } = StaticMethods.GetEnumValues(typeof(ImageSyncMode));
-
+		
 		public SettingsViewModel()
 		{
 			CoreSettings = new CoreSettings { ObjectToSerialise = this };

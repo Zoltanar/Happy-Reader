@@ -369,7 +369,7 @@ namespace Happy_Reader.ViewModel
 						if (UserGame?.Process != null) return true;
 						if (gameProcess.HasExited) continue;
 						if (!userGame.FilePath.Equals(processFileName, StringComparison.InvariantCultureIgnoreCase)) continue;
-						StaticMethods.DispatchIfRequired(() => HookUserGame(userGame, gameProcess, false), TimeSpan.FromSeconds(10));
+						StaticMethods.DispatchIfRequired(() => HookUserGame(userGame, gameProcess, null), TimeSpan.FromSeconds(10));
 						return true;
 					}
 				}
@@ -444,7 +444,7 @@ namespace Happy_Reader.ViewModel
 			Application.Current.Dispatcher.Invoke(() => (isQuery ? _vndbQueriesList : _vndbResponsesList).AddWithId(text));
 		}
 
-		public void HookUserGame(UserGame userGame, Process process, bool useLocaleEmulator)
+		public void HookUserGame(UserGame userGame, Process process, bool? overrideUseLocaleEmulator)
 		{
 			lock (HookLock)
 			{
@@ -455,9 +455,7 @@ namespace Happy_Reader.ViewModel
 					return;
 				}
 				UserGame = userGame;
-				process ??= useLocaleEmulator ? UserGame.StartProcessThroughLocaleEmulator() :
-					!string.IsNullOrWhiteSpace(UserGame.LaunchPath) ? UserGame.StartProcessThroughProxy() :
-					UserGame.StartProcess(UserGame.FilePath, string.Empty, false);
+				process ??= LaunchUserGame(overrideUseLocaleEmulator);
 				//process can be closed at any point
 				try
 				{
@@ -498,6 +496,27 @@ namespace Happy_Reader.ViewModel
 					throw;
 				}
 			}
+		}
+
+		private Process LaunchUserGame(bool? overrideUseLocaleEmulator)
+		{
+			bool useLocaleEmulator;
+			if (overrideUseLocaleEmulator.HasValue) useLocaleEmulator = overrideUseLocaleEmulator.Value;
+			else
+			{
+				var defaultLaunch = SettingsViewModel.GuiSettings.LaunchMode;
+				useLocaleEmulator = //override is NOT set to normal AND
+																UserGame.LaunchModeOverride != UserGame.LaunchOverrideMode.Normal
+																//either Override is set to use LE OR
+				                        && (UserGame.LaunchModeOverride == UserGame.LaunchOverrideMode.UseLe
+				                        //game will be hooked and default is to use LE for hooked OR
+				                        || (defaultLaunch == GuiSettings.GameLaunchMode.UseLeForHooked && UserGame.GameHookSettings.HookProcess != HookMode.None)
+				                        //default is to use LE for all
+				                        || defaultLaunch == GuiSettings.GameLaunchMode.UseLeForAll);
+			}
+			return useLocaleEmulator ? UserGame.StartProcessThroughLocaleEmulator() :
+				!string.IsNullOrWhiteSpace(UserGame.LaunchPath) ? UserGame.StartProcessThroughProxy() :
+				UserGame.StartProcess(UserGame.FilePath, string.Empty, false);
 		}
 
 		private void InitialiseOutputWindowForGame()

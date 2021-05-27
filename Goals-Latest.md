@@ -24,7 +24,6 @@
 - check if output window is in visible area of screens, if not, reset it.
 - alternate colors between blocks
 #### User Games
-- option to always launch games with some locale if windows locale is not already set to that, and option to override it.
 - context option to launch without hooking.
 - allow keeping time played for multiple games/allow process monitor to keep running always/make process monitor only have one instance
 - launch title from VN context menu
@@ -33,6 +32,7 @@
 - show written tag description on tooltip
 - MainWindow: allow scrolling on main window tab control when too many tabs and add close all tabs button
 - Settings: if login response is error with id 'needlogin' show user that credentials are wrong
+- DatabaseDumpReader: Parallelise?
 
 ## Issues  
 - can't show outputwindow on top of some fullscreen games, steals focus on games where it works (might need direct draw)

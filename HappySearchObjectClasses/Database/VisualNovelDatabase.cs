@@ -8,14 +8,12 @@ using System.Data.SQLite;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using Happy_Apps_Core.DataAccess;
 
-// ReSharper disable VirtualMemberCallInConstructor
-
 namespace Happy_Apps_Core.Database
 {
-	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 	public class VisualNovelDatabase
 	{
 		private const string LatestDumpUpdateKey = @"LatestDumpUpdate";
@@ -54,8 +52,55 @@ namespace Happy_Apps_Core.Database
 			VnStaffs = new DACollection<(int, int, string), VnStaff>(Connection);
 			VnSeiyuus = new DACollection<(int, int, int), VnSeiyuu>(Connection);
 			if (!File.Exists(dbFile)) Seed();
+			RunUpdates();
 			if (!loadAllTables) return;
 			LoadAllTables();
+		}
+
+		private void RunUpdates()
+		{
+			try
+			{
+				Connection.Open();
+				TableDetails.Load(false);
+				var updateDetail = TableDetails["updates"];
+				var latestUpdate = updateDetail == null ? 0 : Convert.ToInt32(updateDetail.Value);
+				RunUpdates(latestUpdate);
+			}
+			catch (Exception ex)
+			{
+				StaticHelpers.Logger.ToFile(ex);
+				throw;
+			}
+			finally
+			{
+				Connection.Close();
+			}
+		}
+
+		private void RunUpdates(int currentUpdate)
+		{
+			bool backedUp = false;
+			var assembly = Assembly.GetExecutingAssembly();
+			do
+			{
+				currentUpdate++;
+				var update = $"Update{currentUpdate:#}";
+				var nextUpdateFile = assembly.GetManifestResourceStream($"Happy_Apps_Core.Database.Updates.{update}.sql");
+				if (nextUpdateFile == null) return;
+				if (!backedUp)
+				{
+					StaticHelpers.Logger.ToFile("Backing up Happy Apps Database to run updates.");
+					var dbFile = new FileInfo(Connection.FileName);
+					var backupFile = $"{dbFile.DirectoryName}\\{Path.GetFileNameWithoutExtension(dbFile.FullName)}-UB{DateTime.Now:yyyyMMdd-HHmmss}{dbFile.Extension}";
+					dbFile.CopyTo(backupFile);
+					backedUp = true;
+				}
+				StaticHelpers.Logger.ToFile($"Updating Happy Apps Database with {update}");
+				using var reader = new StreamReader(nextUpdateFile);
+				var contents = reader.ReadToEnd();
+				DatabaseTableBuilder.ExecuteSql(Connection, contents);
+			} while (true);
 		}
 
 		private void LoadAllTables()
@@ -68,7 +113,6 @@ namespace Happy_Apps_Core.Database
 				Producers.Load(false);
 				UserProducers.Load(false);
 				Users.Load(false);
-				TableDetails.Load(false);
 				CharacterVNs.Load(false);
 				Characters.Load(false);
 				Traits.Load(false);
@@ -288,6 +332,7 @@ select AliasID from StaffAliass join StaffItems on StaffAliass.StaffID = StaffIt
 				TableDetails.Upsert(new TableDetail { Key = "author", Value = "Zoltanar" }, false);
 				TableDetails.Upsert(new TableDetail { Key = "projecturl", Value = StaticHelpers.ProjectURL }, false);
 				TableDetails.Upsert(new TableDetail { Key = "databaseversion", Value = StaticHelpers.ClientVersion }, false);
+				TableDetails.Upsert(new TableDetail { Key = "updates", Value = "1" }, false);
 				//ExecuteSqlCommand("CREATE UNIQUE INDEX `UniqueCIDToAliasToVN` ON `CharacterStaffs` (`AliasId` ,`ListedVNId` ,`CharacterItem_Id` )", false);
 				//ExecuteSqlCommand("CREATE UNIQUE INDEX `UniqueCIDToTrait` ON `DbTraits` (`TraitId` ,`CharacterItem_ID` )", false);
 				//ExecuteSqlCommand("CREATE UNIQUE INDEX `UniqueCIDToVNID` ON `CharacterVNs` (`ListedVNId` ,`CharacterItem_Id` )", false);

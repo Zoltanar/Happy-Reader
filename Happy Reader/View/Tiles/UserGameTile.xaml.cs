@@ -39,6 +39,7 @@ namespace Happy_Reader.View.Tiles
 		public void BrowseToLocation(object sender, RoutedEventArgs e)
 		{
 			var directory = Directory.GetParent(UserGame.FilePath);
+			if (directory == null) throw new DirectoryNotFoundException($"Could not find directory for '{UserGame.FileExists}'");
 			while (!directory.Exists)
 			{
 				if (directory.Parent == null) break;
@@ -71,7 +72,7 @@ namespace Happy_Reader.View.Tiles
 			}
 		}
 
-		private void LaunchProcessClick(object sender, RoutedEventArgs e) => StaticMethods.MainWindow.ViewModel.HookUserGame(UserGame, null, false);
+		private void LaunchProcessNormallyClick(object sender, RoutedEventArgs e) => StaticMethods.MainWindow.ViewModel.HookUserGame(UserGame, null, false);
 
 		private void LaunchWithLeJapan(object sender, RoutedEventArgs e) => StaticMethods.MainWindow.ViewModel.HookUserGame(UserGame, null, true);
 
@@ -102,7 +103,7 @@ namespace Happy_Reader.View.Tiles
 
 		private void LaunchGame(object sender, RoutedEventArgs e)
 		{
-			if (UserGame.RunningStatus == UserGame.ProcessStatus.Off) LaunchProcessClick(sender,e);
+			if (UserGame.RunningStatus == UserGame.ProcessStatus.Off) StaticMethods.MainWindow.ViewModel.HookUserGame(UserGame, null, null);
 		}
 
 		private void OnMouseUp(object sender, MouseButtonEventArgs e)

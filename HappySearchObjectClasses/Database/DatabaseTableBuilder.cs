@@ -168,7 +168,6 @@ namespace Happy_Apps_Core.Database
 	""Anime""	TEXT,
 	""Aliases""	TEXT,
 	""Languages""	TEXT,
-	""Series""	TEXT,
 	""ReleaseDate""	DATE,
 	""ReleaseLink""	TEXT,
 	""TagScore""	REAL,

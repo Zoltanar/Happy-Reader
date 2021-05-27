@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using Happy_Apps_Core;
 using Happy_Apps_Core.DataAccess;
@@ -29,7 +30,17 @@ namespace Happy_Reader.Database
 			On = 2
 		}
 
+		public enum LaunchOverrideMode
+		{
+			[Description("No Override")]
+			None = 0,
+			Normal = 1,
+			[Description("Use Locale Emulator")]
+			UseLe = 2
+		}
+
 		public static readonly SortedList<DateTime, long> LastGamesPlayed = new();
+		public static ComboBoxItem[] LaunchOverrideModes { get; } = StaticMethods.GetEnumValues(typeof(LaunchOverrideMode));
 
 		private BitmapImage _image;
 		private string _processName;
@@ -38,6 +49,7 @@ namespace Happy_Reader.Database
 		internal Stopwatch RunningTime;
 		private ListedVN _vn;
 		private bool _vnGot;
+		private LaunchOverrideMode _launchModeOverride = LaunchOverrideMode.None;
 
 		public UserGame(string file, ListedVN vn)
 		{
@@ -56,6 +68,16 @@ namespace Happy_Reader.Database
 		public long Id { get; set; }
 		public string UserDefinedName { get; private set; }
 		public string LaunchPath { get; private set; }
+		public LaunchOverrideMode LaunchModeOverride
+		{
+			get => _launchModeOverride;
+			set
+			{
+				if (_launchModeOverride == value) return;
+				_launchModeOverride = value;
+				if (Loaded) ReadyToUpsert = true;
+			}
+		}
 		public int? VNID { get; private set; }
 		public string FilePath { get; private set; }
 		public string ProcessName
@@ -71,10 +93,6 @@ namespace Happy_Reader.Database
 		public string Tag { get; private set; }
 		public bool HasVN => VNID.HasValue && VN != null;
 		public bool FileExists => File.Exists(FilePath);
-
-		#region Hooking
-
-		#endregion
 		public TimeSpan TimeOpen
 		{
 			get => TimeSpan.FromTicks(_timeOpen.Ticks + (RunningTime?.ElapsedTicks ?? 0));
@@ -182,9 +200,9 @@ namespace Happy_Reader.Database
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
 		{
 			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO {nameof(UserGame)}s" +
-									 "(Id, UserDefinedName, LaunchPath, HookProcess, VNID, FilePath, HookCode, MergeByHookCode, ProcessName, Tag, RemoveRepetition, OutputWindow, TimeOpenDT, PrefEncodingEnum) " +
+									 "(Id, UserDefinedName, LaunchPath, HookProcess, VNID, FilePath, HookCode, MergeByHookCode, ProcessName, Tag, RemoveRepetition, OutputWindow, TimeOpenDT, PrefEncodingEnum, LaunchModeOverride) " +
 									 "VALUES " +
-									 "(@Id, @UserDefinedName, @LaunchPath, @HookProcess, @VNID, @FilePath, @HookCode, @MergeByHookCode, @ProcessName, @Tag, @RemoveRepetition, @OutputWindow, @TimeOpenDT, @PrefEncodingEnum)";
+									 "(@Id, @UserDefinedName, @LaunchPath, @HookProcess, @VNID, @FilePath, @HookCode, @MergeByHookCode, @ProcessName, @Tag, @RemoveRepetition, @OutputWindow, @TimeOpenDT, @PrefEncodingEnum, @LaunchModeOverride)";
 			var command = connection.CreateCommand();
 			command.CommandText = sql;
 			command.AddParameter("@Id", Id);
@@ -201,6 +219,7 @@ namespace Happy_Reader.Database
 			command.AddParameter("@TimeOpenDT", new DateTime(TimeOpen.Ticks));
 			command.AddParameter("@PrefEncodingEnum", GameHookSettings.PrefEncodingEnum);
 			command.AddParameter("@OutputWindow", GetOutputWindowString(GameHookSettings.OutputRectangle));
+			command.AddParameter("@LaunchModeOverride", LaunchModeOverride);
 			return command;
 		}
 
@@ -224,6 +243,7 @@ namespace Happy_Reader.Database
 			GameHookSettings.PrefEncodingEnum = (EncodingEnum)Convert.ToInt32(reader["PrefEncodingEnum"]);
 			var outputWindow = Convert.ToString(reader["OutputWindow"]);
 			GameHookSettings.OutputRectangle = GameHookSettings.GetOutputRectangle(outputWindow);
+			LaunchModeOverride = (LaunchOverrideMode)Convert.ToInt32(reader["LaunchModeOverride"]);
 			Loaded = true;
 		}
 

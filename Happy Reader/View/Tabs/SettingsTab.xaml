@@ -86,8 +86,21 @@
 						<ColumnDefinition Width="Auto"/>
 						<ColumnDefinition/>
 					</Grid.ColumnDefinitions>
-					<Label Grid.Column="0" Content="Culture:" Width="120"/>
-					<ComboBox Grid.Column="1" ItemsSource="{Binding Cultures}" SelectedItem="{Binding CultureInfo}" Margin="5,0">
+					<Grid.RowDefinitions>
+						<RowDefinition/>
+						<RowDefinition/>
+					</Grid.RowDefinitions>
+					<Label Grid.Row="0" Grid.Column="0" Content="Culture:" Width="120"/>
+					<ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Cultures}" SelectedItem="{Binding CultureInfo}" Margin="5,0">
+						<ComboBox.ItemContainerStyle>
+							<Style TargetType="{x:Type ComboBoxItem}">
+								<Setter Property="HorizontalContentAlignment" Value="Left"/>
+								<Setter Property="VerticalContentAlignment" Value="Center"/>
+							</Style>
+						</ComboBox.ItemContainerStyle>
+					</ComboBox>
+					<Label Grid.Row="1" Grid.Column="0" Content="Launch Mode:" Width="120"/>
+					<ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding LaunchModes}" SelectedValuePath="Tag" SelectedValue="{Binding LaunchMode}" Margin="5,0">
 						<ComboBox.ItemContainerStyle>
 							<Style TargetType="{x:Type ComboBoxItem}">
 								<Setter Property="HorizontalContentAlignment" Value="Left"/>

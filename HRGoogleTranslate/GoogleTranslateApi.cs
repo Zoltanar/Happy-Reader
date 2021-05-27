@@ -101,7 +101,14 @@ namespace HRGoogleTranslate
 			switch (propertyKey)
 			{
 				case CredentialPropertyKey when value is string credentialLocation:
-					SetGoogleCredential(credentialLocation);
+					try
+					{
+						SetGoogleCredential(credentialLocation);
+					}
+					catch (Exception ex)
+					{
+						Error = ex.Message;
+					}
 					break;
 				case ModelPropertyKey when value is TranslationModel translationModel:
 					Settings.TranslationModel = translationModel;

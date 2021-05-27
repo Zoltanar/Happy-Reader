@@ -17,6 +17,7 @@ namespace Happy_Reader.Database
 	public class HappyReaderDatabase
 	{
 		private readonly object _saveChangesLock = new();
+		private const string UpdateTableName = @"Updates";
 
 		public SQLiteConnection Connection { get; }
 		public DACollection<string, CachedTranslation> Translations { get; }
@@ -41,24 +42,23 @@ namespace Happy_Reader.Database
 
 		private void RunUpdates()
 		{
-			const string updateTableName = @"Updates";
 			try
 			{
 				Connection.Open();
 				var command = Connection.CreateCommand();
-				command.CommandText = $"SELECT name FROM sqlite_master WHERE type='table' AND name='{updateTableName}';";
+				command.CommandText = $"SELECT name FROM sqlite_master WHERE type='table' AND name='{UpdateTableName}';";
 				var responseObject = command.ExecuteScalar();
 				bool updateTableExists = responseObject != null && responseObject != DBNull.Value;
 				if (!updateTableExists)
 				{
-					DatabaseTableBuilder.ExecuteSql(Connection, $@"CREATE TABLE `{updateTableName}` (
+					DatabaseTableBuilder.ExecuteSql(Connection, $@"CREATE TABLE `{UpdateTableName}` (
 	`Id`	INTEGER NOT NULL UNIQUE,
 	`Timestamp`	DATETIME,
 	PRIMARY KEY(`Id`)
 )");
 				}
 
-				command.CommandText = $"SELECT MAX(Id) FROM {updateTableName};";
+				command.CommandText = $"SELECT MAX(Id) FROM {UpdateTableName};";
 				responseObject = command.ExecuteScalar();
 				var latestUpdate = responseObject == DBNull.Value ? 0 : Convert.ToInt32(responseObject);
 				RunUpdates(latestUpdate);
@@ -81,15 +81,18 @@ namespace Happy_Reader.Database
 			do
 			{
 				currentUpdate++;
-				var nextUpdateFile = assembly.GetManifestResourceStream($"Happy_Reader.Database.Updates.Update{currentUpdate:#}.sql");
+				var update = $"Update{currentUpdate:#}";
+				var nextUpdateFile = assembly.GetManifestResourceStream($"Happy_Reader.Database.Updates.{update}.sql");
 				if (nextUpdateFile == null) return;
 				if (!backedUp)
 				{
+					StaticHelpers.Logger.ToFile("Backing up Happy Reader Database to run updates.");
 					var dbFile = new FileInfo(Connection.FileName);
 					var backupFile = $"{dbFile.DirectoryName}\\{Path.GetFileNameWithoutExtension(dbFile.FullName)}-UB{DateTime.Now:yyyyMMdd-HHmmss}{dbFile.Extension}";
 					dbFile.CopyTo(backupFile);
 					backedUp = true;
 				}
+				StaticHelpers.Logger.ToFile($"Updating Happy Reader Database with {update}");
 				using var reader = new StreamReader(nextUpdateFile);
 				var contents = reader.ReadToEnd();
 				DatabaseTableBuilder.ExecuteSql(Connection, contents);
@@ -165,6 +168,7 @@ namespace Happy_Reader.Database
 	`OutputWindow`	TEXT,
 	`TimeOpenDT`	DATETIME,
 	`PrefEncodingEnum`	INTEGER,
+	`LaunchModeOverride`	INTEGER NOT NULL,
 	PRIMARY KEY(`Id`)
 )");
 				DatabaseTableBuilder.ExecuteSql(Connection, $@"CREATE TABLE `{nameof(Entry)}s` (
@@ -188,6 +192,12 @@ namespace Happy_Reader.Database
 	`GameIdIsUserGame` INTEGER NOT NULL,
 	PRIMARY KEY(`Id`)
 )");
+				DatabaseTableBuilder.ExecuteSql(Connection, $@"CREATE TABLE `{UpdateTableName}` (
+	`Id`	INTEGER NOT NULL UNIQUE,
+	`Timestamp`	DATETIME,
+	PRIMARY KEY(`Id`)
+)");
+				DatabaseTableBuilder.ExecuteSql(Connection, $@"INSERT INTO {UpdateTableName} (Id,Timestamp) VALUES (2,datetime());");
 			}
 			finally
 			{
