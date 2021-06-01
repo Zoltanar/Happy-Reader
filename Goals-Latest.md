@@ -3,17 +3,21 @@
 #### Entries
 - allow proxy mods with multiple proxies ([[m#1]]-[[m#2]])
 #### Translation
+- Better romaji library
 - Offline dictionary for faster (mouseover?) word lookups
 - option to do this automatically: remove translations from cache if not used recently or originally cached too long ago.
 - apply translate stage 4 to pre-romaji
 #### Filters
+- Add producer filter
 - staff filter by name instead of id
 - add seiyuu filter to character
 - set default filter (different from permanent filter)
 #### Test Tab
 - show if translation was cached or not and give option to re-fetch
+- merged entries dont all show in entries used
 - list entries used per stage.
 #### ITHVNR
+- update open user game tab when hook code is changed with Set Hook Code
 - use ithvnr tab to also show captured clipboard text format like: \[process/pid] \[outputted] \[text]
 - better saving/loading game text threads, let user name threads and delete saved
 - once any thread has been saved as posting, change default for new threads to stop/hide.
@@ -21,10 +25,13 @@
 - VnrHook: handle maximum threads either change limit or reset ability
 - look at global hooks for changing ITHVNR settings via global hotkeys [GlobalMouseKeyHook](https://github.com/gmamaladze/globalmousekeyhook)
 #### Output Window
-- check if output window is in visible area of screens, if not, reset it.
+- notify of auto-pause (or remove auto pause)
+- when setting output window for the first time, set to some height from the bottom
 - alternate colors between blocks
 #### User Games
+- see details should change to correct user game tab when multiple user games for one vn
 - context option to launch without hooking.
+- log game launches
 - allow keeping time played for multiple games/allow process monitor to keep running always/make process monitor only have one instance
 - launch title from VN context menu
 #### Other
@@ -33,6 +40,7 @@
 - MainWindow: allow scrolling on main window tab control when too many tabs and add close all tabs button
 - Settings: if login response is error with id 'needlogin' show user that credentials are wrong
 - DatabaseDumpReader: Parallelise?
+- DatabaseDumpReader: Icon
 
 ## Issues  
 - can't show outputwindow on top of some fullscreen games, steals focus on games where it works (might need direct draw)

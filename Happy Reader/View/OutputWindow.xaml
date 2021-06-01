@@ -75,7 +75,6 @@
 			<ColumnDefinition x:Name="SettingsColumn" Width="70"/>
 			<ColumnDefinition Width="22"/>
 		</Grid.ColumnDefinitions>
-		<Label Grid.Column="0" Content="{Binding IdText}" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5" Padding="0" Foreground="White"/>
 		<RichTextBox Grid.Column="0"  Foreground="GreenYellow" x:Name="OutputTextBox" HorizontalContentAlignment="Center" IsReadOnly="True"
                      VerticalContentAlignment="Center" Background="{x:Null}" FontSize="22"  BorderBrush="Transparent" AutoWordSelection="False">
 			<RichTextBox.Effect>

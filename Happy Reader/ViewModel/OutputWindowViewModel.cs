@@ -17,14 +17,12 @@ namespace Happy_Reader.ViewModel
 	{
 		private bool _originalOn;
 		private bool _romajiOn = true;
-		private int _translationCounter;
 		private DateTime _lastOutputTime;
 		private Func<string> _getSelectedText;
 		private Action _scrollToBottom;
 		private FlowDocument _flowDocument;
 		private readonly RecentItemList<Translation> _translations = new(10);
-
-		public string IdText { get; set; }
+		
 		public bool TranslatePaused
 		{
 			get => StaticMethods.MainWindow.ViewModel?.TranslatePaused ?? false;
@@ -126,8 +124,6 @@ namespace Happy_Reader.ViewModel
 			var fromBottom = StaticMethods.Settings.TranslatorSettings.OutputVerticalAlignment == VerticalAlignment.Bottom;
 			if (fromBottom) items = items.Reverse();
 			_flowDocument.Blocks.AddRange(items);
-			IdText = $"TL Count: {_translationCounter}";
-			OnPropertyChanged(nameof(IdText));
 			if (fromBottom) _scrollToBottom?.Invoke();
 		}
 
@@ -141,7 +137,6 @@ namespace Happy_Reader.ViewModel
 				translation.SetParagraphs();
 				_translations.Add(translation);
 				_lastOutputTime = DateTime.UtcNow;
-				_translationCounter++;
 				return;
 			}
 			var combine = false;
@@ -168,7 +163,6 @@ namespace Happy_Reader.ViewModel
 				}
 			}
 			_lastOutputTime = DateTime.UtcNow;
-			_translationCounter++;
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
