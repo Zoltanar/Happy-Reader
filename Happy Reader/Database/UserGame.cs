@@ -393,12 +393,16 @@ namespace Happy_Reader.Database
 
 		public Process StartProcess(string filePath, string args, bool usingProxy)
 		{
+			Logger.ToFile($"{nameof(StartProcess)}, Using Proxy = {usingProxy}: '{filePath}' {args}'");
 			var processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(FilePath));
 			var existing = processes.FirstOrDefault();
-			if (existing != null) return existing;
+			if (existing != null)
+			{
+				Logger.ToFile($"{nameof(StartProcess)}: Already existed.");
+				return existing;
+			}
 			var exeParentFolder = Path.GetDirectoryName(filePath);
-			if (exeParentFolder == null)
-				throw new ArgumentNullException(nameof(exeParentFolder), "Parent folder of exe was not found.");
+			if (exeParentFolder == null) throw new ArgumentNullException(nameof(exeParentFolder), "Parent folder of exe was not found.");
 			var pi = new ProcessStartInfo
 			{
 				FileName = filePath,
@@ -411,11 +415,14 @@ namespace Happy_Reader.Database
 			{
 				Thread.Sleep(3000);
 				processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(FilePath));
-				return processes.FirstOrDefault();
+				var process =  processes.FirstOrDefault();
+				Logger.ToFile($"{nameof(StartProcess)}: {(process != null ? "Process found." : "Process not found.")}");
+				return process;
 			}
-
 			Debug.Assert(processStarted != null, nameof(processStarted) + " != null");
-			if (!processStarted.HasExited) processStarted.WaitForInputIdle(3000);
+			var exited = processStarted.HasExited;
+			if (!exited) processStarted.WaitForInputIdle(3000);
+			Logger.ToFile($"{nameof(StartProcess)}: {(exited ? "Exited immediately." : "Started.")}");
 			return processStarted;
 		}
 	}

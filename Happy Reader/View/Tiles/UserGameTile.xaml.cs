@@ -15,7 +15,7 @@ namespace Happy_Reader.View.Tiles
 		private bool _loaded;
 
 		public UserGame UserGame { get; }
-		
+
 		private VnMenuItem VnMenu => _vnMenu ??= new VnMenuItem(UserGame?.VN);
 
 		public UserGameTile()
@@ -33,9 +33,9 @@ namespace Happy_Reader.View.Tiles
 		public void ViewDetails(object sender, EventArgs e)
 		{
 			if (UserGame.HasVN) StaticMethods.MainWindow.OpenVNPanel(UserGame.VN);
-			else StaticMethods.MainWindow.OpenUserGamePanel(UserGame,null);
+			else StaticMethods.MainWindow.OpenUserGamePanel(UserGame, null);
 		}
-		
+
 		public void BrowseToLocation(object sender, RoutedEventArgs e)
 		{
 			var directory = Directory.GetParent(UserGame.FilePath);
@@ -72,9 +72,18 @@ namespace Happy_Reader.View.Tiles
 			}
 		}
 
-		private void LaunchProcessNormallyClick(object sender, RoutedEventArgs e) => StaticMethods.MainWindow.ViewModel.HookUserGame(UserGame, null, false);
+		private void LaunchGameWithoutHooking(object sender, RoutedEventArgs e)
+			=> StaticMethods.MainWindow.ViewModel.HookUserGame(UserGame, null, null, true);
 
-		private void LaunchWithLeJapan(object sender, RoutedEventArgs e) => StaticMethods.MainWindow.ViewModel.HookUserGame(UserGame, null, true);
+		private void LaunchProcessNormallyClick(object sender, RoutedEventArgs e)
+			=> StaticMethods.MainWindow.ViewModel.HookUserGame(UserGame, null, false, false);
+
+		private void LaunchWithLeJapan(object sender, RoutedEventArgs e)
+			=> StaticMethods.MainWindow.ViewModel.HookUserGame(UserGame, null, true, false);
+
+		private void LaunchGame(object sender, RoutedEventArgs e)
+			=> StaticMethods.MainWindow.ViewModel.HookUserGame(UserGame, null, null, false);
+
 
 		private void ResetTimePlayed(object sender, RoutedEventArgs e)
 		{
@@ -98,18 +107,15 @@ namespace Happy_Reader.View.Tiles
 
 		private void OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
 		{
-			ViewDetails(sender,e);
+			ViewDetails(sender, e);
 		}
 
-		private void LaunchGame(object sender, RoutedEventArgs e)
-		{
-			if (UserGame.RunningStatus == UserGame.ProcessStatus.Off) StaticMethods.MainWindow.ViewModel.HookUserGame(UserGame, null, null);
-		}
+
 
 		private void OnMouseUp(object sender, MouseButtonEventArgs e)
 		{
 			if (e.ChangedButton != MouseButton.Middle) return;
-			var element = (FrameworkElement) sender;
+			var element = (FrameworkElement)sender;
 			var hitTestResult = VisualTreeHelper.HitTest(element, e.GetPosition(element));
 			var userGameTile = hitTestResult.VisualHit.FindParent<UserGameTile>();
 			var item = userGameTile?.DataContext;
@@ -119,7 +125,7 @@ namespace Happy_Reader.View.Tiles
 				_ => null
 			};
 			if (userGame == null) return;
-			ViewDetails(sender,e);
+			ViewDetails(sender, e);
 		}
 	}
 }

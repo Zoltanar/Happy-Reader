@@ -28,8 +28,6 @@
 - alternate colors between blocks
 #### User Games
 - see details should change to correct user game tab when multiple user games for one vn
-- context option to launch without hooking.
-- log game launches
 - allow keeping time played for multiple games/allow process monitor to keep running always/make process monitor only have one instance
 - launch title from VN context menu
 #### Other
@@ -39,6 +37,7 @@
 - Settings: if login response is error with id 'needlogin' show user that credentials are wrong
 - DatabaseDumpReader: Parallelise?
 - DatabaseDumpReader: Icon
+- Logs: Link to folder, show size taken, option to clear.
 
 ## Issues  
 - can't show outputwindow on top of some fullscreen games, steals focus on games where it works (might need direct draw)

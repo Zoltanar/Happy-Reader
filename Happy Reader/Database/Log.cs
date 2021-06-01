@@ -127,8 +127,8 @@ namespace Happy_Reader.Database
 			Timestamp = Convert.ToDateTime(reader["Timestamp"]);
 		}
 
-		public static event LogNotificationEventHandler NotificationEvent;
-		public static event Action<Log> AddToList;
+		public static LogNotificationEventHandler NotificationEvent;
+		public static Action<Log> AddToList;
 
 		private void Notify()
 		{

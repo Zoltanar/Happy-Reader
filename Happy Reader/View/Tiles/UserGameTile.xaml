@@ -72,6 +72,7 @@
 	</Border>
 	<UserControl.ContextMenu>
 		<ContextMenu>
+			<MenuItem Header="Launch Without Hooking" Click="LaunchGameWithoutHooking"/>
 			<MenuItem Header="Launch Normally" Click="LaunchProcessNormallyClick"/>
 			<MenuItem Header="Launch with LE (Japan)" Click="LaunchWithLeJapan" />
 			<Separator/>

@@ -34,11 +34,10 @@ namespace Happy_Reader.View
 		public MainWindow()
 		{
 			InitializeComponent();
-			ViewModel = new MainWindowViewModel();
+			ViewModel = new MainWindowViewModel(ShowNotification);
+			Log.NotificationEvent = ShowLogNotification;
 			DataContext = ViewModel;
 			CreateNotifyIcon();
-			ViewModel.NotificationEvent += ShowNotification;
-			Log.NotificationEvent += ShowLogNotification;
 		}
 
 		private void CreateNotifyIcon()

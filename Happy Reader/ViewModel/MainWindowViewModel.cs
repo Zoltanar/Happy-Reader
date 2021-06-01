@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -29,7 +30,7 @@ namespace Happy_Reader.ViewModel
 		private static readonly object HookLock = new();
 
 		public event PropertyChangedEventHandler PropertyChanged;
-		public StaticMethods.NotificationEventHandler NotificationEvent;
+		public readonly StaticMethods.NotificationEventHandler NotificationEvent;
 		private readonly RecentStringList _vndbQueriesList = new(50);
 		private readonly RecentStringList _vndbResponsesList = new(50);
 		private static MultiLogger Logger => StaticHelpers.Logger;
@@ -113,8 +114,9 @@ namespace Happy_Reader.ViewModel
 
 		public ClipboardManager ClipboardManager;
 
-		public MainWindowViewModel()
+		public MainWindowViewModel(StaticMethods.NotificationEventHandler showNotification)
 		{
+			NotificationEvent = showNotification;
 			Application.Current.Exit += ExitProcedures;
 			StaticMethods.Data = new HappyReaderDatabase(StaticMethods.ReaderDatabaseFile, true);
 			SettingsViewModel = Happy_Apps_Core.SettingsJsonFile.Load<SettingsViewModel>(AllSettingsJson);
@@ -369,7 +371,7 @@ namespace Happy_Reader.ViewModel
 						if (UserGame?.Process != null) return true;
 						if (gameProcess.HasExited) continue;
 						if (!userGame.FilePath.Equals(processFileName, StringComparison.InvariantCultureIgnoreCase)) continue;
-						StaticMethods.DispatchIfRequired(() => HookUserGame(userGame, gameProcess, null), TimeSpan.FromSeconds(10));
+						StaticMethods.DispatchIfRequired(() => HookUserGame(userGame, gameProcess, null, false), TimeSpan.FromSeconds(10));
 						return true;
 					}
 				}
@@ -444,7 +446,7 @@ namespace Happy_Reader.ViewModel
 			Application.Current.Dispatcher.Invoke(() => (isQuery ? _vndbQueriesList : _vndbResponsesList).AddWithId(text));
 		}
 
-		public void HookUserGame(UserGame userGame, Process process, bool? overrideUseLocaleEmulator)
+		public void HookUserGame(UserGame userGame, Process process, bool? overrideUseLocaleEmulator, bool doNotHook)
 		{
 			lock (HookLock)
 			{
@@ -478,7 +480,7 @@ namespace Happy_Reader.ViewModel
 					UserGame.OnPropertyChanged(null);
 					OnPropertyChanged(nameof(UserGame));
 					UserGame.GameHookSettings.OutputWindow = OutputWindow;
-					if (UserGame.GameHookSettings.HookProcess == HookMode.None) return;
+					if (UserGame.GameHookSettings.HookProcess == HookMode.None || doNotHook) return;
 					if (SettingsViewModel.GuiSettings.HookGlobalMouse) _globalHook = WinAPI.HookMouseEvents(GlobalMouseClick);
 					while (!_loadingComplete) Thread.Sleep(25);
 					SetIthUserGameParameters();
@@ -514,6 +516,12 @@ namespace Happy_Reader.ViewModel
 				                        //default is to use LE for all
 				                        || defaultLaunch == GuiSettings.GameLaunchMode.UseLeForAll);
 			}
+
+			var sb = new StringBuilder($"Launching user game '{UserGame}', ");
+			var useLeString = useLocaleEmulator ? "Locale Emulator" : "Normal";
+			if (overrideUseLocaleEmulator.HasValue) sb.Append("(Override) ");
+			sb.Append(useLeString);
+			Logger.ToFile(sb.ToString());
 			return useLocaleEmulator ? UserGame.StartProcessThroughLocaleEmulator() :
 				!string.IsNullOrWhiteSpace(UserGame.LaunchPath) ? UserGame.StartProcessThroughProxy() :
 				UserGame.StartProcess(UserGame.FilePath, string.Empty, false);
