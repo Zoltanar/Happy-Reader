@@ -25,7 +25,6 @@
 - VnrHook: handle maximum threads either change limit or reset ability
 - look at global hooks for changing ITHVNR settings via global hotkeys [GlobalMouseKeyHook](https://github.com/gmamaladze/globalmousekeyhook)
 #### Output Window
-- notify of auto-pause (or remove auto pause)
 - when setting output window for the first time, set to some height from the bottom
 - alternate colors between blocks
 #### User Games

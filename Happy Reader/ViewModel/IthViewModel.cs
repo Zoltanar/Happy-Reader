@@ -60,6 +60,7 @@ namespace Happy_Reader.ViewModel
 		{
 			_mainViewModel = mainViewModel;
 			InitializeUserGameAction = initializeUserGameAction;
+			Notify = new Action<object, string, string>(_mainViewModel.NotificationEvent);
 			SetHookCodeCommand = new IthCommandHandler(SetHookCode);
 		}
 
