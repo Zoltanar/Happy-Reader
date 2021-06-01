@@ -36,8 +36,8 @@ namespace Happy_Reader
 				{
 					Left = Left + b.Left,
 					Top = Top + b.Top,
-					Right = (IsEmpty ? b.Width : Right) + b.Left,
-					Bottom = (IsEmpty ? b.Height : Bottom) + b.Top
+					Right =  Right + b.Left,
+					Bottom =  Bottom + b.Top
 				};
 				return rect;
 			}

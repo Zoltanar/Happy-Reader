@@ -527,7 +527,19 @@ namespace Happy_Reader.ViewModel
 			if (!success) OutputWindow.SetLocation(StaticMethods.OutputWindowStartPosition);
 			else
 			{
-				var outputWindowLocation = UserGame.GameHookSettings.OutputRectangle.MovePosition(windowLocation);
+				NativeMethods.RECT outputWindowLocation;
+				if (UserGame.GameHookSettings.OutputRectangle.IsEmpty)
+				{
+					var bottom = windowLocation.Height + windowLocation.Top;
+					outputWindowLocation = new NativeMethods.RECT
+					{
+						Left = windowLocation.Left,
+						Top = bottom - StaticMethods.OutputWindowStartPosition.Height,
+						Right = windowLocation.Width + windowLocation.Left,
+						Bottom = bottom
+					};
+				}
+				else outputWindowLocation = UserGame.GameHookSettings.OutputRectangle.MovePosition(windowLocation);
 				OutputWindow.SetLocation(outputWindowLocation);
 			}
 			if (!IthViewModel.Finalized && UserGame.GameHookSettings.HookProcess == HookMode.VnrHook && !string.IsNullOrWhiteSpace(UserGame.GameHookSettings.HookCode))
