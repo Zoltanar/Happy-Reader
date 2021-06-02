@@ -26,7 +26,7 @@ namespace Happy_Apps_Core
 	{
 		private const string VndbHost = "api.vndb.org";
 		private const ushort VndbPort = 19534;
-		private const ushort VndbPortTLS = 19535;
+		private const ushort VndbPortTls = 19535;
 		private const byte EndOfStreamByte = 0x04;
 		/// <summary>
 		/// string is text to be passed, bool is true if query, false if response
@@ -98,11 +98,11 @@ namespace Happy_Apps_Core
 				userVn.Vote = vote;
 				if (remove) userVn.Labels.Remove(UserVN.LabelKind.Voted);
 				else userVn.Labels.Add(UserVN.LabelKind.Voted);
-				userVn.VoteAdded = remove ? (DateTime?)null : DateTime.UtcNow;
+				userVn.VoteAdded = remove ? null : DateTime.UtcNow;
 				if (userVn.Labels.Any()) LocalDatabase.UserVisualNovels.Upsert(userVn, true);
 				else LocalDatabase.UserVisualNovels.Remove(userVn, true);
 				return true;
-			}, false, false);
+			});
 		}
 
 		/// <summary>
@@ -124,7 +124,7 @@ namespace Happy_Apps_Core
 				if (userVn.Labels.Any()) LocalDatabase.UserVisualNovels.Upsert(userVn, true);
 				else LocalDatabase.UserVisualNovels.Remove(userVn, true);
 				return true;
-			}, false, false);
+			});
 		}
 
 		/// <summary>
@@ -136,8 +136,8 @@ namespace Happy_Apps_Core
 			{
 				if (!await TryQueryNoReply($"get user basic (id={userID})")) return string.Empty;
 				var response = JsonConvert.DeserializeObject<ResultsRoot<UserItem>>(_lastResponse.JsonPayload);
-				return response.Items.Any() ? response.Items[0].Username : string.Empty;
-			}, false, false, string.Empty);
+				return response?.Items.Any() ?? false ? response.Items[0].Username : string.Empty;
+			}, string.Empty);
 		}
 
 		/// <summary>
@@ -149,8 +149,8 @@ namespace Happy_Apps_Core
 			{
 				if (!await TryQueryNoReply($"get user basic (username=\"{username}\")")) return -1;
 				var response = JsonConvert.DeserializeObject<ResultsRoot<UserItem>>(_lastResponse.JsonPayload);
-				return response.Items.Any() ? response.Items[0].ID : -1;
-			}, false, false, -1);
+				return response?.Items.Any() ?? false ?  response.Items[0].ID : -1;
+			}, -1);
 		}
 
 		/// <summary>
@@ -183,7 +183,7 @@ namespace Happy_Apps_Core
 		/// </summary>
 		private void Open(bool printCertificates)
 		{
-			Logger.ToFile($"Attempting to open connection to {VndbHost}:{VndbPortTLS}");
+			Logger.ToFile($"Attempting to open connection to {VndbHost}:{VndbPortTls}");
 			var attempts = 0;
 			var certs = GetCertificates(printCertificates);
 			while (attempts < 5)
@@ -193,7 +193,7 @@ namespace Happy_Apps_Core
 					attempts++;
 					Logger.ToFile($"Attempt number {attempts}...");
 					_tcpClient = new TcpClient();
-					_tcpClient.Connect(VndbHost, VndbPortTLS);
+					_tcpClient.Connect(VndbHost, VndbPortTls);
 					Logger.ToFile("TCP Client connection made...");
 					var sslStream = new SslStream(_tcpClient.GetStream());
 					Logger.ToFile("SSL Stream received...");
@@ -281,9 +281,9 @@ namespace Happy_Apps_Core
 			_status = APIStatus.Error;
 		}
 
-		private async Task<T> WrapQuery<T>(Func<Task<T>> task, bool refreshList, bool additionalMessage, T failValue = default, [CallerMemberName] string caller = null)
+		private async Task<T> WrapQuery<T>(Func<Task<T>> task, T failValue = default, [CallerMemberName] string caller = null)
 		{
-			if (!StartQuery(caller, refreshList, additionalMessage)) return failValue;
+			if (!StartQuery(caller)) return failValue;
 			try
 			{
 				return await task();
@@ -303,10 +303,8 @@ namespace Happy_Apps_Core
 		/// Check if API Connection is ready, change status accordingly and write error if it isn't ready.
 		/// </summary>
 		/// <param name="featureName">Name of feature calling the query</param>
-		/// <param name="refreshList">Refresh OLV on throttled connection</param>
-		/// <param name="additionalMessage">Print Added/Skipped message on throttled connection</param>
 		/// <returns>If connection was ready</returns>
-		private bool StartQuery(string featureName, bool refreshList, bool additionalMessage)
+		private bool StartQuery(string featureName)
 		{
 			if (CSettings.UserID < 1) return false;
 			if (ActiveQuery != null && !ActiveQuery.Completed)
@@ -314,7 +312,7 @@ namespace Happy_Apps_Core
 				_textAction($"Wait until {ActiveQuery.ActionName} is done.", MessageSeverity.Error);
 				return false;
 			}
-			ActiveQuery = new ApiQuery(featureName, additionalMessage);
+			ActiveQuery = new ApiQuery(featureName);
 			_textAction($"Running {featureName}...", MessageSeverity.Normal);
 			return true;
 		}
@@ -506,11 +504,11 @@ namespace Happy_Apps_Core
 		private QueryResult HandleThrottledResponse()
 		{
 			var minWait = Math.Min(5 * 60, _lastResponse.Error.Fullwait); //wait 5 minutes
-			var throttleMessage = $"Throttled for {Math.Floor(minWait / 60)} mins." + ActiveQuery.GetAdditionalWarning();
+			var throttleMessage = $"Throttled for {Math.Floor(minWait / 60)} mins.";
 			_textAction(throttleMessage, MessageSeverity.Warning);
 			Logger.ToFile($"Local: {DateTime.Now} - {throttleMessage}");
-			var waitMS = minWait * 1000;
-			_throttleWaitTime = Convert.ToInt32(waitMS);
+			var waitMs = minWait * 1000;
+			_throttleWaitTime = Convert.ToInt32(waitMs);
 			return QueryResult.Throttled;
 		}
 
