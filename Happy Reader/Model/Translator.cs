@@ -21,8 +21,8 @@ namespace Happy_Reader
 		//TODO add regex to all stages
 
 		private static readonly object TranslateLock = new();
-		private static readonly Regex Stage4P1InputRegex = new(@"\[\[(.+?)]]", RegexOptions.Compiled);
-		private static readonly Regex Stage4P1OutputRegex = new(@"^.*?\[\[(.+)]].*?$", RegexOptions.Compiled);
+		private static readonly Regex Stage4P1InputRegex = new(@"\[\[([^];]+?)]]", RegexOptions.Compiled);
+		private static readonly Regex Stage4P1OutputRegex = new(@"^.*?\[\[([^];]+)]].*?$", RegexOptions.Compiled);
 		private static readonly Dictionary<string, Regex> RegexDict = new();
 		private static readonly KawazuConverter KawazuConverter = new();
 		public static readonly Regex LatinOnlyRegex = new(@"^[a-zA-Z0-9:+|\-[\]\/\\\r\n .!?,;@()_$^""]+$", RegexOptions.Compiled);
@@ -249,7 +249,7 @@ namespace Happy_Reader
 				usefulEntriesWithProxies = usefulEntriesWithProxies.Where(e => e.AssignedProxy != null).ToList();
 				StaticHelpers.Logger.Verbose($"Stage 4.0: {sb}");
 				//perform replaces involving proxies
-				var entriesOnProxies = _entries.Where(i => i.Type == EntryType.ProxyMod).Reverse().ToArray();
+				var entriesOnProxies = _entries.Where(i => i.Type == EntryType.ProxyMod).ToArray();
 				TranslateStage4P1(sb, usefulEntriesWithProxies, entriesOnProxies, result);
 				foreach (var entry in usefulEntriesWithProxies)
 				{
@@ -402,22 +402,24 @@ namespace Happy_Reader
 				foreach (var entry in entriesOnProxies)
 				{
 					var input = Stage4P1InputRegex.Replace(entry.Input, @"\[\[$1#(\d+)]]");
-					var matches = Regex.Matches(sb.ToString(), input).Cast<Match>().SelectMany(x => x.Groups.Cast<Group>().Skip(1).Select(g => int.Parse(g.Value))).ToList();
+					var matches = Regex.Matches(sb.ToString(), input).Cast<Match>().ToList();
+					var roleGroups = matches.SelectMany(x => x.Groups.Cast<Group>().Skip(1).Select(g => int.Parse(g.Value))).ToList();
 					if (matches.Count == 0) continue;
+					var merge = matches.Count == 1 && roleGroups.Count > 1;
 					var mergedEntry = new Entry
 					{
 						RoleString = entry.RoleString,
 						Input = input,
 						Output = entry.Output
 					};
-					foreach (int match in matches)
+					foreach (int match in roleGroups)
 					{
 						var matchedEntry = entriesWithProxies.Single(x =>
 						{
 							var mainProxyPart = x.AssignedProxy.Role.Split('.')[0];
 							return x.AssignedProxy.Id == match && mainProxyPart == entry.RoleString;
 						});
-						if (matches.Count > 1)
+						if (merge && roleGroups.Count > 1)
 						{
 							entriesWithProxies.Remove(matchedEntry);
 							mergedEntry.AssignedProxy ??= matchedEntry.AssignedProxy;
@@ -427,7 +429,7 @@ namespace Happy_Reader
 						else matchedEntry.AssignedProxy.ProxyMods.Add(entry);
 					}
 					string output;
-					if (matches.Count > 1)
+					if (merge && roleGroups.Count > 1)
 					{
 						entriesWithProxies.Add(mergedEntry);
 						output = mergedEntry.AssignedProxy.FullRoleString;
@@ -442,7 +444,7 @@ namespace Happy_Reader
 			while (matchFound);
 			StaticHelpers.Logger.Verbose($"Stage 4.1: {sb}");
 		}
-		
+
 		public TranslationResults TranslatePart(string input, bool saveEntriesUsed)
 		{
 			var result = new TranslationResults(saveEntriesUsed);

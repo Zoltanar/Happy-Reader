@@ -60,6 +60,7 @@ namespace Happy_Reader.View.Tabs
         {
 	        var button = (Button)sender;
 	        var item = (DisplayEntry)button.DataContext;
+	        if (item.Id == 0) return;
 	        if (item.DeletePrimed) _viewModel.DeleteEntry(item);
 	        else item.PrimeDeletion(button);
         }
