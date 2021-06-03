@@ -1,13 +1,11 @@
 ﻿# For Latest Committed
 ## Future Features  
-#### Entries
-- Working: allow proxy mods with multiple proxies `[[m]]・[[m]] > [[m#1]]-[[m#2]]`; not working: `[[m]]・[[m]] > [[m#2]]-[[m#1]]`
 #### Translation
-- Offline dictionary for faster (mouseover?) word lookups
+- Priority: Offline dictionary for faster (mouseover?) word lookups
 - option to do this automatically: remove translations from cache if not used recently or originally cached too long ago.
 - apply translate stage 4 to pre-romaji
 #### Filters
-- Add producer filter
+- Priority: Add producer filter
 - staff filter by name instead of id
 - add seiyuu filter to character
 - set default filter (different from permanent filter)
@@ -16,6 +14,7 @@
 - merged entries dont all show in entries used
 - list entries used per stage.
 #### ITHVNR
+- rename tab to Text Hooking
 - update open user game tab when hook code is changed with Set Hook Code
 - use ithvnr tab to also show captured clipboard text format like: \[process/pid] \[outputted] \[text]
 - better saving/loading game text threads, let user name threads and delete saved

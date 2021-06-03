@@ -13,11 +13,11 @@ Before reporting issues or requesting features, please see [Goals](https://githu
 - Change Translator to use and enter/modify settings as needed.
 - Enter path to Locale Emulator if required (LEProc.exe)
 - Switch to 'Games' tab
-- Drag executable to area in 'Games' tab
+- Drag executable to area in `Games` tab, or click `Add New` to select executable
 - Double-click or 'right-click > See Details' on Game to open Game Settings
 - Change 'Hook Mode' as necessary (usually VnrHook)
 - Enter /H Hook Code if available
-- Back on Games Tab, launch Game by clicking 'Off' button, or 'right-click > Launch with LE (Japan)' if required
+- Back on `Games` Tab, launch Game by clicking `Off` button, or right-click and choose specific launch mode
 - In launched game, progress to dialog section
 - Back on Happy Reader, switch to 'ITHVNR' tab
 - Look for dialog text in the text thread panels or
@@ -34,10 +34,11 @@ Before reporting issues or requesting features, please see [Goals](https://githu
 - Window should contain captured text (by default, romaji and Translation is shown)
 - Change location, size, and settings of Output Window to your preference
   - Output Window stays on top and will re-appear if closed when new text is captured
-- At this point, everything should be ready to go, you can stop/hide other text threads to save memory and increase performance
+- At this point, everything should be ready to go, you can stop/hide other text threads to save memory and increase performance:
   - use 'Stop/Hide' buttons in each text thread panel or
-  - Select the 'Posting' panel (click on thread name and not text box) then click 'Toggle Display Others'/'Toggle Post Others'/'Toggle Pause Others'
-  - You can also click 'Clear Others' to clear existing text from threads other than selected.
+  - Select the 'Posting' panel (click on thread name and not text box) then click 'Toggle Display Others'/'Toggle Post Others'/'Toggle Pause Others' or
+  - You can also click 'Clear Others' to clear existing text from threads other than selected or
+  - You can click `Ignore Other Threads` if you are sure that no other text threads are required
 - Play game
 - Settings for which thread to capture should be saved so next time you launch the game, you should not have to set that up.
 
@@ -50,12 +51,18 @@ Entries can be added in different ways
 3. Import Names from VNDB title.  
 
 Once in the Add Entries tab, you can change various parameters.  
-Example of a name substitution: Type=Name, Game=User or VNDB Game Name, Role=m, Input=桜子, Output=Ouko, Series-Specific=True.  
+Example of a name substitution:  
+Type=Name, Game=User or VNDB Game Name, Role=m, Input=桜子, Output=Ouko, Series-Specific=True.  
 These can be tested in the 'Test' tab.  
 Entries of type Name and Translation use 'Proxy' entries, which will be used in the translation process.  
 The text in the entry's 'Role' dictates what kind of proxies to use.  
 If the entry has Role 'm', it will try to use a Proxy with role 'm'.
-Some proxies will be created by default (with Role 'm') but more may be needed (and will be added by default in the future).  
+Some proxies will be created by default but more may be needed if a sentence has a lot of separate names.  
+These can be added by creating entries of type `Proxy` which have an output that should match what a translator returns, when the input is provided.  
+This can be text that is unlikely to be changed by the translators such as `ZBXC > ZBXC`  
+or proper nouns without many alternative readings, which can help with context,  
+like `由紀子>Yukiko`, as it is a female name, it should return translation in a female context.  
+By creating proxies with specific Roles (like the above with role `m.f`) and then creating entries that use said roles (`アリス>Arisu with role m.f`), translation quality should improve.  
 Proxy Role suggestions:
 - m = Name
 - m.f = Female Name (defaults to 'm' if 'm.f' proxies are not found)

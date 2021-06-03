@@ -422,7 +422,7 @@ namespace Happy_Reader
 							entriesWithProxies.Remove(matchedEntry);
 							mergedEntry.AssignedProxy ??= matchedEntry.AssignedProxy;
 							mergedEntry.AssignedProxy.ProxyMods.AddRange(matchedEntry.AssignedProxy.ProxyMods);
-							mergedEntry.Output = new Regex($@"\[\[(.+?)#{match}]]").Replace(mergedEntry.Output, matchedEntry.Output);
+							mergedEntry.Output = new Regex($@"\[\[([^];]+?)#{match}]]").Replace(mergedEntry.Output, matchedEntry.Output);
 						}
 						else matchedEntry.AssignedProxy.ProxyMods.Add(entry);
 					}
