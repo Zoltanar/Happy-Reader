@@ -50,7 +50,7 @@ namespace Happy_Apps_Core
 
 		public void SetScore(ListedVN vn, bool useNewConnection)
 		{
-			var tagScore = Tags.Sum(sTag => vn.Tags.Where(vnTag => sTag.Key.AllIDs.Contains(vnTag.TagId)).Sum(vnTag => sTag.Value * vnTag.Score));
+			var tagScore = Tags.Sum(sTag => vn.Tags.Where(vnTag => vnTag.Score > 0 && sTag.Key.AllIDs.Contains(vnTag.TagId)).Sum(vnTag => sTag.Value * vnTag.Score));
 			var traitScore = _database.GetTraitScoreForVn(vn.VNID, IdTraits, useNewConnection);
 			vn.Suggestion = new SuggestionScoreObject(tagScore/ MaxTagScore, traitScore / MaxTraitScore);
 		}

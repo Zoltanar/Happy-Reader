@@ -15,6 +15,10 @@ namespace Happy_Reader
 {
 	public class TranslatorSettings : SettingsJsonFile
 	{
+		private static readonly NoTranslator NoTranslator = new();
+		[JsonIgnore] public static IEnumerable<string> RomajiTranslators => Translator.RomajiTranslators.Keys;
+		[JsonIgnore] public ICollection<ITranslator> Translators { get; set; } = new List<ITranslator>() { NoTranslator };
+
 		private int _maxOutputSize = 700;
 		private double _fontSize = 22d;
 		private bool _captureClipboard;
@@ -22,12 +26,12 @@ namespace Happy_Reader
 		private string _romajiTextFont;
 		private string _translatedTextFont;
 		private string _selectedTranslatorName;
+		private string _selectedRomajiTranslator = RomajiTranslators.First();
 		private bool _settingsViewState = true;
 		private VerticalAlignment _outputVerticalAlignment = VerticalAlignment.Top;
 		private TextAlignment _outputHorizontalAlignment = TextAlignment.Center;
 
-		[JsonIgnore]
-		public Action<bool> CaptureClipboardChanged;
+		[JsonIgnore] public Action<bool> CaptureClipboardChanged;
 
 		//todo make editable
 		public HashSet<string> UntouchedStrings { get; set; } = new() { "", "\r\n" };
@@ -161,15 +165,9 @@ namespace Happy_Reader
 			}
 		}
 
-		[JsonIgnore]
-		public (SolidColorBrush Color, string Name) OriginalColor { get; private set; } = (new(Colors.Ivory), "Ivory");
-
-		[JsonIgnore]
-		public (SolidColorBrush Color, string Name) RomajiColor { get; private set; } = (new(Colors.Pink), "Pink");
-
-		[JsonIgnore]
-		public (SolidColorBrush Color, string Name) TranslatedColor { get; private set; } = (new(Colors.GreenYellow), "GreenYellow");
-
+		[JsonIgnore] public (SolidColorBrush Color, string Name) OriginalColor { get; private set; } = (new(Colors.Ivory), "Ivory");
+		[JsonIgnore] public (SolidColorBrush Color, string Name) RomajiColor { get; private set; } = (new(Colors.Pink), "Pink");
+		[JsonIgnore] public (SolidColorBrush Color, string Name) TranslatedColor { get; private set; } = (new(Colors.GreenYellow), "GreenYellow");
 		[JsonIgnore] public Brush ErrorColor => Brushes.Red;
 
 		public double FontSize
@@ -242,10 +240,18 @@ namespace Happy_Reader
 				if (Loaded) Save();
 			}
 		}
-
-		private static readonly NoTranslator NoTranslator = new();
-
-		[JsonIgnore] public ICollection<ITranslator> Translators { get; set; } = new List<ITranslator>() { NoTranslator };
+		
+		public string SelectedRomajiTranslator
+		{
+			get => _selectedRomajiTranslator;
+			set
+			{
+				if (_selectedRomajiTranslator == value) return;
+				if (!RomajiTranslators.Any(t => t.Equals(value, StringComparison.OrdinalIgnoreCase))) return;
+				_selectedRomajiTranslator = value;
+				if (Loaded) Save();
+			}
+		}
 
 		[JsonIgnore]
 		public ITranslator SelectedTranslator

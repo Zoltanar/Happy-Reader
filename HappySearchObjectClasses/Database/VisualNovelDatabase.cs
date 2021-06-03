@@ -228,7 +228,7 @@ order by ListedVNs.ReleaseDate desc;";
 			{
 				using var command = Connection.CreateCommand();
 				command.CommandText =
-					$@"select DbTraits.TraitId from DbTraits 
+					@"select DbTraits.TraitId from DbTraits 
 join CharacterItems on CharacterItems.ID = DbTraits.CharacterItem_ID 
 join CharacterVNs on CharacterItems.ID = CharacterVNs.CharacterId 
 where VNID = @vnid;";

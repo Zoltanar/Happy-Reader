@@ -61,6 +61,7 @@
 				<ColumnDefinition Width="Auto"/>
 				<ColumnDefinition Width="*"/>
 				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
 				<ColumnDefinition Width="Auto" MinWidth="100"/>
 			</Grid.ColumnDefinitions>
 			<Button Grid.Column="0" Content="Expand Groups" Click="ToggleExpandGroups" Margin="0,2,2,2"/>
@@ -77,7 +78,8 @@
 			</ComboBox>
 			<TextBox x:Name="SearchTextBox" TextChanged="SearchTextBox_OnTextChanged" Margin="2" Grid.Column="2" TextAlignment="Left" />
 			<CheckBox Margin="2" Grid.Column="3" Content="Show File Not Found" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Checked="ToggleButton_OnChecked" Unchecked="ToggleButton_OnChecked" />
-			<TextBlock Margin="2,2,0,2" Grid.Column="4" Text="{Binding UserGameItems.Count, StringFormat={}{0} Items.}" Background="Aquamarine" TextAlignment="Center" />
+			<Button  Margin="2,2,2,2" Padding="5,0" Content="Add New" Grid.Column="4" Click="AddNewUserGame"/>
+			<TextBlock Margin="2,2,0,2" Grid.Column="5" Text="{Binding UserGameItems.Count, StringFormat={}{0} Items.}" Background="Aquamarine" TextAlignment="Center" />
 		</Grid>
 	</Grid>
 </UserControl>

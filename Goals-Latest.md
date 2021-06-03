@@ -1,7 +1,7 @@
 # For Latest Committed
 ## Future Features  
 #### Entries
-- allow proxy mods with multiple proxies ([[m#1]]-[[m#2]])
+- Priority: allow proxy mods with multiple proxies ([[m#1]]-[[m#2]])
 #### Translation
 - Better romaji library
 - Offline dictionary for faster (mouseover?) word lookups

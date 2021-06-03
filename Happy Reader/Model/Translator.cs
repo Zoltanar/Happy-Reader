@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -8,8 +9,10 @@ using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Happy_Apps_Core.Translation;
 using JetBrains.Annotations;
+using Kawazu;
 
 namespace Happy_Reader
 {
@@ -21,8 +24,14 @@ namespace Happy_Reader
 		private static readonly Regex Stage4P1InputRegex = new(@"\[\[(.+?)]]", RegexOptions.Compiled);
 		private static readonly Regex Stage4P1OutputRegex = new(@"^.*?\[\[(.+)]].*?$", RegexOptions.Compiled);
 		private static readonly Dictionary<string, Regex> RegexDict = new();
-
+		private static readonly KawazuConverter KawazuConverter = new();
 		public static readonly Regex LatinOnlyRegex = new(@"^[a-zA-Z0-9:+|\-[\]\/\\\r\n .!?,;@()_$^""]+$", RegexOptions.Compiled);
+		public static readonly IReadOnlyDictionary<string, Action<StringBuilder>> RomajiTranslators = new ReadOnlyDictionary<string, Action<StringBuilder>>(
+			new Dictionary<string, Action<StringBuilder>>(StringComparer.OrdinalIgnoreCase)
+			{
+				{ "Kawazu", KawazuToRomaji },
+				{ "Kakasi", Kakasi.JapaneseToRomaji },
+			});
 
 		private readonly HappyReaderDatabase _data;
 		private User _lastUser;
@@ -36,6 +45,7 @@ namespace Happy_Reader
 		private static uint GotFromApiCount { get; set; }
 		public bool RefreshEntries = true;
 		private static ITranslator SelectedTranslator => StaticMethods.Settings.TranslatorSettings.SelectedTranslator;
+		private static string RomajiTranslator => StaticMethods.Settings.TranslatorSettings.SelectedRomajiTranslator;
 
 		public Translator(HappyReaderDatabase data) => _data = data;
 
@@ -138,14 +148,14 @@ namespace Happy_Reader
 			if (gamesInSeries.Length > 0)
 			{
 				specificEntries = _data.Entries.Where(e => (e.Private && e.UserId == user.Id || !e.Private)
-				                                           && e.SeriesSpecific
-																									 && e.GameData.GameId.HasValue 
-				                                           && gamesInSeries.Contains(e.GameData)).ToArray();
+																									 && e.SeriesSpecific
+																									 && e.GameData.GameId.HasValue
+																									 && gamesInSeries.Contains(e.GameData)).ToArray();
 			}
 			_entries = generalEntries.Concat(specificEntries).Where(e => !e.Disabled).OrderBy(i => i.Id).ToArray();
 			StaticHelpers.Logger.ToDebug($"[Translator] General entries: {generalEntries.Length}. Specific entries: {specificEntries.Length}");
 		}
-		
+
 		/// <summary>
 		/// Replace entries of type Game.
 		/// </summary>
@@ -445,11 +455,8 @@ namespace Happy_Reader
 			}
 			StaticHelpers.Logger.Verbose($"Stage 0: {sb}");
 			result[0] = sb.ToString();
-			{
-				result?.SetStage(1);
-				result[1] = sb.ToString();
-			}
-			//todo skip stage one for parts? TranslateStageOne(sb, result);
+			result.SetStage(1);
+			result[1] = sb.ToString();
 			TranslateStageTwo(sb, result);
 			TranslateStageThree(sb, result);
 			List<Entry> usefulEntriesWithProxies;
@@ -638,6 +645,20 @@ namespace Happy_Reader
 		{
 			if (!_logVerbose) return;
 			Debug.WriteLine(text);
+		}
+
+		public void GetRomaji(StringBuilder text)
+		{
+			ReplacePreRomaji(text);
+			RomajiTranslators[RomajiTranslator](text);
+			ReplacePostRomaji(text);
+		}
+
+		private static void KawazuToRomaji(StringBuilder sb)
+		{
+			var romaji = Task.Run(() => KawazuConverter.Convert(sb.ToString(), To.Romaji, Mode.Spaced, RomajiSystem.Hepburn)).GetAwaiter().GetResult();
+			sb.Clear();
+			sb.Append(romaji);
 		}
 
 		public static void ExitProcedures(Func<int> saveData)

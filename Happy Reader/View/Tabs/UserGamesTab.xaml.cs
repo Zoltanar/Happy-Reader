@@ -16,6 +16,7 @@ using Happy_Reader.Database;
 using Happy_Reader.View.Converters;
 using Happy_Reader.View.Tiles;
 using Happy_Reader.ViewModel;
+using Microsoft.Win32;
 
 namespace Happy_Reader.View.Tabs
 {
@@ -31,12 +32,20 @@ namespace Happy_Reader.View.Tabs
 			_scrollLabelTimer = new DispatcherTimer(new TimeSpan(0, 0, 2), DispatcherPriority.ContextIdle, HideScrollLabel, Dispatcher);
 		}
 
+		private void AddNewUserGame(object sender, RoutedEventArgs e)
+		{
+			var dialog = new OpenFileDialog();
+			var result = dialog.ShowDialog();
+			if (!result.HasValue || !result.Value) return;
+			AddGameFile(sender, dialog.FileName);
+		}
+
 		private void DropFileOnGamesTab(object sender, DragEventArgs e)
 		{
 			var files = e.Data.GetData(DataFormats.FileDrop) as string[];
 			if (files == null || files.Length == 0)
 			{
-				StaticHelpers.Logger.ToFile($"FileDrop was null or empty: {files == null} {files?.Length}");
+				StaticHelpers.Logger.ToFile($"File Drop was null or empty: {files == null} {files?.Length}");
 				return;
 			}
 			var file = files.First();
@@ -51,12 +60,17 @@ namespace Happy_Reader.View.Tabs
 				StaticMethods.MainWindow.ViewModel.StatusText = "Dragged file isn't an executable.";
 				return;
 			}
+			AddGameFile(sender, file);
+		}
+
+		private void AddGameFile(object sender, string filePath)
+		{
 			try
 			{
-				var titledImage = ViewModel.AddGameFile(file);
+				var titledImage = ViewModel.AddGameFile(filePath);
 				if (titledImage == null) return;
-				((IList<UserGameTile>) GameFiles.ItemsSource).Add(titledImage);
-				titledImage.ViewDetails(this, null);
+				((IList<UserGameTile>)GameFiles.ItemsSource).Add(titledImage);
+				titledImage.ViewDetails(sender, null);
 			}
 			catch (Exception ex)
 			{

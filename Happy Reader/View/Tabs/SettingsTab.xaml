@@ -147,8 +147,14 @@
 						<ColumnDefinition Width="Auto"/>
 						<ColumnDefinition Width="*"/>
 					</Grid.ColumnDefinitions>
-					<Label Grid.Column="0" Content="Translator" Width="120"/>
-					<ComboBox Grid.Column="1" ItemsSource="{Binding Translators}" DisplayMemberPath="SourceName" SelectedValue="{Binding SelectedTranslator}"/>
+					<Grid.RowDefinitions>
+						<RowDefinition/>
+						<RowDefinition/>
+					</Grid.RowDefinitions>
+					<Label Grid.Column="0" Grid.Row="0" Content="Romaji" Width="120"/>
+					<ComboBox Grid.Column="1" Grid.Row="0" ItemsSource="{Binding RomajiTranslators}" SelectedValue="{Binding SelectedRomajiTranslator}" Margin="5,0"/>
+					<Label Grid.Column="0" Grid.Row="1" Content="Translator" Width="120"/>
+					<ComboBox Grid.Column="1" Grid.Row="1" ItemsSource="{Binding Translators}" DisplayMemberPath="SourceName" SelectedValue="{Binding SelectedTranslator}" Margin="5,0"/>
 				</Grid>
 			</StackPanel>
 		</GroupBox>

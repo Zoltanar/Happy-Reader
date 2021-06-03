@@ -62,14 +62,7 @@ namespace Happy_Reader
 				.SelectMany(pr => pr.EntriesUsed.SelectMany(eu => eu))
 				.Concat(_entriesUsedStageOne).Distinct();
 		}
-
-		private static void GetRomaji(StringBuilder romajiSb)
-		{
-			Translator.ReplacePreRomaji(romajiSb);
-			Kakasi.JapaneseToRomaji(romajiSb);
-			Translator.ReplacePostRomaji(romajiSb);
-		}
-
+		
 		public void TranslateParts(bool saveEntriesUsed)
 		{
 			var romajiSb = new StringBuilder();
@@ -85,7 +78,7 @@ namespace Happy_Reader
 					}
 					_partResults.Add(Translator.TranslatePart(part, saveEntriesUsed));
 					var romajiPart = new StringBuilder(part);
-					GetRomaji(romajiPart);
+					Translator.GetRomaji(romajiPart);
 					romajiSb.Append(romajiPart);
 				}
 				for (int stage = 0; stage < 7; stage++)
