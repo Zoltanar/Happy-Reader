@@ -395,6 +395,9 @@ namespace Happy_Reader.ViewModel
 		[NotifyPropertyChangedInvocator]
 		public void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
+		//todo make editable
+		private static readonly HashSet<string> ClipboardProcessNames = new (new [] {"ithvnr", "ithvnrsharp", "textractor"});
+
 		private void ClipboardChanged(object sender, EventArgs e)
 		{
 			if (TranslatePaused || StaticMethods.CtrlKeyIsHeld()) return;
@@ -402,9 +405,8 @@ namespace Happy_Reader.ViewModel
 			var cpOwner = StaticMethods.GetClipboardOwner();
 			var b1 = cpOwner == null;
 			var b2 = cpOwner?.Id == UserGame.Process.Id;
-			var b3 = cpOwner?.ProcessName.ToLower().Equals("ithvnr") ?? false;
-			var b4 = cpOwner?.ProcessName.ToLower().Equals("ithvnrsharp") ?? false;
-			if (!(b1 || b2 || b3 || b4)) return; //if process isn't hooked process or named ithvnr
+			var b3 = cpOwner != null && ClipboardProcessNames.Contains(cpOwner.ProcessName.ToLower());
+			if (!(b1 || b2 || b3)) return; //if process isn't hooked process or in list of allowed names
 			var text = RunWithRetries(
 				Clipboard.GetText,
 				() => Thread.Sleep(10),
@@ -463,15 +465,15 @@ namespace Happy_Reader.ViewModel
 				{
 					if (process == null)
 					{
-						NotificationEvent(this, $"Failed to get process for user game '{userGame.DisplayName}'");
+						NotificationEvent(this, $"Failed to get process for user game '{userGame.DisplayName}'", "Process Launch Failed");
 						UserGame = null;
 						return;
 					}
 					if (process.HasExited)
 					{
 						NotificationEvent(this,
-							$"Process for {UserGame} has exited prematurely, check that executable is the running process.",
-							"Process has exited.");
+							$"Game Process has exited prematurely, check that executable is the running process.",
+							"Process Has Exited");
 						UserGame = null;
 						return;
 					}

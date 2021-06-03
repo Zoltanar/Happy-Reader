@@ -140,7 +140,7 @@ namespace Happy_Reader.Database
 		{
 			HookCode = string.IsNullOrWhiteSpace(hookCode) ? null : hookCode.Trim();
 			StaticMethods.Data.UserGames.Upsert(_userGame, true);
-			_userGame.OnPropertyChanged($"{nameof(UserGame.GameHookSettings)}.{nameof(HookCode)}");
+			_userGame.OnPropertyChanged($"{nameof(UserGame.GameHookSettings)}");
 		}
 
 		private void WindowMoveStarts(IntPtr windowPointer)

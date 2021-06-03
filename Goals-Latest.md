@@ -15,7 +15,6 @@
 - list entries used per stage.
 #### ITHVNR
 - rename tab to Text Hooking
-- update open user game tab when hook code is changed with Set Hook Code
 - use ithvnr tab to also show captured clipboard text format like: \[process/pid] \[outputted] \[text]
 - better saving/loading game text threads, let user name threads and delete saved
 - once any thread has been saved as posting, change default for new threads to stop/hide.
