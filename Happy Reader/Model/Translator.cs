@@ -249,8 +249,8 @@ namespace Happy_Reader
 				usefulEntriesWithProxies = usefulEntriesWithProxies.Where(e => e.AssignedProxy != null).ToList();
 				StaticHelpers.Logger.Verbose($"Stage 4.0: {sb}");
 				//perform replaces involving proxies
-				var entriesOnProxies = _entries.Where(i => i.Type == EntryType.ProxyMod).ToArray();
-				TranslateStage4P1(sb, usefulEntriesWithProxies, entriesOnProxies);
+				var entriesOnProxies = _entries.Where(i => i.Type == EntryType.ProxyMod).Reverse().ToArray();
+				TranslateStage4P1(sb, usefulEntriesWithProxies, entriesOnProxies, result);
 				foreach (var entry in usefulEntriesWithProxies)
 				{
 					foreach (var proxyMod in entry.AssignedProxy.ProxyMods) result.AddEntryUsed(proxyMod);
@@ -391,7 +391,7 @@ namespace Happy_Reader
 			return true;
 		}
 
-		private void TranslateStage4P1(StringBuilder sb, IReadOnlyCollection<Entry> entriesWithProxies, ICollection<Entry> entriesOnProxies)
+		private void TranslateStage4P1(StringBuilder sb, ICollection<Entry> entriesWithProxies, ICollection<Entry> entriesOnProxies, TranslationResults result)
 		{
 			bool matchFound;
 			int loopCount = 0;
@@ -402,32 +402,38 @@ namespace Happy_Reader
 				foreach (var entry in entriesOnProxies)
 				{
 					var input = Stage4P1InputRegex.Replace(entry.Input, @"\[\[$1#(\d+)]]");
-					/*var matches1 = Stage4P1InputRegex.Matches(entry.Input);
-					var input1 = entry.Input;
-					int matchCount1 = 1;
-					int diffLength = 0;
-					foreach (var match1 in matches1.Cast<Match>())
-					{
-						if (!match1.Success) continue;
-						var matchValue1 = match1.Groups[1].Value;
-						var p1 = input1.Substring(0, match1.Groups[1].Index + diffLength);
-						var p2 = $"${matchCount1++}#(\\d+)";
-						var p3 = input1.Substring(diffLength + match1.Groups[1].Index + matchValue1.Length);
-						input1 =  p1 + p2 + p3;
-						diffLength = input1.Length - entry.Input.Length;
-					}*/
-					var matches = Regex.Matches(sb.ToString(), input).Cast<Match>().Select(x => int.Parse(x.Groups[1].Value)).Distinct().ToList();
+					var matches = Regex.Matches(sb.ToString(), input).Cast<Match>().SelectMany(x => x.Groups.Cast<Group>().Skip(1).Select(g => int.Parse(g.Value))).ToList();
 					if (matches.Count == 0) continue;
+					var mergedEntry = new Entry
+					{
+						RoleString = entry.RoleString,
+						Input = input,
+						Output = entry.Output
+					};
 					foreach (int match in matches)
 					{
-						entriesWithProxies.Single(x =>
+						var matchedEntry = entriesWithProxies.Single(x =>
 						{
 							var mainProxyPart = x.AssignedProxy.Role.Split('.')[0];
 							return x.AssignedProxy.Id == match && mainProxyPart == entry.RoleString;
-						}).AssignedProxy.ProxyMods.Add(entry);
+						});
+						if (matches.Count > 1)
+						{
+							entriesWithProxies.Remove(matchedEntry);
+							mergedEntry.AssignedProxy ??= matchedEntry.AssignedProxy;
+							mergedEntry.AssignedProxy.ProxyMods.AddRange(matchedEntry.AssignedProxy.ProxyMods);
+							mergedEntry.Output = new Regex($@"\[\[(.+?)#{match}]]").Replace(mergedEntry.Output, matchedEntry.Output);
+						}
+						else matchedEntry.AssignedProxy.ProxyMods.Add(entry);
 					}
-					var output = Stage4P1OutputRegex.Replace(entry.Output, @"[[$1#$$1]]");
-					LogReplaceRegex(sb, input, output, null, entry);
+					string output;
+					if (matches.Count > 1)
+					{
+						entriesWithProxies.Add(mergedEntry);
+						output = mergedEntry.AssignedProxy.FullRoleString;
+					}
+					else output = Stage4P1OutputRegex.Replace(entry.Output, @"[[$1#$$1]]");
+					LogReplaceRegex(sb, input, output, result, entry);
 					matchFound = true;
 				}
 				//something could have gone wrong causing infinite loop
@@ -436,7 +442,7 @@ namespace Happy_Reader
 			while (matchFound);
 			StaticHelpers.Logger.Verbose($"Stage 4.1: {sb}");
 		}
-
+		
 		public TranslationResults TranslatePart(string input, bool saveEntriesUsed)
 		{
 			var result = new TranslationResults(saveEntriesUsed);

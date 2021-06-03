@@ -1,9 +1,8 @@
-# For Latest Committed
+﻿# For Latest Committed
 ## Future Features  
 #### Entries
-- Priority: allow proxy mods with multiple proxies ([[m#1]]-[[m#2]])
+- Working: allow proxy mods with multiple proxies `[[m]]・[[m]] > [[m#1]]-[[m#2]]`; not working: `[[m]]・[[m]] > [[m#2]]-[[m#1]]`
 #### Translation
-- Better romaji library
 - Offline dictionary for faster (mouseover?) word lookups
 - option to do this automatically: remove translations from cache if not used recently or originally cached too long ago.
 - apply translate stage 4 to pre-romaji
