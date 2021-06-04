@@ -101,7 +101,7 @@ namespace Happy_Reader.ViewModel
 			}
 			else
 			{
-				var output = Kakasi.JapaneseToRomaji(input);
+				var output = Translator.GetRomaji(input);
 				if (output.Length > 0) output = char.ToUpper(output[0]) + output.Substring(1);
 				entry = new Entry
 				{

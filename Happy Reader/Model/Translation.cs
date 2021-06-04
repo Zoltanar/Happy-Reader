@@ -78,7 +78,7 @@ namespace Happy_Reader
 					}
 					_partResults.Add(Translator.TranslatePart(part, saveEntriesUsed));
 					var romajiPart = new StringBuilder(part);
-					Translator.GetRomaji(romajiPart);
+					Translator.GetRomajiFiltered(romajiPart);
 					romajiSb.Append(romajiPart);
 				}
 				for (int stage = 0; stage < 7; stage++)

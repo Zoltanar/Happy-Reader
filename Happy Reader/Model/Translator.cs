@@ -26,8 +26,8 @@ namespace Happy_Reader
 		private static readonly Dictionary<string, Regex> RegexDict = new();
 		private static readonly KawazuConverter KawazuConverter = new();
 		public static readonly Regex LatinOnlyRegex = new(@"^[a-zA-Z0-9:+|\-[\]\/\\\r\n .!?,;@()_$^""]+$", RegexOptions.Compiled);
-		public static readonly IReadOnlyDictionary<string, Action<StringBuilder>> RomajiTranslators = new ReadOnlyDictionary<string, Action<StringBuilder>>(
-			new Dictionary<string, Action<StringBuilder>>(StringComparer.OrdinalIgnoreCase)
+		public static readonly IReadOnlyDictionary<string, Func<string, string>> RomajiTranslators = new ReadOnlyDictionary<string, Func<string, string>>(
+			new Dictionary<string, Func<string, string>>(StringComparer.OrdinalIgnoreCase)
 			{
 				{ "Kawazu", KawazuToRomaji },
 				{ "Kakasi", Kakasi.JapaneseToRomaji },
@@ -623,7 +623,7 @@ namespace Happy_Reader
 			var character = input[0];
 			if (!IsHiragana(character) && !IsKatakana(character)) return false;
 			//if character is 'tsu' on its own, we remove it.
-			var output = character == 'っ' || character == 'ッ' ? string.Empty : Kakasi.JapaneseToRomaji(input);
+			var output = character == 'っ' || character == 'ッ' ? string.Empty : GetRomaji(input);
 			text.Clear();
 			SetTranslationAndSaveToCache(text, output, input, "Single Kana");
 			return true;
@@ -655,18 +655,23 @@ namespace Happy_Reader
 			Debug.WriteLine(text);
 		}
 
-		public void GetRomaji(StringBuilder text)
+		public void GetRomajiFiltered(StringBuilder text)
 		{
 			ReplacePreRomaji(text);
-			RomajiTranslators[RomajiTranslator](text);
+			var romaji = GetRomaji(text.ToString());
+			text.Clear();
+			text.Append(romaji);
 			ReplacePostRomaji(text);
 		}
 
-		private static void KawazuToRomaji(StringBuilder sb)
+		public static string GetRomaji(string text)
 		{
-			var romaji = Task.Run(() => KawazuConverter.Convert(sb.ToString(), To.Romaji, Mode.Spaced, RomajiSystem.Hepburn)).GetAwaiter().GetResult();
-			sb.Clear();
-			sb.Append(romaji);
+			return RomajiTranslators[RomajiTranslator](text);
+		}
+
+		private static string KawazuToRomaji(string text)
+		{
+			return Task.Run(() => KawazuConverter.Convert(text, To.Romaji, Mode.Spaced, RomajiSystem.Hepburn)).GetAwaiter().GetResult().Replace('ゔ', 'v');
 		}
 
 		public static void ExitProcedures(Func<int> saveData)
