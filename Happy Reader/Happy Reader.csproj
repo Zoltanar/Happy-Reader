@@ -145,6 +145,7 @@
     <Compile Include="Database\GameHookSettings.cs" />
     <Compile Include="Database\GameThread.cs" />
     <Compile Include="Database\Log.cs" />
+    <Compile Include="Model\JMDict.cs" />
     <Compile Include="Model\VnFilters\CustomFilter.cs" />
     <Compile Include="Model\GuiSettings.cs" />
     <Compile Include="Model\Jisho.cs" />

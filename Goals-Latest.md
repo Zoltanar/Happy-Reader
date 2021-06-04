@@ -1,7 +1,7 @@
 ﻿# For Latest Committed
 ## Future Features  
 #### Translation
-- Priority: Offline dictionary for faster (mouseover?) word lookups
+- Make mouseover dictionary tooltip nicer and remove Jisho API
 - option to do this automatically: remove translations from cache if not used recently or originally cached too long ago.
 - apply translate stage 4 to pre-romaji
 #### Filters

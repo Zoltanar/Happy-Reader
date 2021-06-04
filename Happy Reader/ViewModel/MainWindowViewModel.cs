@@ -133,7 +133,7 @@ namespace Happy_Reader.ViewModel
 				VndbQueries = _vndbQueriesList.Items,
 				VndbResponses = _vndbResponsesList.Items
 			};
-			Translator = new Translator(StaticMethods.Data);
+			Translator = new Translator(StaticMethods.Data, SettingsViewModel.TranslatorSettings);
 			Translation.Translator = Translator;
 			UserGamesViewModel = new UserGamesViewModel(this);
 			EntriesViewModel = new EntriesTabViewModel();
@@ -207,10 +207,8 @@ namespace Happy_Reader.ViewModel
 				StatusText = "Loading Translation Plugins...";
 				SettingsViewModel.TranslatorSettings.LoadTranslationPlugins(TranslationPluginsFolder);
 				StaticMethods.MainWindow.SettingsTab.LoadTranslationPlugins(SettingsViewModel.TranslatorSettings.Translators);
-				StatusText = "Loading Cached Translations...";
-				var cacheLoadWatch = Stopwatch.StartNew();
-				Translator.SetCache(logVerbose, SettingsViewModel.TranslatorSettings);
-				StaticHelpers.Logger.ToDebug($"Loaded cached translations in {cacheLoadWatch.ElapsedMilliseconds} ms");
+				StatusText = "Initialising Translator...";
+				Translator.Initialise(logVerbose);
 				StatusText = "Populating Proxies...";
 				PopulateProxies();
 				StatusText = "Loading Entries...";

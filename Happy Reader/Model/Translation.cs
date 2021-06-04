@@ -62,7 +62,7 @@ namespace Happy_Reader
 				.SelectMany(pr => pr.EntriesUsed.SelectMany(eu => eu))
 				.Concat(_entriesUsedStageOne).Distinct();
 		}
-		
+
 		public void TranslateParts(bool saveEntriesUsed)
 		{
 			var romajiSb = new StringBuilder();

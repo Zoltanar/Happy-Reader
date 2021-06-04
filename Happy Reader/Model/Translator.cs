@@ -34,6 +34,7 @@ namespace Happy_Reader
 			});
 
 		private readonly HappyReaderDatabase _data;
+		private readonly TranslatorSettings _settings;
 		private User _lastUser;
 		private EntryGame _lastGame;
 		private Entry[] _entries;
@@ -44,18 +45,30 @@ namespace Happy_Reader
 		private static uint GotFromCacheCount { get; set; }
 		private static uint GotFromApiCount { get; set; }
 		public bool RefreshEntries = true;
-		private static ITranslator SelectedTranslator => StaticMethods.Settings.TranslatorSettings.SelectedTranslator;
-		private static string RomajiTranslator => StaticMethods.Settings.TranslatorSettings.SelectedRomajiTranslator;
+		private ITranslator SelectedTranslator => _settings.SelectedTranslator;
+		private string RomajiTranslator => _settings.SelectedRomajiTranslator;
+		public JMDict OfflineDictionary { get; } = new JMDict();
 
-		public Translator(HappyReaderDatabase data) => _data = data;
-
-		public void SetCache(bool logVerbose, TranslatorSettings translatorSettings)
+		public Translator(HappyReaderDatabase data, TranslatorSettings settings)
 		{
-			_inclusiveSeparators = translatorSettings.InclusiveSeparators.ToCharArray();
-			_allSeparators = translatorSettings.ExclusiveSeparators.Concat(translatorSettings.InclusiveSeparators).ToArray();
-			_logVerbose = logVerbose;
+			_data = data;
+			_settings = settings;
+			_settings.UpdateOfflineDictionaryFolder = UpdateOfflineDictionaryFolder;
 		}
 
+		public void Initialise(bool logVerbose)
+		{
+			_inclusiveSeparators = _settings.InclusiveSeparators.ToCharArray();
+			_allSeparators = _settings.ExclusiveSeparators.Concat(_settings.InclusiveSeparators).ToArray();
+			_logVerbose = logVerbose;
+			UpdateOfflineDictionaryFolder();
+		}
+
+		private void UpdateOfflineDictionaryFolder()
+		{
+			OfflineDictionary.ReadFiles(_settings.OfflineDictionaryFolder, "*term_bank_*json");
+		}
+		
 		public Translation Translate(User user, EntryGame game, string input, bool saveEntriesUsed, bool removeRepetition)
 		{
 			if (removeRepetition)
@@ -77,9 +90,9 @@ namespace Happy_Reader
 			{
 				return Translation.Error("Input was empty.");
 			}
-			if (input.Length > StaticMethods.Settings.TranslatorSettings.MaxOutputSize)
+			if (input.Length > _settings.MaxOutputSize)
 			{
-				return Translation.Error($"Exceeded maximum output size ({input.Length}/{StaticMethods.Settings.TranslatorSettings.MaxOutputSize})");
+				return Translation.Error($"Exceeded maximum output size ({input.Length}/{_settings.MaxOutputSize})");
 			}
 			lock (TranslateLock)
 			{
@@ -608,7 +621,7 @@ namespace Happy_Reader
 		private bool TryGetWithoutApi(string cacheSource, StringBuilder text, bool isBlocked, out string input)
 		{
 			input = text.ToString();
-			if (StaticMethods.Settings.TranslatorSettings.UntouchedStrings.Contains(input)) return true;
+			if (_settings.UntouchedStrings.Contains(input)) return true;
 			text.Clear();
 			if (GetFromCache(cacheSource, text, input)) return true;
 			if (TranslateSingleKana(text, input)) return true;
@@ -664,7 +677,7 @@ namespace Happy_Reader
 			ReplacePostRomaji(text);
 		}
 
-		public static string GetRomaji(string text)
+		public string GetRomaji(string text)
 		{
 			return RomajiTranslators[RomajiTranslator](text);
 		}

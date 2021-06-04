@@ -22,9 +22,11 @@ namespace Happy_Reader
 		private int _maxOutputSize = 700;
 		private double _fontSize = 22d;
 		private bool _captureClipboard;
+		private bool _mouseoverDictionary;
 		private string _originalTextFont;
 		private string _romajiTextFont;
 		private string _translatedTextFont;
+		private string _offlineDictionaryFolder;
 		private string _selectedTranslatorName;
 		private string _selectedRomajiTranslator = RomajiTranslators.First();
 		private bool _settingsViewState = true;
@@ -32,6 +34,7 @@ namespace Happy_Reader
 		private TextAlignment _outputHorizontalAlignment = TextAlignment.Center;
 
 		[JsonIgnore] public Action<bool> CaptureClipboardChanged;
+		[JsonIgnore] public Action UpdateOfflineDictionaryFolder;
 
 		//todo make editable
 		public HashSet<string> UntouchedStrings { get; set; } = new() { "", "\r\n" };
@@ -207,6 +210,20 @@ namespace Happy_Reader
 				}
 			}
 		}
+
+		public bool MouseoverDictionary
+		{
+			get => _mouseoverDictionary;
+			set
+			{
+				if (_mouseoverDictionary == value) return;
+				_mouseoverDictionary = value;
+				if (Loaded)
+				{
+					Save();
+				}
+			}
+		}
 		public TextAlignment OutputHorizontalAlignment
 		{
 			get => _outputHorizontalAlignment;
@@ -267,6 +284,18 @@ namespace Happy_Reader
 				value.LoadProperties(StaticHelpers.GetTranslatorSettings(value.SourceName));
 				value.Initialise();
 				SelectedTranslatorName = value.SourceName;
+				if (Loaded) Save();
+			}
+		}
+
+		public string OfflineDictionaryFolder
+		{
+			get => _offlineDictionaryFolder;
+			set
+			{
+				if (_offlineDictionaryFolder == value) return;
+				_offlineDictionaryFolder = value;
+				UpdateOfflineDictionaryFolder?.Invoke();
 				if (Loaded) Save();
 			}
 		}

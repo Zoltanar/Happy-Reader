@@ -49,13 +49,13 @@ namespace Happy_Reader.ViewModel
 		public bool DisableCombine { get; set; }
 		public ICommand AddEntryCommand { get; set; }
 		public ICommand AskJishoCommand { get; set; }
-		public ICommand AskJishoNotificationCommand { get; set; }
+		public ICommand SearchOnDictionaryCommand { get; set; }
 
 		public OutputWindowViewModel()
 		{
 			AddEntryCommand = new CommandHandler(AddEntry, true);
 			AskJishoCommand = new CommandHandler(AskJisho, true);
-			AskJishoNotificationCommand = new CommandHandler(AskJishoNotification, true);
+			SearchOnDictionaryCommand = new CommandHandler(() => SearchOnDictionary(_getSelectedText()), true);
 		}
 
 		private void AskJisho()
@@ -64,13 +64,23 @@ namespace Happy_Reader.ViewModel
 			Process.Start($"http://jisho.org/search/{input}");
 		}
 
-		private void AskJishoNotification()
+		private bool useJishoDictionary = false;
+
+		private void SearchOnDictionary(string input)
 		{
-			var input = _getSelectedText();
-			var task = System.Threading.Tasks.Task.Run(async () => await Jisho.Search(input));
-			task.Wait();
-			var text = task.Result.Data.Length < 1 ? "No results found." : task.Result.Data[0].Results();
-			NotificationWindow.Launch("Ask Jisho", text);
+			string text;
+			if (useJishoDictionary)
+			{
+				var task = System.Threading.Tasks.Task.Run(async () => await Jisho.Search(input));
+				task.Wait();
+				text = task.Result.Data.Length < 1 ? "No results found." : task.Result.Data[0].Results();
+			}
+			else
+			{
+				var results = StaticMethods.MainWindow.ViewModel.Translator.OfflineDictionary.Search(input);
+				text = results.Count < 1 ? "No results found." : string.Join(Environment.NewLine, results.Select(c=>c.Detail()));
+			}
+			NotificationWindow.Launch("Dictionary", text);
 		}
 
 		public void Initialize(Func<string> getSelectedText, FlowDocument flowDocument, Action scrollToBottom)
@@ -101,7 +111,7 @@ namespace Happy_Reader.ViewModel
 			}
 			else
 			{
-				var output = Translator.GetRomaji(input);
+				var output = StaticMethods.MainWindow.ViewModel.Translator.GetRomaji(input);
 				if (output.Length > 0) output = char.ToUpper(output[0]) + output.Substring(1);
 				entry = new Entry
 				{

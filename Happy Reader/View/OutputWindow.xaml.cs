@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using Happy_Reader.ViewModel;
 
@@ -168,6 +169,29 @@ namespace Happy_Reader.View
 				Bottom = (int)Top + (int)Height
 			};
 			StaticMethods.MainWindow.ViewModel.UserGame.GameHookSettings.SaveOutputRectangle(outputWindowLocation);
+		}
+
+		private void OnMouseover(object sender, MouseEventArgs e)
+		{
+			if (!StaticMethods.MainWindow.ViewModel.SettingsViewModel.TranslatorSettings.MouseoverDictionary) return;
+			var mousePoint = Mouse.GetPosition(OutputTextBox);
+			var textPosition = OutputTextBox.GetPositionFromPoint(mousePoint, false);
+			if (textPosition != null)
+			{
+				if (textPosition.Paragraph?.Tag is not Translation trans || trans.OriginalBlock != textPosition.Paragraph) return;
+				var text = textPosition.GetTextInRun(LogicalDirection.Forward);
+				var results = StaticMethods.MainWindow.ViewModel.Translator.OfflineDictionary.Search(text);
+				if (results.Count < 1) return;
+				text = string.Join(Environment.NewLine, results.Select(c => c.Detail()).Take(5));
+				if (text.Equals(MouseoverTip.Content)) return;
+				MouseoverTip.Content = text;
+				if(!MouseoverTip.IsOpen) MouseoverTip.IsOpen = true;
+			}
+		}
+
+		private void OpacityChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+		{
+			MouseoverTipBackground.Opacity = e.NewValue;
 		}
 	}
 }

@@ -57,7 +57,7 @@ namespace Happy_Reader
 		{
 			var sb = new StringBuilder();
 			sb.Append(Japanese[0].Word == null? Japanese[0].Reading: $"{Japanese[0].Word} ({Japanese[0].Reading})");
-			sb.AppendLine($"({Translator.GetRomaji(Japanese[0].Reading)})");
+			sb.AppendLine($"({StaticMethods.MainWindow.ViewModel.Translator.GetRomaji(Japanese[0].Reading)})");
 			for (var index = 0; index < Senses.Length; index++)
 			{
 				var sense = Senses[index];

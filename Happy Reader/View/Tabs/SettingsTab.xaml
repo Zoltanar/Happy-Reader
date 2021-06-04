@@ -6,7 +6,7 @@
              xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
              xmlns:view="clr-namespace:Happy_Reader.View"
              mc:Ignorable="d" 
-             d:DesignHeight="650" d:DesignWidth="800"
+             d:DesignHeight="750" d:DesignWidth="800"
              d:DataContext="{d:DesignInstance viewModel:SettingsViewModel}"
 						 x:Name="Tab"
              Loaded="SettingsTab_OnLoaded">
@@ -156,6 +156,8 @@
 					<Label Grid.Column="0" Grid.Row="1" Content="Translator" Width="120"/>
 					<ComboBox Grid.Column="1" Grid.Row="1" ItemsSource="{Binding Translators}" DisplayMemberPath="SourceName" SelectedValue="{Binding SelectedTranslator}" Margin="5,0"/>
 				</Grid>
+				<view:LabeledTextBox LabelWidth="140" Label="Offline Dictionary Folder" Text="{Binding OfflineDictionaryFolder}" ToolTip="Path to folder with yomichan-formatted JMDict json files."/>
+				<CheckBox Content="Dictionary on Mouse-over" IsChecked="{Binding MouseoverDictionary}"/>
 			</StackPanel>
 		</GroupBox>
 	</Grid>
