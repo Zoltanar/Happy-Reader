@@ -11,13 +11,11 @@
 - set default filter (different from permanent filter)
 #### Test Tab
 - show if translation was cached or not and give option to re-fetch
-- merged entries dont all show in entries used
 - list entries used per stage.
 #### ITHVNR
 - rename tab to Text Hooking
 - use ithvnr tab to also show captured clipboard text format like: \[process/pid] \[outputted] \[text]
-- better saving/loading game text threads, let user name threads and delete saved
-- once any thread has been saved as posting, change default for new threads to stop/hide.
+- let user name threads and delete saved
 - text thread panel max height (scrollbar if needed)
 - VnrHook: handle maximum threads either change limit or reset ability
 - look at global hooks for changing ITHVNR settings via global hotkeys [GlobalMouseKeyHook](https://github.com/gmamaladze/globalmousekeyhook)

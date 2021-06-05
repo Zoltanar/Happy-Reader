@@ -550,9 +550,13 @@ namespace Happy_Reader.ViewModel
 				else outputWindowLocation = UserGame.GameHookSettings.OutputRectangle.MovePosition(windowLocation);
 				OutputWindow.SetLocation(outputWindowLocation);
 			}
-			if (!IthViewModel.Finalized && UserGame.GameHookSettings.HookProcess == HookMode.VnrHook && !string.IsNullOrWhiteSpace(UserGame.GameHookSettings.HookCode))
+			if (!IthViewModel.Finalized && UserGame.GameHookSettings.HookProcess == HookMode.VnrHook && !string.IsNullOrWhiteSpace(UserGame.GameHookSettings.HookCodes))
 			{
-				IthViewModel.Commands?.ProcessCommand(UserGame.GameHookSettings.HookCode, UserGame.Process.Id);
+				var hookCodes = UserGame.GameHookSettings.HookCodes.Split(' ');
+				foreach (var hookCode in hookCodes)
+				{
+					IthViewModel.Commands?.ProcessCommand(hookCode, UserGame.Process.Id);
+				}
 			}
 			OutputWindow.InitialisedWindowLocation = true;
 		}
@@ -561,8 +565,12 @@ namespace Happy_Reader.ViewModel
 		{
 			IthViewModel.MergeByHookCode = UserGame.GameHookSettings.MergeByHookCode;
 			IthViewModel.PrefEncoding = UserGame.GameHookSettings.PrefEncoding;
-			IthViewModel.GameTextThreads = new ConcurrentList<GameTextThread>();
-			IthViewModel.GameTextThreads.AddRange(StaticMethods.Data.GameThreads.Where(t => t.Item.GameId == UserGame.Id).Select(t => t.Item));
+			if (UserGame.GameHookSettings.MatchHookCode && !string.IsNullOrWhiteSpace(UserGame.GameHookSettings.HookCodes)) IthViewModel.GameHookCodes = UserGame.GameHookSettings.HookCodes.Split(' ');
+			else
+			{
+				IthViewModel.GameTextThreads = new ConcurrentList<GameTextThread>();
+				IthViewModel.GameTextThreads.AddRange(StaticMethods.Data.GameThreads.Where(t => t.Item.GameId == UserGame.Id).Select(t => t.Item));
+			}
 			switch (UserGame.GameHookSettings.HookProcess)
 			{
 				case HookMode.VnrAgent:

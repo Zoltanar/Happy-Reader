@@ -87,9 +87,14 @@ namespace Happy_Reader.ViewModel
 			gameTextThread.GameId = _mainViewModel.UserGame.Id;
 			StaticMethods.Data.GameThreads.UpsertLater(new GameThread(gameTextThread));
 		}
-		
+
 		public override void SaveGameTextThreads()
 		{
+			if (GameHookCodes.Length != 0)
+			{
+				GameHookCodes = Array.Empty<string>();
+				return;
+			}
 			if (GameTextThreads == null || GameTextThreads.Count == 0) return;
 			var threads = StaticMethods.Data.GameThreads.WithKeyIn(GameTextThreads.SelectToList(x => (x.GameId, x.Identifier))).ToList();
 			foreach (var gameThread in threads)

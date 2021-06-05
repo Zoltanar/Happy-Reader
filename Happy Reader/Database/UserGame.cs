@@ -200,9 +200,9 @@ namespace Happy_Reader.Database
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
 		{
 			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO {nameof(UserGame)}s" +
-									 "(Id, UserDefinedName, LaunchPath, HookProcess, VNID, FilePath, HookCode, MergeByHookCode, ProcessName, Tag, RemoveRepetition, OutputWindow, TimeOpenDT, PrefEncodingEnum, LaunchModeOverride) " +
+									 "(Id, UserDefinedName, LaunchPath, HookProcess, VNID, FilePath, HookCode, MergeByHookCode, MatchHookCode, ProcessName, Tag, RemoveRepetition, OutputWindow, TimeOpenDT, PrefEncodingEnum, LaunchModeOverride) " +
 									 "VALUES " +
-									 "(@Id, @UserDefinedName, @LaunchPath, @HookProcess, @VNID, @FilePath, @HookCode, @MergeByHookCode, @ProcessName, @Tag, @RemoveRepetition, @OutputWindow, @TimeOpenDT, @PrefEncodingEnum, @LaunchModeOverride)";
+									 "(@Id, @UserDefinedName, @LaunchPath, @HookProcess, @VNID, @FilePath, @HookCode, @MergeByHookCode, @MatchHookCode, @ProcessName, @Tag, @RemoveRepetition, @OutputWindow, @TimeOpenDT, @PrefEncodingEnum, @LaunchModeOverride)";
 			var command = connection.CreateCommand();
 			command.CommandText = sql;
 			command.AddParameter("@Id", Id);
@@ -211,8 +211,9 @@ namespace Happy_Reader.Database
 			command.AddParameter("@HookProcess", GameHookSettings.HookProcess);
 			command.AddParameter("@VNID", VNID);
 			command.AddParameter("@FilePath", FilePath);
-			command.AddParameter("@HookCode", GameHookSettings.HookCode);
+			command.AddParameter("@HookCode", GameHookSettings.HookCodes);
 			command.AddParameter("@MergeByHookCode", GameHookSettings.MergeByHookCode);
+			command.AddParameter("@MatchHookCode", GameHookSettings.MatchHookCode);
 			command.AddParameter("@ProcessName", ProcessName);
 			command.AddParameter("@Tag", Tag);
 			command.AddParameter("@RemoveRepetition", GameHookSettings.RemoveRepetition);
@@ -234,8 +235,9 @@ namespace Happy_Reader.Database
 			GameHookSettings.HookProcess = (HookMode)Convert.ToInt32(reader["HookProcess"]);
 			VNID = GetNullableInt(reader["VNID"]);
 			FilePath = Convert.ToString(reader["FilePath"]);
-			GameHookSettings.HookCode = Convert.ToString(reader["HookCode"]);
+			GameHookSettings.HookCodes = Convert.ToString(reader["HookCode"]);
 			GameHookSettings.MergeByHookCode = Convert.ToInt32(reader["MergeByHookCode"]) == 1;
+			GameHookSettings.MatchHookCode = Convert.ToInt32(reader["MatchHookCode"]) == 1;
 			ProcessName = Convert.ToString(reader["ProcessName"]);
 			Tag = Convert.ToString(reader["Tag"]);
 			GameHookSettings.RemoveRepetition = Convert.ToInt32(reader["RemoveRepetition"]) == 1;

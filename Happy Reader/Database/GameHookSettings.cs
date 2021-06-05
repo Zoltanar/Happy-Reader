@@ -3,8 +3,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using Happy_Apps_Core;
 using Happy_Reader.View;
+using StaticHelpers = Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Reader.Database
 {
@@ -34,6 +34,7 @@ namespace Happy_Reader.Database
 		private bool _removeRepetition;
 		private EncodingEnum _prefEncodingEnum;
 		private bool _mergeByHookCode;
+		private bool _matchHookCode;
 		private HookMode _hookProcess;
 		private NativeMethods.RECT _outputRectangle;
 
@@ -78,7 +79,21 @@ namespace Happy_Reader.Database
 			}
 		}
 
-		public string HookCode { get; internal set; }
+		public bool MatchHookCode
+		{
+			get => _matchHookCode;
+			set
+			{
+				if (_matchHookCode == value) return;
+				_matchHookCode = value;
+				if (_userGame.Loaded) _userGame.ReadyToUpsert = true;
+			}
+		}
+
+		/// <summary>
+		/// Space separated string of hook codes.
+		/// </summary>
+		public string HookCodes { get; internal set; }
 
 		public HookMode HookProcess
 		{
@@ -136,9 +151,12 @@ namespace Happy_Reader.Database
 			}
 		}
 
-		public void SaveHookCode(string hookCode)
+		public void SaveHookCode(string newHookCode)
 		{
-			HookCode = string.IsNullOrWhiteSpace(hookCode) ? null : hookCode.Trim();
+			var hookCodes = HookCodes.Split(' ');
+			var hookCode =  string.IsNullOrWhiteSpace(newHookCode) ? null : newHookCode.Trim();
+			if (hookCodes.Contains(hookCode)) return;
+			HookCodes += $" {hookCode}";
 			StaticMethods.Data.UserGames.Upsert(_userGame, true);
 			_userGame.OnPropertyChanged($"{nameof(UserGame.GameHookSettings)}");
 		}
