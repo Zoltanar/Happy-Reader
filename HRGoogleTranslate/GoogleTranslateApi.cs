@@ -26,7 +26,7 @@ namespace HRGoogleTranslate
 
 		private TranslationClient _client;
 
-		public string Version => "1.0";
+		public string Version => "1.1";
 		public string SourceName => "Google Translate API";
 		public string Error { get; set; }
 		public IReadOnlyDictionary<string, Type> Properties { get; } = new ReadOnlyDictionary<string, Type>(new Dictionary<string, Type>()

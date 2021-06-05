@@ -1,10 +1,7 @@
-﻿# For Version 2.3.0
+﻿# For Latest Committed
 ## Future Features  
-#### Entries
-- allow saving to usergame instead of vn game
-- allow proxy mods with multiple proxies ([[m#1]]-[[m#2]])
 #### Translation
-- Offline dictionary for faster (mouseover?) word lookups
+- Make mouseover dictionary tooltip nicer
 - option to do this automatically: remove translations from cache if not used recently or originally cached too long ago.
 - apply translate stage 4 to pre-romaji
 #### Filters
@@ -14,19 +11,16 @@
 #### Test Tab
 - show if translation was cached or not and give option to re-fetch
 - list entries used per stage.
-#### ITHVNR
+#### Text Hooking
 - use ithvnr tab to also show captured clipboard text format like: \[process/pid] \[outputted] \[text]
-- better saving/loading game text threads, let user name threads and delete saved
-- once any thread has been saved as posting, change default for new threads to stop/hide.
+- let user name threads and delete saved
 - text thread panel max height (scrollbar if needed)
 - VnrHook: handle maximum threads either change limit or reset ability
 - look at global hooks for changing ITHVNR settings via global hotkeys [GlobalMouseKeyHook](https://github.com/gmamaladze/globalmousekeyhook)
 #### Output Window
-- check if output window is in visible area of screens, if not, reset it.
 - alternate colors between blocks
 #### User Games
-- option to always launch games with some locale if windows locale is not already set to that, and option to override it.
-- context option to launch without hooking.
+- see details should change to correct user game tab when multiple user games for one vn
 - allow keeping time played for multiple games/allow process monitor to keep running always/make process monitor only have one instance
 - launch title from VN context menu
 #### Other
@@ -34,5 +28,11 @@
 - show written tag description on tooltip
 - MainWindow: allow scrolling on main window tab control when too many tabs and add close all tabs button
 - Settings: if login response is error with id 'needlogin' show user that credentials are wrong
+- DatabaseDumpReader: Parallelise?
+- DatabaseDumpReader: Icon
+- Logs: Link to folder, show size taken, option to clear.
+- Information Tab: Show Size of Vndb Images, show total size.
+- Use Screenshot Thumbnails when full-size is not found.
+
 ## Issues  
-- can't show Output Window on top of some fullscreen games, steals focus on games where it works (might need direct draw)
+- can't show outputwindow on top of some fullscreen games, steals focus on games where it works (might need direct draw)

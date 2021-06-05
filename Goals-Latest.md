@@ -5,15 +5,13 @@
 - option to do this automatically: remove translations from cache if not used recently or originally cached too long ago.
 - apply translate stage 4 to pre-romaji
 #### Filters
-- Priority: Add producer filter
 - staff filter by name instead of id
 - add seiyuu filter to character
 - set default filter (different from permanent filter)
 #### Test Tab
 - show if translation was cached or not and give option to re-fetch
 - list entries used per stage.
-#### ITHVNR
-- rename tab to Text Hooking
+#### Text Hooking
 - use ithvnr tab to also show captured clipboard text format like: \[process/pid] \[outputted] \[text]
 - let user name threads and delete saved
 - text thread panel max height (scrollbar if needed)
@@ -34,6 +32,7 @@
 - DatabaseDumpReader: Icon
 - Logs: Link to folder, show size taken, option to clear.
 - Information Tab: Show Size of Vndb Images, show total size.
+- Use Screenshot Thumbnails when full-size is not found.
 
 ## Issues  
 - can't show outputwindow on top of some fullscreen games, steals focus on games where it works (might need direct draw)

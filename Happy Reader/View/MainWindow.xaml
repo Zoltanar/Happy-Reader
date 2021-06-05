@@ -51,7 +51,7 @@
 			<TabItem Header="Games" >
 				<tabs:UserGamesTab x:Name="UserGamesTabItem" DataContext="{Binding UserGamesViewModel}"/>
 			</TabItem>
-			<TabItem Header="ITHVNR" x:Name="IthTabItem">
+			<TabItem Header="Text Hooking" x:Name="IthTabItem">
 				<tabs:IthVnrTab DataContext="{Binding IthViewModel}"/>
 			</TabItem>
 			<TabItem Header="Entries" x:Name="EntriesTabItem">
