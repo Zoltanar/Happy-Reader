@@ -657,6 +657,11 @@ namespace Happy_Reader
 		private void Translate(StringBuilder text)
 		{
 			if (TryGetWithoutApi(_useAnyCached ? null : SelectedTranslator.SourceName, text, false, out var input)) return;
+			if (!string.IsNullOrWhiteSpace(SelectedTranslator.Error))
+			{
+				text.Append(SelectedTranslator.Error);
+				return;
+			}
 			var success = SelectedTranslator.Translate(input, out var translated);
 			if (success) SetTranslationAndSaveToCache(text, translated, input, SelectedTranslator.SourceName);
 			else text.Append(translated);

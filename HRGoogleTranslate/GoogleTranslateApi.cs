@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Google;
+using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Translation.V2;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Translation;
@@ -16,7 +16,7 @@ namespace HRGoogleTranslate
 	[UsedImplicitly]
 	public class GoogleTranslateApi : ITranslator
 	{
-		private const string CredentialPropertyKey = "Credential Location";
+		private const string CredentialPropertyKey = "API Key / File Path";
 		private const string ModelPropertyKey = "Translation Model";
 		private const string BadRepetitionKey = "Prevent Bad Repetition";
 		private const string TargetLanguage = "en";
@@ -35,13 +35,13 @@ namespace HRGoogleTranslate
 			{ModelPropertyKey, typeof(TranslationModel)},
 			{BadRepetitionKey, typeof(bool)}
 		});
-		
+
 		public void Initialise()
 		{
 			Error = null;
 			try
 			{
-				SetGoogleCredential(Settings.GoogleCredentialPath);
+				SetGoogleCredential(Settings.GoogleCredential);
 			}
 			catch (Exception ex)
 			{
@@ -125,7 +125,7 @@ namespace HRGoogleTranslate
 		{
 			return propertyKey switch
 			{
-				CredentialPropertyKey => Settings.GoogleCredentialPath,
+				CredentialPropertyKey => Settings.GoogleCredential,
 				ModelPropertyKey => Settings.TranslationModel,
 				BadRepetitionKey => Settings.PreventBadRepetition,
 				_ => throw new ArgumentOutOfRangeException(nameof(propertyKey), $"Unrecognized property key: {propertyKey}")
@@ -142,16 +142,14 @@ namespace HRGoogleTranslate
 			//done automatically whenever a property changes.
 		}
 
-		private void SetGoogleCredential(string credentialPath)
+		private void SetGoogleCredential(string credential)
 		{
-			Settings.GoogleCredentialPath = credentialPath;
-			if (string.IsNullOrWhiteSpace(credentialPath)) throw new ArgumentNullException(credentialPath, "Google Credential path was empty.");
-			if (!File.Exists(credentialPath)) throw new FileNotFoundException("Google Credential file not found", credentialPath);
+			Settings.GoogleCredential = credential;
+			if (string.IsNullOrWhiteSpace(credential)) throw new ArgumentNullException(credential, "Google Credential was empty.");
 			try
 			{
-				Debug.Assert(credentialPath != null, nameof(credentialPath) + " != null");
-				using var stream = File.OpenRead(credentialPath);
-				_client = TranslationClient.Create(Google.Apis.Auth.OAuth2.GoogleCredential.FromStream(stream));
+				_client = File.Exists(credential) ? TranslationClient.Create(GoogleCredential.FromFile(credential)) : TranslationClient.CreateFromApiKey(credential, Settings.TranslationModel);
+				Error = null;
 			}
 			catch (Exception ex)
 			{
@@ -161,18 +159,17 @@ namespace HRGoogleTranslate
 
 		private class ApiSettings : SettingsJsonFile
 		{
-			// ReSharper disable once StringLiteralTypo
-			private string _googleCredentialPath = @"C:\Google\hrtranslate-credential.json";
+			private string _googleCredential = @"";
 			private TranslationModel _translationModel = TranslationModel.NeuralMachineTranslation;
 			private bool _preventBadRepetition = true;
 
-			public string GoogleCredentialPath
+			public string GoogleCredential
 			{
-				get => _googleCredentialPath;
+				get => _googleCredential;
 				set
 				{
-					if (_googleCredentialPath == value) return;
-					_googleCredentialPath = value;
+					if (_googleCredential == value) return;
+					_googleCredential = value;
 					if (Loaded) Save();
 				}
 			}
