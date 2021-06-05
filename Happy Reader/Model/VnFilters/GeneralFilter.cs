@@ -97,6 +97,10 @@ namespace Happy_Reader
 						IntValue = dumpItemValue.ID;
 						_stringValue = IntValue.ToString();
 						break;
+					case ListedProducer producer:
+						IntValue = producer.ID;
+						_stringValue = IntValue.ToString();
+						break;
 					default:
 						IntValue = 0;
 						_stringValue = value?.ToString();
@@ -181,6 +185,8 @@ namespace Happy_Reader
 					return i => ((i is CharacterItem ch && ch.ImageId != null) ||
 											 (i is ListedVN vn && StaticHelpers.LocalDatabase.GetCharactersForVN(vn.VNID).Any(chara => chara.ImageId != null)))
 											!= Exclude;
+				case GeneralFilterType.Producer:
+					return i => (i is CharacterItem ch && ch.Producer?.ID == IntValue) || (i is ListedVN vn && vn.ProducerID == IntValue) != Exclude;
 				default: throw new ArgumentOutOfRangeException();
 			}
 		}
@@ -220,8 +226,7 @@ namespace Happy_Reader
 			if (Type != GeneralFilterType.Staff) throw new InvalidOperationException($"Filter type {Type} should use per-item function.");
 			return db => db.GetVnsWithStaff(IntValue);
 		}
-
-
+		
 		Func<IDataItem<int>, bool> IFilter.GetFunction()
 		{
 			//we determine what the filter function is only once, rather than per-item
@@ -355,6 +360,8 @@ namespace Happy_Reader
 					return $"{result} - {DumpFiles.GetTrait(IntValue).Name}";
 				case GeneralFilterType.Staff:
 					return $"{result} - {StaticHelpers.LocalDatabase.StaffAliases[StaticHelpers.LocalDatabase.StaffItems[IntValue].AliasID]}";
+				case GeneralFilterType.Producer:
+					return $"{result} - {StaticHelpers.LocalDatabase.Producers[IntValue]}";
 				// ReSharper disable once RedundantCaseLabel
 				case GeneralFilterType.Multi:
 				default:
@@ -415,6 +422,8 @@ namespace Happy_Reader
 		CharacterGender = 22,
 		[Description("Character Has Image"), TypeConverter(typeof(bool))]
 		CharacterHasImage = 23,
+		[Description("Producer"), TypeConverter(typeof(ListedProducer))]
+		Producer = 24,
 #pragma warning restore 1591
 	}
 }

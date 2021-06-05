@@ -5,6 +5,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using Happy_Apps_Core;
+using Happy_Apps_Core.Database;
 using Happy_Reader.ViewModel;
 
 namespace Happy_Reader.View
@@ -15,7 +16,7 @@ namespace Happy_Reader.View
 		// ReSharper disable once NotAccessedField.Local
 		private FiltersViewModel ViewModel => (FiltersViewModel)DataContext;
 		private AutoCompleteBox _traitOrTagControl;
-		
+
 		public FiltersPane()
 		{
 			InitializeComponent();
@@ -55,12 +56,12 @@ namespace Happy_Reader.View
 			if (type == null) return;
 			FrameworkElement control;
 			DependencyProperty bindingProperty = null;
-			var valueBinding = new Binding($"{nameof(ViewModel.NewFilter)}.{nameof(IFilter.Value)}"){Mode = BindingMode.OneWayToSource};
+			var valueBinding = new Binding($"{nameof(ViewModel.NewFilter)}.{nameof(IFilter.Value)}") { Mode = BindingMode.OneWayToSource };
 			if (type.IsEnum)
 			{
 				control = new ComboBox
 				{
-					ItemsSource = StaticMethods.GetEnumValues(type), 
+					ItemsSource = StaticMethods.GetEnumValues(type),
 					SelectedIndex = 0,
 					SelectedValuePath = nameof(Tag)
 				};
@@ -108,25 +109,39 @@ namespace Happy_Reader.View
 					control = _traitOrTagControl;
 					bindingProperty = AutoCompleteBox.SelectedItemProperty;
 				}
+				else if (type == typeof(ListedProducer))
+				{
+					_traitOrTagControl = new AutoCompleteBox() { ItemFilter = ProducerBoxFilter, ItemsSource = StaticHelpers.LocalDatabase.Producers };
+					control = _traitOrTagControl;
+					bindingProperty = AutoCompleteBox.SelectedItemProperty;
+				}
 				else control = new TextBlock(new System.Windows.Documents.Run(type.ToString()));
 			}
-			if(bindingProperty != null) control.SetBinding(bindingProperty, valueBinding);
+			if (bindingProperty != null) control.SetBinding(bindingProperty, valueBinding);
 			FilterValuesGrid.Children.Add(control);
 		}
-		
+
 		private void RootControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
 			if (e.AddedItems.Count == 0) return;
 			var selectedTraitRoot = (DumpFiles.RootTrait)((ComboBoxItem)e.AddedItems[0]).Tag;
 			_traitOrTagControl.ItemsSource = DumpFiles.GetTraitsForRoot(selectedTraitRoot);
 		}
-		
+
 		private bool TraitOrTagBoxFilter(string input, object item)
 		{
 			//Short input is not filtered to prevent excessive loading times
 			if (input.Length <= 2) return false;
 			var trait = (DumpFiles.ItemWithParents)item;
 			return trait.Name.ToLowerInvariant().Contains(input.ToLowerInvariant());
+		}
+
+		private bool ProducerBoxFilter(string input, object item)
+		{
+			//Short input is not filtered to prevent excessive loading times
+			if (input.Length <= 2) return false;
+			var producer = (ListedProducer)item;
+			return producer.Name.ToLowerInvariant().Contains(input.ToLowerInvariant());
 		}
 
 		private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
