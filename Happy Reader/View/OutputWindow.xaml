@@ -70,7 +70,7 @@
 		</Style>
 	</Window.Resources>
 	<Window.ToolTip>
-		<ToolTip x:Name="MouseoverTip" Placement="Top" Foreground="White">
+		<ToolTip x:Name="MouseoverTip" Placement="Top" PlacementTarget="{Binding ElementName=OutputTextBox}" Foreground="White">
 			<ToolTip.Background>
 				<SolidColorBrush x:Name="MouseoverTipBackground" Color="Black" Opacity="0.6" />
 			</ToolTip.Background>

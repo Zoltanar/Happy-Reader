@@ -30,6 +30,7 @@ namespace Happy_Reader
 		private string _selectedTranslatorName;
 		private string _selectedRomajiTranslator = RomajiTranslators.First();
 		private bool _settingsViewState = true;
+		private bool _showTagsOnMouseover;
 		private VerticalAlignment _outputVerticalAlignment = VerticalAlignment.Top;
 		private TextAlignment _outputHorizontalAlignment = TextAlignment.Center;
 
@@ -296,6 +297,17 @@ namespace Happy_Reader
 				if (_offlineDictionaryFolder == value) return;
 				_offlineDictionaryFolder = value;
 				UpdateOfflineDictionaryFolder?.Invoke();
+				if (Loaded) Save();
+			}
+		}
+
+		public bool ShowTagsOnMouseover
+		{
+			get => _showTagsOnMouseover;
+			set
+			{
+				if (_showTagsOnMouseover == value) return;
+				_showTagsOnMouseover = value;
 				if (Loaded) Save();
 			}
 		}

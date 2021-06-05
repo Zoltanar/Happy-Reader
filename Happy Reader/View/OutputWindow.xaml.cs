@@ -182,10 +182,10 @@ namespace Happy_Reader.View
 				var text = textPosition.GetTextInRun(LogicalDirection.Forward);
 				var results = StaticMethods.MainWindow.ViewModel.Translator.OfflineDictionary.Search(text);
 				if (results.Count < 1) return;
-				text = string.Join(Environment.NewLine, results.Select(c => c.Detail()).Take(5));
+				text = string.Join(Environment.NewLine, results.Select(c => c.Detail(StaticMethods.MainWindow.ViewModel.Translator.OfflineDictionary)).Take(5));
 				if (text.Equals(MouseoverTip.Content)) return;
 				MouseoverTip.Content = text;
-				if(!MouseoverTip.IsOpen) MouseoverTip.IsOpen = true;
+				if (!MouseoverTip.IsOpen) MouseoverTip.IsOpen = true;
 			}
 		}
 

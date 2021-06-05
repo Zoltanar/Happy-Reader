@@ -66,7 +66,7 @@ namespace Happy_Reader
 
 		private void UpdateOfflineDictionaryFolder()
 		{
-			OfflineDictionary.ReadFiles(_settings.OfflineDictionaryFolder, "*term_bank_*json");
+			OfflineDictionary.ReadFiles(_settings.OfflineDictionaryFolder);
 		}
 		
 		public Translation Translate(User user, EntryGame game, string input, bool saveEntriesUsed, bool removeRepetition)

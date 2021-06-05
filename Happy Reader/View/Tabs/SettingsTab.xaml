@@ -156,8 +156,10 @@
 					<Label Grid.Column="0" Grid.Row="1" Content="Translator" Width="120"/>
 					<ComboBox Grid.Column="1" Grid.Row="1" ItemsSource="{Binding Translators}" DisplayMemberPath="SourceName" SelectedValue="{Binding SelectedTranslator}" Margin="5,0"/>
 				</Grid>
-				<view:LabeledTextBox LabelWidth="140" Label="Offline Dictionary Folder" Text="{Binding OfflineDictionaryFolder}" ToolTip="Path to folder with yomichan-formatted JMDict json files."/>
-				<CheckBox Content="Dictionary on Mouse-over" IsChecked="{Binding MouseoverDictionary}"/>
+				<view:LabeledTextBox LabelWidth="140" Label="Offline Dictionary Folder" Text="{Binding OfflineDictionaryFolder}"
+				                     ToolTip="Path to folder with json-formatted JMDict (folder: jmdict_english) and Kanjidic (folder: kanjidic_english) files."/>
+				<CheckBox Content="Dictionary on Mouse-over" IsChecked="{Binding MouseoverDictionary}" ToolTip="Show information about Japanese text when mousing over it in Output Window." />
+				<CheckBox Content="Show Tags on Mouse-over Dictionary" IsChecked="{Binding ShowTagsOnMouseover}" ToolTip="Include tag information in mouse-over tool tip."/>
 			</StackPanel>
 		</GroupBox>
 	</Grid>

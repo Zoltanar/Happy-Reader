@@ -22,7 +22,7 @@ namespace Happy_Reader.ViewModel
 		private Action _scrollToBottom;
 		private FlowDocument _flowDocument;
 		private readonly RecentItemList<Translation> _translations = new(10);
-		
+
 		public bool TranslatePaused
 		{
 			get => StaticMethods.MainWindow.ViewModel?.TranslatePaused ?? false;
@@ -64,22 +64,11 @@ namespace Happy_Reader.ViewModel
 			Process.Start($"http://jisho.org/search/{input}");
 		}
 
-		private bool useJishoDictionary = false;
-
 		private void SearchOnDictionary(string input)
 		{
-			string text;
-			if (useJishoDictionary)
-			{
-				var task = System.Threading.Tasks.Task.Run(async () => await Jisho.Search(input));
-				task.Wait();
-				text = task.Result.Data.Length < 1 ? "No results found." : task.Result.Data[0].Results();
-			}
-			else
-			{
-				var results = StaticMethods.MainWindow.ViewModel.Translator.OfflineDictionary.Search(input);
-				text = results.Count < 1 ? "No results found." : string.Join(Environment.NewLine, results.Select(c=>c.Detail()));
-			}
+			var offlineDict = StaticMethods.MainWindow.ViewModel.Translator.OfflineDictionary;
+			var results = offlineDict.Search(input);
+			var text = results.Count < 1 ? "No results found." : string.Join(Environment.NewLine, results.Select(c => c.Detail(offlineDict)));
 			NotificationWindow.Launch("Dictionary", text);
 		}
 
@@ -106,8 +95,8 @@ namespace Happy_Reader.ViewModel
 					Type = EntryType.Output
 				};
 				var game = StaticMethods.MainWindow.ViewModel.UserGame;
-				if(game?.VNID.HasValue ?? false) entry.SetGameId(game.VNID, false);
-				else if(game != null) entry.SetGameId((int)game.Id, true);
+				if (game?.VNID.HasValue ?? false) entry.SetGameId(game.VNID, false);
+				else if (game != null) entry.SetGameId((int)game.Id, true);
 			}
 			else
 			{
