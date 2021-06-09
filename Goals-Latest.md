@@ -6,8 +6,6 @@
 - apply translate stage 4 to pre-romaji
 - do not split romaji into parts
 #### Filters
-- staff filter by name instead of id
-- add seiyuu filter to character
 - set default filter (different from permanent filter)
 #### Test Tab
 - show if translation was cached or not and give option to re-fetch

@@ -62,22 +62,16 @@ namespace Happy_Reader
 		{
 			set
 			{
+				if (value != null && value.GetType().IsEnum)
+				{
+					IntValue = (int) value;
+					_stringValue = IntValue.ToString();
+					return;
+				}
 				switch (value)
 				{
-					case LengthFilterEnum enumValue:
-						IntValue = (int)enumValue;
-						_stringValue = IntValue.ToString();
-						break;
-					case ReleaseStatusEnum enumValue:
-						IntValue = (int)enumValue;
-						_stringValue = IntValue.ToString();
-						break;
-					case UserVN.LabelKind enumValue:
-						IntValue = (int)enumValue;
-						_stringValue = IntValue.ToString();
-						break;
-					case OwnedStatus enumValue:
-						IntValue = (int)enumValue;
+					case IDataItem<int> dataItem:
+						IntValue = dataItem.Key;
 						_stringValue = IntValue.ToString();
 						break;
 					case int intValue:
@@ -97,13 +91,17 @@ namespace Happy_Reader
 						IntValue = dumpItemValue.ID;
 						_stringValue = IntValue.ToString();
 						break;
-					case ListedProducer producer:
-						IntValue = producer.ID;
-						_stringValue = IntValue.ToString();
+					case string sValue:
+						IntValue = 0;
+						_stringValue = sValue;
+						break;
+					case null:
+						IntValue = 0;
+						_stringValue = null;
 						break;
 					default:
 						IntValue = 0;
-						_stringValue = value?.ToString();
+						_stringValue = value.ToString();
 						break;
 				}
 			}
@@ -115,8 +113,8 @@ namespace Happy_Reader
 		[JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
 		public int? AdditionalInt { get; set; }
 #pragma warning restore 1591
-
-		[JsonIgnore] public bool IsGlobal => Type == GeneralFilterType.Staff; //when more global filters are added, this should be changed to a switch pattern.
+		//when more global filters are added, this should be changed to a switch pattern.
+		[JsonIgnore] public bool IsGlobal => Type == GeneralFilterType.Staff || Type == GeneralFilterType.Seiyuu; 
 
 		/// <summary>
 		/// Create custom filter
@@ -172,8 +170,10 @@ namespace Happy_Reader
 					return i => (GetVisualNovel(i, out var vn) && vn.HasAnime) != Exclude;
 				case GeneralFilterType.SuggestionScore:
 					return i => (GetVisualNovel(i, out var vn) && DoubleFunctionFromString(vn.Suggestion.Score)) != Exclude;
+				case GeneralFilterType.Seiyuu:
 				case GeneralFilterType.Staff:
-					return i => (GetVisualNovel(i, out var vn) && StaticHelpers.LocalDatabase.VnHasStaff(vn.VNID, IntValue)) != Exclude;
+					throw new InvalidOperationException("This is a global filter.");
+					throw new InvalidOperationException("This is a global filter.");
 				// ReSharper disable once RedundantCaseLabel
 				case GeneralFilterType.CharacterTraitScore:
 					return GetCharacterTraitScore;
@@ -223,8 +223,33 @@ namespace Happy_Reader
 
 		public Func<VisualNovelDatabase, HashSet<int>> GetGlobalFunction(Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> getAllFunc)
 		{
-			if (Type != GeneralFilterType.Staff) throw new InvalidOperationException($"Filter type {Type} should use per-item function.");
-			return db => db.GetVnsWithStaff(IntValue);
+			switch (Type)
+			{
+				case GeneralFilterType.Staff:
+					return db =>
+					{
+						var staff = StaticHelpers.LocalDatabase.StaffAliases[IntValue];
+						if (staff == null) return new HashSet<int>();
+						var first = getAllFunc(db).FirstOrDefault();
+						if (first is null) return new HashSet<int>();
+						if (first is ListedVN) return db.GetVnsWithStaff(staff.StaffID);
+						if (first is CharacterItem) return db.GetCharactersForVnWithStaff(staff.StaffID);
+						throw new InvalidOperationException($"Unsupported item type for filter: {first.GetType()}");
+					};
+				case GeneralFilterType.Seiyuu:
+					return db =>
+					{
+						var staff = StaticHelpers.LocalDatabase.StaffAliases[IntValue];
+						if (staff == null) return new HashSet<int>();
+						var first = getAllFunc(db).FirstOrDefault();
+						if (first is null) return new HashSet<int>();
+						if (first is ListedVN) return db.GetVnsWithSeiyuu(staff.StaffID);
+						if (first is CharacterItem) return db.GetCharactersForSeiyuu(staff.StaffID);
+						throw new InvalidOperationException($"Unsupported item type for filter: {first.GetType()}");
+					};
+				default:
+					throw new InvalidOperationException($"Filter type {Type} should use per-item function.");
+			}
 		}
 		
 		Func<IDataItem<int>, bool> IFilter.GetFunction()
@@ -358,8 +383,9 @@ namespace Happy_Reader
 					return result;
 				case GeneralFilterType.Traits:
 					return $"{result} - {DumpFiles.GetTrait(IntValue).Name}";
+				case GeneralFilterType.Seiyuu:
 				case GeneralFilterType.Staff:
-					return $"{result} - {StaticHelpers.LocalDatabase.StaffAliases[StaticHelpers.LocalDatabase.StaffItems[IntValue].AliasID]}";
+					return $"{result} - {StaticHelpers.LocalDatabase.StaffAliases[IntValue]}";
 				case GeneralFilterType.Producer:
 					return $"{result} - {StaticHelpers.LocalDatabase.Producers[IntValue]}";
 				// ReSharper disable once RedundantCaseLabel
@@ -414,7 +440,7 @@ namespace Happy_Reader
 		SuggestionScore = 18,
 		[NotMapped]
 		Multi = 19,
-		[Description("Staff"), TypeConverter(typeof(string))]
+		[TypeConverter(typeof(StaffItem))]
 		Staff = 20,
 		[Description("Character Trait Score"), TypeConverter(typeof(string))]
 		CharacterTraitScore = 21,
@@ -424,6 +450,8 @@ namespace Happy_Reader
 		CharacterHasImage = 23,
 		[Description("Producer"), TypeConverter(typeof(ListedProducer))]
 		Producer = 24,
+		[TypeConverter(typeof(VnSeiyuu))]
+		Seiyuu = 25,
 #pragma warning restore 1591
 	}
 }

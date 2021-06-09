@@ -322,6 +322,83 @@ select AliasID from StaffAliass join StaffItems on StaffAliass.StaffID = StaffIt
 			}
 		}
 
+
+		public HashSet<int> GetCharactersForVnWithStaff(int staffId)
+		{
+			Connection.Open();
+			try
+			{
+				var sql = @"select distinct CharacterVNs.CharacterId from CharacterVNs where CharacterVNs.VNID IN (
+select distinct VNID from VnStaffs where VnStaffs.AID IN (
+select AliasID from StaffAliass join StaffItems on StaffAliass.StaffID = StaffItems.ID where StaffItems.ID = @StaffId))";
+
+				using var command = Connection.CreateCommand();
+				command.CommandText = sql;
+				command.AddParameter("@StaffId", staffId);
+				using var reader = command.ExecuteReader();
+				var list = new List<int>();
+				while (reader.Read())
+				{
+					list.Add(Convert.ToInt32(reader["CharacterId"]));
+				}
+				return list.ToHashSet();
+			}
+			finally
+			{
+				Connection.Close();
+			}
+		}
+
+		public HashSet<int> GetVnsWithSeiyuu(int staffId)
+		{
+			Connection.Open();
+			try
+			{
+				var sql = @"select distinct VNID from VnSeiyuus where VnSeiyuus.AID IN (
+select AliasID from StaffAliass join StaffItems on StaffAliass.StaffID = StaffItems.ID where StaffItems.ID = @StaffId);";
+
+				using var command = Connection.CreateCommand();
+				command.CommandText = sql;
+				command.AddParameter("@StaffId", staffId);
+				using var reader = command.ExecuteReader();
+				var list = new List<int>();
+				while (reader.Read())
+				{
+					list.Add(Convert.ToInt32(reader["VNID"]));
+				}
+				return list.ToHashSet();
+			}
+			finally
+			{
+				Connection.Close();
+			}
+		}
+
+		public HashSet<int> GetCharactersForSeiyuu(int staffId)
+		{
+			Connection.Open();
+			try
+			{
+				var sql = @"select distinct CID from VnSeiyuus where VnSeiyuus.AID IN (
+select AliasID from StaffAliass join StaffItems on StaffAliass.StaffID = StaffItems.ID where StaffItems.ID = @StaffId);";
+
+				using var command = Connection.CreateCommand();
+				command.CommandText = sql;
+				command.AddParameter("@StaffId", staffId);
+				using var reader = command.ExecuteReader();
+				var list = new List<int>();
+				while (reader.Read())
+				{
+					list.Add(Convert.ToInt32(reader["CID"]));
+				}
+				return list.ToHashSet();
+			}
+			finally
+			{
+				Connection.Close();
+			}
+		}
+
 		private void Seed()
 		{
 			Connection.Open();

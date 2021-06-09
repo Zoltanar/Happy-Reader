@@ -83,7 +83,7 @@ namespace Happy_Reader.View
 				}
 				else if (type == typeof(DumpFiles.WrittenTag))
 				{
-					_traitOrTagControl = new AutoCompleteBox() { ItemFilter = TraitOrTagBoxFilter, ItemsSource = DumpFiles.GetAllTags() };
+					_traitOrTagControl = new AutoCompleteBox() { ItemFilter = DumpfileFilter, ItemsSource = DumpFiles.GetAllTags() };
 					control = _traitOrTagControl;
 					bindingProperty = AutoCompleteBox.SelectedItemProperty;
 				}
@@ -91,7 +91,7 @@ namespace Happy_Reader.View
 				{
 					_traitOrTagControl = new AutoCompleteBox()
 					{
-						ItemFilter = TraitOrTagBoxFilter,
+						ItemFilter = DumpfileFilter,
 						HorizontalAlignment = HorizontalAlignment.Stretch,
 						Margin = new Thickness(130 + 5, 2, 2, 2),
 					};
@@ -115,6 +115,12 @@ namespace Happy_Reader.View
 					control = _traitOrTagControl;
 					bindingProperty = AutoCompleteBox.SelectedItemProperty;
 				}
+				else if (type == typeof(StaffItem) || type == typeof(VnSeiyuu))
+				{
+					_traitOrTagControl = new AutoCompleteBox { ItemFilter = StaffItemFilter, ItemsSource = StaticHelpers.LocalDatabase.StaffAliases };
+					control = _traitOrTagControl;
+					bindingProperty = AutoCompleteBox.SelectedItemProperty;
+				}
 				else control = new TextBlock(new System.Windows.Documents.Run(type.ToString()));
 			}
 			if (bindingProperty != null) control.SetBinding(bindingProperty, valueBinding);
@@ -128,7 +134,7 @@ namespace Happy_Reader.View
 			_traitOrTagControl.ItemsSource = DumpFiles.GetTraitsForRoot(selectedTraitRoot);
 		}
 
-		private bool TraitOrTagBoxFilter(string input, object item)
+		private bool DumpfileFilter(string input, object item)
 		{
 			//Short input is not filtered to prevent excessive loading times
 			if (input.Length <= 2) return false;
@@ -142,6 +148,14 @@ namespace Happy_Reader.View
 			if (input.Length <= 2) return false;
 			var producer = (ListedProducer)item;
 			return producer.Name.ToLowerInvariant().Contains(input.ToLowerInvariant());
+		}
+
+		private bool StaffItemFilter(string input, object item)
+		{
+			//Short input is not filtered to prevent excessive loading times
+			if (input.Length <= 2) return false;
+			var staff = (StaffAlias)item;
+			return staff.Name.ToLowerInvariant().Contains(input.ToLowerInvariant());
 		}
 
 		private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
