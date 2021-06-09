@@ -43,7 +43,7 @@ namespace Happy_Reader.ViewModel
 		public abstract FiltersViewModel FiltersViewModel { get; }
 		public PausableUpdateList<UserControl> Tiles { get; set; } = new();
 		private SuggestionScorer _suggestionScorer;
-		
+
 		public ObservableCollection<NamedFunction> History { get; } = new();
 		public CoreSettings CSettings => StaticHelpers.CSettings;
 
@@ -69,7 +69,7 @@ namespace Happy_Reader.ViewModel
 			get => _replyText;
 			private set { _replyText = value; OnPropertyChanged(); }
 		}
-		
+
 		public Brush ReplyColor
 		{
 			get => _replyColor;
@@ -224,7 +224,7 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged(nameof(History));
 			}
 		}
-		
+
 		public void AddPage()
 		{
 			if (_finalPage) return;
@@ -247,7 +247,7 @@ namespace Happy_Reader.ViewModel
 		public async Task SearchForItem(string text)
 		{
 			Func<IDataItem<int>, bool> searchForText = SearchByText(text);
-			var results = GetAll(StaticHelpers.LocalDatabase).Where(i => searchForText(i)).Select(t=>t.Key).ToArray();
+			var results = GetAll(StaticHelpers.LocalDatabase).Where(i => searchForText(i)).Select(t => t.Key).ToArray();
 			if (results.Length == 0)
 			{
 				SetReplyText($"Found no results for '{text}'", VndbConnection.MessageSeverity.Normal);
@@ -306,30 +306,30 @@ namespace Happy_Reader.ViewModel
 				$"Character {character.Name}");
 			await RefreshTiles();
 		}
-		
+
 		public async Task ShowSuggested()
 		{
-			var scoredKeys = GetAll(StaticHelpers.LocalDatabase).Where(i=> GetSuggestion(i) >= 0d).Select(i=>i.Key).ToArray();
-			DbFunction = new NamedFunction(db => GetAllWithKeyIn(db,scoredKeys), "Suggested");
+			var scoredKeys = GetAll(StaticHelpers.LocalDatabase).Where(i => GetSuggestion(i) >= 0d).Select(i => i.Key).ToArray();
+			DbFunction = new NamedFunction(db => GetAllWithKeyIn(db, scoredKeys), "Suggested");
 			_ordering = lvn => lvn.OrderByDescending(i => GetSuggestion(i));
 			_orderingByRating = false;
 			await RefreshTiles();
 		}
-		
+
 		public async Task SortBySuggestion()
 		{
-			_ordering = items => items.OrderByDescending(ch => GetSuggestion(ch));
+			_ordering = items => items.OrderByDescending(i => GetSuggestion(i));
 			_orderingByRating = false;
 			await RefreshTiles();
 		}
-		
+
 		public async Task SortByRating()
 		{
 			_ordering = items => items.OrderByDescending(i => GetVisualNovel(i)?.Rating ?? 0d).ThenByDescending(i => GetVisualNovel(i)?.ReleaseDate ?? DateTime.MinValue);
 			_orderingByRating = true;
 			await RefreshTiles();
 		}
-
+		
 		public async Task SortByMyScore()
 		{
 			_ordering = items => items.OrderByDescending(i => GetVisualNovel(i)?.UserVN?.Vote ?? 0);
@@ -348,6 +348,20 @@ namespace Happy_Reader.ViewModel
 		{
 			_ordering = items => items.OrderBy(i => GetName(i)).ThenByDescending(i => GetVisualNovel(i).ReleaseDate);
 			_orderingByRating = false;
+			await RefreshTiles();
+		}
+
+		public async Task SortByUserAdded()
+		{
+			_ordering = items => items.OrderByDescending(i => GetVisualNovel(i)?.UserVN?.Added);
+			_orderingByRating = true;
+			await RefreshTiles();
+		}
+		
+		public async Task SortByUserModified()
+		{
+			_ordering = items => items.OrderByDescending(i => GetVisualNovel(i)?.UserVN?.LastModified);
+			_orderingByRating = true;
 			await RefreshTiles();
 		}
 
@@ -373,8 +387,8 @@ namespace Happy_Reader.ViewModel
 
 		public async Task ShowForStaffWithAlias(string searchHeader, ICollection<int> aliasIds)
 		{
-			var staffIds = aliasIds.Select(a=> StaticHelpers.LocalDatabase.StaffAliases[a].StaffID).ToList();
-			var allAliasIds = StaticHelpers.LocalDatabase.StaffAliases.Where(sa => staffIds.Contains(sa.StaffID)).Select(sa=>sa.AliasID).ToArray();
+			var staffIds = aliasIds.Select(a => StaticHelpers.LocalDatabase.StaffAliases[a].StaffID).ToList();
+			var allAliasIds = StaticHelpers.LocalDatabase.StaffAliases.Where(sa => staffIds.Contains(sa.StaffID)).Select(sa => sa.AliasID).ToArray();
 			DbFunction = new NamedFunction(
 				db =>
 				{
@@ -391,7 +405,7 @@ namespace Happy_Reader.ViewModel
 			DbFunction = new NamedFunction(
 				db =>
 				{
-					var aliasIds = db.StaffAliases.Where(c => c.StaffID == staff.StaffID).Select(sa=>sa.AliasID).ToArray();
+					var aliasIds = db.StaffAliases.Where(c => c.StaffID == staff.StaffID).Select(sa => sa.AliasID).ToArray();
 					var vns = db.VnStaffs.Where(vnStaff => aliasIds.Contains(vnStaff.AliasID)).Select(vnStaff => vnStaff.VNID).ToArray();
 					return GetAllWithKeyIn(db, vns);
 				},

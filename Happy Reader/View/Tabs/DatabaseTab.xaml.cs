@@ -82,6 +82,16 @@ namespace Happy_Reader.View.Tabs
 			if (ViewModel != null) await ViewModel.SortByName();
 		}
 
+		private async void SortByUserAdded(object sender, RoutedEventArgs e)
+		{
+			if (ViewModel != null) await ViewModel.SortByUserAdded();
+		}
+
+		private async void SortByUserModified(object sender, RoutedEventArgs e)
+		{
+			if (ViewModel != null) await ViewModel.SortByUserModified();
+		}
+
 		private bool ProducerBoxFilter(string input, object item)
 		{
 			//Short input is not filtered to prevent excessive loading times

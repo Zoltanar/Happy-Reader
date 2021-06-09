@@ -34,6 +34,7 @@ namespace Happy_Apps_Core.Database
 	""VoteAdded""	DATETIME,
 	""Added""	DATETIME,
 	""Labels""	TEXT,
+	""LastModified""	DATETIME,
 	PRIMARY KEY(""UserID"",""VNID"")
 )");
 

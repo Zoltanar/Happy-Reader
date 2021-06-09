@@ -116,11 +116,11 @@ namespace Happy_Apps_Core
 			return await WrapQuery(async () =>
 			{
 				_changeStatusAction?.Invoke(APIStatus.Busy);
-				var userVn = vn.UserVN ?? new UserVN { UserId = CSettings.UserID, VNID = vn.VNID };
+				var userVn = vn.UserVN ?? new UserVN { UserId = CSettings.UserID, VNID = vn.VNID, Added = DateTime.UtcNow};
 				var queryString = $"set ulist {vn.VNID} {{\"labels\":[{string.Join(",", labels.Cast<int>())}]}}";
 				if (!await TryQuery(queryString, Resources.cvns_query_error)) return false;
 				userVn.Labels = labels.ToHashSet();
-				userVn.Added = DateTime.UtcNow;
+				userVn.LastModified = DateTime.UtcNow;
 				if (userVn.Labels.Any()) LocalDatabase.UserVisualNovels.Upsert(userVn, true);
 				else LocalDatabase.UserVisualNovels.Remove(userVn, true);
 				return true;

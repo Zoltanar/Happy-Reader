@@ -28,7 +28,12 @@
 			       Foreground="{Binding Path=ReleaseDate, Converter={StaticResource DateToBrushConverter}, NotifyOnSourceUpdated=True, Mode=OneWay}" Padding="0">
 			<TextBlock Text="{Binding ReleaseDateString}" FontWeight="{Binding ReleaseDate, Converter={StaticResource DateToWeightConverter}}"/>
 				</Label>
-			<Label Content="{Binding UserVN, Converter={StaticResource UserRelatedStatusConverter}}" Margin="10,0,10,10" VerticalAlignment="Bottom" Foreground="Black" Padding="0"/>
+			<Label Content="{Binding UserVN, Converter={StaticResource UserRelatedStatusConverter}}" 
+			       Margin="10,0,10,10" VerticalAlignment="Bottom" Foreground="Black" Padding="0">
+				<Label.ToolTip>
+					<ToolTip Content="{Binding UserVN, Converter={StaticResource UserRelatedTooltipConverter}}" Visibility="{Binding UserVN, Converter={StaticResource NullableToVisibilityConverter}}"/>
+				</Label.ToolTip>
+			</Label>
 			<Image x:Name="CoverBox" Margin="10,41,10,73"	Source="{Binding ., Converter={StaticResource VnOrScreenToImagePathConverter}}" />
 			<Image Margin="194,41,10,320" Source="{Binding FlagSource}"/>
 			<Border Margin="0,59,10,0" Style="{StaticResource AlertFlagStyle}" Visibility="{Binding Path=., Converter={StaticResource VnOrCharacterToAlertFlagVisibilityConverter}}">

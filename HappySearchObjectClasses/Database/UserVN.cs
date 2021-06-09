@@ -23,6 +23,8 @@ namespace Happy_Apps_Core.Database
 
 		public DateTime? Added { get; set; }
 
+		public DateTime? LastModified { get; set; }
+
 		public int? Vote { get; set; }
 
 		public DateTime? VoteAdded { get; set; }
@@ -58,8 +60,8 @@ namespace Happy_Apps_Core.Database
 
 		DbCommand IDataItem<(int, int)>.UpsertCommand(DbConnection connection, bool insertOnly)
 		{
-			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO UserVNs(VNID,UserId,ULNote,Vote,VoteAdded, Added, Labels) " +
-									 "VALUES (@vnid,@userid,@ulnote,@vote,@voteadded, @added, @labels)";
+			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO UserVNs (VNID,UserId,ULNote,Vote,VoteAdded, Added, Labels, LastModified) " +
+									 "VALUES (@vnid,@userid,@ulnote,@vote,@voteadded, @added, @labels, @LastModified)";
 			var command = connection.CreateCommand();
 			command.CommandText = sql;
 			command.AddParameter("@vnid", VNID);
@@ -68,6 +70,7 @@ namespace Happy_Apps_Core.Database
 			command.AddParameter("@vote", Vote);
 			command.AddParameter("@voteadded", VoteAdded);
 			command.AddParameter("@added", Added);
+			command.AddParameter("@LastModified", LastModified);
 			command.AddParameter("@labels", string.Join(",", Labels.Cast<int>()));
 			return command;
 		}
@@ -83,6 +86,7 @@ namespace Happy_Apps_Core.Database
 				Vote = StaticHelpers.GetNullableInt(reader["Vote"]);
 				VoteAdded = StaticHelpers.GetNullableDate(reader["VoteAdded"]);
 				Added = StaticHelpers.GetNullableDate(reader["Added"]);
+				LastModified = StaticHelpers.GetNullableDate(reader["LastModified"]);
 				Labels = Convert.ToString(reader["Labels"]).Split(',').Select(i => (LabelKind)int.Parse(i)).ToHashSet();
 			}
 			catch (Exception ex)

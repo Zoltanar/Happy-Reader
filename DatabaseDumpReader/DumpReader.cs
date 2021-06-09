@@ -179,6 +179,7 @@ namespace DatabaseDumpReader
 				VNID = vn.VNID,
 				ULNote = dumpUserVn.Notes,
 				Added = dumpUserVn.Added,
+				LastModified = dumpUserVn.LastModified,
 				Labels = dumpUserVn.Labels.ToHashSet()
 			};
 			if (Votes.ContainsKey(vn.VNID))

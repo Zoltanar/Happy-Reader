@@ -58,6 +58,8 @@
 			<ComboBoxItem Content="Sort by My Score" Selected="SortByMyScore"/>
 			<ComboBoxItem Content="Sort by Rating" Selected="SortByRating"/>
 			<ComboBoxItem Content="Sort by Name" Selected="SortByName"/>
+			<ComboBoxItem Content="Sort by UL Added" Selected="SortByUserAdded"/>
+			<ComboBoxItem Content="Sort by UL Modified" Selected="SortByUserModified"/>
 		</ComboBox>
 		<Button Content="Reset" HorizontalAlignment="Right" Margin="0,0,0,1" Width="39" Click="ShowAll" Grid.Row="1" Height="30" VerticalAlignment="Stretch"/>
 		<controls:AutoCompleteBox Height="30" Grid.Row="2" FilterMode="Custom" ItemsSource="{Binding ProducerList}" ValueMemberPath="Name" ItemFilter="ProducerBoxFilter" KeyUp="SelectProducerOnKey" MouseUp="ProducerItemClicked" Margin="65,0,321,0"/>

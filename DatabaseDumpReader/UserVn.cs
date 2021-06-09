@@ -20,15 +20,18 @@ namespace DatabaseDumpReader
 		public int UserId { get; set; }
 		public int VnId { get; set; }
 		public DateTime Added { get; set; }
+		public DateTime LastModified { get; set; }
 		public string Notes { get; set; }
 		public List<UserVN.LabelKind> Labels { get; } = new();
 
 		public void LoadFromStringParts(string[] parts)
 		{
-			UserId = Convert.ToInt32(parts[0].Substring(1));
-			VnId = Convert.ToInt32(parts[1].Substring(1));
-			Added = Convert.ToDateTime(parts[2]);
-			Notes = parts[7] == @"\N" ? null : parts[7];
-		}
+			UserId = Convert.ToInt32(GetPart(parts, "uid").Substring(1));
+			VnId = Convert.ToInt32(GetPart(parts, "vid").Substring(1));
+			Added = Convert.ToDateTime(GetPart(parts, "added"));
+			// ReSharper disable once StringLiteralTypo
+			LastModified = Convert.ToDateTime(GetPart(parts, "lastmod"));
+			var notes = GetPart(parts, "notes");
+			Notes = notes == @"\N" ? null : notes; }
 	}
 }

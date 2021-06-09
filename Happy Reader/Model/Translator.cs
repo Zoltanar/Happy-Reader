@@ -425,6 +425,7 @@ namespace Happy_Reader
 						Input = input,
 						Output = entry.Output
 					};
+					int matchIndex = 1;
 					foreach (int match in roleGroups)
 					{
 						var matchedEntry = entriesWithProxies.Single(x =>
@@ -437,7 +438,8 @@ namespace Happy_Reader
 							entriesWithProxies.Remove(matchedEntry);
 							mergedEntry.AssignedProxy ??= matchedEntry.AssignedProxy;
 							mergedEntry.AssignedProxy.ProxyMods.AddRange(matchedEntry.AssignedProxy.ProxyMods);
-							mergedEntry.Output = new Regex($@"\[\[([^];]+?)#{match}]]").Replace(mergedEntry.Output, matchedEntry.Output);
+							mergedEntry.Output = new Regex($@"\[\[([^];]+?)#{matchIndex}]]").Replace(mergedEntry.Output, matchedEntry.Output);
+							matchIndex++;
 						}
 						else matchedEntry.AssignedProxy.ProxyMods.Add(entry);
 					}

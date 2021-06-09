@@ -50,7 +50,7 @@ namespace Happy_Reader.View.Converters
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 	}
-	
+
 	public class UserRelatedStatusConverter : IValueConverter
 	{
 		public static readonly ScoreConverter ScoreConverter = new();
@@ -62,9 +62,32 @@ namespace Happy_Reader.View.Converters
 			if (label != default)
 			{
 				sb.Append(label.GetDescription());
-				if (userVN.Vote > 0) sb.Append($" (Vote: {ScoreConverter.Convert(userVN.Vote,targetType, parameter, culture)})");
+				if (userVN.Vote > 0) sb.Append($" (Vote: {ScoreConverter.Convert(userVN.Vote, targetType, parameter, culture)})");
 			}
 			else if (userVN.Vote > 0) sb.Append($"Vote: {ScoreConverter.Convert(userVN.Vote, targetType, parameter, culture)}");
+			return sb.ToString();
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
+	}
+
+	public class UserRelatedTooltipConverter : IValueConverter
+	{
+		private const string dateFormat = "yyyy-MMM-dd";
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			if (value is not UserVN userVN) return string.Empty;
+			var sb = new StringBuilder();
+			var label = userVN.Labels.FirstOrDefault(l => l != UserVN.LabelKind.Voted && l != UserVN.LabelKind.Wishlist);
+			// ReSharper disable PossibleInvalidOperationException values are present based on label or vote presence
+			if (label != default)
+			{
+				sb.Append($"Added: {userVN.Added.Value.ToString(dateFormat)}");
+				if (userVN.LastModified != userVN.Added) sb.Append($" Modified: {userVN.LastModified.Value.ToString(dateFormat)}");
+				if (userVN.Vote > 0) sb.Append($" (Vote Added: {userVN.VoteAdded.Value.ToString(dateFormat)})");
+			}
+			else if (userVN.Vote > 0) sb.Append($"Vote Added: {userVN.VoteAdded.Value.ToString(dateFormat)}");
+			// ReSharper restore PossibleInvalidOperationException
 			return sb.ToString();
 		}
 
