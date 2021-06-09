@@ -1,4 +1,4 @@
-﻿# For Latest Committed
+﻿# For v2.4.0
 ## Future Features  
 #### Translation
 - Make mouseover dictionary tooltip nicer
@@ -12,7 +12,7 @@
 - show if translation was cached or not and give option to re-fetch
 - list entries used per stage.
 #### Text Hooking
-- use ithvnr tab to also show captured clipboard text format like: \[process/pid] \[outputted] \[text]
+- show captured clipboard text format like: \[process/pid] \[outputted] \[text]
 - let user name threads and delete saved
 - text thread panel max height (scrollbar if needed)
 - VnrHook: handle maximum threads either change limit or reset ability

@@ -114,7 +114,7 @@ namespace Happy_Reader
 			return list;
 		}
 
-		public List<ITerm> SearchExact(string term)
+		public List<ITerm> SearchExactTerm(string term)
 		{
 			var list = new List<Term>();
 			int index = 0;
@@ -134,7 +134,7 @@ namespace Happy_Reader
 			return _kanjiTerms.TryGetValue(term.Substring(0,1), out var value) ? new List<ITerm> { value } : new List<ITerm>();
 		}
 
-		public List<ITerm> Search(string term)
+		public List<ITerm> SearchTerm(string term)
 		{
 			var list = new List<Term>();
 			int index = 0;
@@ -146,6 +146,16 @@ namespace Happy_Reader
 			}
 			if (list.Count == 0) return SearchKanji(term);
 			return list.OrderByDescending(t => t.Expression.Length).ThenByDescending(t => t.Score).Cast<ITerm>().ToList();
+		}
+
+		public bool SearchOuter(string text, out string result)
+		{
+			result = null;
+			if (text.Length < 1 || Translator.LatinOnlyRegex.IsMatch(text)) return false;
+			var results = SearchTerm(text);
+			if (results.Count < 1) return false;
+			result = string.Join(Environment.NewLine, results.Select(c => c.Detail(this)).Take(5));
+			return true;
 		}
 
 		public interface ITerm
