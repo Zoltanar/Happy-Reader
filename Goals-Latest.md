@@ -4,6 +4,7 @@
 - Make mouseover dictionary tooltip nicer
 - option to do this automatically: remove translations from cache if not used recently or originally cached too long ago.
 - apply translate stage 4 to pre-romaji
+- do not split romaji into parts
 #### Filters
 - staff filter by name instead of id
 - add seiyuu filter to character
@@ -23,6 +24,10 @@
 - see details should change to correct user game tab when multiple user games for one vn
 - allow keeping time played for multiple games/allow process monitor to keep running always/make process monitor only have one instance
 - launch title from VN context menu
+- Save selected grouping 
+##### Entries
+- Implement priority
+- Change Series-specific to three-way dropdown (none,title,series)
 #### Other
 - warn if an instance is already running (maybe show database file for opening instance) 
 - show written tag description on tooltip
@@ -33,6 +38,8 @@
 - Logs: Link to folder, show size taken, option to clear.
 - Information Tab: Show Size of Vndb Images, show total size.
 - Use Screenshot Thumbnails when full-size is not found.
+- Tray Context: Show last 5 games (can launch)
+- VNTab: Clean up Description (v13999)
 
 ## Issues  
 - can't show outputwindow on top of some fullscreen games, steals focus on games where it works (might need direct draw)

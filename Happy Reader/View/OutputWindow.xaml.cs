@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using Happy_Reader.ViewModel;
@@ -13,6 +14,7 @@ namespace Happy_Reader.View
 	{
 		private readonly Action _initialiseWindowForGame;
 		private readonly GridLength _settingsColumnLength;
+		private readonly ToolTip _mouseoverTip;
 		private OutputWindowViewModel _viewModel;
 		private bool _loaded;
 		private bool _isResizing;
@@ -36,6 +38,8 @@ namespace Happy_Reader.View
 			InitializeComponent();
 			_initialiseWindowForGame = initialiseOutputWindowForGame;
 			_settingsColumnLength = SettingsColumn.Width;
+			_mouseoverTip = StaticMethods.CreateMouseoverTooltip(OutputTextBox, PlacementMode.Top);
+			_mouseoverTip.Background.Opacity = OpacitySlider.Value;
 		}
 
 		private void UpdateSettingToggles()
@@ -176,22 +180,15 @@ namespace Happy_Reader.View
 			if (!StaticMethods.MainWindow.ViewModel.SettingsViewModel.TranslatorSettings.MouseoverDictionary) return;
 			var mousePoint = Mouse.GetPosition(OutputTextBox);
 			var textPosition = OutputTextBox.GetPositionFromPoint(mousePoint, false);
-			if (textPosition != null)
-			{
-				if (textPosition.Paragraph?.Tag is not Translation trans || trans.OriginalBlock != textPosition.Paragraph) return;
-				var text = textPosition.GetTextInRun(LogicalDirection.Forward);
-				var results = StaticMethods.MainWindow.ViewModel.Translator.OfflineDictionary.Search(text);
-				if (results.Count < 1) return;
-				text = string.Join(Environment.NewLine, results.Select(c => c.Detail(StaticMethods.MainWindow.ViewModel.Translator.OfflineDictionary)).Take(5));
-				if (text.Equals(MouseoverTip.Content)) return;
-				MouseoverTip.Content = text;
-				if (!MouseoverTip.IsOpen) MouseoverTip.IsOpen = true;
-			}
+			if (textPosition?.Paragraph?.Tag is not Translation trans || trans.OriginalBlock != textPosition.Paragraph) return;
+			var text = textPosition.GetTextInRun(LogicalDirection.Forward);
+			StaticMethods.UpdateTooltip(_mouseoverTip, text);
 		}
 
 		private void OpacityChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
 		{
-			MouseoverTipBackground.Opacity = e.NewValue;
+			if (_mouseoverTip == null) return;
+			_mouseoverTip.Background.Opacity = e.NewValue;
 		}
 	}
 }

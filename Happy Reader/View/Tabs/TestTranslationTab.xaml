@@ -8,75 +8,77 @@
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="800" d:DataContext="{d:DesignInstance viewModel:TranslationTester}"
              Loaded="TestTranslationPanel_OnLoaded">
-    <UserControl.Resources>
-        <Style TargetType="TextBox">
-            <Setter Property="IsReadOnly" Value="True"/>
-            <Setter Property="Margin" Value="10,45,10,10"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-        </Style>
-        <Style TargetType="Label">
-            <Setter Property="VerticalAlignment" Value="Top"/>
-            <Setter Property="Margin" Value="10,10,10,0"/>
-        </Style>
-    </UserControl.Resources>
-    <Grid>
-        <Grid.RowDefinitions>
+	<UserControl.Resources>
+		<Style TargetType="TextBox">
+			<Setter Property="IsReadOnly" Value="True"/>
+			<Setter Property="Margin" Value="10,45,10,10"/>
+			<Setter Property="TextWrapping" Value="Wrap"/>
+		</Style>
+		<Style TargetType="Label">
+			<Setter Property="VerticalAlignment" Value="Top"/>
+			<Setter Property="Margin" Value="10,10,10,0"/>
+		</Style>
+	</UserControl.Resources>
+	<Grid>
+		<Grid.RowDefinitions>
 			<RowDefinition Height="*"/>
 			<RowDefinition Height="*"/>
 			<RowDefinition Height="Auto" MaxHeight="160"/>
 		</Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <Label Content="Original Text" Margin="10,10,10,0" VerticalAlignment="Top"/>
-        <TextBox Margin="10,45,10,71" Text="{Binding OriginalText}" IsReadOnly="False" AcceptsReturn="True" AcceptsTab="True" Grid.Row="0" Grid.Column="0" />
-		    <CheckBox Grid.Row="0" Grid.Column="0" Content="Remove Repetition" IsChecked="{Binding RemoveRepetition}" HorizontalAlignment="Left" Margin="10,0,0,53" VerticalAlignment="Bottom" Height="18" VerticalContentAlignment="Center" Padding="0"/>
-        <Label Grid.Row="0" Grid.Column="0" Content="Game" HorizontalAlignment="Left" Margin="10,0,0,35" VerticalAlignment="Bottom" Height="18" VerticalContentAlignment="Center" Padding="0"/>
-				<controls:AutoCompleteBox Grid.Row="0" Grid.Column="0" Margin="46,0,10,35"  
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="*"/>
+			<ColumnDefinition Width="*"/>
+			<ColumnDefinition Width="*"/>
+			<ColumnDefinition Width="*"/>
+		</Grid.ColumnDefinitions>
+		<Label Content="Original Text" Margin="10,10,10,0" VerticalAlignment="Top"/>
+		<TextBox x:Name="OriginalTextBox" Margin="10,45,10,71" Text="{Binding OriginalText}" 
+                 IsReadOnly="False" AcceptsReturn="True" AcceptsTab="True" Grid.Row="0" Grid.Column="0" MouseMove="OnMouseover">
+		</TextBox>
+		<CheckBox Grid.Row="0" Grid.Column="0" Content="Remove Repetition" IsChecked="{Binding RemoveRepetition}" HorizontalAlignment="Left" Margin="10,0,0,53" VerticalAlignment="Bottom" Height="18" VerticalContentAlignment="Center" Padding="0"/>
+		<Label Grid.Row="0" Grid.Column="0" Content="Game" HorizontalAlignment="Left" Margin="10,0,0,35" VerticalAlignment="Bottom" Height="18" VerticalContentAlignment="Center" Padding="0"/>
+		<controls:AutoCompleteBox Grid.Row="0" Grid.Column="0" Margin="46,0,10,35"  
 				                          Text="{Binding EntryGame, Mode=TwoWay, Converter={StaticResource EntryGameConverter}, UpdateSourceTrigger=Explicit}" VerticalContentAlignment="Center" Padding="0" Height="18" VerticalAlignment="Bottom"
 				                          ItemsSource="{Binding Source={x:Static viewModel:EntriesTabViewModel.EntryGames}}" 
 				                          FilterMode="Custom" ValueMemberPath="." ItemFilter="EntryGameFilter"
 				                          KeyUp="SetEntryGameEnter" MouseUp="SetEntryGameLeftClick"/>
-        <Button Content="Test" Margin="10,0,10,10" VerticalAlignment="Bottom" Click="TestTranslationClick" Grid.Row="0" Grid.Column="0" />
-        <Label Content="Stage 1 (Game)" Grid.Row="0" Grid.Column="1" />
-        <Label Content="Stage 2 (Input)" Grid.Row="0" Grid.Column="2" />
-        <Label Content="Stage 3 (Yomi)" Grid.Row="0" Grid.Column="3" />
-        <Label Content="Stage 4 (Name>Proxy)" Grid.Row="1" Grid.Column="0" />
-        <Label Content="Stage 5 (Translate)" FontWeight="Bold" Grid.Row="1" Grid.Column="1" />
-        <Label Content="Stage 6 (Proxy>Name)" Grid.Row="1" Grid.Column="2" />
-        <Label Content="Stage 7 (Output)" Grid.Row="1" Grid.Column="3" />
-        <TextBox Text="{Binding Stage1}" Grid.Row="0" Grid.Column="1" Margin="10,45,10,103"/>
-        <TextBox Text="{Binding Stage2}" Grid.Row="0" Grid.Column="2" />
-        <TextBox Text="{Binding Stage3}" Grid.Row="0" Grid.Column="3" />
-        <TextBox Text="{Binding Stage4}" Grid.Row="1" Grid.Column="0" />
-        <TextBox Text="{Binding Stage5}" Grid.Row="1" Grid.Column="1" />
-        <TextBox Text="{Binding Stage6}" Grid.Row="1" Grid.Column="2" />
-        <TextBox Text="{Binding Stage7}" Grid.Row="1" Grid.Column="3" />
-        <Label Grid.Row="0" Grid.Column="1" Content="Romaji" HorizontalAlignment="Left" Margin="10,0,0,80" VerticalAlignment="Bottom" Height="18" VerticalContentAlignment="Center" Padding="0"/>
-        <TextBox Text="{Binding Romaji}" Grid.Row="0" Grid.Column="1" Margin="10,0,10,10" Height="65" VerticalAlignment="Bottom"/>
-        <Label Grid.Row="2" Grid.Column="0" Content="Entries Used" HorizontalAlignment="Right"/>
+		<Button Content="Test" Margin="10,0,10,10" VerticalAlignment="Bottom" Click="TestTranslationClick" Grid.Row="0" Grid.Column="0" />
+		<Label Content="Stage 1 (Game)" Grid.Row="0" Grid.Column="1" />
+		<Label Content="Stage 2 (Input)" Grid.Row="0" Grid.Column="2" />
+		<Label Content="Stage 3 (Yomi)" Grid.Row="0" Grid.Column="3" />
+		<Label Content="Stage 4 (Name>Proxy)" Grid.Row="1" Grid.Column="0" />
+		<Label Content="Stage 5 (Translate)" FontWeight="Bold" Grid.Row="1" Grid.Column="1" />
+		<Label Content="Stage 6 (Proxy>Name)" Grid.Row="1" Grid.Column="2" />
+		<Label Content="Stage 7 (Output)" Grid.Row="1" Grid.Column="3" />
+		<TextBox Text="{Binding Stage1}" Grid.Row="0" Grid.Column="1" Margin="10,45,10,103"/>
+		<TextBox Text="{Binding Stage2}" Grid.Row="0" Grid.Column="2" />
+		<TextBox Text="{Binding Stage3}" Grid.Row="0" Grid.Column="3" />
+		<TextBox Text="{Binding Stage4}" Grid.Row="1" Grid.Column="0" />
+		<TextBox Text="{Binding Stage5}" Grid.Row="1" Grid.Column="1" />
+		<TextBox Text="{Binding Stage6}" Grid.Row="1" Grid.Column="2" />
+		<TextBox Text="{Binding Stage7}" Grid.Row="1" Grid.Column="3" />
+		<Label Grid.Row="0" Grid.Column="1" Content="Romaji" HorizontalAlignment="Left" Margin="10,0,0,80" VerticalAlignment="Bottom" Height="18" VerticalContentAlignment="Center" Padding="0"/>
+		<TextBox Text="{Binding Romaji}" Grid.Row="0" Grid.Column="1" Margin="10,0,10,10" Height="65" VerticalAlignment="Bottom"/>
+		<Label Grid.Row="2" Grid.Column="0" Content="Entries Used" HorizontalAlignment="Right"/>
 		<DataGrid Grid.Row="2" Grid.ColumnSpan="3" Grid.Column="1" ItemsSource="{Binding EntriesUsed}" AutoGenerateColumns="False" CanUserAddRows="False">
-	        <DataGrid.Columns>
-		        <DataGridTextColumn Header="Id" Binding="{Binding Id, Mode=OneWay}" />
-		        <DataGridTextColumn Header="User" Binding="{Binding User, Mode=OneWay}" />
-		        <DataGridTextColumn Header="Type" Binding="{Binding Type}" />
+			<DataGrid.Columns>
+				<DataGridTextColumn Header="Id" Binding="{Binding Id, Mode=OneWay}" />
+				<DataGridTextColumn Header="User" Binding="{Binding User, Mode=OneWay}" />
+				<DataGridTextColumn Header="Type" Binding="{Binding Type}" />
 				<DataGridTextColumn Header="Game" Binding="{Binding GameData}" />
-		        <DataGridTextColumn Header="Role" Binding="{Binding Role}" />
-		        <DataGridTextColumn Header="Input" Binding="{Binding Input}" />
-		        <DataGridTextColumn Header="Output" Binding="{Binding Output, Mode=TwoWay}"  />
-		        <DataGridCheckBoxColumn Header="Series-specific" Binding="{Binding SeriesSpecific}" />
-		        <DataGridCheckBoxColumn Header="Regex" Binding="{Binding Regex}" />
-		        <DataGridTemplateColumn Header="Delete" >
-			        <DataGridTemplateColumn.CellTemplate>
-				        <DataTemplate>
-					        <Button Width="150" Content="Delete" Click="ClickDeleteButton" Background="CornflowerBlue"/>
-				        </DataTemplate>
-			        </DataGridTemplateColumn.CellTemplate>
-		        </DataGridTemplateColumn>
-	        </DataGrid.Columns>
+				<DataGridTextColumn Header="Role" Binding="{Binding Role}" />
+				<DataGridTextColumn Header="Input" Binding="{Binding Input}" />
+				<DataGridTextColumn Header="Output" Binding="{Binding Output, Mode=TwoWay}"  />
+				<DataGridCheckBoxColumn Header="Series-specific" Binding="{Binding SeriesSpecific}" />
+				<DataGridCheckBoxColumn Header="Regex" Binding="{Binding Regex}" />
+				<DataGridTemplateColumn Header="Delete" >
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<Button Width="150" Content="Delete" Click="ClickDeleteButton" Background="CornflowerBlue"/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+			</DataGrid.Columns>
 		</DataGrid>
-    </Grid>
+	</Grid>
 </UserControl>

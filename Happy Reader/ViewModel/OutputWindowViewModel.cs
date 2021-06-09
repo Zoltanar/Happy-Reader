@@ -67,8 +67,8 @@ namespace Happy_Reader.ViewModel
 		private void SearchOnDictionary(string input)
 		{
 			var offlineDict = StaticMethods.MainWindow.ViewModel.Translator.OfflineDictionary;
-			var results = offlineDict.Search(input);
-			var text = results.Count < 1 ? "No results found." : string.Join(Environment.NewLine, results.Select(c => c.Detail(offlineDict)));
+			var success = offlineDict.SearchOuter(input, out var result);
+			var text = !success ? "No results found." : result;
 			NotificationWindow.Launch("Dictionary", text);
 		}
 

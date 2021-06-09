@@ -13,6 +13,7 @@ using Happy_Reader.Database;
 using System.Linq.Expressions;
 using System.Management;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -247,7 +248,7 @@ namespace Happy_Reader
 			}
 			else
 			{
-				Trace.Assert(process.MainModule != null, "gameProcess.MainModule != null");
+				Debug.Assert(process.MainModule != null, "gameProcess.MainModule != null");
 				processFileName = process.MainModule.FileName;
 			}
 			return processFileName;
@@ -313,6 +314,26 @@ namespace Happy_Reader
 			return header;
 		}
 
+		public static ToolTip CreateMouseoverTooltip(UIElement placementTarget, PlacementMode placementMode)
+		{
+			var tooltip = new ToolTip()
+			{
+				Placement = placementMode,
+				Background = new SolidColorBrush(Colors.Black) {Opacity = 0.6},
+				Foreground = Brushes.White
+			};
+			if (placementTarget != null) tooltip.PlacementTarget = placementTarget;
+			return tooltip;
+		}
+
+		public static void UpdateTooltip(ToolTip mouseoverTip, string text)
+		{
+			if (text.Length < 1 || Translator.LatinOnlyRegex.IsMatch(text)) return;
+			if (!MainWindow.ViewModel.Translator.OfflineDictionary.SearchOuter(text, out var result)) return;
+			if (result.Equals(mouseoverTip.Content)) return;
+			mouseoverTip.Content = result;
+			if (!mouseoverTip.IsOpen) mouseoverTip.IsOpen = true;
+		}
 	}
 
 	public class FiltersData : SettingsJsonFile

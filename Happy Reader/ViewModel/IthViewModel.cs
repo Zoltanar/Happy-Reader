@@ -69,7 +69,7 @@ namespace Happy_Reader.ViewModel
 			if (Application.Current == null) return;
 			Application.Current.Dispatcher.Invoke(() =>
 			{
-				var displayThread = new TextThreadPanel(textThread, this) { Tag = textThread };
+				var displayThread = new TextThreadPanel(textThread);
 				DisplayThreads.Add(displayThread);
 			});
 			OnPropertyChanged(nameof(DisplayThreads));

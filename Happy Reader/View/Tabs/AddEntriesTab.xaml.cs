@@ -84,7 +84,8 @@ namespace Happy_Reader.View.Tabs
 						return false;
 				}
 			}
-			if (!string.IsNullOrWhiteSpace(entry.Input)) return true;
+			//whitespace is valid
+			if (!string.IsNullOrEmpty(entry.Input)) return true;
 			ResponseLabel.Content = @"Input field must not be empty.";
 			return false;
 		}
