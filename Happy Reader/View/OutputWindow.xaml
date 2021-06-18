@@ -11,7 +11,7 @@
         Topmost="True" 
         Loaded="OutputWindow_OnLoaded"
         ResizeMode="CanResizeWithGrip"
-        SizeChanged="SizeOrLocationChanged" LocationChanged="SizeOrLocationChanged">
+        SizeChanged="SizeOrLocationChanged" LocationChanged="SizeOrLocationChanged" MouseLeave="OutputWindow_OnMouseLeave">
 	<Window.DataContext>
 		<viewModel:OutputWindowViewModel/>
 	</Window.DataContext>

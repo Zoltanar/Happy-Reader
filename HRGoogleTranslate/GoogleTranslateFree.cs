@@ -23,7 +23,7 @@ namespace HRGoogleTranslate
 		private const string UserAgentPropertyKey = "User Agent";
 		private static readonly Regex CombineEmptyLinesRegex = new(@"^(\s*\n){2,}");
 		private const string TranslateFreeUrl = @"https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=en&dt=t&q="; //todo make editable
-		private static readonly HttpClient FreeClient = new();
+		private static HttpClient _freeClient = new();
 		public string Error { get; set; }
 		public string Version => "1.0";
 		public string SourceName => "Google Translate Free";
@@ -38,7 +38,7 @@ namespace HRGoogleTranslate
 		{
 			SetUserAgent(Settings.FreeUserAgent);
 		}
-
+		
 		public void LoadProperties(string filePath)
 		{
 			Settings = SettingsJsonFile.Load<FreeSettings>(filePath);
@@ -64,23 +64,35 @@ namespace HRGoogleTranslate
 
 		private void SetUserAgent(string userAgent)
 		{
+			_freeClient = new HttpClient();
 			Settings.FreeUserAgent = userAgent;
-			FreeClient.DefaultRequestHeaders.Clear();
-			FreeClient.DefaultRequestHeaders.Add(@"user-agent", userAgent);
+			_freeClient.DefaultRequestHeaders.Clear();
+			_freeClient.DefaultRequestHeaders.Add(@"user-agent", userAgent);
 		}
 
 		public bool Translate(string input, out string output)
 		{
 			try
 			{
-				var jsonString = GetPostResultAsString(FreeClient, TranslateFreeUrl + Uri.EscapeDataString(input));
-				if (jsonString.Contains(GoogleDetectedString) || jsonString.Contains(GoogleDetectedString2))
+				int attempts = 0;
+				do
 				{
-					var extracted = ExtractText(jsonString);
-					output = $"Failed to translate, detected by Google: {extracted}";
-					return false;
-				}
-				return TryDeserializeJsonResponse(jsonString, out output);
+					attempts++;
+					var jsonString = GetPostResultAsString(_freeClient, TranslateFreeUrl + Uri.EscapeDataString(input));
+					if (jsonString.Contains(GoogleDetectedString) || jsonString.Contains(GoogleDetectedString2))
+					{
+						if (attempts < 2)
+						{
+							SetUserAgent(Settings.FreeUserAgent);
+							continue;
+						}
+						var extracted = ExtractText(jsonString);
+						output = $"Failed to translate, detected by Google: {extracted}";
+						return false;
+					}
+
+					return TryDeserializeJsonResponse(jsonString, out output);
+				} while (true);
 			}
 			catch (Exception ex)
 			{

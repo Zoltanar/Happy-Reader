@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Translation;
@@ -311,6 +312,9 @@ namespace Happy_Reader
 				if (Loaded) Save();
 			}
 		}
+
+		//todo make editable
+		public PlacementMode MouseoverTooltipPlacement { get; set; } = PlacementMode.Right;
 
 		public TextAlignment SetNextHorizontalAlignmentState()
 		{

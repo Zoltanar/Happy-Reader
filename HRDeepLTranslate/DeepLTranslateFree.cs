@@ -12,8 +12,9 @@ namespace HRDeepLTranslate
 	// ReSharper disable once UnusedType.Global used with plugin model.
 	public class DeepLTranslateFree : ITranslator
 	{
-		private const string Url = @"https://api-free.deepl.com/v2/translate?source_lang=JA&target_lang=EN-US"; //todo make editable
+		private const string Url = @"https://api-free.deepl.com/v2/translate?source_lang=JA&target_lang=EN-US&split_sentences=0"; //todo make editable
 		private const string AuthKeyPropertyName = @"Authentication Key";
+		private const string PreventDetailsPropertyName = @"Prevent Details";
 
 		public string Version => @"1.0";
 		public string SourceName => @"DeepL API Free";
@@ -23,14 +24,15 @@ namespace HRDeepLTranslate
 
 		public IReadOnlyDictionary<string, Type> Properties { get; } = new ReadOnlyDictionary<string, Type>(new Dictionary<string, Type>
 		{
-			{AuthKeyPropertyName, typeof(string)}
+			{AuthKeyPropertyName, typeof(string)},
+			{PreventDetailsPropertyName, typeof(bool)}
 		});
 
 		public string Error { get; set; }
 
 		public void Initialise()
 		{
-			Error = string.IsNullOrWhiteSpace(Settings.AuthenticationKey) ? $"Authentication Key is not set" : null;
+			Error = string.IsNullOrWhiteSpace(Settings.AuthenticationKey) ? "Authentication Key is not set" : null;
 		}
 
 		public void LoadProperties(string filePath)
@@ -45,11 +47,18 @@ namespace HRDeepLTranslate
 
 		public void SetProperty(string propertyName, object value)
 		{
-			Settings.AuthenticationKey = propertyName switch
+			switch (propertyName)
 			{
-				AuthKeyPropertyName when value is string authenticationKey => authenticationKey,
-				_ => throw new ArgumentOutOfRangeException(propertyName, $"Property not found: '{propertyName}'.")
-			};
+				case AuthKeyPropertyName when value is string authenticationKey:
+					Settings.AuthenticationKey = authenticationKey;
+					break;
+				case PreventDetailsPropertyName when value is bool preventDetails:
+					Settings.PreventDetails = preventDetails;
+					break;
+				default:
+					throw new ArgumentOutOfRangeException(propertyName,
+						$"Property not found or wrong type: '{propertyName}' '{value.GetType()}'.");
+			}
 		}
 
 		public object GetProperty(string propertyName)
@@ -57,6 +66,7 @@ namespace HRDeepLTranslate
 			return propertyName switch
 			{
 				AuthKeyPropertyName => Settings.AuthenticationKey,
+				PreventDetailsPropertyName => Settings.PreventDetails,
 				_ => throw new ArgumentOutOfRangeException(propertyName, $"Property not found: '{propertyName}'.")
 			};
 		}
@@ -68,7 +78,10 @@ namespace HRDeepLTranslate
 				var url = FormUrl(input);
 				var success = GetPostResultAsString(FreeClient, url, out output);
 				if (!success) return false;
-				return TryDeserializeJsonResponse(output, out output);
+				success = TryDeserializeJsonResponse(output, out output);
+				if (!success) return false;
+				if (Settings.PreventDetails && input.Length <= 4) PreventDetails(ref output);
+				return true;
 			}
 			catch (Exception ex)
 			{
@@ -76,6 +89,15 @@ namespace HRDeepLTranslate
 				output = $"Failed to translate. ({ex.Message})";
 				return false;
 			}
+		}
+
+		private void PreventDetails(ref string output)
+		{
+			var openBracket = output.IndexOf('(');
+			if (openBracket <= 0) return;
+			var closeBracket = output.IndexOf(')', openBracket);
+			if (closeBracket == -1 || closeBracket != output.Length-1) return;
+			output = output.Substring(0, openBracket).Trim();
 		}
 
 		private string FormUrl(string input)
@@ -134,6 +156,8 @@ namespace HRDeepLTranslate
 	public class FreeSettings : SettingsJsonFile
 	{
 		private string _authenticationKey = string.Empty;
+		private bool _preventDetails = true;
+
 
 		public string AuthenticationKey
 		{
@@ -142,7 +166,18 @@ namespace HRDeepLTranslate
 			{
 				if (_authenticationKey == value) return;
 				_authenticationKey = value;
-				if(Loaded) Save();
+				if (Loaded) Save();
+			}
+		}
+
+		public bool PreventDetails
+		{
+			get => _preventDetails;
+			set
+			{
+				if (_preventDetails == value) return;
+				_preventDetails = value;
+				if (Loaded) Save();
 			}
 		}
 

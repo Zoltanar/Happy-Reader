@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using Happy_Reader.ViewModel;
@@ -38,7 +37,7 @@ namespace Happy_Reader.View
 			InitializeComponent();
 			_initialiseWindowForGame = initialiseOutputWindowForGame;
 			_settingsColumnLength = SettingsColumn.Width;
-			_mouseoverTip = StaticMethods.CreateMouseoverTooltip(OutputTextBox, PlacementMode.Top);
+			_mouseoverTip = StaticMethods.CreateMouseoverTooltip(this, StaticMethods.Settings.TranslatorSettings.MouseoverTooltipPlacement);
 			_mouseoverTip.Background.Opacity = OpacitySlider.Value;
 		}
 
@@ -189,6 +188,11 @@ namespace Happy_Reader.View
 		{
 			if (_mouseoverTip == null) return;
 			_mouseoverTip.Background.Opacity = e.NewValue;
+		}
+
+		private void OutputWindow_OnMouseLeave(object sender, MouseEventArgs e)
+		{
+			if (_mouseoverTip?.IsOpen ?? false) _mouseoverTip.IsOpen = false;
 		}
 	}
 }
