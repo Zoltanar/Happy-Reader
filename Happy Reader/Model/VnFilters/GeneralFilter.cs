@@ -376,13 +376,13 @@ namespace Happy_Reader
 					return $"{result} - {(StringValue == null ? "None" : ((OwnedStatus)IntValue).GetDescription())}";
 				case GeneralFilterType.Language:
 				case GeneralFilterType.OriginalLanguage:
-					return $"{result} - {CultureInfo.GetCultureInfo(StringValue).DisplayName}";
+					return $"{result} - {(StringValue == null ? "Empty" : CultureInfo.GetCultureInfo(StringValue).DisplayName)}";
 				case GeneralFilterType.Tags:
-					result += $" - {DumpFiles.GetTag(IntValue).Name}";
+					result += $" - {DumpFiles.GetTag(IntValue)?.Name ?? "Not Found"}";
 					if (AdditionalInt != null) result += $" Score >= {AdditionalInt.Value}";
 					return result;
 				case GeneralFilterType.Traits:
-					return $"{result} - {DumpFiles.GetTrait(IntValue).Name}";
+					return $"{result} - {DumpFiles.GetTrait(IntValue)?.Name ?? "Not Found"}";
 				case GeneralFilterType.Seiyuu:
 				case GeneralFilterType.Staff:
 					return $"{result} - {StaticHelpers.LocalDatabase.StaffAliases[IntValue]}";
@@ -394,7 +394,7 @@ namespace Happy_Reader
 					throw new ArgumentOutOfRangeException();
 			}
 		}
-
+		
 		public IFilter GetCopy()
 		{
 			var filter = new GeneralFilter(Type, 0, Exclude) { StringValue = StringValue };
