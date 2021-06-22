@@ -26,7 +26,7 @@
 				</ComboBox.ItemContainerStyle>
 			</ComboBox>
 			<TextBox Grid.Row="1" x:Name="MainTextBox" Text="{Binding Text, Mode=OneWay}" Margin="5" IsReadOnly="True" TextWrapping="Wrap" 
-			         VerticalScrollBarVisibility="Auto" TextChanged="MainTextBox_OnTextChanged" Background="Transparent" MouseMove="OnMouseover" MaxHeight="300"/>
+			         VerticalScrollBarVisibility="Auto" TextChanged="MainTextBox_OnTextChanged" Background="Transparent" MouseMove="OnMouseover"  MouseLeave="OnMouseLeave" MaxHeight="300"/>
 		</Grid>
 	</Border>
 </UserControl>
