@@ -58,5 +58,10 @@ namespace Happy_Reader.View
 			var text = MainTextBox.Text.Substring(textPosition);
 			StaticMethods.UpdateTooltip(_mouseoverTip, text);
 		}
+
+		private void OnMouseLeave(object sender, MouseEventArgs e)
+		{
+			if (_mouseoverTip?.IsOpen ?? false) _mouseoverTip.IsOpen = false;
+		}
 	}
 }
