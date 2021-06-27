@@ -99,8 +99,6 @@ namespace Happy_Reader.View.Tabs
 			if (!string.IsNullOrWhiteSpace(aliasString))
 			{
 				AliasesTb.Text = aliasString;
-				AliasesLabel.Visibility = Visibility.Visible;
-				AliasesTb.Visibility = Visibility.Visible;
 			}
 			else
 			{
@@ -124,8 +122,6 @@ namespace Happy_Reader.View.Tabs
 				}
 				RelationsCombobox.ItemsSource = elementList;
 				RelationsCombobox.SelectedIndex = 0;
-				RelationsLabel.Visibility = Visibility.Visible;
-				RelationsCombobox.Visibility = Visibility.Visible;
 			}
 			else
 			{
@@ -143,13 +139,11 @@ namespace Happy_Reader.View.Tabs
 				stringList.AddRange(ViewModel.AnimeObject.Select(x => x.Print()));
 				AnimeCombobox.ItemsSource = stringList;
 				AnimeCombobox.SelectedIndex = 0;
-				AnimeLabel.Visibility = Visibility.Visible;
-				AnimeCombobox.Visibility = Visibility.Visible;
 			}
 			else
 			{
-				AnimeLabel.Visibility = Visibility.Collapsed;
 				AnimeCombobox.Visibility = Visibility.Collapsed;
+				AnimeLabel.Visibility = Visibility.Collapsed;
 			}
 		}
 

@@ -14,7 +14,6 @@
 #### Text Hooking
 - use tab to also show captured clipboard text format like: \[process/pid] \[outputted] \[text]
 - let user name threads and delete saved
-- text thread panel max height (scrollbar if needed)
 - VnrHook: handle maximum threads either change limit or reset ability
 - look at global hooks for changing ITHVNR settings via global hotkeys [GlobalMouseKeyHook](https://github.com/gmamaladze/globalmousekeyhook)
 #### Output Window
@@ -30,7 +29,7 @@
 #### Other
 - warn if an instance is already running (maybe show database file for opening instance) 
 - show written tag description on tooltip
-- MainWindow: allow scrolling on main window tab control when too many tabs and add close all tabs button
+- MainWindow: add close all tabs button
 - Settings: if login response is error with id 'needlogin' show user that credentials are wrong
 - DatabaseDumpReader: Parallelise?
 - DatabaseDumpReader: Icon
@@ -38,7 +37,6 @@
 - Information Tab: Show Size of Vndb Images, show total size.
 - Use Screenshot Thumbnails when full-size is not found.
 - Tray Context: Show last 5 games (can launch)
-- VNTab: Clean up Description (v13999)
 
 ## Issues  
 - can't show outputwindow on top of some fullscreen games, steals focus on games where it works (might need direct draw)

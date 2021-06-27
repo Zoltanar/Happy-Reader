@@ -57,7 +57,8 @@
 					<Run Text="{Binding ID}"/>
 				</Hyperlink>
 			</Label>
-			<Grid Grid.Column="1">
+			<ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+			<Grid>
 				<Grid.RowDefinitions>
 					<RowDefinition Height="Auto"/>
 					<RowDefinition Height="Auto"/>
@@ -65,12 +66,11 @@
 				</Grid.RowDefinitions>
 				<Label Content="{Binding CharacterVN.Role}" FontSize="10" Padding="2"/>
 				<TextBox x:Name="DescriptionBox" Grid.Row="1" Text="{Binding Description}" TextWrapping="Wrap" MinWidth="0" MaxWidth="230" BorderThickness="1" Margin="5" BorderBrush="Black" Foreground="Black"/>
-				<ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="5">
-					<StackPanel CanVerticallyScroll="True">
+				<StackPanel CanVerticallyScroll="True" Grid.Row="2" Margin="5">
 						<ItemsControl x:Name="TraitsControl"/>
 					</StackPanel>
-				</ScrollViewer>
-			</Grid>
+				</Grid>
+			</ScrollViewer>
 		</Grid>
 	</Border>
 </UserControl>
