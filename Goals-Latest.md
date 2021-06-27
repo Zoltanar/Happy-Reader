@@ -7,11 +7,12 @@
 - do not split romaji into parts
 #### Filters
 - set default filter (different from permanent filter)
+- handle mtl flag for release languages
 #### Test Tab
 - show if translation was cached or not and give option to re-fetch
 - list entries used per stage.
 #### Text Hooking
-- use ithvnr tab to also show captured clipboard text format like: \[process/pid] \[outputted] \[text]
+- use tab to also show captured clipboard text format like: \[process/pid] \[outputted] \[text]
 - let user name threads and delete saved
 - text thread panel max height (scrollbar if needed)
 - VnrHook: handle maximum threads either change limit or reset ability

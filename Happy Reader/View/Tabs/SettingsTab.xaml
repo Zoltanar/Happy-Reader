@@ -158,7 +158,7 @@
 				</Grid>
 				<view:LabeledTextBox LabelWidth="140" Label="Offline Dictionary Folder" Text="{Binding OfflineDictionaryFolder}"
 				                     ToolTip="Path to folder with json-formatted JMDict (folder: jmdict_english) and Kanjidic (folder: kanjidic_english) files."/>
-				<CheckBox Content="Dictionary on Mouse-over" IsChecked="{Binding MouseoverDictionary}" ToolTip="Show information about Japanese text when mousing over it in Output Window." />
+				<CheckBox Content="Dictionary on Mouse-over" IsChecked="{Binding MouseoverDictionary}" ToolTip="Show information about Japanese text when placing mouse over it in certain places." />
 				<CheckBox Content="Show Tags on Mouse-over Dictionary" IsChecked="{Binding ShowTagsOnMouseover}" ToolTip="Include tag information in mouse-over tool tip."/>
 			</StackPanel>
 		</GroupBox>

@@ -68,7 +68,7 @@ namespace Happy_Reader
 		{
 			OfflineDictionary.ReadFiles(_settings.OfflineDictionaryFolder);
 		}
-		
+
 		public Translation Translate(User user, EntryGame game, string input, bool saveEntriesUsed, bool removeRepetition)
 		{
 			if (removeRepetition)
@@ -133,11 +133,16 @@ namespace Happy_Reader
 					if (_inclusiveSeparators.Contains(@char))
 					{
 						currentPart += @char;
-						parts.Add((currentPart, !currentPart.All(c => _allSeparators.Contains(c))));
+						parts.Add((currentPart, !currentPart.All(c => _allSeparators.Contains(c)) && !LatinOnlyRegex.IsMatch(currentPart)));
 					}
 					else
 					{
-						if (currentPart.Length > 0) parts.Add((currentPart, !string.IsNullOrWhiteSpace(currentPart) && !currentPart.All(c => _allSeparators.Contains(c))));
+						if (currentPart.Length > 0)
+						{
+							//not empty, not all separators, not latin only
+							var translatePart = !string.IsNullOrWhiteSpace(currentPart) && !currentPart.All(c => _allSeparators.Contains(c)) && !LatinOnlyRegex.IsMatch(currentPart);
+							parts.Add((currentPart, translatePart));
+						}
 						parts.Add((@char.ToString(), false));
 					}
 					currentPart = "";
@@ -147,7 +152,12 @@ namespace Happy_Reader
 				currentPart += @char;
 				index++;
 			}
-			if (currentPart.Length > 0) parts.Add((currentPart, !string.IsNullOrWhiteSpace(currentPart) && !currentPart.All(c => _allSeparators.Contains(c))));
+
+			if (currentPart.Length > 0)
+			{
+				var translatePart = !string.IsNullOrWhiteSpace(currentPart) && !currentPart.All(c => _allSeparators.Contains(c)) && !LatinOnlyRegex.IsMatch(currentPart);
+				parts.Add((currentPart, translatePart));
+			}
 		}
 
 		private void SetEntries([NotNull] User user, EntryGame game)
@@ -291,7 +301,7 @@ namespace Happy_Reader
 		private static List<Entry> RemoveUnusedEntriesAndSetLocation(StringBuilder sb, IList<Entry> entries)
 		{
 			var text = sb.ToString();
-			List<Entry> relevantEntries = entries.OrderByDescending(x => x.Input.Length).ToList();
+			List<Entry> relevantEntries = new List<Entry>();
 			foreach (var entry in entries)
 			{
 				int? location = null;
@@ -306,8 +316,15 @@ namespace Happy_Reader
 					if (indexOfEntry >= 0) location = indexOfEntry;
 				}
 				//remove unused entries or set location
-				if (!location.HasValue) relevantEntries.Remove(entry);
-				else entry.Location = location.Value;
+				if (location.HasValue)
+				{
+					var existing = relevantEntries.FirstOrDefault(e => e.Input.StartsWith(entry.Input));
+					if (existing == null || existing.Location != location.Value)
+					{
+						entry.Location = location.Value;
+						relevantEntries.Add(entry);
+					}
+				}
 			}
 			return relevantEntries.OrderBy(x => x.Location).ToList();
 		}
@@ -416,7 +433,7 @@ namespace Happy_Reader
 				{
 					var input = Stage4P1InputRegex.Replace(entry.Input, @"\[\[$1#(\d+)]]");
 					var matches = Regex.Matches(sb.ToString(), input).Cast<Match>().ToList();
-					var roleGroups = matches.SelectMany(x => x.Groups.Cast<Group>().Skip(1).Select(g => int.Parse(g.Value))).ToList();
+					var roleGroups = matches.SelectMany(x => x.Groups.Cast<Group>().Skip(1).Select(g => int.Parse(g.Value))).Distinct().ToList();
 					if (matches.Count == 0) continue;
 					var merge = matches.Count == 1 && roleGroups.Count > 1;
 					var mergedEntry = new Entry
@@ -436,8 +453,14 @@ namespace Happy_Reader
 						if (merge && roleGroups.Count > 1)
 						{
 							entriesWithProxies.Remove(matchedEntry);
-							mergedEntry.AssignedProxy ??= matchedEntry.AssignedProxy;
-							mergedEntry.AssignedProxy.ProxyMods.AddRange(matchedEntry.AssignedProxy.ProxyMods);
+							if (mergedEntry.AssignedProxy == null)
+							{
+								mergedEntry.AssignedProxy = matchedEntry.AssignedProxy;
+							}
+							else
+							{
+								mergedEntry.AssignedProxy.ProxyMods.AddRange(matchedEntry.AssignedProxy.ProxyMods);
+							}
 							mergedEntry.Output = new Regex($@"\[\[([^];]+?)#{matchIndex}]]").Replace(mergedEntry.Output, matchedEntry.Output);
 							matchIndex++;
 						}
@@ -691,7 +714,9 @@ namespace Happy_Reader
 
 		private static string KawazuToRomaji(string text)
 		{
-			return Task.Run(() => KawazuConverter.Convert(text, To.Romaji, Mode.Spaced, RomajiSystem.Hepburn)).GetAwaiter().GetResult().Replace('ゔ', 'v');
+			var result = Task.Run(() => KawazuConverter.Convert(text, To.Romaji, Mode.Spaced, RomajiSystem.Hepburn)).GetAwaiter().GetResult();
+			result = result.Replace('ゔ', 'v');
+			return result;
 		}
 
 		public static void ExitProcedures(Func<int> saveData)

@@ -70,6 +70,16 @@ Proxy Role suggestions:
 - m.f = Female Name (defaults to 'm' if 'm.f' proxies are not found)
 - n = Non-Name Noun (objects, etc)
 
+#### Mouseover Dictionary
+
+There is functionality to display definition of Japanese Kanji/words when placing the mouse over such text in the following panels:
+1. Text Thread Panels in Text Hooking tab
+2. Original panel in Test tab
+3. Original text in Output Window
+
+This can be enabled in the Settings tab (`Dictionary on Mouse-over`), a path to the folder with the dictionary files must be entered.
+You can download these files from the releases page but they must be extracted before they can be used.
+
 #### VNDB Integration
 
 If the user wishes, they may use the VNDB integration features, such as 
