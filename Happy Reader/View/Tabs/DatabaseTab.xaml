@@ -47,7 +47,7 @@
 					</ItemsPanelTemplate>
 				</ListBox.ItemsPanel>
 			</ListBox>
-			<view:FiltersPane x:Name="FiltersPane" Grid.Column="1" Visibility="Collapsed" MinWidth="250" DataContext="{Binding FiltersViewModel}"/>
+			<view:FiltersPane x:Name="FiltersPane" Grid.Column="1" Visibility="Collapsed" MinWidth="250" MaxWidth="400" DataContext="{Binding FiltersViewModel}"/>
 		</Grid>
 		<Label Content="Search:" HorizontalAlignment="Left" VerticalContentAlignment="Center" Grid.Row="1" Margin="0"/>
 		<TextBox x:Name="SearchTexBox" Margin="65,0,321,0" TextWrapping="Wrap" VerticalContentAlignment="Center" PreviewKeyUp="SearchForVN" Height="30" VerticalAlignment="Stretch" Grid.Row="1"/>

@@ -176,6 +176,7 @@
     <Compile Include="View\Converters\RunningStatusToBrushConverter.cs" />
     <Compile Include="View\Converters\GameDisplayNameConverter.cs" />
     <Compile Include="View\Converters\ScoreConverter.cs" />
+    <Compile Include="View\Converters\TitleDescriptionConverter.cs" />
     <Compile Include="View\Converters\UserVnConverters.cs" />
     <Compile Include="View\FiltersPane.xaml.cs">
       <DependentUpon>FiltersPane.xaml</DependentUpon>
