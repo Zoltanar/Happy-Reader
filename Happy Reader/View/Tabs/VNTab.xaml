@@ -30,110 +30,138 @@
 			</CollectionViewSource.GroupDescriptions>
 		</CollectionViewSource>
 	</UserControl.Resources>
-	<Grid>
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="*"/>
-			<ColumnDefinition Width="Auto"/>
-		</Grid.ColumnDefinitions>
-		<Grid.RowDefinitions>
-				<RowDefinition Height="Auto"/>
-			<RowDefinition Height="*"/>
-		</Grid.RowDefinitions>
-		<ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="500">
-		<Grid Name="InfoTopLeft">
+		<Grid>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="Auto"/>
+			</Grid.ColumnDefinitions>
 			<Grid.RowDefinitions>
-				<RowDefinition/>
-				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="375" />
+				<RowDefinition Height="*"/>
 			</Grid.RowDefinitions>
-			<Grid Grid.Row="0" Name="InfoGrid">
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="65"/>
-					<ColumnDefinition Width="*"/>
-				</Grid.ColumnDefinitions>
-				<Grid Grid.Column="0" Margin="0" Background="LightGray" Name="InfoLabels">
-					<Grid.RowDefinitions >
-						<RowDefinition Height="20"/>
-						<RowDefinition Height="*" MaxHeight="25"/>
-						<RowDefinition Height="20"/>
-						<RowDefinition Height="20"/>
-						<RowDefinition Height="*" MaxHeight="25"/>
-						<RowDefinition Height="*" MaxHeight="25"/>
+				<Grid Name="InfoTopLeft">
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto"/>
 						<RowDefinition Height="*"/>
 					</Grid.RowDefinitions>
-					<Label Grid.Row="0"  Style="{StaticResource RightLabel}" Content="Title"/>
-					<Label Grid.Row="1" Style="{StaticResource RightLabel}" Content="Aliases" x:Name="AliasesLabel" />
-					<Label Grid.Row="2" Style="{StaticResource RightLabel}" Content="Producer"/>
-					<Label Grid.Row="3" Style="{StaticResource RightLabel}" Content="Rating"/>
-					<Label Grid.Row="4" Style="{StaticResource RightLabel}" Content="Relations" x:Name="RelationsLabel"/>
-					<Label Grid.Row="5" Style="{StaticResource RightLabel}" Content="Anime" x:Name="AnimeLabel"/>
-					<Label Grid.Row="6" Style="{StaticResource RightLabel}" Content="Tags"/>
-				</Grid>
-				<Grid Grid.Column="1" Margin="0" Background="LightGray" Name="InfoData">
-					<Grid.RowDefinitions >
-						<RowDefinition Height="20"/>
-						<RowDefinition Height="*" MaxHeight="25"/>
-						<RowDefinition Height="20"/>
-						<RowDefinition Height="20"/>
-						<RowDefinition Height="*" MaxHeight="25"/>
-						<RowDefinition Height="*" MaxHeight="25"/>
-						<RowDefinition Height="*" />
-					</Grid.RowDefinitions>
-					<TextBox Grid.Row="0" >
-						<TextBox.Text>
-							<MultiBinding Converter="{StaticResource StringAndBracketedConverter}">
-								<Binding Path="Title"/>
-								<Binding Path="KanjiTitle"/>
-							</MultiBinding>
-						</TextBox.Text>
-					</TextBox>
-					<TextBox x:Name="AliasesTb" Grid.Row="1" />
-					<Grid Grid.Row="2">
+					<Grid Grid.Row="0" Name="InfoGrid">
 						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="30"/>
+							<ColumnDefinition Width="65"/>
 							<ColumnDefinition Width="*"/>
-							<ColumnDefinition Width="100"/>
 						</Grid.ColumnDefinitions>
-						<Image Source="{Binding Producer.FlagSource}" Grid.Column="0"/>
-						<TextBox Text="{Binding Producer.Name}" Grid.Column="1"/>
-						<TextBox Text="{Binding LengthTime, Converter={StaticResource EnumDescriptionConverter}}" HorizontalContentAlignment="Right" Grid.Column="2"/>
+						<Grid Grid.Column="0" Margin="0" Background="LightGray" Name="InfoLabels">
+							<Grid.RowDefinitions >
+								<RowDefinition Height="20"/>
+						<RowDefinition Height="Auto"/>
+								<RowDefinition Height="20"/>
+								<RowDefinition Height="20"/>
+						<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+							</Grid.RowDefinitions>
+							<Label Grid.Row="0"  Style="{StaticResource RightLabel}" Content="Title"/>
+					<Label Grid.Row="1" Style="{StaticResource RightLabel}" Content="Aliases" x:Name="AliasesLabel" Height="25" />
+							<Label Grid.Row="2" Style="{StaticResource RightLabel}" Content="Producer"/>
+							<Label Grid.Row="3" Style="{StaticResource RightLabel}" Content="Rating"/>
+					<Label Grid.Row="4" Style="{StaticResource RightLabel}" Content="Relations" x:Name="RelationsLabel" Height="25"/>
+							<Label Grid.Row="5" Style="{StaticResource RightLabel}" Content="Anime" x:Name="AnimeLabel" Height="25"/>
+						</Grid>
+						<Grid Grid.Column="1" Margin="0" Background="LightGray" Name="InfoData">
+							<Grid.RowDefinitions >
+								<RowDefinition Height="20"/>
+						<RowDefinition Height="Auto" />
+								<RowDefinition Height="20"/>
+								<RowDefinition Height="20"/>
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+							</Grid.RowDefinitions>
+							<TextBox Grid.Row="0" >
+								<TextBox.Text>
+									<MultiBinding Converter="{StaticResource StringAndBracketedConverter}">
+										<Binding Path="Title"/>
+										<Binding Path="KanjiTitle"/>
+									</MultiBinding>
+								</TextBox.Text>
+							</TextBox>
+							<TextBox x:Name="AliasesTb" Grid.Row="1" Height="25" />
+							<Grid Grid.Row="2">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="30"/>
+									<ColumnDefinition Width="*"/>
+									<ColumnDefinition Width="100"/>
+								</Grid.ColumnDefinitions>
+								<Image Source="{Binding Producer.FlagSource}" Grid.Column="0"/>
+								<TextBox Text="{Binding Producer.Name}" Grid.Column="1"/>
+								<TextBox Text="{Binding LengthTime, Converter={StaticResource EnumDescriptionConverter}}" HorizontalContentAlignment="Right" Grid.Column="2"/>
+							</Grid>
+							<Grid Grid.Row="3">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition/>
+									<ColumnDefinition/>
+								</Grid.ColumnDefinitions>
+								<TextBox Grid.Column="0">
+									<TextBox.Text>
+										<MultiBinding StringFormat="{}{0:0.00} ({1} votes)">
+											<Binding Path="Rating"/>
+											<Binding Path="VoteCount"/>
+										</MultiBinding>
+									</TextBox.Text>
+								</TextBox>
+								<TextBox Grid.Column="1" Text="{Binding Popularity, StringFormat=Popularity {0:0.00}}" HorizontalContentAlignment="Right"/>
+							</Grid>
+							<ComboBox Grid.Row="4" x:Name="RelationsCombobox" SelectionChanged="RelationSelected" SelectedIndex="0" IsReadOnly="True"/>
+							<ComboBox Grid.Row="5" x:Name="AnimeCombobox" SelectedIndex="0" IsReadOnly="True"/>
+						</Grid>
 					</Grid>
-					<Grid Grid.Row="3">
+					<Grid Grid.Row="1" Name="ResizableItems" Background="LightGray">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="*"/>
+							<RowDefinition Height="*"/>
+						</Grid.RowDefinitions>
 						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="65"/>
 							<ColumnDefinition/>
-							<ColumnDefinition/>
-						</Grid.ColumnDefinitions>
-						<TextBox Grid.Column="0">
-							<TextBox.Text>
-								<MultiBinding StringFormat="{}{0:0.00} ({1} votes)">
-									<Binding Path="Rating"/>
-									<Binding Path="VoteCount"/>
-								</MultiBinding>
-							</TextBox.Text>
-						</TextBox>
-						<TextBox Grid.Column="1" Text="{Binding Popularity, StringFormat=Popularity {0:0.00}}" HorizontalContentAlignment="Right"/>
-					</Grid>
-					<ComboBox Grid.Row="4" x:Name="RelationsCombobox" SelectionChanged="RelationSelected" SelectedIndex="0" IsReadOnly="True"/>
-					<ComboBox Grid.Row="5" x:Name="AnimeCombobox" SelectedIndex="0" IsReadOnly="True"/>
-					<Grid Grid.Row="6" MaxHeight="375" Margin="0" Background="Wheat">
-						<ListBox x:Name="AllTagsControl" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="LightBlue">
+				</Grid.ColumnDefinitions>
+						<Label Grid.Row="0" Grid.Column="0" Style="{StaticResource RightLabel}" Content="Tags" VerticalAlignment="Top"/>
+						<ListBox Grid.Row="0" Grid.Column="1" x:Name="AllTagsControl" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto" Background="LightBlue">
 							<ListBox.ItemsPanel>
 								<ItemsPanelTemplate>
 									<WrapPanel />
 								</ItemsPanelTemplate>
 							</ListBox.ItemsPanel>
 						</ListBox>
-					</Grid>
+				<ScrollViewer Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" VerticalScrollBarVisibility="Auto" VerticalAlignment="Top">
+					<TextBox Text="{Binding Description, Converter={StaticResource TitleDescriptionConverter}}" TextWrapping="Wrap" Margin="0" Padding="5" Name="DescBox"/>
+					</ScrollViewer>
 				</Grid>
-			</Grid>
-			<TextBox Grid.Row="1" Text="{Binding Description, Converter={StaticResource TitleDescriptionConverter}}" TextWrapping="Wrap" Margin="0" Padding="5" Background="LightGray" Name="DescBox"/>
-		</Grid>
-		</ScrollViewer>
+				</Grid>
 		<Grid x:Name="TileBox" Grid.Row="0" Grid.Column="1"/>
-		<ScrollViewer Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="0">
-		<TabControl x:Name="TabControl">
-			<TabItem x:Name="ScreenshotsTab" Header="Screenshots">
-				<view:AspectRatioLayoutDecorator x:Name="ScreensBox" Margin="5">
-					<ItemsControl ItemsSource="{Binding ScreensObject}" >
+		<TabControl Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="0" x:Name="TabControl">
+				<TabItem x:Name="ScreenshotsTab" Header="Screenshots">
+					<view:AspectRatioLayoutDecorator x:Name="ScreensBox" Margin="5">
+						<ItemsControl ItemsSource="{Binding ScreensObject}" >
+							<ItemsControl.ItemsPanel>
+								<ItemsPanelTemplate>
+									<StackPanel Orientation="Horizontal"/>
+								</ItemsPanelTemplate>
+							</ItemsControl.ItemsPanel>
+							<ItemsControl.Template>
+								<ControlTemplate>
+									<ScrollViewer x:Name="ScrollViewer" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Disabled" 
+								              CanContentScroll="True" PreviewMouseWheel="ScrollViewer_OnPreviewMouseWheel">
+										<ItemsPresenter />
+									</ScrollViewer>
+								</ControlTemplate>
+							</ItemsControl.Template>
+							<ItemsControl.ItemTemplate>
+								<DataTemplate>
+									<Image Source="{Binding Converter={StaticResource VnOrScreenToImagePathConverter}}"/>
+								</DataTemplate>
+							</ItemsControl.ItemTemplate>
+						</ItemsControl>
+					</view:AspectRatioLayoutDecorator>
+				</TabItem>
+				<TabItem x:Name="CharactersTab" Header="Characters">
+					<ItemsControl x:Name="CharacterTiles"  Margin="5" Background="MediumPurple">
 						<ItemsControl.ItemsPanel>
 							<ItemsPanelTemplate>
 								<StackPanel Orientation="Horizontal"/>
@@ -142,92 +170,68 @@
 						<ItemsControl.Template>
 							<ControlTemplate>
 								<ScrollViewer x:Name="ScrollViewer" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Disabled" 
-								              CanContentScroll="True" PreviewMouseWheel="ScrollViewer_OnPreviewMouseWheel">
+							              CanContentScroll="True" PreviewMouseWheel="ScrollViewer_OnPreviewMouseWheel">
 									<ItemsPresenter />
 								</ScrollViewer>
 							</ControlTemplate>
 						</ItemsControl.Template>
-						<ItemsControl.ItemTemplate>
-							<DataTemplate>
-									<Image Source="{Binding Converter={StaticResource VnOrScreenToImagePathConverter}}"/>
-							</DataTemplate>
-						</ItemsControl.ItemTemplate>
 					</ItemsControl>
-				</view:AspectRatioLayoutDecorator>
-			</TabItem>
-			<TabItem x:Name="CharactersTab" Header="Characters">
-				<ItemsControl x:Name="CharacterTiles"  Margin="5" Background="MediumPurple">
-					<ItemsControl.ItemsPanel>
-						<ItemsPanelTemplate>
-							<StackPanel Orientation="Horizontal"/>
-						</ItemsPanelTemplate>
-					</ItemsControl.ItemsPanel>
-					<ItemsControl.Template>
-						<ControlTemplate>
-							<ScrollViewer x:Name="ScrollViewer" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Disabled" 
-							              CanContentScroll="True" PreviewMouseWheel="ScrollViewer_OnPreviewMouseWheel">
-								<ItemsPresenter />
-							</ScrollViewer>
-						</ControlTemplate>
-					</ItemsControl.Template>
-				</ItemsControl>
-			</TabItem>
-			<TabItem Header="Staff" x:Name="StaffTab">
-				<ListBox ItemsSource="{Binding Source={StaticResource StaffBoxItems}}">
-					<ListBox.GroupStyle>
-						<GroupStyle>
-							<GroupStyle.Panel>
-								<ItemsPanelTemplate>
-									<VirtualizingStackPanel Orientation="Vertical" />
-								</ItemsPanelTemplate>
-							</GroupStyle.Panel>
-							<GroupStyle.ContainerStyle>
-								<Style TargetType="{x:Type GroupItem}">
-									<Setter Property="Template">
-										<Setter.Value>
-											<ControlTemplate>
-												<Expander Padding="0" BorderThickness="0" IsExpanded="True">
-													<Expander.Header>
-														<!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
-														<TextBlock FontWeight="Bold" Text="{Binding Name}"/>
-													</Expander.Header>
-													<ItemsPresenter/>
-												</Expander>
-											</ControlTemplate>
-										</Setter.Value>
-									</Setter>
-								</Style>
-							</GroupStyle.ContainerStyle>
-						</GroupStyle>
-					</ListBox.GroupStyle>
-					<ListBox.ItemTemplate>
-						<DataTemplate>
-							<Border BorderThickness="0">
-								<Grid>
-									<StackPanel Orientation="Horizontal">
-										<TextBlock Text="{Binding Detail}">
-											<TextBlock.ContextMenu>
-												<ContextMenu>
-													<MenuItem Header="Show titles with staff" Click="ShowVNsForStaff"/>
-													<Separator/>
-													<MenuItem Header="Show characters from titles with staff" Click="ShowCharactersForStaff"/>
-												</ContextMenu>
-											</TextBlock.ContextMenu>
-										</TextBlock>
-									</StackPanel>
-								</Grid>
-							</Border>
-						</DataTemplate>
-					</ListBox.ItemTemplate>
-					<ListBox.ItemContainerStyle>
-						<Style TargetType="{x:Type ListBoxItem}">
-							<Setter Property="Padding" Value="0" />
-							<Setter Property="Margin" Value="0" />
-						</Style>
-					</ListBox.ItemContainerStyle>
-				</ListBox>
-			</TabItem>
-		</TabControl>
-		</ScrollViewer>
-	</Grid>
+				</TabItem>
+				<TabItem Header="Staff" x:Name="StaffTab">
+					<ListBox ItemsSource="{Binding Source={StaticResource StaffBoxItems}}">
+						<ListBox.GroupStyle>
+							<GroupStyle>
+								<GroupStyle.Panel>
+									<ItemsPanelTemplate>
+										<VirtualizingStackPanel Orientation="Vertical" />
+									</ItemsPanelTemplate>
+								</GroupStyle.Panel>
+								<GroupStyle.ContainerStyle>
+									<Style TargetType="{x:Type GroupItem}">
+										<Setter Property="Template">
+											<Setter.Value>
+												<ControlTemplate>
+													<Expander Padding="0" BorderThickness="0" IsExpanded="True">
+														<Expander.Header>
+															<!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+															<TextBlock FontWeight="Bold" Text="{Binding Name}"/>
+														</Expander.Header>
+														<ItemsPresenter/>
+													</Expander>
+												</ControlTemplate>
+											</Setter.Value>
+										</Setter>
+									</Style>
+								</GroupStyle.ContainerStyle>
+							</GroupStyle>
+						</ListBox.GroupStyle>
+						<ListBox.ItemTemplate>
+							<DataTemplate>
+								<Border BorderThickness="0">
+									<Grid>
+										<StackPanel Orientation="Horizontal">
+											<TextBlock Text="{Binding Detail}">
+												<TextBlock.ContextMenu>
+													<ContextMenu>
+														<MenuItem Header="Show titles with staff" Click="ShowVNsForStaff"/>
+														<Separator/>
+														<MenuItem Header="Show characters from titles with staff" Click="ShowCharactersForStaff"/>
+													</ContextMenu>
+												</TextBlock.ContextMenu>
+											</TextBlock>
+										</StackPanel>
+									</Grid>
+								</Border>
+							</DataTemplate>
+						</ListBox.ItemTemplate>
+						<ListBox.ItemContainerStyle>
+							<Style TargetType="{x:Type ListBoxItem}">
+								<Setter Property="Padding" Value="0" />
+								<Setter Property="Margin" Value="0" />
+							</Style>
+						</ListBox.ItemContainerStyle>
+					</ListBox>
+				</TabItem>
+			</TabControl>
+		</Grid>
 </UserControl>
