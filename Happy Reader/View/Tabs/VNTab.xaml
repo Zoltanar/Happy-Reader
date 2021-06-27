@@ -30,16 +30,17 @@
 			</CollectionViewSource.GroupDescriptions>
 		</CollectionViewSource>
 	</UserControl.Resources>
-	<Grid ScrollViewer.VerticalScrollBarVisibility="Auto">
+	<Grid>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="*"/>
 			<ColumnDefinition Width="Auto"/>
 		</Grid.ColumnDefinitions>
 		<Grid.RowDefinitions>
-			<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
-		<Grid Grid.Row="0" Grid.Column="0" Name="InfoTopLeft">
+		<ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="500">
+		<Grid Name="InfoTopLeft">
 			<Grid.RowDefinitions>
 				<RowDefinition/>
 				<RowDefinition Height="Auto"/>
@@ -124,10 +125,12 @@
 					</Grid>
 				</Grid>
 			</Grid>
-			<TextBox Grid.Row="1" Text="{Binding Description}" TextWrapping="Wrap" Margin="0" Padding="5" Background="LightGray" Name="DescBox"/>
+			<TextBox Grid.Row="1" Text="{Binding Description, Converter={StaticResource TitleDescriptionConverter}}" TextWrapping="Wrap" Margin="0" Padding="5" Background="LightGray" Name="DescBox"/>
 		</Grid>
+		</ScrollViewer>
 		<Grid x:Name="TileBox" Grid.Row="0" Grid.Column="1"/>
-		<TabControl Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="0" x:Name="TabControl">
+		<ScrollViewer Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="0">
+		<TabControl x:Name="TabControl">
 			<TabItem x:Name="ScreenshotsTab" Header="Screenshots">
 				<view:AspectRatioLayoutDecorator x:Name="ScreensBox" Margin="5">
 					<ItemsControl ItemsSource="{Binding ScreensObject}" >
@@ -225,5 +228,6 @@
 				</ListBox>
 			</TabItem>
 		</TabControl>
+		</ScrollViewer>
 	</Grid>
 </UserControl>

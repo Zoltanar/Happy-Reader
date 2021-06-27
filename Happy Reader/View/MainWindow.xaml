@@ -47,7 +47,32 @@
 			<RowDefinition Height="*"/>
 			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
-		<TabControl Grid.Row="0" x:Name="MainTabControl" Padding="0" TabStripPlacement="Left">
+		<TabControl Grid.Row="0" x:Name="MainTabControl" Padding="0" TabStripPlacement="Left" ScrollViewer.VerticalScrollBarVisibility="Visible">
+			<TabControl.Template>
+				<ControlTemplate TargetType="TabControl">
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="Auto" />
+							<ColumnDefinition />
+						</Grid.ColumnDefinitions>
+						<ScrollViewer HorizontalScrollBarVisibility="Hidden"  VerticalScrollBarVisibility="Auto" >
+							<TabPanel x:Name="HeaderPanel"
+							          Panel.ZIndex ="1" 
+							          KeyboardNavigation.TabIndex="1"
+							          Grid.Column="0"
+							          Grid.Row="0"
+							          Margin="2,2,2,0"
+							          IsItemsHost="true"/>
+						</ScrollViewer>
+						<Grid Grid.Column="1" Background="{TemplateBinding Background}">
+							<ContentPresenter x:Name="PART_SelectedContentHost"
+							                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+							                  Margin="{TemplateBinding Padding}" 
+							                  ContentSource="SelectedContent"/>
+						</Grid>
+					</Grid>
+				</ControlTemplate>
+			</TabControl.Template>
 			<TabItem Header="Games" >
 				<tabs:UserGamesTab x:Name="UserGamesTabItem" DataContext="{Binding UserGamesViewModel}"/>
 			</TabItem>
@@ -92,7 +117,7 @@
 					</DataGrid.Columns>
 				</DataGrid>
 			</TabItem>
-		</TabControl>
+			</TabControl>
 		<Grid Grid.Row="1" Grid.Column="0" Background="LightSkyBlue" Height="20">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="100"/>

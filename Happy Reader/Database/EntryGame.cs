@@ -29,7 +29,7 @@ namespace Happy_Reader.Database
 			else
 			{
 				var game = StaticHelpers.LocalDatabase.VisualNovels[gameId.Value];
-				var gameName = game == null ? "Not Found" : game.Title;
+				var gameName = game == null ? "Not Found" : StaticMethods.TruncateStringFunction30(game.Title);
 				result = $"(VN) [{gameId.Value}] {gameName}";
 			}
 			return result;

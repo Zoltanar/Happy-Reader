@@ -17,7 +17,8 @@
 			<Setter Property="Margin" Value="5"/>
 		</Style>
 	</UserControl.Resources>
-	<Grid Background="DimGray" ScrollViewer.VerticalScrollBarVisibility="Visible">
+	<ScrollViewer VerticalScrollBarVisibility="Auto">
+	<Grid Background="DimGray">
 		<Grid.Style>
 			<Style TargetType="Grid">
 				<Style.Resources>
@@ -162,5 +163,6 @@
 				<CheckBox Content="Show Tags on Mouse-over Dictionary" IsChecked="{Binding ShowTagsOnMouseover}" ToolTip="Include tag information in mouse-over tool tip."/>
 			</StackPanel>
 		</GroupBox>
-	</Grid>
+		</Grid>
+	</ScrollViewer>
 </UserControl>
