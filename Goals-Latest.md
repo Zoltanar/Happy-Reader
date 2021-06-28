@@ -4,7 +4,6 @@
 - Make mouseover dictionary tooltip nicer
 - option to do this automatically: remove translations from cache if not used recently or originally cached too long ago.
 - apply translate stage 4 to pre-romaji
-- do not split romaji into parts
 #### Filters
 - set default filter (different from permanent filter)
 - handle mtl flag for release languages

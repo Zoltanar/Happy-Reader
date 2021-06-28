@@ -18,21 +18,19 @@ namespace Happy_Reader
 {
 	public class Translator
 	{
-		//TODO add regex to all stages
-
 		private static readonly object TranslateLock = new();
+		private static readonly Dictionary<string, Regex> RegexDict = new();
 		private static readonly Regex Stage4P1InputRegex = new(@"\[\[([^];]+?)]]", RegexOptions.Compiled);
 		private static readonly Regex Stage4P1OutputRegex = new(@"^.*?\[\[([^];]+)]].*?$", RegexOptions.Compiled);
-		private static readonly Dictionary<string, Regex> RegexDict = new();
-		private static readonly KawazuConverter KawazuConverter = new();
+		private static readonly Regex RemoveNewLineRegex = new(@"[\r\n]", RegexOptions.Compiled);
 		public static readonly Regex LatinOnlyRegex = new(@"^[a-zA-Z0-9:+|\-[\]\/\\\r\n .!?,;@()_$^""]+$", RegexOptions.Compiled);
+		private static readonly KawazuConverter KawazuConverter = new();
 		public static readonly IReadOnlyDictionary<string, Func<string, string>> RomajiTranslators = new ReadOnlyDictionary<string, Func<string, string>>(
 			new Dictionary<string, Func<string, string>>(StringComparer.OrdinalIgnoreCase)
 			{
 				{ "Kawazu", KawazuToRomaji },
 				{ "Kakasi", Kakasi.JapaneseToRomaji },
 			});
-
 		private readonly HappyReaderDatabase _data;
 		private readonly TranslatorSettings _settings;
 		private User _lastUser;
@@ -47,7 +45,7 @@ namespace Happy_Reader
 		public bool RefreshEntries = true;
 		private ITranslator SelectedTranslator => _settings.SelectedTranslator;
 		private string RomajiTranslator => _settings.SelectedRomajiTranslator;
-		public JMDict OfflineDictionary { get; } = new JMDict();
+		public JMDict OfflineDictionary { get; } = new();
 
 		public Translator(HappyReaderDatabase data, TranslatorSettings settings)
 		{
@@ -83,9 +81,7 @@ namespace Happy_Reader
 					loopCount++;
 				}
 			}
-			input = input.Replace("\r\n", "");
-			input = input.Replace("\r", "");
-			input = input.Replace("\n", "");
+			input = RemoveNewLineRegex.Replace(input, "");
 			if (string.IsNullOrWhiteSpace(input))
 			{
 				return Translation.Error("Input was empty.");
@@ -152,7 +148,6 @@ namespace Happy_Reader
 				currentPart += @char;
 				index++;
 			}
-
 			if (currentPart.Length > 0)
 			{
 				var translatePart = !string.IsNullOrWhiteSpace(currentPart) && !currentPart.All(c => _allSeparators.Contains(c)) && !LatinOnlyRegex.IsMatch(currentPart);
@@ -185,7 +180,7 @@ namespace Happy_Reader
 		public void TranslateStageOne(StringBuilder sb, TranslationResults result)
 		{
 			result?.SetStage(1);
-			foreach (var entry in _entries.Where(i => i.Type == EntryType.Game))
+			foreach (var entry in OrderEntries(_entries.Where(i => i.Type == EntryType.Game)))
 			{
 				if (entry.Regex) LogReplaceRegex(sb, entry, result);
 				else LogReplace(sb, entry, result);
@@ -201,7 +196,7 @@ namespace Happy_Reader
 		private void TranslateStageTwo(StringBuilder sb, TranslationResults result)
 		{
 			result.SetStage(2);
-			foreach (var entry in _entries.Where(i => i.Type == EntryType.Input))
+			foreach (var entry in OrderEntries(_entries.Where(i => i.Type == EntryType.Input)))
 			{
 				if (entry.Regex) LogReplaceRegex(sb, entry, result);
 				else LogReplace(sb, entry, result);
@@ -216,29 +211,33 @@ namespace Happy_Reader
 		private void TranslateStageThree(StringBuilder sb, TranslationResults result)
 		{
 			result.SetStage(3);
-			foreach (var entry in _entries.Where(i => i.Type == EntryType.Yomi)) LogReplace(sb, entry, result);
+			foreach (var entry in OrderEntries(_entries.Where(i => i.Type == EntryType.Yomi)))
+			{
+				if (entry.Regex) LogReplaceRegex(sb, entry, result);
+				else LogReplace(sb, entry, result);
+			}
 			StaticHelpers.Logger.Verbose($"Stage 3: {sb}");
 			result[3] = sb.ToString();
 		}
 
-		public void ReplacePreRomaji(StringBuilder sb)
+		private void ReplacePreRomaji(StringBuilder sb, TranslationResults result)
 		{
-			var entries = _entries.Where(x => x.Type == EntryType.Name || x.Type == EntryType.Yomi || x.Type == EntryType.PreRomaji).ToArray();
+			var entries = OrderEntries(_entries.Where(x => x.Type == EntryType.Name || x.Type == EntryType.Yomi || x.Type == EntryType.PreRomaji)).ToArray();
 			var usefulEntries = RemoveUnusedEntriesAndSetLocation(sb, entries);
 			MergeNeighbouringEntries(usefulEntries);
 			foreach (var entry in usefulEntries)
 			{
-				if (entry.Regex) LogReplaceRegex(sb, entry, null);
-				else LogReplace(sb, entry, null);
+				if (entry.Regex) LogReplaceRegex(sb, entry, result);
+				else LogReplace(sb, entry, result);
 			}
 		}
 
-		public void ReplacePostRomaji(StringBuilder sb)
+		private void ReplacePostRomaji(StringBuilder sb, TranslationResults result)
 		{
-			foreach (var entry in _entries.Where(x => x.Type == EntryType.PostRomaji))
+			foreach (var entry in OrderEntries(_entries.Where(x => x.Type == EntryType.PostRomaji)))
 			{
-				if (entry.Regex) LogReplaceRegex(sb, entry, null);
-				else LogReplace(sb, entry, null);
+				if (entry.Regex) LogReplaceRegex(sb, entry, result);
+				else LogReplace(sb, entry, result);
 			}
 		}
 
@@ -289,13 +288,18 @@ namespace Happy_Reader
 		{
 			var roles = _entries.Select(z => z.RoleString).Distinct().ToArray();
 			proxies = BuildProxiesList(data, roles);
-			var entriesWithProxiesArray = _entries.Where(i => i.Type == EntryType.Name || i.Type == EntryType.Translation)
-				.OrderByDescending(x => x.Input.Length).ToArray();
+			var entriesWithProxiesArray = OrderEntries(_entries.Where(i => i.Type == EntryType.Name || i.Type == EntryType.Translation)).ToArray();
 			var usefulEntriesWithProxies = RemoveUnusedEntriesAndSetLocation(sb, entriesWithProxiesArray);
 			if (usefulEntriesWithProxies.Count == 0) return usefulEntriesWithProxies;
 			RemoveSubEntries(usefulEntriesWithProxies);
 			MergeNeighbouringEntries(usefulEntriesWithProxies);
 			return usefulEntriesWithProxies;
+		}
+
+		private IEnumerable<Entry> OrderEntries(IEnumerable<Entry> entries)
+		{
+			//todo add priority
+			return entries.OrderByDescending(x => x.Input.Length);
 		}
 
 		private static List<Entry> RemoveUnusedEntriesAndSetLocation(StringBuilder sb, IList<Entry> entries)
@@ -533,6 +537,9 @@ namespace Happy_Reader
 			return result;
 		}
 
+		/// <summary>
+		/// Machine Translation Stage
+		/// </summary>
 		private void TranslateStageFive(StringBuilder sb, TranslationResults result)
 		{
 			result.SetStage(5);
@@ -567,8 +574,11 @@ namespace Happy_Reader
 		private void TranslateStageSeven(StringBuilder sb, TranslationResults result)
 		{
 			result.SetStage(7);
-			foreach (var entry in _entries.Where(i => i.Type == EntryType.Output && !i.Regex)) LogReplace(sb, entry.Input, entry.Output, result, entry);
-			foreach (var entry in _entries.Where(i => i.Type == EntryType.Output && i.Regex)) LogReplaceRegex(sb, entry.Input, entry.Output, result, entry);
+			foreach (var entry in OrderEntries(_entries.Where(i => i.Type == EntryType.Output)))
+			{
+				if(entry.Regex) LogReplaceRegex(sb, entry.Input, entry.Output, result, entry);
+				else LogReplace(sb, entry.Input, entry.Output, result, entry);
+			}
 			StaticHelpers.Logger.Verbose($"Stage 7: {sb}");
 			result[7] = sb.ToString();
 		}
@@ -623,11 +633,13 @@ namespace Happy_Reader
 		/// <summary>
 		/// Character is between points \u3040 and \u309f
 		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static bool IsHiragana(char character) => character >= 0x3040 && character <= 0x309f;
 
 		/// <summary>
 		/// Character is between points \u30a0 and \u30ff
 		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static bool IsKatakana(char character) => character >= 0x30a0 && character <= 0x30ff;
 
 		private bool GetFromCache(string cacheSource, StringBuilder text, string input)
@@ -698,13 +710,14 @@ namespace Happy_Reader
 			Debug.WriteLine(text);
 		}
 
-		public void GetRomajiFiltered(StringBuilder text)
+		public void GetRomajiFiltered(StringBuilder text, TranslationResults result)
 		{
-			ReplacePreRomaji(text);
-			var romaji = GetRomaji(text.ToString());
+			ReplacePreRomaji(text, result);
+			var parts = new List<(string Part, bool Translate)>();
+			SplitInputIntoParts(text.ToString(), parts);
 			text.Clear();
-			text.Append(romaji);
-			ReplacePostRomaji(text);
+			foreach (var part in parts) text.Append(part.Translate ? GetRomaji(part.Part) : part.Part);
+			ReplacePostRomaji(text, result);
 		}
 
 		public string GetRomaji(string text)

@@ -18,7 +18,7 @@ namespace Happy_Reader
 		private readonly List<Entry> _entriesUsedStageOne = new();
 		public readonly string[] Results = new string[8];
 		public readonly string Original;
-		public string Romaji { get; private set; }
+		public string Romaji { get; }
 		public string Output => Results[7];
 		public bool IsCharacterOnly { get; } //todo change this
 		public Paragraph OriginalBlock { get; private set; }
@@ -39,8 +39,11 @@ namespace Happy_Reader
 			}
 			var originalSb = new StringBuilder(original);
 			Translator.TranslateStageOne(originalSb, stageOneResult);
-			_entriesUsedStageOne.AddRange(stageOneResult.EntriesUsed.SelectMany(i => i));
 			Original = originalSb.ToString();
+			var romajiSb1 = new StringBuilder(original);
+			Translator.GetRomajiFiltered(romajiSb1, stageOneResult);
+			Romaji = romajiSb1.ToString();
+			_entriesUsedStageOne.AddRange(stageOneResult.EntriesUsed.SelectMany(i => i));
 			IsCharacterOnly = Original.IndexOfAny(new[] { '「', '」' }) < 0 && Original.Length < 10;
 		}
 
@@ -65,7 +68,6 @@ namespace Happy_Reader
 
 		public void TranslateParts(bool saveEntriesUsed)
 		{
-			var romajiSb = new StringBuilder();
 			try
 			{
 				foreach (var (part, translate) in Parts)
@@ -73,13 +75,9 @@ namespace Happy_Reader
 					if (!translate)
 					{
 						_partResults.Add(new TranslationResults(part));
-						romajiSb.Append(part);
 						continue;
 					}
 					_partResults.Add(Translator.TranslatePart(part, saveEntriesUsed));
-					var romajiPart = new StringBuilder(part);
-					Translator.GetRomajiFiltered(romajiPart);
-					romajiSb.Append(romajiPart);
 				}
 				for (int stage = 0; stage < 7; stage++)
 				{
@@ -92,7 +90,6 @@ namespace Happy_Reader
 					Results[7] += text;
 					if (part < _partResults.Count - 1 && Parts[part].Translate && Parts[part + 1].Translate) Results[7] += " ";
 				}
-				Romaji = romajiSb.ToString();
 			}
 			catch (Exception ex)
 			{
