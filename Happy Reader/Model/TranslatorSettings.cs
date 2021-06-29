@@ -32,6 +32,8 @@ namespace Happy_Reader
 		private string _selectedRomajiTranslator = RomajiTranslators.First();
 		private bool _settingsViewState = true;
 		private bool _showTagsOnMouseover;
+		private bool _outputOriginal;
+		private bool _outputRomaji;
 		private VerticalAlignment _outputVerticalAlignment = VerticalAlignment.Top;
 		private TextAlignment _outputHorizontalAlignment = TextAlignment.Center;
 
@@ -313,6 +315,28 @@ namespace Happy_Reader
 			}
 		}
 
+		public bool OutputOriginal
+		{
+			get => _outputOriginal;
+			set
+			{
+				if (_outputOriginal == value) return;
+				_outputOriginal = value;
+				if (Loaded) Save();
+			}
+		}
+
+		public bool OutputRomaji
+		{
+			get => _outputRomaji;
+			set
+			{
+				if (_outputRomaji == value) return;
+				_outputRomaji = value;
+				if (Loaded) Save();
+			}
+		}
+
 		//todo make editable
 		public PlacementMode MouseoverTooltipPlacement { get; set; } = PlacementMode.Right;
 
@@ -335,8 +359,7 @@ namespace Happy_Reader
 				_ => OutputVerticalAlignment = VerticalAlignment.Top,
 			};
 		}
-
-
+		
 		public void LoadTranslationPlugins(string folder)
 		{
 			var directory = new DirectoryInfo(folder);
@@ -374,6 +397,7 @@ namespace Happy_Reader
 		}
 
 	}
+
 	public class NoTranslator : ITranslator
 	{
 		public string Version => "1.0";

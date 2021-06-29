@@ -17,19 +17,8 @@ namespace Happy_Reader.View
 		private OutputWindowViewModel _viewModel;
 		private bool _loaded;
 		private bool _isResizing;
-		private bool _settingsOn = true;
 		private Point _startPosition;
-
-		public bool SettingsOn
-		{
-			get => _settingsOn;
-			set
-			{
-				if (_settingsOn == value) return;
-				_settingsOn = value;
-				UpdateSettingToggles();
-			}
-		}
+		
 		public bool FullScreenOn { get; set; }
 
 		public OutputWindow(Action initialiseOutputWindowForGame)
@@ -41,17 +30,17 @@ namespace Happy_Reader.View
 			_mouseoverTip.Background.Opacity = OpacitySlider.Value;
 		}
 
-		private void UpdateSettingToggles()
+		private void UpdateSettingToggles(object sender, RoutedEventArgs e)
 		{
-			StaticMethods.Settings.TranslatorSettings.SettingsViewState = SettingsOn;
-			SettingsColumn.Width = SettingsOn ? _settingsColumnLength : new GridLength(22);
-			OpacityLabel.Visibility = SettingsOn ? Visibility.Visible : Visibility.Collapsed;
+			if (_viewModel == null) return;
+			SettingsColumn.Width = _viewModel.SettingsOn ? _settingsColumnLength : new GridLength(22);
+			OpacityLabel.Visibility = _viewModel.SettingsOn ? Visibility.Visible : Visibility.Collapsed;
 			foreach (var toggleButton in SettingsPanel.Children.OfType<ContentControl>())
 			{
 				var value = toggleButton.Tag as string;
 				if (string.IsNullOrWhiteSpace(value)) continue;
 				var parts = value.Split(',');
-				toggleButton.Content = parts[SettingsOn ? 1 : 0];
+				toggleButton.Content = parts[_viewModel.SettingsOn ? 1 : 0];
 			}
 		}
 
@@ -92,7 +81,9 @@ namespace Happy_Reader.View
 			if (_loaded) return;
 			_viewModel = (OutputWindowViewModel)DataContext;
 			_viewModel.Initialize(() => OutputTextBox.Selection.Text, OutputTextBox.Document, () => Dispatcher.Invoke(OutputTextBox.ScrollToEnd));
-			SettingsOn = StaticMethods.Settings.TranslatorSettings.SettingsViewState;
+			_viewModel.SettingsOn = StaticMethods.Settings.TranslatorSettings.SettingsViewState;
+			_viewModel.OriginalOn = StaticMethods.Settings.TranslatorSettings.OutputOriginal;
+			_viewModel.RomajiOn = StaticMethods.Settings.TranslatorSettings.OutputRomaji;
 			var tColor = StaticMethods.Settings.TranslatorSettings.TranslatedColor.Color.Color;
 			var darkerColor = System.Windows.Media.Color.FromRgb((byte)(tColor.R * 0.75), (byte)(tColor.G * 0.75), (byte)(tColor.B * 0.75));
 			var dropShadowEffect = new System.Windows.Media.Effects.DropShadowEffect
@@ -100,6 +91,7 @@ namespace Happy_Reader.View
 				Color = darkerColor
 			};
 			OutputTextBox.Effect = dropShadowEffect;
+			_viewModel.OnPropertyChanged(null);
 			_loaded = true;
 		}
 

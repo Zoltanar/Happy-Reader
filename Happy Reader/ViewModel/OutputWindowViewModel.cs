@@ -16,7 +16,7 @@ namespace Happy_Reader.ViewModel
 	public class OutputWindowViewModel : INotifyPropertyChanged
 	{
 		private bool _originalOn;
-		private bool _romajiOn = true;
+		private bool _romajiOn;
 		private DateTime _lastOutputTime;
 		private Func<string> _getSelectedText;
 		private Action _scrollToBottom;
@@ -28,12 +28,20 @@ namespace Happy_Reader.ViewModel
 			get => StaticMethods.MainWindow.ViewModel?.TranslatePaused ?? false;
 			set => StaticMethods.MainWindow.ViewModel.TranslatePaused = value;
 		}
+
+		public bool SettingsOn
+		{
+			get => StaticMethods.Settings.TranslatorSettings.SettingsViewState;
+			set => StaticMethods.Settings.TranslatorSettings.SettingsViewState = value;
+		}
+
 		public bool OriginalOn
 		{
 			get => _originalOn;
 			set
 			{
 				_originalOn = value;
+				StaticMethods.Settings.TranslatorSettings.OutputOriginal = value;
 				UpdateOutput();
 			}
 		}
@@ -43,6 +51,7 @@ namespace Happy_Reader.ViewModel
 			set
 			{
 				_romajiOn = value;
+				StaticMethods.Settings.TranslatorSettings.OutputRomaji = value;
 				UpdateOutput();
 			}
 		}
