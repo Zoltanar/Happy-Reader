@@ -190,7 +190,7 @@ namespace Happy_Reader.ViewModel
 			}
 		}
 
-		public async Task Initialize(Stopwatch watch, RoutedEventHandler defaultUserGameGrouping, bool initialiseEntries, bool logVerbose)
+		public async Task Initialize(Stopwatch watch, bool initialiseEntries, bool logVerbose)
 		{
 			StaticHelpers.Logger.LogVerbose = logVerbose;
 			Directory.CreateDirectory(StaticMethods.UserGameIconsFolder);
@@ -219,7 +219,6 @@ namespace Happy_Reader.ViewModel
 			InformationViewModel.Initialise(LocalDatabase, StaticMethods.Data);
 			LoadLogs();
 			SetLastPlayed();
-			defaultUserGameGrouping(null, null);
 			OnPropertyChanged(nameof(TestViewModel));
 			IthViewModel.Initialize(RunTranslation);
 			_monitor = GetAndStartMonitorThread();

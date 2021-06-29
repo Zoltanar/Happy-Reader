@@ -241,6 +241,7 @@
     <Compile Include="View\Tabs\TestTranslationTab.xaml.cs">
       <DependentUpon>TestTranslationTab.xaml</DependentUpon>
     </Compile>
+    <Compile Include="View\UserGameGrouping.cs" />
     <Compile Include="View\Tabs\UserGamesTab.xaml.cs">
       <DependentUpon>UserGamesTab.xaml</DependentUpon>
     </Compile>

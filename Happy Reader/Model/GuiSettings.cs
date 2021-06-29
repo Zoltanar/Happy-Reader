@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Controls;
 using Happy_Apps_Core;
+using Happy_Reader.View;
 using Newtonsoft.Json;
 
 namespace Happy_Reader
@@ -23,6 +24,7 @@ namespace Happy_Reader
 		private string _localeEmulatorPath;
 		private string _culture;
 		private GameLaunchMode _launchMode;
+		private UserGameGrouping _userGameGrouping = UserGameGrouping.Added;
 		private CultureInfo _cultureInfo = CultureInfo.DefaultThreadCurrentCulture ?? CultureInfo.CurrentCulture;
 		private List<PageLink> _pageLinks;
 		private HashSet<string> _vnResolveExcludedNames = new(StringComparer.OrdinalIgnoreCase)
@@ -230,6 +232,17 @@ namespace Happy_Reader
 			{
 				if (_vnResolveExcludedNames == value) return;
 				_vnResolveExcludedNames = value;
+				if (Loaded) Save();
+			}
+		}
+
+		public UserGameGrouping UserGameGrouping
+		{
+			get => _userGameGrouping;
+			set
+			{
+				if (_userGameGrouping == value) return;
+				_userGameGrouping = value;
 				if (Loaded) Save();
 			}
 		}

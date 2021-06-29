@@ -70,7 +70,8 @@ namespace Happy_Reader.View
 			var commandLineArgs = Environment.GetCommandLineArgs();
 			var noEntries = commandLineArgs.Contains("-ne");
 			var logVerbose = commandLineArgs.Contains("-lv");
-			await ViewModel.Initialize(watch, UserGamesTabItem.GroupByAdded, !noEntries, logVerbose);
+			await ViewModel.Initialize(watch, !noEntries, logVerbose);
+			UserGamesTabItem.GroupUserGames();
 			LoadSavedData();
 		}
 

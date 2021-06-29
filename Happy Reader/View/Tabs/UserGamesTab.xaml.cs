@@ -79,7 +79,48 @@ namespace Happy_Reader.View.Tabs
 			}
 		}
 
-		private void GroupByProducer(object sender, RoutedEventArgs e)
+		private void GroupingChanged(object sender, SelectionChangedEventArgs e)
+		{
+			GroupUserGames();
+		}
+
+		public void GroupUserGames()
+		{
+			switch (StaticMethods.Settings.GuiSettings.UserGameGrouping)
+			{
+				case UserGameGrouping.Added:
+					GroupByAdded();
+					break;
+				case UserGameGrouping.Producer:
+					GroupByProducer();
+					break;
+				case UserGameGrouping.ReleaseMonth:
+					GroupByReleaseMonth();
+					break;
+				case UserGameGrouping.Name:
+					GroupByName();
+					break;
+				case UserGameGrouping.LastPlayed:
+					GroupByLastPlayed();
+					break;
+				case UserGameGrouping.TimePlayed:
+					GroupByTimePlayed();
+					break;
+				case UserGameGrouping.Tag:
+					GroupByTag();
+					break;
+				case UserGameGrouping.Label:
+					GroupByVnLabel();
+					break;
+				case UserGameGrouping.Score:
+					GroupByVnScore();
+					break;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(StaticMethods.Settings.GuiSettings.UserGameGrouping));
+			}
+		}
+
+		private void GroupByProducer()
 		{
 			var groupName = $"{nameof(UserGame)}.{nameof(UserGame.VN)}.{nameof(ListedVN.Producer)}.{nameof(ListedProducer.Name)}";
 			GroupUserGameItems(
@@ -89,7 +130,7 @@ namespace Happy_Reader.View.Tabs
 			ToggleUserGameGroups(groupName, 1, false, true);
 		}
 
-		private void GroupByReleaseMonth(object sender, RoutedEventArgs e)
+		private void GroupByReleaseMonth()
 		{
 			var groupName = $@"{nameof(UserGame)}.{nameof(UserGame.VN)}.{nameof(ListedVN.ReleaseDate)}";
 			GroupUserGameItems(
@@ -97,14 +138,14 @@ namespace Happy_Reader.View.Tabs
 				new SortDescription(groupName, ListSortDirection.Descending));
 		}
 
-		private void GroupByName(object sender, RoutedEventArgs e)
+		private void GroupByName()
 		{
 			GroupUserGameItems(
 				new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayNameGroup)}"),
 				new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayName)}", ListSortDirection.Ascending));
 		}
 
-		private void GroupByLastPlayed(object sender, RoutedEventArgs e)
+		private void GroupByLastPlayed()
 		{
 			var groupName = $@"{nameof(UserGame)}.{nameof(UserGame.LastPlayedDate)}";
 			GroupUserGameItems(
@@ -113,7 +154,7 @@ namespace Happy_Reader.View.Tabs
 			ToggleUserGameGroups(groupName, 2, false, false);
 		}
 
-		private void GroupByTimePlayed(object sender, RoutedEventArgs e)
+		private void GroupByTimePlayed()
 		{
 			var groupName = $@"{nameof(UserGame)}.{nameof(UserGame.TimeOpen)}";
 			GroupUserGameItems(
@@ -122,14 +163,14 @@ namespace Happy_Reader.View.Tabs
 			ToggleUserGameGroups(groupName, 2, true, false);
 		}
 
-		public void GroupByAdded(object sender, RoutedEventArgs e)
+		private void GroupByAdded()
 		{
 			GroupUserGameItems(
 				null,
 				new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.Id)}", ListSortDirection.Descending));
 		}
 
-		private void GroupByTag(object sender, RoutedEventArgs e)
+		private void GroupByTag()
 		{
 			var groupDescription = new PropertyGroupDescription($"{nameof(UserGame)}.{nameof(UserGame.Tag)}", new TagConverter());
 			GroupUserGameItems(
@@ -138,7 +179,7 @@ namespace Happy_Reader.View.Tabs
 			new SortDescription($"{nameof(UserGame)}.{nameof(UserGame.DisplayName)}", ListSortDirection.Ascending));
 		}
 
-		private void GroupByVnLabel(object sender, RoutedEventArgs e)
+		private void GroupByVnLabel()
 		{
 			var groupName = $"{nameof(UserGame)}.{nameof(UserGame.VN)}.{nameof(ListedVN.UserVN)}.{nameof(UserVN.PriorityLabel)}";
 			var groupDescription = new PropertyGroupDescription(groupName, new UserVnToLabelConverter());
@@ -149,7 +190,7 @@ namespace Happy_Reader.View.Tabs
 			ToggleUserGameGroups(groupName, 2, true, true);
 		}
 
-		private void GroupByVnScore(object sender, RoutedEventArgs e)
+		private void GroupByVnScore()
 		{
 			var groupName = $"{nameof(UserGame)}.{nameof(UserGame.VN)}.{nameof(ListedVN.UserVN)}.{nameof(UserVN.Vote)}";
 			var groupDescription = new PropertyGroupDescription(groupName, new ScoreConverter());

@@ -4,8 +4,10 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
+using Happy_Reader.View;
 using Happy_Reader.View.Tiles;
 using JetBrains.Annotations;
 using static Happy_Apps_Core.StaticHelpers;
@@ -19,7 +21,13 @@ namespace Happy_Reader.ViewModel
 		public readonly MainWindowViewModel MainViewModel;
 
 		public ObservableCollection<UserGameTile> UserGameItems { get; } = new();
-		
+		public ComboBoxItem[] UserGameGroupings { get; } = StaticMethods.GetEnumValues(typeof(UserGameGrouping));
+		public UserGameGrouping GroupBy
+		{
+			get => StaticMethods.Settings.GuiSettings.UserGameGrouping;
+			set => StaticMethods.Settings.GuiSettings.UserGameGrouping = value;
+		}
+
 		public UserGamesViewModel(MainWindowViewModel mainViewModel)
 		{
 			MainViewModel = mainViewModel;
@@ -59,7 +67,7 @@ namespace Happy_Reader.ViewModel
 			foreach (var game in orderedGames) { UserGameItems.Add(new UserGameTile(game)); }
 			OnPropertyChanged(nameof(UserGameItems));
 		}
-		
+
 		public UserGameTile AddGameFile(string file)
 		{
 			var userGame = StaticMethods.Data.UserGames.FirstOrDefault(x => x.FilePath == file);
@@ -71,17 +79,17 @@ namespace Happy_Reader.ViewModel
 			var vn = StaticMethods.ResolveVNForFile(file);
 			userGame = new UserGame(file, vn) { Id = StaticMethods.Data.UserGames.HighestKey + 1 };
 			userGame.SaveIconImage();
-			StaticMethods.Data.UserGames.Add(userGame,true);
+			StaticMethods.Data.UserGames.Add(userGame, true);
 			var entryGame = new EntryGame((int)userGame.Id, true, false);
 			if (!EntriesTabViewModel.EntryGames.Contains(entryGame)) EntriesTabViewModel.EntryGames.Add(entryGame);
 			MainViewModel.StatusText = vn == null ? "File was added without VN." : $"File was added as {userGame.DisplayName}.";
 			return new UserGameTile(userGame);
 		}
-		
+
 		public void RemoveUserGame(UserGameTile item)
 		{
 			UserGameItems.Remove(item);
-			StaticMethods.Data.UserGames.Remove(item.UserGame,true);
+			StaticMethods.Data.UserGames.Remove(item.UserGame, true);
 			var entryGame = new EntryGame((int)item.UserGame.Id, true, false);
 			if (EntriesTabViewModel.EntryGames.Contains(entryGame)) EntriesTabViewModel.EntryGames.Remove(entryGame);
 			MainViewModel.OnPropertyChanged(nameof(MainViewModel.TestViewModel));

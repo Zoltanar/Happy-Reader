@@ -21,7 +21,6 @@
 - see details should change to correct user game tab when multiple user games for one vn
 - allow keeping time played for multiple games/allow process monitor to keep running always/make process monitor only have one instance
 - launch title from VN context menu
-- Save selected grouping 
 ##### Entries
 - Implement priority
 - Change Series-specific to three-way dropdown (none,title,series)
