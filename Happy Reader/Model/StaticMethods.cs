@@ -57,7 +57,26 @@ namespace Happy_Reader
 				_settings = value;
 			}
 		}
-		
+
+		static StaticMethods()
+		{
+			var fonts = 
+				//select all font families
+				Fonts.SystemFontFamilies
+					//for each font family
+					.SelectMany(ff =>
+						//select unique font names
+						ff.FamilyNames.GroupBy(fn => fn.Value).Select(fng => fng.First())
+							//create map of font name to font family (for this font family)
+							.Select(f => new KeyValuePair<string, FontFamily>(f.Value, ff))).ToArray();
+				var dict = new Dictionary<string,FontFamily>();
+				foreach (var pair in fonts)
+				{
+					if(dict.ContainsKey(pair.Key)) StaticHelpers.Logger.ToFile($"Duplicate font family found: {pair.Key}");
+					dict[pair.Key] = pair.Value;
+				}
+				FontsInstalled = new ReadOnlyDictionary<string,FontFamily>(dict);
+		}
 		public static string GetLocalizedTime(this DateTime dateTime)
 		{
 			var culture = Settings.GuiSettings.CultureInfo;
@@ -223,17 +242,7 @@ namespace Happy_Reader
 			return vn;
 		}
 
-		public static readonly Dictionary<string, FontFamily> FontsInstalled =
-			//select all font families
-			Fonts.SystemFontFamilies
-				//for each font family
-				.SelectMany(ff =>
-						//select unique font names
-						ff.FamilyNames.GroupBy(fn => fn.Value).Select(fng => fng.First())
-						//create map of font name to font family (for this font family)
-						.Select(f => new KeyValuePair<string, FontFamily>(f.Value, ff)))
-			//create dictionary of unique font name to font family
-			.ToDictionary(f => f.Key, f => f.Value);
+		public static readonly IReadOnlyDictionary<string, FontFamily> FontsInstalled;
 
 
 		public static string GetProcessFileName(Process process)
