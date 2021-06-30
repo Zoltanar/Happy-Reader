@@ -142,6 +142,7 @@ namespace Happy_Reader.Database
 		public string DisplayName => !string.IsNullOrWhiteSpace(UserDefinedName)
 			? UserDefinedName
 			: StaticMethods.TruncateStringFunction30(VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath));
+
 		public BitmapImage Image
 		{
 			get
@@ -174,6 +175,7 @@ namespace Happy_Reader.Database
 				return _image;
 			}
 		}
+
 		public string DisplayNameGroup => DisplayName.Substring(0, Math.Min(DisplayName.Length, 1));
 		public string TagSort => string.IsNullOrWhiteSpace(Tag) ? char.MaxValue.ToString() : Tag;
 		public DateTime LastPlayedDate
@@ -255,7 +257,7 @@ namespace Happy_Reader.Database
 
 		[NotNull] public GameHookSettings GameHookSettings { get; }
 
-		private bool IconImageExists(out string iconPath)
+		public bool IconImageExists(out string iconPath)
 		{
 			iconPath = Path.Combine(StaticMethods.UserGameIconsFolder, Id + ".bmp");
 			return File.Exists(iconPath);

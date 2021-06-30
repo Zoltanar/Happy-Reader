@@ -7,8 +7,8 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Forms;
 using System.Windows.Input;
-using System.Windows.Media;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
@@ -16,9 +16,14 @@ using Happy_Reader.View.Tabs;
 using Happy_Reader.ViewModel;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using Application = System.Windows.Application;
+using Binding = System.Windows.Data.Binding;
+using Brushes = System.Windows.Media.Brushes;
 using NotifyIcon = System.Windows.Forms.NotifyIcon;
 using ToolStripMenuItem = System.Windows.Forms.ToolStripMenuItem;
 using ContextMenuStrip = System.Windows.Forms.ContextMenuStrip;
+using HorizontalAlignment = System.Windows.HorizontalAlignment;
+using Image = System.Drawing.Image;
 
 namespace Happy_Reader.View
 {
@@ -51,7 +56,7 @@ namespace Happy_Reader.View
 			contextMenu.Items.Add(new ToolStripMenuItem("Open", null, open));
 			contextMenu.Items.Add(new ToolStripMenuItem("Exit", null, Exit));
 			// ReSharper disable once PossibleNullReferenceException
-			Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/logo-hr.ico")).Stream;
+			var iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/logo-hr.ico")).Stream;
 			_trayIcon = new NotifyIcon
 			{
 				Icon = new System.Drawing.Icon(iconStream),
@@ -71,8 +76,38 @@ namespace Happy_Reader.View
 			var noEntries = commandLineArgs.Contains("-ne");
 			var logVerbose = commandLineArgs.Contains("-lv");
 			await ViewModel.Initialize(watch, !noEntries, logVerbose);
+			AddRecentlyPlayedToTray();
 			UserGamesTabItem.GroupUserGames();
 			LoadSavedData();
+		}
+
+		private void AddRecentlyPlayedToTray()
+		{
+			int? added = null;
+			foreach (var gameId in UserGame.LastGamesPlayed.Values.Reverse().Take(5))
+			{
+				var game = StaticMethods.Data.UserGames[gameId];
+				if (game == null) continue;
+				Image thumbnail;
+				if (game.IconImageExists(out var icon)) thumbnail = Image.FromFile(icon);
+				else
+				{
+					game.SaveIconImage();
+					// ReSharper disable once PossibleNullReferenceException
+					thumbnail = game.IconImageExists(out icon) ? Image.FromFile(icon) : Image.FromStream(Application.GetResourceStream(new Uri(Theme.ImageNotFoundPath)).Stream);
+				}
+				var item = new ToolStripMenuItem(StaticMethods.TruncateStringFunction30(game.DisplayName), thumbnail, LaunchGame) { Tag = game };
+				_trayIcon.ContextMenuStrip.Items.Insert(0, item);
+				if (!added.HasValue) added = 1;
+				else added++;
+			}
+			if (added.HasValue) _trayIcon.ContextMenuStrip.Items.Insert(added.Value, new ToolStripSeparator());
+		}
+
+		private void LaunchGame(object sender, EventArgs e)
+		{
+			if (sender is not ToolStripMenuItem item || item.Tag is not UserGame game) return;
+			ViewModel.HookUserGame(game, null, null, false);
 		}
 
 		private void LoadSavedData()
@@ -124,7 +159,7 @@ namespace Happy_Reader.View
 		public void TabMiddleClick(object sender, MouseButtonEventArgs e)
 		{
 			if (e.ChangedButton != MouseButton.Middle) return;
-			var tabItem = ((DependencyObject) sender).FindParent<TabItem>();
+			var tabItem = ((DependencyObject)sender).FindParent<TabItem>();
 			tabItem.Template = null;
 			var content = tabItem.Content;
 			switch (content)
@@ -162,7 +197,7 @@ namespace Happy_Reader.View
 			var vnTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.Content is VNTab vTab && vTab.ViewModel == vn);
 			if (vnTab != null)
 			{
-				if(((VNTab)vnTab.Content).UserGames.Intersect(userGamesForVn).Count() == userGamesForVn.Count)
+				if (((VNTab)vnTab.Content).UserGames.Intersect(userGamesForVn).Count() == userGamesForVn.Count)
 				{
 					//if tab already exists with same userGames
 					if (!select) return;
@@ -229,7 +264,7 @@ namespace Happy_Reader.View
 				Height = 50,
 				VerticalAlignment = VerticalAlignment.Stretch,
 				HorizontalAlignment = HorizontalAlignment.Stretch
-			}; 
+			};
 			switch (content)
 			{
 				case VNTab vnTab:

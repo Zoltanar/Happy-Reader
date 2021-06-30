@@ -37,11 +37,13 @@ namespace Happy_Reader.View
 		public static readonly BitmapImage ImageNotFoundImage;
 		public static readonly BitmapImage NsfwImage;
 
+		public const string ImageNotFoundPath = @"pack://application:,,,/Resources/no-image.png";
+
 		static Theme()
 		{
 			// ReSharper disable once PossibleNullReferenceException
 			FileNotFoundImage = GetBitmapImageFromResourceFile(@"pack://application:,,,/Resources/file-not-found.png");
-			ImageNotFoundImage = GetBitmapImageFromResourceFile(@"pack://application:,,,/Resources/no-image.png");
+			ImageNotFoundImage = GetBitmapImageFromResourceFile(ImageNotFoundPath);
 			NsfwImage = GetBitmapImageFromResourceFile(@"pack://application:,,,/Resources/nsfw-image.png");
 		}
 
