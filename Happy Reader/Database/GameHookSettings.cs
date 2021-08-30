@@ -151,12 +151,19 @@ namespace Happy_Reader.Database
 			}
 		}
 
-		public void SaveHookCode(string newHookCode)
+		public void SaveHookCode(string hookCode, bool addSingleCode)
 		{
-			var hookCodes = HookCodes.Split(' ');
-			var hookCode =  string.IsNullOrWhiteSpace(newHookCode) ? null : newHookCode.Trim();
-			if (hookCodes.Contains(hookCode)) return;
-			HookCodes += $" {hookCode}";
+			if (!addSingleCode)
+			{
+				HookCodes = hookCode;
+			}
+			else
+			{
+				var hookCodes = HookCodes.Split(' ');
+				var newHookCode = string.IsNullOrWhiteSpace(hookCode) ? null : hookCode.Trim();
+				if (newHookCode == null || hookCodes.Contains(newHookCode, StringComparer.OrdinalIgnoreCase)) return;
+				HookCodes = string.Join(" ", hookCodes.Concat(new[] { newHookCode }));
+			}
 			StaticMethods.Data.UserGames.Upsert(_userGame, true);
 			_userGame.OnPropertyChanged($"{nameof(UserGame.GameHookSettings)}");
 		}

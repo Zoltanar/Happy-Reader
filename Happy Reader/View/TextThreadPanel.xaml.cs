@@ -10,6 +10,7 @@ namespace Happy_Reader.View
 	public partial class TextThreadPanel : UserControl
 	{
 		private readonly ToolTip _mouseoverTip;
+		private readonly IthVnrViewModel _ithViewModel;
 		private TextThread ViewModel => (TextThread)DataContext;
 
 		[UsedImplicitly]
@@ -19,8 +20,9 @@ namespace Happy_Reader.View
 			_mouseoverTip = StaticMethods.CreateMouseoverTooltip(MainTextBox, PlacementMode.Right);
 		}
 
-		public TextThreadPanel(TextThread textThread) : this()
+		public TextThreadPanel(TextThread textThread, IthVnrViewModel ithViewModel) : this()
 		{
+			_ithViewModel = ithViewModel;
 			DataContext = textThread;
 			Tag = textThread;
 		}
@@ -48,6 +50,10 @@ namespace Happy_Reader.View
 			ViewModel.IsPaused = true;
 			DisplayToggled(sender, e);
 		}
+
+		private void SaveHookCode(object sender, RoutedEventArgs e) => _ithViewModel.SaveHookCode(ViewModel);
+
+		private void ClearText(object sender, RoutedEventArgs e) => ViewModel.Clear(true);
 
 		private void OnMouseover(object sender, MouseEventArgs e)
 		{

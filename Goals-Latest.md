@@ -1,9 +1,13 @@
 ﻿# For Latest Committed
 ## Future Features  
 #### Translation
+- Yandex API Translation
 - Make mouseover dictionary tooltip nicer
+- **option to clear all translation cache**
+- export/import translation cache
 - option to do this automatically: remove translations from cache if not used recently or originally cached too long ago.
 - apply translate stage 4 to pre-romaji
+- **Add unit tests for proxy mod stuff**
 #### Filters
 - set default filter (different from permanent filter)
 - handle mtl flag for release languages
@@ -20,11 +24,14 @@
 #### User Games
 - see details should change to correct user game tab when multiple user games for one vn
 - allow keeping time played for multiple games/allow process monitor to keep running always/make process monitor only have one instance
-- launch title from VN context menu
+- **launch title from VN context menu**
 ##### Entries
 - Implement priority
 - Change Series-specific to three-way dropdown (none,title,series)
 #### Other
+- vn: display languages other than original
+- allow vn notes, option to save locally or vndb
+- add 'update available' notice (can hide)
 - warn if an instance is already running (maybe show database file for opening instance) 
 - show written tag description on tooltip
 - MainWindow: add close all tabs button
@@ -34,6 +41,7 @@
 - Logs: Link to folder, show size taken, option to clear.
 - Information Tab: Show Size of Vndb Images, show total size.
 - Use Screenshot Thumbnails when full-size is not found.
+- Producers: charts for popularity and rating over time
 
 ## Issues  
 - can't show outputwindow on top of some fullscreen games, steals focus on games where it works (might need direct draw)

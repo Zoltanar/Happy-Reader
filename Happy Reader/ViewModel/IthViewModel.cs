@@ -45,9 +45,7 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged();
 			}
 		}
-
-		public ICommand SetHookCodeCommand { get; }
-
+		
 		public bool Paused
 		{
 			get => _mainViewModel.TranslatePaused;
@@ -61,7 +59,6 @@ namespace Happy_Reader.ViewModel
 			_mainViewModel = mainViewModel;
 			InitializeUserGameAction = initializeUserGameAction;
 			Notify = new Action<object, string, string>(_mainViewModel.NotificationEvent);
-			SetHookCodeCommand = new IthCommandHandler(SetHookCode);
 		}
 
 		public override void AddNewThreadToDisplayCollection(TextThread textThread)
@@ -69,16 +66,16 @@ namespace Happy_Reader.ViewModel
 			if (Application.Current == null) return;
 			Application.Current.Dispatcher.Invoke(() =>
 			{
-				var displayThread = new TextThreadPanel(textThread);
+				var displayThread = new TextThreadPanel(textThread, this);
 				DisplayThreads.Add(displayThread);
 			});
 			OnPropertyChanged(nameof(DisplayThreads));
 		}
 
-		public void SetHookCode()
+		public override void SaveHookCode(TextThread thread)
 		{
-			if (SelectedTextThread is not HookTextThread hookTextThread) return;
-			_mainViewModel.UserGame?.GameHookSettings.SaveHookCode(hookTextThread.HookCode);
+			if (thread is not HookTextThread hookTextThread) return;
+			_mainViewModel.UserGame?.GameHookSettings.SaveHookCode(hookTextThread.HookCode, true);
 		}
 
 		public override void AddGameThread(GameTextThread gameTextThread)

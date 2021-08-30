@@ -69,7 +69,7 @@ namespace Happy_Reader.View.Tabs
 		private void SaveHookCode(object sender, KeyEventArgs e)
 		{
 			if (e.Key != Key.Enter) return;
-			ViewModel.GameHookSettings.SaveHookCode(HookCodeBox.Text);
+			ViewModel.GameHookSettings.SaveHookCode(HookCodeBox.Text, false);
 		}
 
 		private void DigitsOnly(object sender, TextCompositionEventArgs e)
