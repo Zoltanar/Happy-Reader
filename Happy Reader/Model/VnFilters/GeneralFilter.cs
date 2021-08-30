@@ -173,7 +173,6 @@ namespace Happy_Reader
 				case GeneralFilterType.Seiyuu:
 				case GeneralFilterType.Staff:
 					throw new InvalidOperationException("This is a global filter.");
-					throw new InvalidOperationException("This is a global filter.");
 				// ReSharper disable once RedundantCaseLabel
 				case GeneralFilterType.CharacterTraitScore:
 					return GetCharacterTraitScore;
@@ -186,7 +185,9 @@ namespace Happy_Reader
 											 (i is ListedVN vn && StaticHelpers.LocalDatabase.GetCharactersForVN(vn.VNID).Any(chara => chara.ImageId != null)))
 											!= Exclude;
 				case GeneralFilterType.Producer:
-					return i => (i is CharacterItem ch && ch.Producer?.ID == IntValue) || (i is ListedVN vn && vn.ProducerID == IntValue) != Exclude;
+					return i => (GetVisualNovel(i, out var vn) && vn.ProducerID == IntValue) != Exclude;
+				case GeneralFilterType.Name:
+					return SearchByText;
 				default: throw new ArgumentOutOfRangeException();
 			}
 		}
@@ -197,6 +198,16 @@ namespace Happy_Reader
 			{
 				ListedVN vn => DoubleFunctionFromString(vn.Suggestion?.TraitScore ?? 0) != Exclude,
 				CharacterItem character => DoubleFunctionFromString(character.TraitScore.GetValueOrDefault()) != Exclude,
+				_ => throw new ArgumentOutOfRangeException()
+			};
+		}
+
+		private bool SearchByText(IDataItem<int> item)
+		{
+			return item switch
+			{
+				ListedVN vn => VisualNovelDatabase.SearchForVN(StringValue)(vn) != Exclude,
+				CharacterItem character => VisualNovelDatabase.SearchForCharacter(StringValue)(character) != Exclude,
 				_ => throw new ArgumentOutOfRangeException()
 			};
 		}
@@ -213,7 +224,7 @@ namespace Happy_Reader
 			};
 			return writtenTrait.InCollection(allTraits.Select(t => t.TraitId)) != Exclude;
 		}
-
+		
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static bool GetVisualNovel(IDataItem<int> item, out ListedVN vn)
 		{
@@ -226,25 +237,25 @@ namespace Happy_Reader
 			switch (Type)
 			{
 				case GeneralFilterType.Staff:
+					var staff1 = StaticHelpers.LocalDatabase.StaffAliases[IntValue];
 					return db =>
 					{
-						var staff = StaticHelpers.LocalDatabase.StaffAliases[IntValue];
-						if (staff == null) return new HashSet<int>();
+						if (staff1 == null) return new HashSet<int>();
 						var first = getAllFunc(db).FirstOrDefault();
 						if (first is null) return new HashSet<int>();
-						if (first is ListedVN) return db.GetVnsWithStaff(staff.StaffID);
-						if (first is CharacterItem) return db.GetCharactersForVnWithStaff(staff.StaffID);
+						if (first is ListedVN) return db.GetVnsWithStaff(staff1.StaffID);
+						if (first is CharacterItem) return db.GetCharactersForVnWithStaff(staff1.StaffID);
 						throw new InvalidOperationException($"Unsupported item type for filter: {first.GetType()}");
 					};
 				case GeneralFilterType.Seiyuu:
+					var staff2 = StaticHelpers.LocalDatabase.StaffAliases[IntValue];
 					return db =>
 					{
-						var staff = StaticHelpers.LocalDatabase.StaffAliases[IntValue];
-						if (staff == null) return new HashSet<int>();
+						if (staff2 == null) return new HashSet<int>();
 						var first = getAllFunc(db).FirstOrDefault();
 						if (first is null) return new HashSet<int>();
-						if (first is ListedVN) return db.GetVnsWithSeiyuu(staff.StaffID);
-						if (first is CharacterItem) return db.GetCharactersForSeiyuu(staff.StaffID);
+						if (first is ListedVN) return db.GetVnsWithSeiyuu(staff2.StaffID);
+						if (first is CharacterItem) return db.GetCharactersForSeiyuu(staff2.StaffID);
 						throw new InvalidOperationException($"Unsupported item type for filter: {first.GetType()}");
 					};
 				default:
@@ -347,7 +358,7 @@ namespace Happy_Reader
 			var contains = writtenTag.InCollection(vn.Tags.Select(t => t.TagId), out int match);
 			return (!contains || vn.Tags.First(t => t.TagId == match).Score >= AdditionalInt.Value) != Exclude;
 		}
-
+		
 		public override string ToString()
 		{
 			var typeDesc = Type.GetDescription();
@@ -365,6 +376,7 @@ namespace Happy_Reader
 				case GeneralFilterType.ReleaseDate:
 				case GeneralFilterType.CharacterTraitScore:
 				case GeneralFilterType.CharacterGender:
+				case GeneralFilterType.Name:
 					return $"{result} {StringValue}";
 				case GeneralFilterType.Length:
 					return $"{result} - {(StringValue == null ? "None" : ((LengthFilterEnum)IntValue).GetDescription())}";
@@ -452,6 +464,8 @@ namespace Happy_Reader
 		Producer = 24,
 		[TypeConverter(typeof(VnSeiyuu))]
 		Seiyuu = 25,
+		[TypeConverter(typeof(string))]
+		Name = 26,
 #pragma warning restore 1591
 	}
 }
