@@ -10,20 +10,21 @@ using Newtonsoft.Json.Linq;
 namespace HRDeepLTranslate
 {
 	// ReSharper disable once UnusedType.Global used with plugin model.
-	public class DeepLTranslateFree : ITranslator
+	public class DeepLTranslate : ITranslator
 	{
-		private const string Url = @"https://api-free.deepl.com/v2/translate?source_lang=JA&target_lang=EN-US&split_sentences=0"; //todo make editable
+		private const string UrlPropertyName = @"API Url";
 		private const string AuthKeyPropertyName = @"Authentication Key";
 		private const string PreventDetailsPropertyName = @"Prevent Details";
 
-		public string Version => @"1.0";
-		public string SourceName => @"DeepL API Free";
+		public string Version => @"1.1";
+		public string SourceName => @"DeepL API";
 
 		private static readonly HttpClient FreeClient = new();
 		private FreeSettings Settings { get; set; }
 
 		public IReadOnlyDictionary<string, Type> Properties { get; } = new ReadOnlyDictionary<string, Type>(new Dictionary<string, Type>
 		{
+			{UrlPropertyName, typeof(string)},
 			{AuthKeyPropertyName, typeof(string)},
 			{PreventDetailsPropertyName, typeof(bool)}
 		});
@@ -47,8 +48,12 @@ namespace HRDeepLTranslate
 
 		public void SetProperty(string propertyName, object value)
 		{
+			Error = null;
 			switch (propertyName)
 			{
+				case UrlPropertyName when value is string url:
+					Settings.Url = url;
+					break;
 				case AuthKeyPropertyName when value is string authenticationKey:
 					Settings.AuthenticationKey = authenticationKey;
 					break;
@@ -65,6 +70,7 @@ namespace HRDeepLTranslate
 		{
 			return propertyName switch
 			{
+				UrlPropertyName => Settings.Url,
 				AuthKeyPropertyName => Settings.AuthenticationKey,
 				PreventDetailsPropertyName => Settings.PreventDetails,
 				_ => throw new ArgumentOutOfRangeException(propertyName, $"Property not found: '{propertyName}'.")
@@ -86,7 +92,7 @@ namespace HRDeepLTranslate
 			catch (Exception ex)
 			{
 				//todo if result is html, extract visible text
-				output = $"Failed to translate. ({ex.Message})";
+				output = $"{TranslationFailed}{ex.Message}";
 				return false;
 			}
 		}
@@ -102,7 +108,7 @@ namespace HRDeepLTranslate
 
 		private string FormUrl(string input)
 		{
-			return $"{Url}&auth_key={Settings.AuthenticationKey}&text={Uri.EscapeDataString(input)}";
+			return $"{Settings.Url}&auth_key={Settings.AuthenticationKey}&text={Uri.EscapeDataString(input)}";
 		}
 
 		private static bool GetPostResultAsString(HttpClient client, string url, out string output)
@@ -118,7 +124,7 @@ namespace HRDeepLTranslate
 				if (response.Length > 0)
 				{
 					TryDeserializeJsonResponse(response, out var message);
-					output = $"Translation failed: {message}";
+					output = $"{TranslationFailed}{message}";
 					return false;
 				}
 				output = $"Post was not successful: {result.StatusCode}";
@@ -127,6 +133,8 @@ namespace HRDeepLTranslate
 			output = response;
 			return true;
 		}
+
+		private const string TranslationFailed = @"Translation failed: ";
 
 		private static bool TryDeserializeJsonResponse(string jsonString, out string translated)
 		{
@@ -155,9 +163,20 @@ namespace HRDeepLTranslate
 
 	public class FreeSettings : SettingsJsonFile
 	{
+		private string _url = @"https://api-free.deepl.com/v2/translate?source_lang=JA&target_lang=EN-US&split_sentences=0";
 		private string _authenticationKey = string.Empty;
 		private bool _preventDetails = true;
 
+		public string Url
+		{
+			get => _url;
+			set
+			{
+				if (_url == value) return;
+				_url = value;
+				if (Loaded) Save();
+			}
+		}
 
 		public string AuthenticationKey
 		{
