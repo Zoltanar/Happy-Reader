@@ -106,6 +106,18 @@ namespace Happy_Reader.View
 					menuItem.Click += ShowByStaff;
 					ShowByStaffItem.Items.Add(menuItem);
 				}
+				var artScenarioStaff = grouped.Where(g => g.Key.Equals("Art") || g.Key.Equals("Scenario")).ToList();
+				if (artScenarioStaff.Count == 2)
+				{
+					var menuItem = new MenuItem
+					{
+						Header = "Art & Scenario ",
+						ToolTip = "Titles with at least one of the same Art staff and one of the same Scenario staff.",
+						Tag = artScenarioStaff
+					};
+					menuItem.Click += ShowByStaffArtScenario;
+					ShowByStaffItem.Items.Add(menuItem);
+				}
 			}
 		}
 
@@ -118,6 +130,27 @@ namespace Happy_Reader.View
 			var databaseViewModel = StaticMethods.MainWindow.ViewModel.DatabaseViewModel;
 			if (staff.Count == 1) await databaseViewModel.ShowForStaffWithAlias(staff.First());
 			else await databaseViewModel.ShowForStaffWithAlias($"{staffType} ({staff.Count}) for {StaticHelpers.TruncateString(VN.Title, 15)}", staff);
+			StaticMethods.MainWindow.SelectTab(typeof(VNTabViewModel));
+		}
+
+		private void ShowByStaffArtScenario(object sender, RoutedEventArgs e)
+		{
+			var menuItem = (MenuItem)sender;
+			var filter = new CustomFilter
+			{
+				Name = $"Art/Scenario for {StaticHelpers.TruncateString(VN.Title, 15)}"
+			};
+			var staffGroups = (IEnumerable<IGrouping<string,VnStaff>>)menuItem.Tag;
+			foreach (var group in staffGroups)
+			{
+				foreach (var staff in group)
+				{
+
+					filter.OrFilters.Add(new GeneralFilter(GeneralFilterType.Staff, staff.AliasID));
+				}
+				filter.SaveOrGroup();
+			}
+			StaticMethods.MainWindow.ViewModel.DatabaseViewModel.SelectedFilter = filter;
 			StaticMethods.MainWindow.SelectTab(typeof(VNTabViewModel));
 		}
 

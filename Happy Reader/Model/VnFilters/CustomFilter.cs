@@ -109,7 +109,7 @@ namespace Happy_Reader
 		public void SaveOrGroup()
 		{
 			if (!OrFilters.Any()) return;
-			var orFilter = new GeneralMultiFilter(true, OrFilters);
+			var orFilter = OrFilters.Count == 1 ? OrFilters.First() : new GeneralMultiFilter(true, OrFilters);
 			AndFilters.Add(orFilter);
 			OrFilters.Clear();
 		}
