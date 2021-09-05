@@ -12,7 +12,13 @@
 	<Border BorderBrush="Black" BorderThickness="1" CornerRadius="10" Background="{Binding UserVN, Converter={StaticResource UserVnToBackgroundConverter}}">
 		<Grid>
 			<Label Content="{Binding Title}" Margin="10,10,10,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="Black"/>
-			<Label Content="{Binding Producer.Name}" Foreground="{Binding Path=., Converter={StaticResource VnToProducerForegroundConverter}, NotifyOnSourceUpdated=True, Mode=OneWay}" Margin="10,0,10,52" VerticalAlignment="Bottom" Padding="0"/>
+			<Label Foreground="{Binding Path=., Converter={StaticResource VnToProducerForegroundConverter}, NotifyOnSourceUpdated=True, Mode=OneWay}" Margin="10,0,10,52" VerticalAlignment="Bottom" Padding="0">
+				<TextBlock >
+					<Hyperlink RequestNavigate="OpenProducerTab" NavigateUri="Blank">
+						<TextBlock Text="{Binding Producer.Name}"/>
+					</Hyperlink>
+				</TextBlock>
+			</Label>
 			<Label Content="{Binding LengthTime, Converter={StaticResource EnumDescriptionConverter}}" Foreground="Purple" Margin="10,0,10,52" VerticalAlignment="Bottom" HorizontalAlignment="Right" Padding="0"/>
 			<Label Margin="10,0,97,31" VerticalAlignment="Bottom" Padding="0" Foreground="Black">
 				<TextBlock>

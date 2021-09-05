@@ -20,10 +20,7 @@ namespace Happy_Reader.View.Tiles
 			VN = vn;
 		}
 
-		public static VNTile FromListedVN(ListedVN vn)
-		{
-			return new VNTile(vn);
-		}
+		public static VNTile FromListedVN(ListedVN vn) => new(vn);
 
 		private void ContextMenuOpened(object sender, RoutedEventArgs e) => VnMenu.ContextMenuOpened();
 
@@ -39,6 +36,11 @@ namespace Happy_Reader.View.Tiles
 			var bindingExpression = CoverBox.GetBindingExpression(Image.SourceProperty);
 			System.Diagnostics.Debug.Assert(bindingExpression != null, nameof(bindingExpression) + " != null");
 			bindingExpression.UpdateTarget();
+		}
+
+		private void OpenProducerTab(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+		{
+			StaticMethods.MainWindow.OpenProducerPanel(VN.Producer);
 		}
 	}
 }

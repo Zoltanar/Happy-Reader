@@ -53,7 +53,6 @@ namespace Happy_Reader.View.Converters
 
 	public class UserRelatedStatusConverter : IValueConverter
 	{
-		public static readonly ScoreConverter ScoreConverter = new();
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if (value is not UserVN userVN) return string.Empty;
@@ -62,9 +61,9 @@ namespace Happy_Reader.View.Converters
 			if (label != default)
 			{
 				sb.Append(label.GetDescription());
-				if (userVN.Vote > 0) sb.Append($" (Vote: {ScoreConverter.Convert(userVN.Vote, targetType, parameter, culture)})");
+				if (userVN.Vote > 0) sb.Append($" (Vote: {ScoreConverter.Instance.Convert(userVN.Vote, targetType, parameter, culture)})");
 			}
-			else if (userVN.Vote > 0) sb.Append($"Vote: {ScoreConverter.Convert(userVN.Vote, targetType, parameter, culture)}");
+			else if (userVN.Vote > 0) sb.Append($"Vote: {ScoreConverter.Instance.Convert(userVN.Vote, targetType, parameter, culture)}");
 			return sb.ToString();
 		}
 
@@ -73,7 +72,7 @@ namespace Happy_Reader.View.Converters
 
 	public class UserRelatedTooltipConverter : IValueConverter
 	{
-		private const string dateFormat = "yyyy-MMM-dd";
+		private const string DateFormat = "yyyy-MMM-dd";
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if (value is not UserVN userVN) return string.Empty;
@@ -82,11 +81,11 @@ namespace Happy_Reader.View.Converters
 			// ReSharper disable PossibleInvalidOperationException values are present based on label or vote presence
 			if (label != default)
 			{
-				sb.Append($"Added: {userVN.Added.Value.ToString(dateFormat)}");
-				if (userVN.LastModified != userVN.Added) sb.Append($" Modified: {userVN.LastModified.Value.ToString(dateFormat)}");
-				if (userVN.Vote > 0) sb.Append($" (Vote Added: {userVN.VoteAdded.Value.ToString(dateFormat)})");
+				sb.Append($"Added: {userVN.Added.Value.ToString(DateFormat)}");
+				if (userVN.LastModified != userVN.Added) sb.Append($" Modified: {userVN.LastModified.Value.ToString(DateFormat)}");
+				if (userVN.Vote > 0) sb.Append($" (Vote Added: {userVN.VoteAdded.Value.ToString(DateFormat)})");
 			}
-			else if (userVN.Vote > 0) sb.Append($"Vote Added: {userVN.VoteAdded.Value.ToString(dateFormat)}");
+			else if (userVN.Vote > 0) sb.Append($"Vote Added: {userVN.VoteAdded.Value.ToString(DateFormat)}");
 			// ReSharper restore PossibleInvalidOperationException
 			return sb.ToString();
 		}

@@ -355,7 +355,7 @@ namespace Happy_Reader.ViewModel
 			var processes = Process.GetProcesses();
 			try
 			{
-				var userGameProcesses = StaticMethods.Data.UserGames.Select(x => x.ProcessName).ToArray();
+				var userGameProcesses = StaticMethods.Data.UserGames.Select(x => x.ProcessName).Where(x=> !string.IsNullOrWhiteSpace(x)).Distinct().ToArray();
 				var gameProcess = processes.FirstOrDefault(p => userGameProcesses.Contains(p.ProcessName));
 				try
 				{

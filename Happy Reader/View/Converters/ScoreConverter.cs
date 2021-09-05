@@ -6,6 +6,8 @@ namespace Happy_Reader.View.Converters
 {
 	public class ScoreConverter : IValueConverter
 	{
+		public static readonly ScoreConverter Instance = new();
+
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if (value is null || value.Equals(System.Windows.DependencyProperty.UnsetValue)) return "None";

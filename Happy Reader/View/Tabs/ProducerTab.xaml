@@ -1,0 +1,39 @@
+﻿<UserControl x:Class="Happy_Reader.View.Tabs.ProducerTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Happy_Reader.View.Tabs"
+             xmlns:tabs="clr-namespace:Happy_Reader.View.Tabs"
+             xmlns:database="clr-namespace:Happy_Apps_Core.Database;assembly=Happy_Apps_Core"
+             xmlns:DV="clr-namespace:System.Windows.Controls.DataVisualization;assembly=DotNetProjects.DataVisualization.Toolkit"
+             xmlns:DVC="clr-namespace:System.Windows.Controls.DataVisualization.Charting;assembly=DotNetProjects.DataVisualization.Toolkit"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+	<d:UserControl.DataContext>
+		<database:ListedProducer/>
+	</d:UserControl.DataContext>
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="*"/>
+		</Grid.RowDefinitions>
+		<Grid Grid.Row="0">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="Auto"/>
+			</Grid.ColumnDefinitions>
+			<TextBlock Grid.Row="0" HorizontalAlignment="Left" Text="{Binding Name}"/>
+	    <Image Grid.Row="0" Grid.Column="1" Source="{Binding FlagSource}"/>
+		</Grid>
+		<Label Grid.Row="1" Grid.Column="0" x:Name="TimeActiveLabel"/>
+		<Label Grid.Row="2" Grid.Column="0" x:Name="TitlesLabel"/>
+		<Label Grid.Row="3" Grid.Column="0" x:Name="RatingLabel"/>
+		<DVC:Chart   Grid.Row="4" x:Name="ReleaseChart" Title="Releases">
+			<DVC:LineSeries IndependentValuePath="Key" DependentValuePath="Value" x:Name="ReleaseSeries"/>
+		</DVC:Chart>
+	</Grid>
+</UserControl>

@@ -193,7 +193,7 @@ namespace Happy_Reader.View.Tabs
 		private void GroupByVnScore()
 		{
 			var groupName = $"{nameof(UserGame)}.{nameof(UserGame.VN)}.{nameof(ListedVN.UserVN)}.{nameof(UserVN.Vote)}";
-			var groupDescription = new PropertyGroupDescription(groupName, new ScoreConverter());
+			var groupDescription = new PropertyGroupDescription(groupName, ScoreConverter.Instance);
 			GroupUserGameItems(
 				groupDescription,
 				new SortDescription(groupName, ListSortDirection.Descending),

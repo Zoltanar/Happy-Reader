@@ -24,7 +24,9 @@ namespace Happy_Reader.View
 		public static readonly Brush ULStalledBrush = Brushes.DarkKhaki;
 		public static readonly Brush ULDroppedBrush = Brushes.DarkOrange;
 		public static readonly Brush ULUnknownBrush = Brushes.LightGray;
+		public static readonly Brush VNTabBackground = Brushes.HotPink;
 		public static readonly Brush UserGameTabBackground = Brushes.DarkKhaki;
+		public static readonly Brush ProducerTabBackground = Brushes.MediumPurple;
 
 		// ReSharper disable UnusedMember.Local
 		//tile text colors

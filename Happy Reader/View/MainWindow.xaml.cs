@@ -97,9 +97,9 @@ namespace Happy_Reader.View
 					thumbnail = game.IconImageExists(out icon) ? Image.FromFile(icon) : Image.FromStream(Application.GetResourceStream(new Uri(Theme.ImageNotFoundPath)).Stream);
 				}
 				var item = new ToolStripMenuItem(StaticMethods.TruncateStringFunction30(game.DisplayName), thumbnail, LaunchGame) { Tag = game };
-				_trayIcon.ContextMenuStrip.Items.Insert(0, item);
 				if (!added.HasValue) added = 1;
 				else added++;
+				_trayIcon.ContextMenuStrip.Items.Insert(added.Value-1, item);
 			}
 			if (added.HasValue) _trayIcon.ContextMenuStrip.Items.Insert(added.Value, new ToolStripSeparator());
 		}
@@ -140,6 +140,17 @@ namespace Happy_Reader.View
 							if (userGame != null) OpenUserGamePanel(userGame, null, false);
 							break;
 						}
+					case nameof(ProducerTab):
+					{
+						var producer = StaticHelpers.LocalDatabase.Producers[(int) savedTab.Id];
+						if(producer != null) OpenProducerPanel(producer,false);
+						break;
+					}
+					default:
+					{
+						//debug break only
+						break;
+					}
 				}
 			}
 		}
@@ -231,6 +242,7 @@ namespace Happy_Reader.View
 			var userGameTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.DataContext == userGame);
 			if (userGameTab != null)
 			{
+				if (!select) return;
 				MainTabControl.SelectedItem = userGameTab;
 				userGameTab.Focus();
 				return;
@@ -248,6 +260,29 @@ namespace Happy_Reader.View
 			AddTabItem(tabItem, headerBinding, select);
 		}
 
+		public void OpenProducerPanel(ListedProducer producer, bool select = true)
+		{
+			var producerTab = MainTabControl.Items.Cast<TabItem>().FirstOrDefault(t => t.DataContext == producer);
+			if (producerTab != null)
+			{
+				if (!select) return;
+				MainTabControl.SelectedItem = producerTab;
+				producerTab.Focus();
+				return;
+			}
+			var tabItem = new TabItem
+			{
+				Name = nameof(ProducerTab),
+				Content = new ProducerTab(producer),
+				DataContext = producer
+			};
+			var headerBinding = new Binding(nameof(ListedProducer.Name))
+			{
+				Source = tabItem.DataContext
+			};
+			AddTabItem(tabItem, headerBinding, select);
+		}
+
 		private static Grid GetTabHeader(string text, BindingBase headerBinding, object content, HashSet<SavedData.SavedTab> savedTabs)
 		{
 			var headerTextBlock = new TextBlock
@@ -258,7 +293,8 @@ namespace Happy_Reader.View
 				VerticalAlignment = VerticalAlignment.Center,
 				HorizontalAlignment = HorizontalAlignment.Center
 			};
-			if (headerBinding != null) headerTextBlock.SetBinding(TextBlock.TextProperty, headerBinding); var header = new Grid
+			if (headerBinding != null) headerTextBlock.SetBinding(TextBlock.TextProperty, headerBinding); 
+			var header = new Grid
 			{
 				Width = 100,
 				Height = 50,
@@ -269,11 +305,15 @@ namespace Happy_Reader.View
 			{
 				case VNTab vnTab:
 					savedTabs.Add(new SavedData.SavedTab(vnTab.ViewModel.VNID, nameof(VNTab)));
-					header.Background = Brushes.HotPink;
+					header.Background = Theme.VNTabBackground;
 					break;
 				case UserGameTab gameTab:
 					savedTabs.Add(new SavedData.SavedTab(gameTab.ViewModel.Id, nameof(UserGameTab)));
 					header.Background = Theme.UserGameTabBackground;
+					break;
+				case ProducerTab producerTab:
+					savedTabs.Add(new SavedData.SavedTab(producerTab.ViewModel.ID, nameof(ProducerTab)));
+					header.Background = Theme.ProducerTabBackground;
 					break;
 				default:
 					header.Background = Brushes.IndianRed;
