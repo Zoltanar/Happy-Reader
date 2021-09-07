@@ -28,15 +28,15 @@ namespace Happy_Reader.View.Tabs
 			ViewModel.AddPage();
 		}
 
-		private async void ShowAll(object sender, RoutedEventArgs e)
+		private void ShowAll(object sender, RoutedEventArgs e)
 		{
-			await ViewModel.ShowAll();
+			ViewModel.ShowAll();
 		}
 
-		private async void SearchForVN(object sender, KeyEventArgs e)
+		private void SearchByText(object sender, KeyEventArgs e)
 		{
 			if (e.Key != Key.Enter) return;
-			await ViewModel.SearchForItem(((TextBox)sender).Text);
+			ViewModel.SearchForItem(((TextBox)sender).Text);
 		}
 
 		private void OnLoaded(object sender, RoutedEventArgs e)
@@ -47,9 +47,9 @@ namespace Happy_Reader.View.Tabs
 			_loaded = true;
 		}
 
-		private async void ShowSuggested(object sender, RoutedEventArgs e)
+		private void ShowSuggested(object sender, RoutedEventArgs e)
 		{
-			await ViewModel.ShowSuggested();
+			ViewModel.ShowSuggested();
 		}
 
 		private async void SortByID(object sender, RoutedEventArgs e)
@@ -112,10 +112,10 @@ namespace Happy_Reader.View.Tabs
 			ProducerItemSelected((AutoCompleteBox)sender);
 		}
 
-		private async void ProducerItemSelected(AutoCompleteBox textBox)
+		private void ProducerItemSelected(AutoCompleteBox textBox)
 		{
-			if (textBox.SelectedItem is ListedProducer producer) await ViewModel.ShowForProducer(producer);
-			else if (!string.IsNullOrWhiteSpace(textBox.Text)) await ViewModel.ShowForProducer(textBox.Text);
+			if (textBox.SelectedItem is ListedProducer producer) ViewModel.ShowForProducer(producer);
+			else if (!string.IsNullOrWhiteSpace(textBox.Text)) ViewModel.ShowForProducer(textBox.Text);
 		}
 
 		private async void BrowseHistory(object sender, SelectionChangedEventArgs e)

@@ -12,7 +12,14 @@ namespace Happy_Reader.ViewModel
 	{
 		private static NamedFunction _lastSelected;
 		private bool _selected;
-		public Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> Function { get; }
+
+		public IEnumerable<IDataItem<int>> Function(
+			VisualNovelDatabase db,
+			Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> getAllFunc,
+			Func<VisualNovelDatabase, int[], IEnumerable<IDataItem<int>>> getAllWithKeyFunc)
+			=> _customFilter.GetAllResults(db, getAllFunc, getAllWithKeyFunc);
+
+		private readonly CustomFilter _customFilter;
 		public string Name { get; }
 		public bool Selected
 		{
@@ -28,18 +35,18 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged(null);
 			}
 		}
-		
-		public NamedFunction(Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> function, string name)
+
+		public NamedFunction(CustomFilter customFilter)
 		{
-			Function = function;
-			Name = name;
+			_customFilter = customFilter;
+			Name = customFilter.Name;
 		}
 
-		public IEnumerable<IDataItem<int>> SelectAndInvoke(VisualNovelDatabase localDatabase)
+		public IEnumerable<IDataItem<int>> SelectAndInvoke(VisualNovelDatabase localDatabase, DatabaseViewModelBase databaseViewModelBase)
 		{
 			if (_lastSelected != null) _lastSelected.Selected = false;
 			Selected = true;
-			return Function(localDatabase);
+			return Function(localDatabase, databaseViewModelBase.GetAll, databaseViewModelBase.GetAllWithKeyIn);
 		}
 
 		public override string ToString() => (Selected ? "[✔] " : "") + Name;

@@ -29,6 +29,7 @@
 - Implement priority
 - Change Series-specific to three-way dropdown (none,title,series)
 #### Other
+- Producer Tab: list staff and number of contributions
 - tray: update last played in real time
 - vn: display languages other than original
 - allow vn notes, option to save locally or vndb

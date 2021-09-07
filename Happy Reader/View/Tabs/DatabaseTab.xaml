@@ -50,7 +50,7 @@
 			<view:FiltersPane x:Name="FiltersPane" Grid.Column="1" Visibility="Collapsed" MinWidth="250" MaxWidth="400" DataContext="{Binding FiltersViewModel}"/>
 		</Grid>
 		<Label Content="Search:" HorizontalAlignment="Left" VerticalContentAlignment="Center" Grid.Row="1" Margin="0"/>
-		<TextBox x:Name="SearchTexBox" Margin="65,0,321,0" TextWrapping="Wrap" VerticalContentAlignment="Center" PreviewKeyUp="SearchForVN" Height="30" VerticalAlignment="Stretch" Grid.Row="1"/>
+		<TextBox Margin="65,0,321,0" TextWrapping="Wrap" VerticalContentAlignment="Center" PreviewKeyUp="SearchByText" Height="30" VerticalAlignment="Stretch" Grid.Row="1"/>
 		<ComboBox HorizontalAlignment="Right" Margin="0,0,125,0" Width="191" Grid.Row="1" SelectedIndex="0" VerticalContentAlignment="Center">
 			<ComboBoxItem Content="Sort by Release Date" Selected="SortByRelease"/>
 			<ComboBoxItem Content="Sort by ID" Selected="SortByID"/>

@@ -31,9 +31,8 @@ namespace Happy_Reader.ViewModel
 		private Brush _vndbConnectionForeground;
 		private string _vndbConnectionStatus;
 		protected readonly MainWindowViewModel MainViewModel;
-		protected abstract Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> GetAll { get; }
-		protected abstract IEnumerable<IDataItem<int>> GetAllWithKeyIn(VisualNovelDatabase db, int[] keys);
-		protected abstract Func<string, Func<IDataItem<int>, bool>> SearchByText { get; }
+		public abstract Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> GetAll { get; }
+		public abstract IEnumerable<IDataItem<int>> GetAllWithKeyIn(VisualNovelDatabase db, int[] keys);
 		protected abstract Func<IDataItem<int>, ListedVN> GetVisualNovel { get; }
 		protected abstract Func<IDataItem<int>, double?> GetSuggestion { get; }
 		protected abstract Func<IDataItem<int>, string> GetName { get; }
@@ -188,7 +187,7 @@ namespace Happy_Reader.ViewModel
 			//await db communication
 			var results = await Task.Run(() =>
 			{
-				var items = DbFunction.SelectAndInvoke(StaticHelpers.LocalDatabase);
+				var items = DbFunction.SelectAndInvoke(StaticHelpers.LocalDatabase, this);
 				OnPropertyChanged(nameof(SelectedFunctionIndex));
 				if (_orderingByRating && StaticMethods.Settings.GuiSettings.ExcludeLowVotesForRatingSort)
 				{
@@ -206,6 +205,7 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged(nameof(CSettings));
 				OnPropertyChanged(nameof(Tiles));
 				OnPropertyChanged(nameof(AllResults));
+
 			});
 			watch.Stop();
 			SetReplyText($"Loaded results in {watch.Elapsed.ToSeconds()}.", VndbConnection.MessageSeverity.Normal);
@@ -244,76 +244,96 @@ namespace Happy_Reader.ViewModel
 			OnPropertyChanged(nameof(AllResults));
 		}
 
-		public async Task SearchForItem(string text)
+		public void SearchForItem(string text)
 		{
-			Func<IDataItem<int>, bool> searchForText = SearchByText(text);
-			var results = GetAll(StaticHelpers.LocalDatabase).Where(i => searchForText(i)).Select(t => t.Key).ToArray();
-			if (results.Length == 0)
-			{
-				SetReplyText($"Found no results for '{text}'", VndbConnection.MessageSeverity.Normal);
-				return;
-			}
-			DbFunction = new NamedFunction(db => GetAllWithKeyIn(db, results), "Text Search");
-			await RefreshTiles();
+			var cf = new CustomFilter($"Text: {text}");
+			cf.AndFilters.Add(new GeneralFilter(GeneralFilterType.Name,text));
+			SelectedFilter = cf;
 		}
 
-		public async Task ShowTagged(DumpFiles.WrittenTag tag)
+		public void ShowTagged(DumpFiles.WrittenTag tag)
 		{
 			var watch = Stopwatch.StartNew();
-			DbFunction = new NamedFunction(
-				db => GetAllWithKeyIn(db, db.Tags.Where(t => tag.AllIDs.Contains(t.TagId)).Select(x => x.VNID).Distinct().ToArray()),
-				$"Tag {tag.Name}");
-			await RefreshTiles();
+			var cf = new CustomFilter($"Tag: {tag.Name}");
+			cf.AndFilters.Add(new GeneralFilter(GeneralFilterType.Tags, tag.ID));
+			SelectedFilter = cf;
 			StaticHelpers.Logger.ToDebug($@"{nameof(ShowTagged)}: {watch.ElapsedMilliseconds}ms");
 		}
 
 		public async Task ChangeFilter(CustomFilter item)
 		{
-			DbFunction = new NamedFunction(db => item.GetAllResults(db, GetAll, GetAllWithKeyIn), item.ToString());
+			DbFunction = new NamedFunction(item);
 			await RefreshTiles();
 		}
 
 		public async Task<bool> ChangeVNStatus(ListedVN vn, HashSet<UserVN.LabelKind> labels) => await StaticHelpers.Conn.ChangeVNStatus(vn, labels);
 		public async Task<bool> ChangeVote(ListedVN vn, int? vote) => await StaticHelpers.Conn.ChangeVote(vn, vote);
 
-		public async Task ShowRelatedTitles(IDataItem<int> item)
+		public void ShowRelatedTitles(IDataItem<int> item)
 		{
 			var vnIds = GetRelatedTitles(item);
-			DbFunction = new NamedFunction(db => GetAllWithKeyIn(db, vnIds),
-				$"Related to {item}");
-			await RefreshTiles();
+			var cf = new CustomFilter($"Related to: {item}");
+			foreach (var vnId in vnIds)
+			{
+				cf.OrFilters.Add(new GeneralFilter(GeneralFilterType.VNID, vnId));
+			}
+			cf.SaveOrGroup();
+			if (!cf.AndFilters.Any())
+			{
+				SetReplyText($"No titles related to {item}.", VndbConnection.MessageSeverity.Warning);
+				return;
+			}
+			SelectedFilter = cf;
 		}
 
-		public async Task ShowForProducer(string producerName)
+		public void ShowForProducer(string producerName)
 		{
-			var lowerName = producerName.ToLowerInvariant();
-			DbFunction = new NamedFunction(db => GetAll(db).Where(i => GetVisualNovel(i)?.Producer?.Name.ToLowerInvariant() == lowerName),
-				$"Producer {producerName}");
-			await RefreshTiles();
+			var producers = StaticHelpers.LocalDatabase.Producers.Where(i => i.Name.Equals(producerName, StringComparison.OrdinalIgnoreCase));
+			var cf = new CustomFilter($"Producer Name: {producerName}");
+			foreach (var producer in producers)
+			{
+				cf.OrFilters.Add(new GeneralFilter(GeneralFilterType.Producer, producer.ID));
+			}
+			cf.SaveOrGroup();
+			if (!cf.AndFilters.Any())
+			{
+				SetReplyText($"No producers found for name {producerName}.", VndbConnection.MessageSeverity.Warning);
+				return;
+			}
+			SelectedFilter = cf;
 		}
 
-		public async Task ShowForProducer(ListedProducer producer)
+		public void ShowForProducer(ListedProducer producer)
 		{
-			DbFunction = new NamedFunction(db => GetAll(db).Where(i => GetVisualNovel(i)?.Producer == producer),
-				$"Producer {producer.Name}");
-			await RefreshTiles();
+			var cf = new CustomFilter($"Producer: {producer.Name}");
+			cf.AndFilters.Add(new GeneralFilter(GeneralFilterType.Producer, producer.ID));
+			SelectedFilter = cf;
 		}
 
-		public async Task ShowForCharacter(CharacterItem character)
+		public void ShowForCharacter(CharacterItem character)
 		{
-			DbFunction = new NamedFunction(
-				db => GetAllWithKeyIn(db, db.Characters[character.ID].VisualNovels.Select(cvn => cvn.VNId).ToArray()),
-				$"Character {character.Name}");
-			await RefreshTiles();
+			var vnIds = StaticHelpers.LocalDatabase.Characters[character.ID].VisualNovels.Select(cvn => cvn.VNId).ToArray();
+			var cf = new CustomFilter($"Character: {character.Name}");
+			foreach (var vnid in vnIds)
+			{
+				cf.OrFilters.Add(new GeneralFilter(GeneralFilterType.VNID, vnid));
+			}
+			cf.SaveOrGroup();
+			if (!cf.AndFilters.Any())
+			{
+				SetReplyText($"No titles found for character {character.Name}.", VndbConnection.MessageSeverity.Warning);
+				return;
+			}
+			SelectedFilter = cf;
 		}
 
-		public async Task ShowSuggested()
+		public void ShowSuggested()
 		{
-			var scoredKeys = GetAll(StaticHelpers.LocalDatabase).Where(i => GetSuggestion(i) >= 0d).Select(i => i.Key).ToArray();
-			DbFunction = new NamedFunction(db => GetAllWithKeyIn(db, scoredKeys), "Suggested");
 			_ordering = lvn => lvn.OrderByDescending(i => GetSuggestion(i));
 			_orderingByRating = false;
-			await RefreshTiles();
+			var cf = new CustomFilter("Suggested");
+			cf.AndFilters.Add(new GeneralFilter(GeneralFilterType.SuggestionScore, ">0"));
+			SelectedFilter = cf;
 		}
 
 		public async Task SortBySuggestion()
@@ -372,10 +392,9 @@ namespace Happy_Reader.ViewModel
 			await RefreshTiles();
 		}
 
-		public async Task ShowAll()
+		public void ShowAll()
 		{
-			DbFunction = new NamedFunction(GetAll, "All");
-			await RefreshTiles();
+			SelectedFilter = new CustomFilter("All");
 		}
 
 		public async Task BrowseHistory(NamedFunction function)
@@ -385,46 +404,30 @@ namespace Happy_Reader.ViewModel
 			await RefreshTiles();
 		}
 
-		public async Task ShowForStaffWithAlias(string searchHeader, ICollection<int> aliasIds)
+		public void ShowForStaffWithAlias(string searchHeader, ICollection<int> aliasIds)
 		{
 			var staffIds = aliasIds.Select(a => StaticHelpers.LocalDatabase.StaffAliases[a].StaffID).ToList();
-			var allAliasIds = StaticHelpers.LocalDatabase.StaffAliases.Where(sa => staffIds.Contains(sa.StaffID)).Select(sa => sa.AliasID).ToArray();
-			DbFunction = new NamedFunction(
-				db =>
-				{
-					var vns = db.VnStaffs.Where(vnStaff => allAliasIds.Contains(vnStaff.AliasID)).Select(vnStaff => vnStaff.VNID).ToArray();
-					return GetAllWithKeyIn(db, vns);
-				},
-				searchHeader);
-			await RefreshTiles();
+			var allAliasIds = StaticHelpers.LocalDatabase.StaffAliases.Where(sa => staffIds.Contains(sa.StaffID)).Select(sa => sa.AliasID).Distinct().ToList();
+			var cf = new CustomFilter(searchHeader);
+			foreach(var id in allAliasIds) cf.OrFilters.Add(new GeneralFilter(GeneralFilterType.Staff, id));
+			cf.SaveOrGroup();
+			SelectedFilter = cf;
 		}
 
-		public virtual async Task ShowForStaffWithAlias(int aliasId)
+		public void ShowForStaffWithAlias(int aliasId)
 		{
 			var staff = StaticHelpers.LocalDatabase.StaffAliases[aliasId];
-			DbFunction = new NamedFunction(
-				db =>
-				{
-					var aliasIds = db.StaffAliases.Where(c => c.StaffID == staff.StaffID).Select(sa => sa.AliasID).ToArray();
-					var vns = db.VnStaffs.Where(vnStaff => aliasIds.Contains(vnStaff.AliasID)).Select(vnStaff => vnStaff.VNID).ToArray();
-					return GetAllWithKeyIn(db, vns);
-				},
-				$"Staff {staff}");
-			await RefreshTiles();
+			var cf = new CustomFilter($"Staff: {staff}");
+			cf.AndFilters.Add(new GeneralFilter(GeneralFilterType.Staff, aliasId));
+			SelectedFilter = cf;
 		}
 
-		public async Task ShowForSeiyuu(VnSeiyuu seiyuu)
+		public void ShowForSeiyuu(VnSeiyuu seiyuu)
 		{
 			var staff = StaticHelpers.LocalDatabase.StaffAliases[seiyuu.AliasID];
-			DbFunction = new NamedFunction(
-				db =>
-				{
-					var aliasIds = db.StaffAliases.Where(c => c.StaffID == staff.StaffID).Select(sa => sa.AliasID).ToArray();
-					var vns = db.VnSeiyuus.Where(vnSeiyuu => aliasIds.Contains(vnSeiyuu.AliasID)).Select(vnSeiyuu => vnSeiyuu.VNID).ToArray();
-					return GetAllWithKeyIn(db, vns);
-				},
-				$"Seiyuu {staff}");
-			await RefreshTiles();
+			var cf = new CustomFilter($"Seiyuu: {staff}");
+			cf.AndFilters.Add(new GeneralFilter(GeneralFilterType.Seiyuu, seiyuu.AliasID));
+			SelectedFilter = cf;
 		}
 
 		private int[] GetRelatedTitles(IDataItem<int> item)

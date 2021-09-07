@@ -727,9 +727,21 @@ namespace Happy_Reader
 
 		private static string KawazuToRomaji(string text)
 		{
-			var result = Task.Run(() => KawazuConverter.Convert(text, To.Romaji, Mode.Spaced, RomajiSystem.Hepburn)).GetAwaiter().GetResult();
+			var result = Task.Run(() => KawazuConvert(text)).GetAwaiter().GetResult();
 			result = result.Replace('ゔ', 'v');
 			return result;
+		}
+
+		private static async Task<string> KawazuConvert(string text)
+		{
+			try
+			{
+				return await KawazuConverter.Convert(text, To.Romaji, Mode.Spaced, RomajiSystem.Hepburn);
+			}
+			catch (Exception ex)
+			{
+				return $"Failed: {ex.Message}";
+			}
 		}
 
 		public static void ExitProcedures(Func<int> saveData)

@@ -105,6 +105,11 @@ namespace Happy_Reader
 		{
 			Name = "Custom Filter";
 		}
+		
+		public CustomFilter(string name)
+		{
+			Name = name;
+		}
 
 		public void SaveOrGroup()
 		{

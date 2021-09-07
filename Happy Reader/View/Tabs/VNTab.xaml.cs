@@ -70,11 +70,11 @@ namespace Happy_Reader.View.Tabs
 			AllTagsControl.ItemsSource = allInlines;
 		}
 
-		private async void OnTagClick(object sender, MouseButtonEventArgs e)
+		private void OnTagClick(object sender, MouseButtonEventArgs e)
 		{
 			StaticMethods.MainWindow.SelectTab(typeof(VNTabViewModel));
 			var tag = (DbTag)((Hyperlink)sender).Tag;
-			await StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ShowTagged(DumpFiles.GetTag(tag.TagId));
+			StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ShowTagged(DumpFiles.GetTag(tag.TagId));
 		}
 
 		private void VNPanel_OnLoaded(object sender, RoutedEventArgs e)
@@ -185,19 +185,19 @@ namespace Happy_Reader.View.Tabs
 			e.Handled = true;
 		}
 
-		private async void ShowVNsForStaff(object sender, RoutedEventArgs e)
+		private void ShowVNsForStaff(object sender, RoutedEventArgs e)
 		{
 			var element = sender as FrameworkElement;
-			if (!(element?.DataContext is VnStaff vnStaff)) return;
-			await StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ShowForStaffWithAlias(vnStaff.AliasID);
+			if (element?.DataContext is not VnStaff vnStaff) return;
+			StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ShowForStaffWithAlias(vnStaff.AliasID);
 			StaticMethods.MainWindow.SelectTab(typeof(VNTabViewModel));
 		}
 
-		private async void ShowCharactersForStaff(object sender, RoutedEventArgs e)
+		private void ShowCharactersForStaff(object sender, RoutedEventArgs e)
 		{
 			var element = sender as FrameworkElement;
 			if (!(element?.DataContext is VnStaff vnStaff)) return;
-			await StaticMethods.MainWindow.ViewModel.CharactersViewModel.ShowForStaffWithAlias(vnStaff.AliasID);
+			StaticMethods.MainWindow.ViewModel.CharactersViewModel.ShowForStaffWithAlias(vnStaff.AliasID);
 			StaticMethods.MainWindow.SelectTab(typeof(CharactersTabViewModel));
 		}
 

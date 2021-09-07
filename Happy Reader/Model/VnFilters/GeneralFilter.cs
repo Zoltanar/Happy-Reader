@@ -188,6 +188,8 @@ namespace Happy_Reader
 					return i => (GetVisualNovel(i, out var vn) && vn.ProducerID == IntValue) != Exclude;
 				case GeneralFilterType.Name:
 					return SearchByText;
+				case GeneralFilterType.VNID:
+					return i => (GetVisualNovel(i, out var vn) && vn.VNID == IntValue) != Exclude;
 				default: throw new ArgumentOutOfRangeException();
 			}
 		}
@@ -377,6 +379,7 @@ namespace Happy_Reader
 				case GeneralFilterType.CharacterTraitScore:
 				case GeneralFilterType.CharacterGender:
 				case GeneralFilterType.Name:
+				case GeneralFilterType.VNID:
 					return $"{result} {StringValue}";
 				case GeneralFilterType.Length:
 					return $"{result} - {(StringValue == null ? "None" : ((LengthFilterEnum)IntValue).GetDescription())}";
@@ -466,6 +469,8 @@ namespace Happy_Reader
 		Seiyuu = 25,
 		[TypeConverter(typeof(string))]
 		Name = 26,
+		[TypeConverter(typeof(int))]
+		VNID = 27,
 #pragma warning restore 1591
 	}
 }

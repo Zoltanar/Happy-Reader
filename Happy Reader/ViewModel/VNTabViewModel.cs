@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using Happy_Apps_Core;
@@ -12,14 +11,13 @@ namespace Happy_Reader.ViewModel
 {
 	public class VNTabViewModel : DatabaseViewModelBase
 	{
-		protected override Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> GetAll => db => db.VisualNovels;
+		public override Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> GetAll => db => db.VisualNovels;
 		protected override Func<IDataItem<int>, UserControl> GetTile => i => VNTile.FromListedVN((ListedVN)i);
-		protected override NamedFunction DbFunction { get; set; } = new(x => x.VisualNovels, "All");
-		protected override IEnumerable<IDataItem<int>> GetAllWithKeyIn(VisualNovelDatabase db, int[] keys) => db.VisualNovels.WithKeyIn(keys);
+		protected override NamedFunction DbFunction { get; set; } = new(new CustomFilter("All"));
+		public override IEnumerable<IDataItem<int>> GetAllWithKeyIn(VisualNovelDatabase db, int[] keys) => db.VisualNovels.WithKeyIn(keys);
 		protected override Func<IDataItem<int>, ListedVN> GetVisualNovel => i => (ListedVN)i;
 		protected override Func<IDataItem<int>, double?> GetSuggestion => i => ((ListedVN)i).Suggestion?.Score;
 		protected override Func<IDataItem<int>, string> GetName => i => ((ListedVN)i).Title;
-		protected override Func<string, Func<IDataItem<int>, bool>> SearchByText => t => i => VisualNovelDatabase.SearchForVN(t)((ListedVN)i);
 
 		public override async Task Initialize()
 		{

@@ -181,6 +181,12 @@ namespace Happy_Reader.View
 				case UserGameTab gameTab:
 					_savedData.Tabs.RemoveWhere(st => st.TypeName == nameof(UserGameTab) && st.Id == gameTab.ViewModel.Id);
 					break;
+				case ProducerTab producerTab:
+					_savedData.Tabs.RemoveWhere(st => st.TypeName == nameof(ProducerTab) && st.Id == producerTab.ViewModel.ID);
+					break;
+				default:
+					//debug break
+					break;
 			}
 			MainTabControl.Items.Remove(tabItem);
 		}
@@ -290,6 +296,7 @@ namespace Happy_Reader.View
 				Text = text,
 				TextWrapping = TextWrapping.Wrap,
 				TextAlignment = TextAlignment.Center,
+				TextTrimming = TextTrimming.CharacterEllipsis,
 				VerticalAlignment = VerticalAlignment.Center,
 				HorizontalAlignment = HorizontalAlignment.Center
 			};

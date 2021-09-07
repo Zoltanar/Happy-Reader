@@ -121,16 +121,16 @@ namespace Happy_Reader.View
 			}
 		}
 
-		private async void ShowByStaff(object sender, RoutedEventArgs e)
+		private void ShowByStaff(object sender, RoutedEventArgs e)
 		{
 			var menuItem = (MenuItem)sender;
 			var staffType = menuItem.Header;
 			var group = (IEnumerable<VnStaff>)menuItem.Tag;
 			var staff = group.Select(s => s.AliasID).ToList();
 			var databaseViewModel = StaticMethods.MainWindow.ViewModel.DatabaseViewModel;
-			if (staff.Count == 1) await databaseViewModel.ShowForStaffWithAlias(staff.First());
-			else await databaseViewModel.ShowForStaffWithAlias($"{staffType} ({staff.Count}) for {StaticHelpers.TruncateString(VN.Title, 15)}", staff);
 			StaticMethods.MainWindow.SelectTab(typeof(VNTabViewModel));
+			if (staff.Count == 1) databaseViewModel.ShowForStaffWithAlias(staff.First());
+			else databaseViewModel.ShowForStaffWithAlias($"{staffType} ({staff.Count}) for {StaticHelpers.TruncateString(VN.Title, 15)}", staff);
 		}
 
 		private void ShowByStaffArtScenario(object sender, RoutedEventArgs e)
@@ -138,7 +138,7 @@ namespace Happy_Reader.View
 			var menuItem = (MenuItem)sender;
 			var filter = new CustomFilter
 			{
-				Name = $"Art/Scenario for {StaticHelpers.TruncateString(VN.Title, 15)}"
+				Name = $"Art/Scenario: {StaticHelpers.TruncateString(VN.Title, 15)}"
 			};
 			var staffGroups = (IEnumerable<IGrouping<string,VnStaff>>)menuItem.Tag;
 			foreach (var group in staffGroups)
@@ -150,8 +150,8 @@ namespace Happy_Reader.View
 				}
 				filter.SaveOrGroup();
 			}
-			StaticMethods.MainWindow.ViewModel.DatabaseViewModel.SelectedFilter = filter;
 			StaticMethods.MainWindow.SelectTab(typeof(VNTabViewModel));
+			StaticMethods.MainWindow.ViewModel.DatabaseViewModel.SelectedFilter = filter;
 		}
 
 		private async void ChangeLabel(object sender, RoutedEventArgs e)
@@ -212,16 +212,16 @@ namespace Happy_Reader.View
 			}
 		}
 
-		private async void ShowRelatedTitles(object sender, RoutedEventArgs e)
+		private void ShowRelatedTitles(object sender, RoutedEventArgs e)
 		{
-			await StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ShowRelatedTitles(VN);
 			StaticMethods.MainWindow.SelectTab(typeof(VNTabViewModel));
+			StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ShowRelatedTitles(VN);
 		}
 
-		private async void ShowTitlesByProducer(object sender, RoutedEventArgs e)
+		private void ShowTitlesByProducer(object sender, RoutedEventArgs e)
 		{
-			await StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ShowForProducer(VN.Producer);
 			StaticMethods.MainWindow.SelectTab(typeof(VNTabViewModel));
+			StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ShowForProducer(VN.Producer);
 		}
 
 		private void CopyTitle(object sender, RoutedEventArgs e) => Clipboard.SetText(VN.Title);
