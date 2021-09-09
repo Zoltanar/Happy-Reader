@@ -29,6 +29,7 @@
 - Implement priority
 - Change Series-specific to three-way dropdown (none,title,series)
 #### Other
+- Producer Tab: charts for popularity
 - Producer Tab: list staff and number of contributions
 - tray: update last played in real time
 - vn: display languages other than original
@@ -39,11 +40,9 @@
 - MainWindow: add close all tabs button
 - Settings: if login response is error with id 'needlogin' show user that credentials are wrong
 - DatabaseDumpReader: Parallelise?
-- DatabaseDumpReader: Icon
 - Logs: Link to folder, show size taken, option to clear.
 - Information Tab: Show Size of Vndb Images, show total size.
 - Use Screenshot Thumbnails when full-size is not found.
-- Producers: charts for popularity and rating over time
 
 ## Issues  
 - can't show outputwindow on top of some fullscreen games, steals focus on games where it works (might need direct draw)

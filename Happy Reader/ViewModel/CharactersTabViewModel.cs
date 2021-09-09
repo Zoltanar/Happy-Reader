@@ -34,7 +34,7 @@ namespace Happy_Reader.ViewModel
 			LocalDatabase.SetCharactersAttachedVisualNovels();
 			await RefreshTiles();
 		}
-		
+
 		protected override Func<IDataItem<int>, double?> GetSuggestion { get; } = i => ((CharacterItem)i).TraitScore;
 
 		public void ShowForVisualNovel(CharacterVN visualNovel)
@@ -44,7 +44,7 @@ namespace Happy_Reader.ViewModel
 			cf.AndFilters.Add(new GeneralFilter(GeneralFilterType.VNID, vn.VNID));
 			SelectedFilter = cf;
 		}
-		
+
 		public void ShowForSeiyuuWithAlias(int aliasId)
 		{
 			var staff = LocalDatabase.StaffAliases[aliasId];

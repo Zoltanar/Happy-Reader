@@ -26,14 +26,23 @@ namespace DatabaseDumpReader
 		private static int Main(string[] args)
 		{
 			ExitCode result;
+			Stopwatch runWatch = null;
+			Stopwatch syncWatch = null;
 			try
 			{
 				string settingsPath = args.Length < 1 ? StaticHelpers.AllSettingsJson : args[0];
 				if (!File.Exists(settingsPath)) throw new FileNotFoundException("Settings File not found.", settingsPath);
 				var dumpFolder = DumpFolder;
 				StaticHelpers.CSettings = SettingsJsonFile.Load<SettingsViewModel>(settingsPath).CoreSettings;
+				runWatch = Stopwatch.StartNew();
 				result = Run(dumpFolder, StaticHelpers.CSettings.UserID);
-				if (result != ExitCode.Error) SyncImages(StaticHelpers.CSettings.SyncImages);
+				runWatch.Stop();
+				if (result != ExitCode.Error)
+				{
+					syncWatch = Stopwatch.StartNew();
+					SyncImages(StaticHelpers.CSettings.SyncImages);
+					syncWatch.Stop();
+				}
 			}
 			catch (Exception ex)
 			{
@@ -41,6 +50,11 @@ namespace DatabaseDumpReader
 				StaticHelpers.Logger.ToFile(ex);
 				Console.ResetColor();
 				result = ExitCode.Error;
+			}
+			finally
+			{
+				if (runWatch != null) StaticHelpers.Logger.ToFile($"Time for DB Update: {runWatch.Elapsed.TotalMinutes:00}:{runWatch.Elapsed.Seconds:00}");
+				if (syncWatch != null) StaticHelpers.Logger.ToFile($"Time for Image Sync: {syncWatch.Elapsed.TotalMinutes:00}:{syncWatch.Elapsed.Seconds:00}");
 			}
 			Console.WriteLine("Press any key to exit...");
 			Console.ReadKey();
