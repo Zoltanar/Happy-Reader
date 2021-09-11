@@ -141,7 +141,7 @@ namespace Happy_Reader.View.Tiles
 		private void OpenVnSubmenu(object sender, RoutedEventArgs e)
 		{
 			VnMenu.DataContext ??= _viewModel.VisualNovel;
-			VnMenu.ContextMenuOpened();
+			VnMenu.ContextMenuOpened(false);
 		}
 
 		private void OnDoubleClick(object sender, MouseButtonEventArgs e)

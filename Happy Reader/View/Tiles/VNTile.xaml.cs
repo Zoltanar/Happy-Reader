@@ -22,7 +22,7 @@ namespace Happy_Reader.View.Tiles
 
 		public static VNTile FromListedVN(ListedVN vn) => new(vn);
 
-		private void ContextMenuOpened(object sender, RoutedEventArgs e) => VnMenu.ContextMenuOpened();
+		private void ContextMenuOpened(object sender, RoutedEventArgs e) => VnMenu.ContextMenuOpened(false);
 
 		private void VNTile_OnLoaded(object sender, RoutedEventArgs e)
 		{

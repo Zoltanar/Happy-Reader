@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -59,7 +60,7 @@ namespace Happy_Reader.View
 			var iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/logo-hr.ico")).Stream;
 			_trayIcon = new NotifyIcon
 			{
-				Icon = new System.Drawing.Icon(iconStream),
+				Icon = new Icon(iconStream),
 				ContextMenuStrip = contextMenu,
 				Visible = true
 			};
@@ -89,7 +90,12 @@ namespace Happy_Reader.View
 				var game = StaticMethods.Data.UserGames[gameId];
 				if (game == null) continue;
 				Image thumbnail;
-				if (game.IconImageExists(out var icon)) thumbnail = Image.FromFile(icon);
+				if (game.IconImageExists(out var icon))
+				{
+					var thumbnailTemp = Image.FromFile(icon);
+					thumbnail = new Bitmap(thumbnailTemp);
+					thumbnailTemp.Dispose();
+				}
 				else
 				{
 					game.SaveIconImage();

@@ -160,9 +160,16 @@ namespace Happy_Reader.Database
 				if (VN?.ImageSource == null)
 				{
 					if (!IconImageExists(out var iconPath)) return Theme.ImageNotFoundImage;
-					image = new Bitmap(iconPath);
+					var imageTemp = new Bitmap(iconPath);
+					image = new Bitmap(imageTemp);
+					imageTemp.Dispose();
 				}
-				else image = new Bitmap(VN.ImageSource);
+				else
+				{
+					var imageTemp = new Bitmap(VN.ImageSource);
+					image = new Bitmap(imageTemp);
+					imageTemp.Dispose();
+				}
 
 				using var memory = new MemoryStream();
 				image.Save(memory, ImageFormat.Bmp);
@@ -265,12 +272,19 @@ namespace Happy_Reader.Database
 
 		public void SaveIconImage()
 		{
-			IconImageExists(out var iconPath);
-			var icon = Icon.ExtractAssociatedIcon(FilePath);
-			if (icon == null) return;
-			var image = icon.ToBitmap();
-			using var fileStream = File.OpenWrite(iconPath);
-			image.Save(fileStream, ImageFormat.Bmp);
+			try
+			{
+				IconImageExists(out var iconPath);
+				var icon = Icon.ExtractAssociatedIcon(FilePath);
+				if (icon == null) return;
+				using var image = icon.ToBitmap();
+				using var fileStream = File.OpenWrite(iconPath);
+				image.Save(fileStream, ImageFormat.Bmp);
+			}
+			catch (Exception ex)
+			{
+				Logger.ToFile(ex);
+			}
 			OnPropertyChanged(nameof(Image));
 		}
 

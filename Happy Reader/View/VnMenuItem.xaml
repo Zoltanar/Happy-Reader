@@ -44,4 +44,6 @@
 	<MenuItem x:Name="TranslateTitleItem" Header="Translate Original Title" Click="TranslateOriginalTitle"/>
 	<Separator/>
 	<MenuItem Header="Import Names" Click="ImportNames"/>
+	<Separator x:Name="LaunchSeparator"/>
+	<MenuItem x:Name="LaunchItem" Header="Launch VN" Click="Launch"/>
 </ItemsControl>

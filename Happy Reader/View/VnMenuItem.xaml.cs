@@ -55,7 +55,7 @@ namespace Happy_Reader.View
 			Process.Start(link);
 		}
 
-		public void ContextMenuOpened()
+		public void ContextMenuOpened(bool fromUserGame)
 		{
 			ReleaseLinkItem.IsEnabled = !string.IsNullOrWhiteSpace(VN.ReleaseLink);
 			OriginalTitleItem.IsEnabled = !string.IsNullOrWhiteSpace(VN.KanjiTitle);
@@ -118,6 +118,51 @@ namespace Happy_Reader.View
 					menuItem.Click += ShowByStaffArtScenario;
 					ShowByStaffItem.Items.Add(menuItem);
 				}
+			}
+			if (fromUserGame)
+			{
+				LaunchSeparator.Visibility = Visibility.Collapsed;
+				LaunchItem.Visibility = Visibility.Collapsed;
+				return;
+			}
+			LaunchSeparator.Visibility = Visibility.Visible;
+			LaunchItem.Visibility = Visibility.Visible;
+			if (VN.IsOwned == OwnedStatus.CurrentlyOwned)
+			{
+				SetLaunchItem();
+			}
+			else
+			{
+				LaunchItem.Tag = null;
+				LaunchItem.Click -= Launch;
+				LaunchItem.IsEnabled = false;
+			}
+		}
+
+		private void SetLaunchItem()
+		{
+			LaunchItem.IsEnabled = true;
+			var games = StaticMethods.Data.UserGames.Where(ug => ug.VNID == VN.VNID && ug.FileExists).ToList();
+			if (games.Count == 1)
+			{
+				LaunchItem.Tag = games.First();
+				LaunchItem.Click += Launch;
+			}
+			else
+			{
+				foreach (var game in games)
+				{
+					var item = new MenuItem
+					{
+						Header = game.DisplayName,
+						Tag = game
+					};
+					item.Click += Launch;
+					LaunchItem.Items.Add(item);
+				}
+
+				LaunchItem.Tag = null;
+				LaunchItem.Click -= Launch;
 			}
 		}
 
@@ -248,6 +293,12 @@ namespace Happy_Reader.View
 				return;
 			}
 			StaticMethods.MainWindow.CreateAddEntriesTab(newEntries);
+		}
+
+		private void Launch(object sender, RoutedEventArgs e)
+		{
+			if (sender is not MenuItem menu || menu.Tag is not UserGame game) return;
+			StaticMethods.MainWindow.ViewModel.HookUserGame(game,null,null,false);
 		}
 
 		private static List<Entry> GetEntriesFromCharacter(CharacterVN cvn)
