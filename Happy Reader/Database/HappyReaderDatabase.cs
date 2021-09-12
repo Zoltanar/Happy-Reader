@@ -278,6 +278,29 @@ namespace Happy_Reader.Database
 				Connection.Close();
 			}
 		}
+		
+		public void DeleteAllCachedTranslations()
+		{
+			var sql = $"DELETE FROM {nameof(CachedTranslation)}s";
+			Connection.Open();
+			try
+			{
+				var cmd = Connection.CreateCommand();
+				cmd.CommandText = sql;
+				var result = cmd.ExecuteNonQuery();
+				StaticHelpers.Logger.ToFile($"Deleted all Cached Translations: {result} records.");
+				if (result == 0) return;
+				Translations.Load(false);
+			}
+			catch (Exception ex)
+			{
+				StaticHelpers.Logger.ToFile(ex);
+			}
+			finally
+			{
+				Connection.Close();
+			}
+		}
 
 		/// <summary>
 		/// Upserts entries into database, inserting Ids as required, opens own connection and transaction.

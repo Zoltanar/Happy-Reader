@@ -3,7 +3,6 @@
 #### Translation
 - Yandex API Translation
 - Make mouseover dictionary tooltip nicer
-- **option to clear all translation cache**
 - export/import translation cache
 - option to do this automatically: remove translations from cache if not used recently or originally cached too long ago.
 - apply translate stage 4 to pre-romaji

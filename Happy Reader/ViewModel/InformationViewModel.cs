@@ -172,9 +172,10 @@ namespace Happy_Reader.ViewModel
 			return true;
 		}
 		
-		public void DeletedCachedTranslations()
+		public void DeletedCachedTranslations(bool deleteAll)
 		{
-			UserDatabase.DeleteCachedTranslationsOlderThan(OldTranslationsTime);
+			if (deleteAll) UserDatabase.DeleteAllCachedTranslations();
+			else UserDatabase.DeleteCachedTranslationsOlderThan(OldTranslationsTime);
 			SetUserDatabaseData(UserDatabase);
 			OnPropertyChanged(null);
 		}

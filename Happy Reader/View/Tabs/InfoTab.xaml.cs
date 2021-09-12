@@ -16,9 +16,9 @@ namespace Happy_Reader.View.Tabs
 			InitializeComponent();
 		}
 
-		private void DeleteOldCachedTranslations(object sender, RoutedEventArgs e)
-		{
-			(DataContext as InformationViewModel).DeletedCachedTranslations();
-		}
+		private void DeleteOldCachedTranslations(object sender, RoutedEventArgs e) => (DataContext as InformationViewModel).DeletedCachedTranslations(false);
+
+		private void DeleteAllCachedTranslations(object sender, RoutedEventArgs e) => (DataContext as InformationViewModel).DeletedCachedTranslations(true);
+
 	}
 }

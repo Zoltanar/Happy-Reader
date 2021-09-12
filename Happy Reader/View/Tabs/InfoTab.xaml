@@ -22,7 +22,6 @@
 						<Setter Property="IsReadOnly" Value="True"/>
 						<Setter Property="Margin" Value="10,2"/>
 						<Setter Property="Background" Value="Black"/>
-						<Setter Property="Foreground" Value="White"/>
 					</Style>
 				</Style.Resources>
 			</Style>
@@ -33,7 +32,8 @@
 		<TextBox Text="{Binding UserDatabaseSize, Mode=OneWay}"/>
 		<StackPanel Orientation="Horizontal" Margin="10,2">
 			<TextBox Text="{Binding TranslationsData, Mode=OneWay}" Margin="0,0,2,0"/>
-			<Button Content="Delete Old Data" Click="DeleteOldCachedTranslations" Margin="2,0,0,0"/>
+			<Button Content="Delete Old" Click="DeleteOldCachedTranslations" Margin="2,0,0,0" Padding="2,0"/>
+			<Button Content="Delete All" Click="DeleteAllCachedTranslations" Margin="2,0,0,0" Padding="2,0"/>
 		</StackPanel>
 		<TextBox Text="{Binding RecordedTime, Mode=OneWay}"/>
 		<TextBox Text="{Binding ApproxVndbTime, Mode=OneWay}"/>
