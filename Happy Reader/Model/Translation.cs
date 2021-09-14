@@ -94,6 +94,7 @@ namespace Happy_Reader
 			catch (Exception ex)
 			{
 				StaticHelpers.Logger.ToFile(ex.Message);
+				throw;
 			}
 		}
 

@@ -10,6 +10,7 @@ using Happy_Apps_Core;
 using Happy_Apps_Core.DataAccess;
 using Happy_Apps_Core.Database;
 using Happy_Apps_Core.Translation;
+using Newtonsoft.Json.Linq;
 using StaticHelpers = Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Reader.Database
@@ -331,5 +332,33 @@ namespace Happy_Reader.Database
 				Connection.Close();
 			}
 		}
+
+		public void PopulateProxies(Action<Exception> onException)
+		{
+				var newProxies = new List<Entry>();
+				try
+				{
+					if (!File.Exists(StaticMethods.ProxiesJson)) return;
+					var array = JArray.Parse(File.ReadAllText(StaticMethods.ProxiesJson));
+					// ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
+					foreach (var item in array.OfType<JObject>())
+					{
+						// ReSharper disable PossibleNullReferenceException
+						var r = item["role"].ToString();
+						var i = item["input"].ToString();
+						var o = item["output"].ToString();
+						// ReSharper restore PossibleNullReferenceException
+						var proxy = Entries.FirstOrDefault(x =>
+							x.Type == EntryType.Proxy && x.RoleString.Equals(r) && x.Input.Equals(i));
+						if (proxy != null) continue;
+						newProxies.Add(new Entry { Type = EntryType.Proxy, RoleString = r, Input = i, Output = o });
+					}
+				}
+				catch (Exception ex)
+				{
+					onException?.Invoke(ex);
+				}
+				AddEntries(newProxies);
+			}
 	}
 }

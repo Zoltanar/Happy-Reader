@@ -15,7 +15,6 @@ using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
 using JetBrains.Annotations;
-using Newtonsoft.Json.Linq;
 using Happy_Reader.View;
 using Happy_Reader.View.Tabs;
 using Happy_Reader.View.Tiles;
@@ -210,7 +209,12 @@ namespace Happy_Reader.ViewModel
 				StatusText = "Initialising Translator...";
 				Translator.Initialise(logVerbose);
 				StatusText = "Populating Proxies...";
-				PopulateProxies();
+				StaticMethods.Data.PopulateProxies((ex) =>
+				{
+					//it's ok to fail here, proxies can be added via the UI anyway.
+					Logger.ToFile(ex);
+					NotificationEvent(this, ex.Message, "Populate Proxies failed");
+				});
 				StatusText = "Loading Entries...";
 				EntriesViewModel.SetEntryGames();
 				EntriesViewModel.SetEntries();
@@ -293,37 +297,7 @@ namespace Happy_Reader.ViewModel
 			User = user;
 			LocalDatabase.CurrentUser = user;
 		}
-
-		private void PopulateProxies()
-		{
-			var newProxies = new List<Entry>();
-			try
-			{
-				if (!File.Exists(StaticMethods.ProxiesJson)) return;
-				var array = JArray.Parse(File.ReadAllText(StaticMethods.ProxiesJson));
-				// ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
-				foreach (var item in array.OfType<JObject>())
-				{
-					// ReSharper disable PossibleNullReferenceException
-					var r = item["role"].ToString();
-					var i = item["input"].ToString();
-					var o = item["output"].ToString();
-					// ReSharper restore PossibleNullReferenceException
-					var proxy = StaticMethods.Data.Entries.FirstOrDefault(x =>
-						x.Type == EntryType.Proxy && x.RoleString.Equals(r) && x.Input.Equals(i));
-					if (proxy != null) continue;
-					newProxies.Add(new Entry { Type = EntryType.Proxy, RoleString = r, Input = i, Output = o });
-				}
-			}
-			catch (Exception ex)
-			{
-				//it's ok to fail here, proxies can be added via the UI anyway.
-				Logger.ToFile(ex);
-				NotificationEvent(this, ex.Message, "Populate Proxies failed");
-			}
-			StaticMethods.Data.AddEntries(newProxies);
-		}
-
+		
 		private void MonitorStart()
 		{
 			StaticHelpers.Logger.ToDebug($"MonitorStart starting with ID: {Thread.CurrentThread.ManagedThreadId}");

@@ -6,7 +6,6 @@
 - export/import translation cache
 - option to do this automatically: remove translations from cache if not used recently or originally cached too long ago.
 - apply translate stage 4 to pre-romaji
-- **Add unit tests for proxy mod stuff**
 #### Filters
 - set default filter (different from permanent filter)
 - handle mtl flag for release languages
@@ -41,6 +40,7 @@
 - Logs: Link to folder, show size taken, option to clear.
 - Information Tab: Show Size of Vndb Images, show total size.
 - Use Screenshot Thumbnails when full-size is not found.
+- select random user game; show random titles in database tab
 
 ## Issues  
 - can't show outputwindow on top of some fullscreen games, steals focus on games where it works (might need direct draw)

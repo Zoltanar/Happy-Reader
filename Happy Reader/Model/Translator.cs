@@ -34,7 +34,7 @@ namespace Happy_Reader
 		private readonly HappyReaderDatabase _data;
 		private readonly TranslatorSettings _settings;
 		private User _lastUser;
-		private EntryGame _lastGame;
+		private EntryGame _lastGame = EntryGame.None;
 		private Entry[] _entries;
 		private bool _logVerbose;
 		private char[] _inclusiveSeparators = { };
@@ -167,7 +167,7 @@ namespace Happy_Reader
 			{
 				specificEntries = _data.Entries.Where(e => (e.Private && e.UserId == user.Id || !e.Private)
 																									 && e.SeriesSpecific
-																									 && e.GameData.GameId.HasValue
+																									 && (e.GameData?.GameId.HasValue ?? false)
 																									 && gamesInSeries.Contains(e.GameData)).ToArray();
 			}
 			_entries = generalEntries.Concat(specificEntries).Where(e => !e.Disabled).OrderBy(i => i.Id).ToArray();
