@@ -15,8 +15,11 @@ namespace Happy_Reader_Tests
 		public Dictionary<string, string> Translations = new Dictionary<string, string>()
 		{
 			{"私は本田です。", "I am Honda."},
+			{"私は山澤です。", "I am Yamazawa."},
 			{"私は本田ですそれともあなたは本田。","I am Honda and you are Honda."},
-			{"私は本田ですそれともあなたは武田。", "I am Honda and you are Takeda."}
+			{"私は本田ですそれともあなたは武田。", "I am Honda and you are Takeda."},
+			{"私は山澤ですそれともあなたは本田。", "I am Yamazawa and you are Honda."},
+			{"私は山澤ですそれともあなたは武田。", "I am Yamazawa and you are Takeda."}
 		};
 
 		public void Initialise()

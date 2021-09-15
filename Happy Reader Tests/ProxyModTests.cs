@@ -76,6 +76,14 @@ namespace Happy_Reader_Tests
 		}
 
 		[TestMethod]
+		public void m1Suff1_m2Suff2()
+		{
+			TranslateAndAssert(
+				$"私は{Name1}{Suffix1}ですそれともあなたは{Name2}{Suffix2}。",
+				$"I am {Name1T}{Suffix1T} and you are {Name2T}{Suffix2T}.");
+		}
+
+		[TestMethod]
 		public void m1Suff1_m1Suff2()
 		{
 			TranslateAndAssert(
@@ -121,6 +129,14 @@ namespace Happy_Reader_Tests
 			TranslateAndAssert(
 				$"私は{Name1}・{Name2}{Suffix1}ですそれともあなたは{Name1}{Suffix1}。",
 				$"I am {Name1T} {Name2T}{Suffix1T} and you are {Name1T}{Suffix1T}.");
+		}
+
+		[TestMethod]
+		public void m1Dotm2_m1()
+		{
+			TranslateAndAssert(
+				$"私は{Name1}・{Name2}ですそれともあなたは{Name1}。",
+				$"I am {Name1T} {Name2T} and you are {Name1T}.");
 		}
 
 		[TestMethod]
