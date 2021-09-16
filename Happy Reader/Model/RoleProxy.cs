@@ -11,5 +11,7 @@ namespace Happy_Reader
 		public string FullRoleString => $"[[{MainRole}#{Id}]]";
 		public int Id { get; set; }
 		public List<Entry> ProxyMods { get; set; } = new List<Entry>();
+
+		public override string ToString() => FullRoleString;
 	}
 }

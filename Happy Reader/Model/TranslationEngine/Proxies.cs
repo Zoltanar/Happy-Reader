@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Happy_Apps_Core;
 using Happy_Reader.Database;
 
@@ -19,29 +18,42 @@ namespace Happy_Reader.TranslationEngine
 		{
 			result.SetStage(4);
 			var usefulEntriesWithProxies = GetRelevantEntriesWithProxies(sb, data, out Dictionary<string, ProxiesWithCount> proxies);
-			if (usefulEntriesWithProxies.Count != 0)
+			if (usefulEntriesWithProxies.Count == 0)
 			{
-				foreach (var entry in usefulEntriesWithProxies)
-				{
-					var proxyAssigned = AssignProxy(proxies, entry);
-					if (proxyAssigned)
-					{
-						if (entry.Regex) LogReplaceRegex(sb, entry.Input, entry.AssignedProxy.FullRoleString, result, entry);
-						else LogReplace(sb, entry.Input, entry.AssignedProxy.FullRoleString, result, entry);
-					}
-				}
-				usefulEntriesWithProxies = usefulEntriesWithProxies.Where(e => e.AssignedProxy != null).ToList();
-				StaticHelpers.Logger.Verbose($"Stage 4.0: {sb}");
-				//perform replaces involving proxies
-				var entriesOnProxies = OrderEntries(_entries.Where(i => i.Type == EntryType.ProxyMod)).ToList();
-				TranslateStage4P1(sb, usefulEntriesWithProxies, entriesOnProxies, result, proxies);
-				foreach (var entry in usefulEntriesWithProxies)
-				{
-					foreach (var proxyMod in entry.AssignedProxy.ProxyMods) result.AddEntryUsed(proxyMod);
-					LogReplace(sb, entry.AssignedProxy.FullRoleString, entry.AssignedProxy.Entry.Input, result, entry);
-				}
 				StaticHelpers.Logger.Verbose($"Stage 4.2: {sb}");
+				result[4] = sb.ToString();
+				return usefulEntriesWithProxies;
 			}
+			foreach (var entry in usefulEntriesWithProxies)
+			{
+				var proxyAssigned = AssignProxy(proxies, entry);
+				if (proxyAssigned)
+				{
+					if (entry.Regex) LogReplaceRegex(sb, entry.Input, entry.AssignedProxy.FullRoleString, result, entry);
+					else LogReplace(sb, entry.Input, entry.AssignedProxy.FullRoleString, result, entry);
+				}
+			}
+			usefulEntriesWithProxies = usefulEntriesWithProxies.Where(e => e.AssignedProxy != null).ToList();
+			StaticHelpers.Logger.Verbose($"Stage 4.0: {sb}");
+			//perform replaces involving proxies
+			var entriesOnProxies = OrderEntries(_entries.Where(i => i.Type == EntryType.ProxyMod)).ToList();
+			TranslateStage4P1(sb, usefulEntriesWithProxies, entriesOnProxies, result, proxies);
+			foreach (var value in proxies.Values)
+			{
+				value.Used = value.Count = 0;
+			}
+			foreach (var entry in usefulEntriesWithProxies.ToList())
+			{
+				if (!sb.ToString().Contains(entry.AssignedProxy.FullRoleString))
+				{
+					usefulEntriesWithProxies.Remove(entry);
+					continue;
+				}
+				AssignProxy(proxies, entry, true);
+				foreach (var proxyMod in entry.AssignedProxy.ProxyMods) result.AddEntryUsed(proxyMod);
+				LogReplace(sb, entry.AssignedProxy.FullRoleString, entry.AssignedProxy.Entry.Input, result, entry);
+			}
+			StaticHelpers.Logger.Verbose($"Stage 4.2: {sb}");
 			result[4] = sb.ToString();
 			return usefulEntriesWithProxies;
 		}
@@ -66,12 +78,12 @@ namespace Happy_Reader.TranslationEngine
 			result[6] = sb.ToString();
 		}
 
-		private static bool AssignProxy(IReadOnlyDictionary<string, ProxiesWithCount> proxies, Entry entry)
+		private static bool AssignProxy(IReadOnlyDictionary<string, ProxiesWithCount> proxies, Entry entry, bool dequeue = false)
 		{
 			var proxyParts = entry.RoleString.Split('.');
 			var mainProxy = proxyParts[0];
-			var proxy = proxies[entry.RoleString].Proxies.Count == 0 ? null : proxies[entry.RoleString].Proxies.Dequeue();
-			if (proxy == null && proxyParts.Any()) proxy = proxies[mainProxy].Proxies.Count == 0 ? null : proxies[mainProxy].Proxies.Dequeue();
+			var proxy = GetProxy(entry.RoleString);
+			if (proxy == null && proxyParts.Any()) GetProxy(mainProxy);
 			proxies[mainProxy].Count++;
 			if (proxy == null)
 			{
@@ -80,8 +92,21 @@ namespace Happy_Reader.TranslationEngine
 			}
 			proxy.MainRole = mainProxy;
 			proxy.Id = proxies[mainProxy].Count;
+			if (dequeue)
+			{
+				proxy.Id = entry.AssignedProxy.Id;
+				proxy.ProxyMods.AddRange(entry.AssignedProxy.ProxyMods);
+				entry.AssignedProxy.ProxyMods.Clear();
+			}
 			entry.AssignedProxy = proxy;
 			return true;
+
+			RoleProxy GetProxy(string roleString)
+			{
+				var proxiesWithCount = proxies[roleString];
+				return proxiesWithCount.Proxies.Count == 0 ? null :
+					!dequeue ? proxiesWithCount.Proxies.ElementAt(proxiesWithCount.Used++) : proxiesWithCount.Proxies.Dequeue();
+			}
 		}
 
 		/// <summary>
@@ -107,7 +132,7 @@ namespace Happy_Reader.TranslationEngine
 					var roleGroups = matches.SelectMany(x => x.Groups.Cast<Group>().Skip(1).Select(g => int.Parse(g.Value))).Distinct().ToList();
 					if (matches.Count == 0) continue;
 					var merge = matches.Count == 1 && roleGroups.Count > 1;
-					var mergedEntry = new Entry
+					var newEntry = new Entry
 					{
 						RoleString = entry.RoleString,
 						Input = input,
@@ -122,25 +147,37 @@ namespace Happy_Reader.TranslationEngine
 						});
 						if (merge)
 						{
-							if (mergedEntry.AssignedProxy == null)
+							if (newEntry.AssignedProxy == null)
 							{
-								AssignProxy(proxies, mergedEntry);
+								AssignProxy(proxies, newEntry);
 							}
-							Debug.Assert(mergedEntry.AssignedProxy != null, "mergedEntry.AssignedProxy != null");
-							mergedEntry.AssignedProxy.ProxyMods.AddRange(matchedEntry.AssignedProxy.ProxyMods);
+							Debug.Assert(newEntry.AssignedProxy != null, "mergedEntry.AssignedProxy != null");
+							newEntry.AssignedProxy.ProxyMods.AddRange(matchedEntry.AssignedProxy.ProxyMods);
 							var mergedPattern = new Regex($@"\[\[([^];]+?)#{matchedEntry.AssignedProxy.Id}]]");
-							mergedEntry.Output = mergedPattern.Replace(mergedEntry.Output, matchedEntry.Output);
+							newEntry.Output = mergedPattern.Replace(newEntry.Output, matchedEntry.Output);
 						}
-						else matchedEntry.AssignedProxy.ProxyMods.Add(entry);
+						else
+						{
+							newEntry = new Entry
+							{
+								RoleString = matchedEntry.RoleString,
+								Input = matchedEntry.Input,
+								Output = matchedEntry.Output
+							};
+							AssignProxy(proxies, newEntry);
+							newEntry.AssignedProxy.ProxyMods.Add(entry);
+							entriesWithProxies.Add(newEntry);
+							var output = newEntry.AssignedProxy.FullRoleString;
+							var thisInput = Stage4P1InputRegex.Replace(entry.Input, Regex.Escape(matchedEntry.AssignedProxy.FullRoleString));
+							LogReplaceRegex(sb, thisInput, output, result, entry);
+						}
 					}
-					string output;
 					if (merge && roleGroups.Count > 1)
 					{
-						entriesWithProxies.Add(mergedEntry);
-						output = mergedEntry.AssignedProxy.FullRoleString;
+						entriesWithProxies.Add(newEntry);
+						var output = newEntry.AssignedProxy.FullRoleString;
+						LogReplaceRegex(sb, input, output, result, entry);
 					}
-					else output = Stage4P1OutputRegex.Replace(entry.Output, @"[[$1#$$1]]");
-					LogReplaceRegex(sb, input, output, result, entry);
 					matchFound = true;
 				}
 				//something could have gone wrong causing infinite loop
@@ -161,7 +198,7 @@ namespace Happy_Reader.TranslationEngine
 			MergeNeighbouringEntries(usefulEntriesWithProxies);
 			return usefulEntriesWithProxies;
 		}
-		
+
 		private static Dictionary<string, ProxiesWithCount> BuildProxiesList(HappyReaderDatabase data, IEnumerable<string> roles)
 		{
 			var proxies = new Dictionary<string, ProxiesWithCount>();
@@ -186,6 +223,7 @@ namespace Happy_Reader.TranslationEngine
 	internal class ProxiesWithCount
 	{
 		public Queue<RoleProxy> Proxies { get; }
+		public int Used { get; set; }
 		public int Count { get; set; }
 
 		public ProxiesWithCount(IEnumerable<RoleProxy> proxies)

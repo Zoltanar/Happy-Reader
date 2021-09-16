@@ -18,6 +18,10 @@ namespace Happy_Reader_Tests
 		private const string Name1T = "Takuya";
 		private const string Name2 = "モルガン";
 		private const string Name2T = "Morgan";
+		private const string Name3 = "アリス";
+		private const string Name3T = "Chris";
+		private const string Name4 = "ロボト";
+		private const string Name4T = "Robot";
 		private const string Suffix1 = "さん";
 		private const string Suffix1T = "-san";
 		private const string Suffix2 = "たち";
@@ -48,6 +52,8 @@ namespace Happy_Reader_Tests
 			var newEntries = new List<Entry>();
 			newEntries.Add(GetNameEntry(Name1, Name1T));
 			newEntries.Add(GetNameEntry(Name2, Name2T));
+			newEntries.Add(GetNameEntry(Name3, Name3T));
+			newEntries.Add(GetNameEntry(Name4, Name4T));
 			newEntries = newEntries.Except(entries, Entry.ClashComparer).ToList();
 			testDatabase.AddEntries(newEntries);
 		}
@@ -136,6 +142,30 @@ namespace Happy_Reader_Tests
 			TranslateAndAssert(
 				$"私は{Name1}・{Name2}ですそれともあなたは{Name1}。",
 				$"I am {Name1T} {Name2T} and you are {Name1T}.");
+		}
+
+		[TestMethod]
+		public void Name1DotName2_Name1DotName2()
+		{
+			//todo: dot proxymod should group matches per contents and assign a proxy id like that.
+			TranslateAndAssert(
+				$"私は{Name1}・{Name2}ですそれともあなたは{Name1}・{Name2}。",
+				$"I am {Name1T} {Name2T} and you are {Name1T} {Name2T}.");
+		}
+
+		[TestMethod]
+		public void Name1DotName2_Name1DotName3()
+		{
+			TranslateAndAssert(
+				$"私は{Name1}・{Name2}ですそれともあなたは{Name1}・{Name3}。",
+				$"I am {Name1T} {Name2T} and you are {Name1T} {Name3T}.");
+		}
+		[TestMethod]
+		public void Name1DotName2_Name3DotName4()
+		{
+			TranslateAndAssert(
+					$"私は{Name1}・{Name2}ですそれともあなたは{Name3}・{Name4}。",
+					$"I am {Name1T} {Name2T} and you are {Name3T} {Name4T}.");
 		}
 
 		[TestMethod]
