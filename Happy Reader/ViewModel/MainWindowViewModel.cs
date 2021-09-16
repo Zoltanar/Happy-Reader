@@ -14,6 +14,7 @@ using System.Windows.Input;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
+using Happy_Reader.TranslationEngine;
 using JetBrains.Annotations;
 using Happy_Reader.View;
 using Happy_Reader.View.Tabs;
@@ -62,7 +63,6 @@ namespace Happy_Reader.ViewModel
 		[NotNull] public UserGamesViewModel UserGamesViewModel { get; }
 		[NotNull] public EntriesTabViewModel EntriesViewModel { get; }
 		[NotNull] public TranslationTester TestViewModel { get; }
-		[NotNull] public Translator Translator { get; }
 		[NotNull] public VNTabViewModel DatabaseViewModel { get; }
 		[NotNull] public CharactersTabViewModel CharactersViewModel { get; }
 		[NotNull] public ProducersTabViewModel ProducersViewModel { get; }
@@ -132,8 +132,7 @@ namespace Happy_Reader.ViewModel
 				VndbQueries = _vndbQueriesList.Items,
 				VndbResponses = _vndbResponsesList.Items
 			};
-			Translator = new Translator(StaticMethods.Data, SettingsViewModel.TranslatorSettings);
-			Translation.Translator = Translator;
+			Translator.Instance = new Translator(StaticMethods.Data, SettingsViewModel.TranslatorSettings);
 			UserGamesViewModel = new UserGamesViewModel(this);
 			EntriesViewModel = new EntriesTabViewModel();
 			TestViewModel = new TranslationTester(this);
@@ -207,7 +206,7 @@ namespace Happy_Reader.ViewModel
 				SettingsViewModel.TranslatorSettings.LoadTranslationPlugins(TranslationPluginsFolder);
 				StaticMethods.MainWindow.SettingsTab.LoadTranslationPlugins(SettingsViewModel.TranslatorSettings.Translators);
 				StatusText = "Initialising Translator...";
-				Translator.Initialise(logVerbose);
+				Translator.Instance.Initialise(logVerbose);
 				StatusText = "Populating Proxies...";
 				StaticMethods.Data.PopulateProxies((ex) =>
 				{
@@ -400,7 +399,7 @@ namespace Happy_Reader.ViewModel
 				Logger.Verbose($"{nameof(RunTranslation)} - {e}");
 				if (UserGame.Process == null) return false;
 				TestViewModel.OriginalText = e.Text;
-				var translation = Translator.Translate(User, TestViewModel.EntryGame, e.Text, false, UserGame?.GameHookSettings.RemoveRepetition ?? false);
+				var translation = Translator.Instance.Translate(User, TestViewModel.EntryGame, e.Text, false, UserGame?.GameHookSettings.RemoveRepetition ?? false);
 				if (string.IsNullOrWhiteSpace(translation?.Output)) return false;
 				StaticMethods.DispatchIfRequired(() => OutputWindow.AddTranslation(translation), new TimeSpan(0, 0, 5));
 			}
@@ -443,7 +442,7 @@ namespace Happy_Reader.ViewModel
 					if (process.HasExited)
 					{
 						NotificationEvent(this,
-							$"Game Process has exited prematurely, check that executable is the running process.",
+							"Game Process has exited prematurely, check that executable is the running process.",
 							"Process Has Exited");
 						UserGame = null;
 						return;

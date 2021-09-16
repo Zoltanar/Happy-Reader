@@ -3,6 +3,7 @@ using System.Linq;
 using Happy_Apps_Core.Database;
 using Happy_Reader;
 using Happy_Reader.Database;
+using Happy_Reader.TranslationEngine;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Happy_Reader_Tests
@@ -21,8 +22,7 @@ namespace Happy_Reader_Tests
 		private const string Suffix1T = "-san";
 		private const string Suffix2 = "たち";
 		private const string Suffix2T = "-tachi";
-
-		private static readonly Translator Translator;
+		
 		private static readonly EntryGame Game;
 		private static readonly User User = new User { Id = -2, Username = "Test" };
 
@@ -35,8 +35,7 @@ namespace Happy_Reader_Tests
 			var testDatabase = StaticMethods.Data = new HappyReaderDatabase(StaticMethods.ReaderDatabaseFile, true);
 			Game = new EntryGame(-2, true, true);
 			PopulateEntries(testDatabase);
-			Translator = new Translator(testDatabase, translatorSettings);
-			Translation.Translator = Translator;
+			Translator.Instance = new Translator(testDatabase, translatorSettings);
 		}
 
 		private static void PopulateEntries(HappyReaderDatabase testDatabase)
@@ -68,7 +67,7 @@ namespace Happy_Reader_Tests
 		}
 
 		[TestMethod]
-		public void mSuff1()
+		public void NameSuffix1()
 		{
 			TranslateAndAssert(
 				$"私は{Name1}{Suffix1}です。",
@@ -76,7 +75,7 @@ namespace Happy_Reader_Tests
 		}
 
 		[TestMethod]
-		public void m1Suff1_m2Suff2()
+		public void Name1Suffix1_Name2Suffix2()
 		{
 			TranslateAndAssert(
 				$"私は{Name1}{Suffix1}ですそれともあなたは{Name2}{Suffix2}。",
@@ -84,7 +83,7 @@ namespace Happy_Reader_Tests
 		}
 
 		[TestMethod]
-		public void m1Suff1_m1Suff2()
+		public void Name1Suffix1_Name1Suffix2()
 		{
 			TranslateAndAssert(
 				$"私は{Name1}{Suffix1}ですそれともあなたは{Name1}{Suffix2}。",
@@ -92,7 +91,7 @@ namespace Happy_Reader_Tests
 		}
 
 		[TestMethod]
-		public void m1Suff1_m2Suff1()
+		public void Name1Suffix1_Name2Suffix1()
 		{
 			TranslateAndAssert(
 				$"私は{Name1}{Suffix1}ですそれともあなたは{Name2}{Suffix1}。",
@@ -100,7 +99,7 @@ namespace Happy_Reader_Tests
 		}
 
 		[TestMethod]
-		public void m1Suff1_m1Suff1()
+		public void Name1Suffix1_Name1Suffix1()
 		{
 			TranslateAndAssert(
 				$"私は{Name1}{Suffix1}ですそれともあなたは{Name1}{Suffix1}。",
@@ -108,7 +107,7 @@ namespace Happy_Reader_Tests
 		}
 
 		[TestMethod]
-		public void m1Dotm2Suff1()
+		public void Name1DotName2Suffix1()
 		{
 			TranslateAndAssert(
 				$"私は{Name1}・{Name2}{Suffix1}です。",
@@ -116,7 +115,7 @@ namespace Happy_Reader_Tests
 		}
 
 		[TestMethod]
-		public void m2Dotm1Suff1()
+		public void Name2DotName1Suffix1()
 		{
 			TranslateAndAssert(
 				$"私は{Name2}・{Name1}{Suffix1}です。",
@@ -124,7 +123,7 @@ namespace Happy_Reader_Tests
 		}
 
 		[TestMethod]
-		public void m1Dotm2Suff1_m1Suff1()
+		public void Name1DotName2Suffix1_Name1Suffix1()
 		{
 			TranslateAndAssert(
 				$"私は{Name1}・{Name2}{Suffix1}ですそれともあなたは{Name1}{Suffix1}。",
@@ -132,7 +131,7 @@ namespace Happy_Reader_Tests
 		}
 
 		[TestMethod]
-		public void m1Dotm2_m1()
+		public void Name1DotName2_Name1()
 		{
 			TranslateAndAssert(
 				$"私は{Name1}・{Name2}ですそれともあなたは{Name1}。",
@@ -140,7 +139,7 @@ namespace Happy_Reader_Tests
 		}
 
 		[TestMethod]
-		public void m2Dotm1Suff1_m1Suff1()
+		public void Name2DotName1Suffix1_Name1Suffix1()
 		{
 			TranslateAndAssert(
 				$"私は{Name2}・{Name1}{Suffix1}ですそれともあなたは{Name1}{Suffix1}。",
@@ -149,7 +148,7 @@ namespace Happy_Reader_Tests
 
 		private void TranslateAndAssert(string input, string expectedOutput)
 		{
-			var translation = Translator.Translate(User, Game, input, false, false);
+			var translation = Translator.Instance.Translate(User, Game, input, false, false);
 			Assert.AreEqual(expectedOutput, translation.Output);
 		}
 	}

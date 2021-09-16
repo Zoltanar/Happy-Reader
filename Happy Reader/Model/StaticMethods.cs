@@ -337,8 +337,8 @@ namespace Happy_Reader
 
 		public static void UpdateTooltip(ToolTip mouseoverTip, string text)
 		{
-			if (text.Length < 1 || Translator.LatinOnlyRegex.IsMatch(text)) return;
-			if (!MainWindow.ViewModel.Translator.OfflineDictionary.SearchOuter(text, out var result)) return;
+			if (text.Length < 1 || TranslationEngine.Translator.LatinOnlyRegex.IsMatch(text)) return;
+			if (!TranslationEngine.Translator.Instance.OfflineDictionary.SearchOuter(text, out var result)) return;
 			if (result.Equals(mouseoverTip.Content)) return;
 			mouseoverTip.Content = result;
 			if (!mouseoverTip.IsOpen) mouseoverTip.IsOpen = true;

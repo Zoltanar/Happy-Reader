@@ -7,12 +7,12 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using Happy_Apps_Core;
 using Happy_Reader.Database;
+using Happy_Reader.TranslationEngine;
 
 namespace Happy_Reader
 {
 	public class Translation
 	{
-		public static Translator Translator { get; set; }
 		internal readonly List<(string Part, bool Translate)> Parts = new();
 		private readonly List<TranslationResults> _partResults = new();
 		private readonly List<Entry> _entriesUsedStageOne = new();
@@ -38,10 +38,10 @@ namespace Happy_Reader
 				return;
 			}
 			var originalSb = new StringBuilder(original);
-			Translator.TranslateStageOne(originalSb, stageOneResult);
+			Translator.Instance.TranslateStageOne(originalSb, stageOneResult);
 			Original = originalSb.ToString();
 			var romajiSb1 = new StringBuilder(original);
-			Translator.GetRomajiFiltered(romajiSb1, stageOneResult);
+			Translator.Instance.GetRomajiFiltered(romajiSb1, stageOneResult);
 			Romaji = romajiSb1.ToString();
 			_entriesUsedStageOne.AddRange(stageOneResult.EntriesUsed.SelectMany(i => i));
 			IsCharacterOnly = Original.IndexOfAny(new[] { '「', '」' }) < 0 && Original.Length < 10;
@@ -77,7 +77,7 @@ namespace Happy_Reader
 						_partResults.Add(new TranslationResults(part));
 						continue;
 					}
-					_partResults.Add(Translator.TranslatePart(part, saveEntriesUsed));
+					_partResults.Add(Translator.Instance.TranslatePart(part, saveEntriesUsed));
 				}
 				for (int stage = 0; stage < 7; stage++)
 				{

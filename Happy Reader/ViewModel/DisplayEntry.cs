@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
+using Happy_Reader.TranslationEngine;
 
 namespace Happy_Reader.ViewModel
 {
@@ -30,7 +31,7 @@ namespace Happy_Reader.ViewModel
 			{
 				if (Entry.Disabled == value) return;
 				Entry.Disabled = value;
-				StaticMethods.MainWindow.ViewModel.Translator.RefreshEntries = true;
+				Translator.Instance.RefreshEntries = true;
 				Entry.ReadyToUpsert = true;
 			}
 		}
@@ -53,7 +54,7 @@ namespace Happy_Reader.ViewModel
 			{
 				if (Entry.SeriesSpecific == value) return;
 				Entry.SeriesSpecific = value;
-				StaticMethods.MainWindow.ViewModel.Translator.RefreshEntries = true;
+				Translator.Instance.RefreshEntries = true;
 				Entry.ReadyToUpsert = true;
 			}
 		}

@@ -17,7 +17,7 @@ namespace Happy_Reader
 	public class TranslatorSettings : SettingsJsonFile
 	{
 		private static readonly NoTranslator NoTranslator = new();
-		[JsonIgnore] public static IEnumerable<string> RomajiTranslators => Translator.RomajiTranslators.Keys;
+		[JsonIgnore] public static IEnumerable<string> RomajiTranslators => TranslationEngine.Translator.RomajiTranslators.Keys;
 		[JsonIgnore] public ICollection<ITranslator> Translators { get; set; } = new List<ITranslator>() { NoTranslator };
 
 		private int _maxOutputSize = 700;

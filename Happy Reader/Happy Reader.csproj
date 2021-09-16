@@ -149,6 +149,8 @@
     <Compile Include="Database\GameThread.cs" />
     <Compile Include="Database\Log.cs" />
     <Compile Include="Model\JMDict.cs" />
+    <Compile Include="Model\TranslationEngine\Proxies.cs" />
+    <Compile Include="Model\TranslationEngine\Romaji.cs" />
     <Compile Include="Model\VnFilters\CustomFilter.cs" />
     <Compile Include="Model\GuiSettings.cs" />
     <Compile Include="Model\PageLink.cs" />
@@ -259,7 +261,7 @@
       <DependentUpon>UserGameTile.xaml</DependentUpon>
     </Compile>
     <Compile Include="Model\Translation.cs" />
-    <Compile Include="Model\Translator.cs" />
+    <Compile Include="Model\TranslationEngine\Translator.cs" />
     <Compile Include="View\Tabs\UserGameTab.xaml.cs">
       <DependentUpon>UserGameTab.xaml</DependentUpon>
     </Compile>

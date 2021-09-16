@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Happy_Apps_Core;
+using Happy_Reader.TranslationEngine;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -192,7 +193,7 @@ namespace Happy_Reader
 			{
 				var dReading = string.IsNullOrWhiteSpace(Reading)
 					? string.Empty
-					: $" ({Reading} {StaticMethods.MainWindow.ViewModel.Translator.GetRomaji(Reading)})";
+					: $" ({Reading} {Translator.Instance.GetRomaji(Reading)})";
 				string tags;
 				if (StaticMethods.MainWindow.ViewModel.SettingsViewModel.TranslatorSettings.ShowTagsOnMouseover)
 				{
@@ -241,7 +242,7 @@ namespace Happy_Reader
 			public string Detail(JMDict jmDict)
 			{
 				var jReading = $"{Onyomi} {Kunyomi}";
-				var rReading = string.Join(" ", jReading.Split(' ').Select(r => StaticMethods.MainWindow.ViewModel.Translator.GetRomaji(r).Replace(" ", "")));
+				var rReading = string.Join(" ", jReading.Split(' ').Select(r => Translator.Instance.GetRomaji(r).Replace(" ", "")));
 				string tags;
 				if (StaticMethods.MainWindow.ViewModel.SettingsViewModel.TranslatorSettings.ShowTagsOnMouseover)
 				{

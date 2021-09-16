@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
 using Happy_Reader.Database;
+using Happy_Reader.TranslationEngine;
 using Happy_Reader.View;
 using JetBrains.Annotations;
 
@@ -75,7 +76,7 @@ namespace Happy_Reader.ViewModel
 
 		private void SearchOnDictionary(string input)
 		{
-			var offlineDict = StaticMethods.MainWindow.ViewModel.Translator.OfflineDictionary;
+			var offlineDict = Translator.Instance.OfflineDictionary;
 			var success = offlineDict.SearchOuter(input, out var result);
 			var text = !success ? "No results found." : result;
 			NotificationWindow.Launch("Dictionary", text);
@@ -109,7 +110,7 @@ namespace Happy_Reader.ViewModel
 			}
 			else
 			{
-				var output = StaticMethods.MainWindow.ViewModel.Translator.GetRomaji(input);
+				var output = Translator.Instance.GetRomaji(input);
 				if (output.Length > 0) output = char.ToUpper(output[0]) + output.Substring(1);
 				entry = new Entry
 				{

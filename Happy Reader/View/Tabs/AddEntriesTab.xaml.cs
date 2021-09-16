@@ -48,7 +48,7 @@ namespace Happy_Reader.View.Tabs
 			StaticMethods.Data.AddEntries(entries);
 			ResponseLabel.Content = $@"{entries.Length} entries were added.";
 			_mainViewModel.EntriesViewModel.SetEntries();
-			_mainViewModel.Translator.RefreshEntries = true;
+			TranslationEngine.Translator.Instance.RefreshEntries = true;
 			CancelClick(this, null);
 		}
 

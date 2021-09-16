@@ -4,9 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
-using Happy_Apps_Core;
-using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
+using Happy_Reader.TranslationEngine;
 using JetBrains.Annotations;
 
 namespace Happy_Reader.ViewModel
@@ -64,7 +63,7 @@ namespace Happy_Reader.ViewModel
         public void Test()
         {
             if (string.IsNullOrWhiteSpace(OriginalText)) return;
-            var translation = _mainViewModel.Translator.Translate(_mainViewModel.User, EntryGame, OriginalText,true, RemoveRepetition);
+            var translation = Translator.Instance.Translate(_mainViewModel.User, EntryGame, OriginalText,true, RemoveRepetition);
             Romaji = translation.Romaji;
             Stage1 = translation.Results[1].Equals(OriginalText) ? "(no change)" : translation.Results[1];
             Stage2 = translation.Results[2].Equals(Stage1) ? "(no change)" : translation.Results[2];
@@ -91,7 +90,7 @@ namespace Happy_Reader.ViewModel
         {
 	        EntriesUsed.Remove(displayEntry);
 	        StaticMethods.Data.Entries.Remove(displayEntry.Entry,true);
-	        Translation.Translator.RefreshEntries = true;
+	        Translator.Instance.RefreshEntries = true;
 	        OnPropertyChanged(nameof(EntriesUsed));
         }
   }

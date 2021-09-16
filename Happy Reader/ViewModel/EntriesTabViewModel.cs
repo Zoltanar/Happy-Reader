@@ -60,7 +60,7 @@ namespace Happy_Reader.ViewModel
 		{
 			EntriesList.Remove(displayEntry);
 			StaticMethods.Data.Entries.Remove(displayEntry.Entry, true);
-			Translation.Translator.RefreshEntries = true;
+			TranslationEngine.Translator.Instance.RefreshEntries = true;
 			OnPropertyChanged(nameof(EntriesList));
 		}
 

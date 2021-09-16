@@ -28,9 +28,9 @@
 #### Other
 - Producer Tab: charts for popularity
 - Producer Tab: list staff and number of contributions
-- tray: update last played in real time
+- tray: update last played titles in real time
 - vn: display languages other than original
-- allow vn notes, option to save locally or vndb
+- **allow title notes, option to save locally or vndb**
 - add 'update available' notice (can hide)
 - warn if an instance is already running (maybe show database file for opening instance) 
 - show written tag description on tooltip

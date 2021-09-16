@@ -357,7 +357,7 @@ namespace Happy_Reader.View
 			string message;
 			try
 			{
-				var translation = StaticMethods.MainWindow.ViewModel.Translator.Translate(
+				var translation = TranslationEngine.Translator.Instance.Translate(
 					StaticMethods.MainWindow.ViewModel.User, new EntryGame(VN.VNID, false, false), VN.KanjiTitle, false, false);
 				message = translation.Output;
 			}
