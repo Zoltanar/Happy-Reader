@@ -49,6 +49,52 @@
 				<Style TargetType="{x:Type ListBoxItem}">
 					<Setter Property="HorizontalContentAlignment" Value="Left"/>
 					<Setter Property="VerticalContentAlignment" Value="Center"/>
+					<Setter Property="Template">
+						<Setter.Value>
+							<ControlTemplate TargetType="{x:Type ListBoxItem}">
+								<Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+									<ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+									                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+									                          Content="{TemplateBinding Content}"
+									                          ContentStringFormat="{TemplateBinding ContentStringFormat}"
+									                          ContentTemplate="{TemplateBinding ContentTemplate}"
+									                          SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+								</Border>
+								<ControlTemplate.Triggers>
+									<MultiTrigger>
+										<MultiTrigger.Conditions>
+											<Condition Property="IsMouseOver" Value="True" />
+										</MultiTrigger.Conditions>
+										<Setter TargetName="Bd" Property="Background" Value="Lavender" />
+										<Setter TargetName="Bd" Property="BorderBrush" Value="MediumPurple" />
+										<Setter TargetName="Bd" Property="CornerRadius" Value="15,15,5,15" />
+									</MultiTrigger>
+									<MultiTrigger>
+										<MultiTrigger.Conditions>
+											<Condition Property="Selector.IsSelectionActive" Value="False" />
+											<Condition Property="IsSelected" Value="True" />
+										</MultiTrigger.Conditions>
+										<Setter TargetName="Bd" Property="Background" Value="MediumPurple" />
+										<Setter TargetName="Bd" Property="BorderBrush" Value="MediumPurple" />
+										<Setter TargetName="Bd" Property="CornerRadius" Value="15,15,5,15" />
+									</MultiTrigger>
+									<MultiTrigger>
+										<MultiTrigger.Conditions>
+											<Condition Property="Selector.IsSelectionActive" Value="True" />
+											<Condition Property="IsSelected" Value="True" />
+										</MultiTrigger.Conditions>
+										<Setter TargetName="Bd" Property="Background" Value="MediumPurple" />
+										<Setter TargetName="Bd" Property="BorderBrush" Value="MediumPurple" />
+										<Setter TargetName="Bd" Property="CornerRadius" Value="15,15,5,15" />
+									</MultiTrigger>
+									<Trigger Property="IsEnabled" Value="False">
+										<Setter TargetName="Bd" Property="TextElement.Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
+									</Trigger>
+								</ControlTemplate.Triggers>
+							</ControlTemplate>
+						</Setter.Value>
+					</Setter>
 				</Style>
 			</ListBox.ItemContainerStyle>
 		</ListBox>
@@ -62,14 +108,16 @@
 				<ColumnDefinition Width="*"/>
 				<ColumnDefinition Width="Auto"/>
 				<ColumnDefinition Width="Auto"/>
-				<ColumnDefinition Width="Auto" MinWidth="100"/>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto" MinWidth="75"/>
 			</Grid.ColumnDefinitions>
 			<Button Grid.Column="0" Content="Expand Groups" Click="ToggleExpandGroups" Margin="0,2,2,2"/>
 			<ComboBox Margin="0,2,2,2" Grid.Column="1" SelectedIndex="0" ItemsSource="{Binding UserGameGroupings}" SelectedValuePath="Tag" SelectedValue="{Binding GroupBy}" SelectionChanged="GroupingChanged" Padding="5,0" />
 			<TextBox x:Name="SearchTextBox" TextChanged="SearchTextBox_OnTextChanged" Margin="2" Grid.Column="2" TextAlignment="Left" />
-			<CheckBox Margin="2" Grid.Column="3" Content="Show File Not Found" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Checked="ToggleButton_OnChecked" Unchecked="ToggleButton_OnChecked" />
-			<Button  Margin="2,2,2,2" Padding="5,0" Content="Add New" Grid.Column="4" Click="AddNewUserGame"/>
-			<TextBlock Margin="2,2,0,2" Grid.Column="5" Text="{Binding UserGameItems.Count, StringFormat={}{0} Items.}" Background="Aquamarine" TextAlignment="Center" />
+			<CheckBox Margin="2" Grid.Column="3" Content="Show Not Found" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Checked="ToggleButton_OnChecked" Unchecked="ToggleButton_OnChecked" />
+			<Button Margin="2" Padding="5,0" Content="Random" Grid.Column="4" Click="SelectRandom" ToolTip="Select random title from filtered view (result may be in collapsed group)"/>
+			<Button Margin="2" Padding="5,0" Content="Add New" Grid.Column="5" Click="AddNewUserGame"/>
+			<TextBlock Margin="2,2,0,2" Grid.Column="6" Text="{Binding UserGameItems.Count, StringFormat={}{0} Items.}" Background="Aquamarine" TextAlignment="Center" />
 		</Grid>
 	</Grid>
 </UserControl>

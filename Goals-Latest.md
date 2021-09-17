@@ -40,7 +40,7 @@
 - Logs: Link to folder, show size taken, option to clear.
 - Information Tab: Show Size of Vndb Images, show total size.
 - Use Screenshot Thumbnails when full-size is not found.
-- select random user game; show random titles in database tab
+- show random titles in database tab
 
 ## Issues  
 - can't show outputwindow on top of some fullscreen games, steals focus on games where it works (might need direct draw)

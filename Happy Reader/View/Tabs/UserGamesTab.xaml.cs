@@ -338,5 +338,16 @@ namespace Happy_Reader.View.Tabs
 			if (SearchTextBox.Text.Length < 3 && view.Filter != null) view.Filter = null;
 			else if (SearchTextBox.Text.Length >= 3) view.Filter = FilterUserGames;
 		}
+
+		private static Random _random = new Random();
+
+		private void SelectRandom(object sender, RoutedEventArgs e)
+		{
+			if (GameFiles.Items.Count == 0) return;
+			var item =  _random.Next(0, GameFiles.Items.Count);
+				GameFiles.SelectedItem = GameFiles.Items[item];
+				GameFiles.UpdateLayout();
+				((UIElement)GameFiles.ItemContainerGenerator.ContainerFromIndex(item)).Focus();
+			}
 	}
 }
