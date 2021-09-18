@@ -13,5 +13,7 @@ namespace Happy_Reader
 		public List<Entry> ProxyMods { get; set; } = new List<Entry>();
 
 		public override string ToString() => FullRoleString;
+
+		public string WithId(int id) => $"[[{MainRole}#{id}]]";
 	}
 }

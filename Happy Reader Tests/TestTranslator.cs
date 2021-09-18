@@ -21,7 +21,8 @@ namespace Happy_Reader_Tests
 			{"私は本田ですそれともあなたは武田。", "I am Honda and you are Takeda."},
 			{"私は山澤ですそれともあなたは本田。", "I am Yamazawa and you are Honda."},
 			{"私は山澤ですそれともあなたは武田。", "I am Yamazawa and you are Takeda."},
-			{"私は武田ですそれともあなたは山澤。", "I am Takeda and you are Yamazawa."}
+			{"私は武田ですそれともあなたは山澤。", "I am Takeda and you are Yamazawa."},
+			{"私は武田ですそれともあなたは山澤、最初は彼は本田。", "I am Takeda and you are Yamazawa, finally, he is Honda."}
 		};
 
 		public void Initialise()

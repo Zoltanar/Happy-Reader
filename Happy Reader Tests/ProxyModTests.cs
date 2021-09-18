@@ -160,6 +160,16 @@ namespace Happy_Reader_Tests
 				$"私は{Name1}・{Name2}ですそれともあなたは{Name1}・{Name3}。",
 				$"I am {Name1T} {Name2T} and you are {Name1T} {Name3T}.");
 		}
+
+
+		[TestMethod]
+		public void Name1DotName2_Name1DotName3_Name1DotName2()
+		{
+			TranslateAndAssert(
+				$"私は{Name1}・{Name2}ですそれともあなたは{Name1}・{Name3}、最初は彼は{Name4}。",
+				$"I am {Name1T} {Name2T} and you are {Name1T} {Name3T}, finally, he is {Name4T}.");
+		}
+
 		[TestMethod]
 		public void Name1DotName2_Name3DotName4()
 		{
@@ -174,6 +184,14 @@ namespace Happy_Reader_Tests
 			TranslateAndAssert(
 				$"私は{Name2}・{Name1}{Suffix1}ですそれともあなたは{Name1}{Suffix1}。",
 				$"I am {Name2T} {Name1T}{Suffix1T} and you are {Name1T}{Suffix1T}.");
+		}
+
+
+		[TestMethod]
+		public void SubRoleTest()
+		{
+			//m.f proxies
+			Assert.Inconclusive($"Not yet implemented");
 		}
 
 		private void TranslateAndAssert(string input, string expectedOutput)

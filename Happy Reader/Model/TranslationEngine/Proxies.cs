@@ -85,13 +85,24 @@ namespace Happy_Reader.TranslationEngine
 			var proxy = GetProxy(entry.RoleString);
 			if (proxy == null && proxyParts.Any()) GetProxy(mainProxy);
 			proxies[mainProxy].Count++;
-			if (proxy == null)
+			if (proxy == null && dequeue)
 			{
 				StaticHelpers.Logger.ToFile($"No proxy available ({entry.RoleString}).");
 				throw new Exception($"Error - no proxy available ({entry.RoleString}).");
 			}
-			proxy.MainRole = mainProxy;
-			proxy.Id = proxies[mainProxy].Count;
+			if (proxy == null)
+			{
+				proxy = new RoleProxy
+				{
+					MainRole = mainProxy,
+					Id = proxies[mainProxy].Count
+				};
+			}
+			else
+			{
+				proxy.MainRole = mainProxy;
+				proxy.Id = proxies[mainProxy].Count;
+			}
 			if (dequeue)
 			{
 				proxy.Id = entry.AssignedProxy.Id;
@@ -105,7 +116,7 @@ namespace Happy_Reader.TranslationEngine
 			{
 				var proxiesWithCount = proxies[roleString];
 				return proxiesWithCount.Proxies.Count == 0 ? null :
-					!dequeue ? proxiesWithCount.Proxies.ElementAt(proxiesWithCount.Used++) : proxiesWithCount.Proxies.Dequeue();
+					!dequeue ? proxiesWithCount.Proxies.Count>proxiesWithCount.Used+1 ? null : proxiesWithCount.Proxies.ElementAt(proxiesWithCount.Used++) : proxiesWithCount.Proxies.Dequeue();
 			}
 		}
 
@@ -115,7 +126,7 @@ namespace Happy_Reader.TranslationEngine
 		private void TranslateStage4P1(
 			StringBuilder sb,
 			ICollection<Entry> entriesWithProxies,
-			ICollection<Entry> entriesOnProxies,
+			ICollection<Entry> proxyMods,
 			TranslationResults result,
 			Dictionary<string, ProxiesWithCount> proxies)
 		{
@@ -125,66 +136,83 @@ namespace Happy_Reader.TranslationEngine
 			{
 				matchFound = false;
 				loopCount++;
-				foreach (var entry in entriesOnProxies)
+				foreach (var entry in proxyMods)
 				{
-					var input = Stage4P1InputRegex.Replace(entry.Input, @"\[\[$1#(\d+)]]");
-					var matches = Regex.Matches(sb.ToString(), input).Cast<Match>().ToList();
-					var roleGroups = matches.SelectMany(x => x.Groups.Cast<Group>().Skip(1).Select(g => int.Parse(g.Value))).Distinct().ToList();
-					if (matches.Count == 0) continue;
-					var merge = matches.Count == 1 && roleGroups.Count > 1;
-					var newEntry = new Entry
-					{
-						RoleString = entry.RoleString,
-						Input = input,
-						Output = entry.Output
-					};
-					foreach (int match in roleGroups)
-					{
-						var matchedEntry = entriesWithProxies.Single(x =>
-						{
-							var mainProxyPart = x.AssignedProxy.Role.Split('.')[0];
-							return x.AssignedProxy.Id == match && mainProxyPart == entry.RoleString;
-						});
-						if (merge)
-						{
-							if (newEntry.AssignedProxy == null)
-							{
-								AssignProxy(proxies, newEntry);
-							}
-							Debug.Assert(newEntry.AssignedProxy != null, "mergedEntry.AssignedProxy != null");
-							newEntry.AssignedProxy.ProxyMods.AddRange(matchedEntry.AssignedProxy.ProxyMods);
-							var mergedPattern = new Regex($@"\[\[([^];]+?)#{matchedEntry.AssignedProxy.Id}]]");
-							newEntry.Output = mergedPattern.Replace(newEntry.Output, matchedEntry.Output);
-						}
-						else
-						{
-							newEntry = new Entry
-							{
-								RoleString = matchedEntry.RoleString,
-								Input = matchedEntry.Input,
-								Output = matchedEntry.Output
-							};
-							AssignProxy(proxies, newEntry);
-							newEntry.AssignedProxy.ProxyMods.Add(entry);
-							entriesWithProxies.Add(newEntry);
-							var output = newEntry.AssignedProxy.FullRoleString;
-							var thisInput = Stage4P1InputRegex.Replace(entry.Input, Regex.Escape(matchedEntry.AssignedProxy.FullRoleString));
-							LogReplaceRegex(sb, thisInput, output, result, entry);
-						}
-					}
-					if (merge && roleGroups.Count > 1)
-					{
-						entriesWithProxies.Add(newEntry);
-						var output = newEntry.AssignedProxy.FullRoleString;
-						LogReplaceRegex(sb, input, output, result, entry);
-					}
-					matchFound = true;
+					ResolveProxyMod(sb, entriesWithProxies, result, proxies, entry,ref matchFound);
 				}
 				//something could have gone wrong causing infinite loop
 				if (loopCount > 100) break;
 			}
 			while (matchFound);
 			StaticHelpers.Logger.Verbose($"Stage 4.1: {sb}");
+		}
+
+		private void ResolveProxyMod(StringBuilder sb, ICollection<Entry> entriesWithProxies, TranslationResults result,
+			Dictionary<string, ProxiesWithCount> proxies, Entry proxyMod,ref bool matchFound)
+		{
+			var input = Stage4P1InputRegex.Replace(proxyMod.Input, @"\[\[$1#(\d+)]]");
+			var matches = Regex.Matches(sb.ToString(), input).Cast<Match>().ToList();
+			if (matches.Count == 0) return;
+			var groupedMatches = matches.GroupBy(m => m.Value);
+			matchFound = true;
+			foreach (var match in groupedMatches)
+			{
+				ResolveMatchGroup(match, sb,entriesWithProxies,proxies,proxyMod, result);
+			}
+		}
+
+		private void ResolveMatchGroup(IGrouping<string, Match> matchGroup,
+			StringBuilder sb, ICollection<Entry> entriesWithProxies,
+			Dictionary<string, ProxiesWithCount> proxies, Entry proxyMod,
+			TranslationResults result)
+		{
+			var proxyMatches = matchGroup.SelectMany(x => x.Groups.Cast<Group>().Skip(1)
+				.Select(g => int.Parse(g.Value))).Distinct().ToList();
+			var merge = proxyMatches.Count > 1;
+			var newEntry = new Entry
+			{
+				RoleString = proxyMod.RoleString,
+				Input = matchGroup.Key,
+				Output = proxyMod.Output
+			};
+			for (var index = 0; index < proxyMatches.Count; index++)
+			{
+				int proxyId = proxyMatches[index];
+				var matchedEntry = entriesWithProxies.Single(x =>
+				{
+					var mainProxyPart = x.AssignedProxy.MainRole;
+					return x.AssignedProxy.Id == proxyId && mainProxyPart == proxyMod.RoleString;
+				});
+				if (merge)
+				{
+					if (newEntry.AssignedProxy == null) AssignProxy(proxies, newEntry);
+					Debug.Assert(newEntry.AssignedProxy != null, "mergedEntry.AssignedProxy != null");
+					newEntry.AssignedProxy.ProxyMods.AddRange(matchedEntry.AssignedProxy.ProxyMods);
+					newEntry.Output = newEntry.Output.Replace(matchedEntry.AssignedProxy.WithId(index+1), matchedEntry.Output);
+				}
+				else
+				{
+					newEntry = new Entry
+					{
+						RoleString = matchedEntry.RoleString,
+						Input = matchedEntry.Input,
+						Output = matchedEntry.Output
+					};
+					AssignProxy(proxies, newEntry);
+					newEntry.AssignedProxy.ProxyMods.Add(proxyMod);
+					entriesWithProxies.Add(newEntry);
+					var output = newEntry.AssignedProxy.FullRoleString;
+					var thisInput = Stage4P1InputRegex.Replace(proxyMod.Input, Regex.Escape(matchedEntry.AssignedProxy.FullRoleString));
+					LogReplaceRegex(sb, thisInput, output, result, proxyMod);
+				}
+			}
+
+			if (merge && proxyMatches.Count > 1)
+			{
+				entriesWithProxies.Add(newEntry);
+				var output = newEntry.AssignedProxy.FullRoleString;
+				LogReplaceRegex(sb, Regex.Escape(matchGroup.Key), output, result, proxyMod);
+			}
 		}
 
 		private List<Entry> GetRelevantEntriesWithProxies(StringBuilder sb, HappyReaderDatabase data, out Dictionary<string, ProxiesWithCount> proxies)
