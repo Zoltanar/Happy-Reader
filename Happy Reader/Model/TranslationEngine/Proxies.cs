@@ -116,7 +116,7 @@ namespace Happy_Reader.TranslationEngine
 			{
 				var proxiesWithCount = proxies[roleString];
 				return proxiesWithCount.Proxies.Count == 0 ? null :
-					!dequeue ? proxiesWithCount.Proxies.Count>proxiesWithCount.Used+1 ? null : proxiesWithCount.Proxies.ElementAt(proxiesWithCount.Used++) : proxiesWithCount.Proxies.Dequeue();
+					!dequeue ? proxiesWithCount.Proxies.Count<proxiesWithCount.Used+1 ? null : proxiesWithCount.Proxies.ElementAt(proxiesWithCount.Used++) : proxiesWithCount.Proxies.Dequeue();
 			}
 		}
 

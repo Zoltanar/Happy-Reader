@@ -16,9 +16,11 @@ namespace Happy_Reader_Tests
 	{
 		private const string Name1 = "卓也";
 		private const string Name1T = "Takuya";
+		private const string NameF1 = "アリス";
+		private const string NameF1T = "Alice";
 		private const string Name2 = "モルガン";
 		private const string Name2T = "Morgan";
-		private const string Name3 = "アリス";
+		private const string Name3 = "クリス";
 		private const string Name3T = "Chris";
 		private const string Name4 = "ロボト";
 		private const string Name4T = "Robot";
@@ -54,17 +56,18 @@ namespace Happy_Reader_Tests
 			newEntries.Add(GetNameEntry(Name2, Name2T));
 			newEntries.Add(GetNameEntry(Name3, Name3T));
 			newEntries.Add(GetNameEntry(Name4, Name4T));
+			newEntries.Add(GetNameEntry(NameF1, NameF1T, "m.f"));
 			newEntries = newEntries.Except(entries, Entry.ClashComparer).ToList();
 			testDatabase.AddEntries(newEntries);
 		}
 
-		private static Entry GetNameEntry(string input, string output)
+		private static Entry GetNameEntry(string input, string output, string role = "m")
 		{
 			var nameEntry = new Entry
 			{
 				Input = input,
 				Output = output,
-				RoleString = "m",
+				RoleString = role,
 				UserId = User.Id,
 				Type = EntryType.Name
 			};
@@ -190,8 +193,9 @@ namespace Happy_Reader_Tests
 		[TestMethod]
 		public void SubRoleTest()
 		{
-			//m.f proxies
-			Assert.Inconclusive($"Not yet implemented");
+			TranslateAndAssert(
+				$"{NameF1}{Suffix1}できたそしてもお腹すいたみたい。",
+				$"{NameF1T}{Suffix1T} came and she looked hungry.");
 		}
 
 		private void TranslateAndAssert(string input, string expectedOutput)
