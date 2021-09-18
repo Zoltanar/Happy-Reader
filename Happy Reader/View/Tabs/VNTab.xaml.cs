@@ -80,6 +80,7 @@ namespace Happy_Reader.View.Tabs
 		private void VNPanel_OnLoaded(object sender, RoutedEventArgs e)
 		{
 			if (_loaded) return;
+			if (string.IsNullOrWhiteSpace(ViewModel.Description)) DescriptionRow.Height = new GridLength(0);
 			LoadAliases();
 			LoadCharacters();
 			if (ViewModel.Tags.Any()) LoadTags(ViewModel);
@@ -96,55 +97,41 @@ namespace Happy_Reader.View.Tabs
 		private void LoadAliases()
 		{
 			var aliasString = ViewModel.Aliases?.Replace(@"\n", ", ");
-			if (!string.IsNullOrWhiteSpace(aliasString))
-			{
-				AliasesTb.Text = aliasString;
-			}
-			else
-			{
-				AliasesTb.Text = string.Empty;
-				AliasesLabel.Visibility = Visibility.Collapsed;
-				AliasesTb.Visibility = Visibility.Collapsed;
-			}
+			if (!string.IsNullOrWhiteSpace(aliasString)) AliasesTb.Text = aliasString;
+			else AliasRow.Height = new GridLength(0);
 		}
 
 		private void LoadRelations()
 		{
-			if (ViewModel.RelationsObject.Length > 0)
+			if (ViewModel.RelationsObject.Length <= 0)
 			{
-				var allRelations = ViewModel.GetAllRelations();
-				var titleString = allRelations.Count == 1 ? "1 Relation" : $"{allRelations.Count} Relations";
-				var elementList = new List<object> { titleString, "--------------" };
-				foreach (var relation in allRelations.OrderBy(c => c.ID))
-				{
-					var tb = new TextBlock { Text = relation.Print(), Tag = relation };
-					elementList.Add(tb);
-				}
-				RelationsCombobox.ItemsSource = elementList;
-				RelationsCombobox.SelectedIndex = 0;
+				RelationsRow.Height = new GridLength(0);
+				return;
 			}
-			else
+			var allRelations = ViewModel.GetAllRelations();
+			var titleString = allRelations.Count == 1 ? "1 Relation" : $"{allRelations.Count} Relations";
+			var elementList = new List<object> {titleString, "--------------"};
+			foreach (var relation in allRelations.OrderBy(c => c.ID))
 			{
-				RelationsLabel.Visibility = Visibility.Collapsed;
-				RelationsCombobox.Visibility = Visibility.Collapsed;
+				var tb = new TextBlock {Text = relation.Print(), Tag = relation};
+				elementList.Add(tb);
 			}
+			RelationsCombobox.ItemsSource = elementList;
+			RelationsCombobox.SelectedIndex = 0;
 		}
 
 		private void LoadAnime()
 		{
-			if (ViewModel.AnimeObject.Length > 0)
+			if (ViewModel.AnimeObject.Length <= 0)
 			{
-				var titleString = $"{ViewModel.AnimeObject.Length} Anime";
-				var stringList = new List<string> { titleString, "--------------" };
-				stringList.AddRange(ViewModel.AnimeObject.Select(x => x.Print()));
-				AnimeCombobox.ItemsSource = stringList;
-				AnimeCombobox.SelectedIndex = 0;
+				AnimeRow.Height = new GridLength(0);
+				return;
 			}
-			else
-			{
-				AnimeCombobox.Visibility = Visibility.Collapsed;
-				AnimeLabel.Visibility = Visibility.Collapsed;
-			}
+			var titleString = $"{ViewModel.AnimeObject.Length} Anime";
+			var stringList = new List<string> {titleString, "--------------"};
+			stringList.AddRange(ViewModel.AnimeObject.Select(x => x.Print()));
+			AnimeCombobox.ItemsSource = stringList;
+			AnimeCombobox.SelectedIndex = 0;
 		}
 
 		private void LoadScreenshots()

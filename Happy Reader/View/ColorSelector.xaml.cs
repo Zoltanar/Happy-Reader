@@ -34,6 +34,11 @@ namespace Happy_Reader.View
 
 		public void TrySetColor(string input = null)
 		{
+			if ((input ?? Text) == null)
+			{
+				SetError();
+				return;
+			}
 			try
 			{
 				// ReSharper disable once PossibleNullReferenceException
