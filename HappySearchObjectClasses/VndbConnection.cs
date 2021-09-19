@@ -28,6 +28,8 @@ namespace Happy_Apps_Core
 		private const ushort VndbPort = 19534;
 		private const ushort VndbPortTls = 19535;
 		private const byte EndOfStreamByte = 0x04;
+		private const string InvalidQueryCharacters = "\\{}\"";
+
 		/// <summary>
 		/// string is text to be passed, bool is true if query, false if response
 		/// </summary>
@@ -99,7 +101,7 @@ namespace Happy_Apps_Core
 				if (remove) userVn.Labels.Remove(UserVN.LabelKind.Voted);
 				else userVn.Labels.Add(UserVN.LabelKind.Voted);
 				userVn.VoteAdded = remove ? null : DateTime.UtcNow;
-				if (userVn.Labels.Any()) LocalDatabase.UserVisualNovels.Upsert(userVn, true);
+				if (userVn.Labels.Any() || !string.IsNullOrWhiteSpace(userVn.ULNote)) LocalDatabase.UserVisualNovels.Upsert(userVn, true);
 				else LocalDatabase.UserVisualNovels.Remove(userVn, true);
 				return true;
 			});
@@ -121,10 +123,37 @@ namespace Happy_Apps_Core
 				if (!await TryQuery(queryString, Resources.cvns_query_error)) return false;
 				userVn.Labels = labels.ToHashSet();
 				userVn.LastModified = DateTime.UtcNow;
-				if (userVn.Labels.Any()) LocalDatabase.UserVisualNovels.Upsert(userVn, true);
+				if (userVn.Labels.Any() || !string.IsNullOrWhiteSpace(userVn.ULNote)) LocalDatabase.UserVisualNovels.Upsert(userVn, true);
 				else LocalDatabase.UserVisualNovels.Remove(userVn, true);
 				return true;
 			});
+		}
+
+		public async Task<bool> ChangeVNNote(ListedVN vn, string note)
+		{
+			return await WrapQuery(async () =>
+			{
+				_changeStatusAction?.Invoke(APIStatus.Busy);
+				var userVn = vn.UserVN ?? new UserVN { UserId = CSettings.UserID, VNID = vn.VNID, Added = DateTime.UtcNow, Labels = new HashSet<UserVN.LabelKind>()};
+				var queryString = $"set ulist {vn.VNID} {{\"notes\":\"{EscapeText(note)}\"}}";
+				if (!await TryQuery(queryString, Resources.cvns_query_error)) return false;
+				userVn.ULNote = note;
+				userVn.LastModified = DateTime.UtcNow;
+				if (userVn.Labels.Any() || !string.IsNullOrWhiteSpace(userVn.ULNote)) LocalDatabase.UserVisualNovels.Upsert(userVn, true);
+				else LocalDatabase.UserVisualNovels.Remove(userVn, true);
+				return true;
+			});
+
+			string EscapeText(string noteText)
+			{
+				if (string.IsNullOrWhiteSpace(noteText)) return string.Empty;
+				var escaped = new StringBuilder();
+				foreach (var character in noteText)
+				{
+					if (!InvalidQueryCharacters.Contains(character)) escaped.Append(character);
+				}
+				return escaped.ToString();
+			}
 		}
 
 		/// <summary>

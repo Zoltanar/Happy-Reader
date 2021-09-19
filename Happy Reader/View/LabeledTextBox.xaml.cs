@@ -14,6 +14,9 @@ namespace Happy_Reader.View
 		public static readonly DependencyProperty LabelWidthProperty =
 			DependencyProperty.Register(nameof(LabelWidth), typeof(string), typeof(LabeledTextBox), new UIPropertyMetadata(null));
 
+		public static readonly DependencyProperty LabelHorizontalAlignmentProperty =
+			DependencyProperty.Register(nameof(LabelHorizontalAlignmentProperty), typeof(HorizontalAlignment), typeof(LabeledTextBox), new UIPropertyMetadata(null));
+
 
 		public string Text
 		{
@@ -32,6 +35,13 @@ namespace Happy_Reader.View
 			get => (string)GetValue(LabelWidthProperty) ?? "100";
 			set => SetValue(LabelWidthProperty, value);
 		}
+
+		public HorizontalAlignment LabelHorizontalAlignment
+		{
+			get => (HorizontalAlignment)GetValue(LabelHorizontalAlignmentProperty);
+			set => SetValue(LabelHorizontalAlignmentProperty, value);
+		}
+
 
 
 		public LabeledTextBox() => InitializeComponent();

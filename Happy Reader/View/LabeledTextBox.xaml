@@ -11,7 +11,7 @@
 			<ColumnDefinition Width="{Binding Path=LabelWidth, ElementName=Self, TargetNullValue=100}"/>
 			<ColumnDefinition/>
 		</Grid.ColumnDefinitions>
-		<Label Grid.Column="0" Content="{Binding Label, ElementName=Self}"/>
+		<Label Grid.Column="0" Content="{Binding Label, ElementName=Self}" HorizontalAlignment="{Binding Path=LabelHorizontalAlignment, ElementName=Self, TargetNullValue=Left}"/>
 		<TextBox Grid.Column="1" Text="{Binding Text, ElementName=Self, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" Margin="5,0" />
 	</Grid>
 </UserControl>

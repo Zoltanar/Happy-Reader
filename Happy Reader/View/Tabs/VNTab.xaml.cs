@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -88,6 +90,7 @@ namespace Happy_Reader.View.Tabs
 			StaffTab.Visibility = ViewModel.Staff.Any() ? Visibility.Visible : Visibility.Collapsed;
 			LoadRelations();
 			LoadAnime();
+			LoadNotes();
 			_loaded = true;
 			var firstVisibleTab = TabControl.Items.Cast<FrameworkElement>().FirstOrDefault(t => t.Visibility != Visibility.Collapsed);
 			if (firstVisibleTab != null) TabControl.SelectedItem = firstVisibleTab;
@@ -96,7 +99,8 @@ namespace Happy_Reader.View.Tabs
 
 		private void LoadAliases()
 		{
-			var aliasString = ViewModel.Aliases?.Replace(@"\n", ", ");
+			var regex = new Regex(@"\\+n+");
+			var aliasString = string.IsNullOrWhiteSpace(ViewModel.Aliases) ? null : regex.Replace(ViewModel.Aliases, ", ");
 			if (!string.IsNullOrWhiteSpace(aliasString)) AliasesTb.Text = aliasString;
 			else AliasRow.Height = new GridLength(0);
 		}
@@ -110,10 +114,10 @@ namespace Happy_Reader.View.Tabs
 			}
 			var allRelations = ViewModel.GetAllRelations();
 			var titleString = allRelations.Count == 1 ? "1 Relation" : $"{allRelations.Count} Relations";
-			var elementList = new List<object> {titleString, "--------------"};
+			var elementList = new List<object> { titleString, "--------------" };
 			foreach (var relation in allRelations.OrderBy(c => c.ID))
 			{
-				var tb = new TextBlock {Text = relation.Print(), Tag = relation};
+				var tb = new TextBlock { Text = relation.Print(), Tag = relation };
 				elementList.Add(tb);
 			}
 			RelationsCombobox.ItemsSource = elementList;
@@ -128,7 +132,7 @@ namespace Happy_Reader.View.Tabs
 				return;
 			}
 			var titleString = $"{ViewModel.AnimeObject.Length} Anime";
-			var stringList = new List<string> {titleString, "--------------"};
+			var stringList = new List<string> { titleString, "--------------" };
 			stringList.AddRange(ViewModel.AnimeObject.Select(x => x.Print()));
 			AnimeCombobox.ItemsSource = stringList;
 			AnimeCombobox.SelectedIndex = 0;
@@ -151,7 +155,7 @@ namespace Happy_Reader.View.Tabs
 		private void LoadCharacters()
 		{
 			var cvnItems = StaticHelpers.LocalDatabase.CharacterVNs[ViewModel.VNID];
-			var characterTiles = cvnItems.OrderBy(cvn=>cvn.Role).Select(CharacterTile.FromCharacterVN).ToArray();
+			var characterTiles = cvnItems.OrderBy(cvn => cvn.Role).Select(CharacterTile.FromCharacterVN).ToArray();
 			if (characterTiles.Length > 0)
 			{
 				CharacterTiles.ItemsSource = characterTiles;
@@ -162,7 +166,7 @@ namespace Happy_Reader.View.Tabs
 				CharactersTab.Visibility = Visibility.Collapsed;
 			}
 		}
-		
+
 		private void ScrollViewer_OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
 		{
 			ScrollViewer scrollViewer = (ScrollViewer)sender;
@@ -196,6 +200,30 @@ namespace Happy_Reader.View.Tabs
 			if (relationElement?.Tag is not RelationsItem relation) return;
 			var vn = StaticHelpers.LocalDatabase.VisualNovels[relation.ID];
 			if (vn != null) StaticMethods.MainWindow.OpenVNPanel(vn);
+		}
+
+		private void LoadNotes()
+		{
+			NotesBox.Text = ViewModel?.UserVN?.ULNote ?? string.Empty;
+		}
+
+		private async void SaveNotesLostFocus(object sender, RoutedEventArgs e)
+		{
+			if (NotesBox.Text.Equals(ViewModel?.UserVN?.ULNote ?? string.Empty)) return;
+			await SaveNotes();
+		}
+
+
+		private async void SaveNotesKey(object sender, KeyEventArgs e)
+		{
+			if (e.Key != Key.Enter) return;
+			await SaveNotes();
+		}
+
+		private async Task SaveNotes()
+		{
+			if (NotesBox.Text.Equals(ViewModel?.UserVN?.ULNote ?? string.Empty)) return;
+			await StaticHelpers.Conn.ChangeVNNote(ViewModel, NotesBox.Text);
 		}
 	}
 }
