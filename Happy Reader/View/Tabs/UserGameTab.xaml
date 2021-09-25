@@ -22,6 +22,7 @@
 				<Setter Property="HorizontalAlignment" Value="Stretch"/>
 				<Setter Property="HorizontalContentAlignment" Value="Left"/>
 				<Setter Property="Height" Value="26"/>
+				<Setter Property="Margin" Value="5,2"/>
 			</Style.Setters>
 		</Style>
 		<Style x:Key="Row1TextBox" TargetType="TextBox">
@@ -29,6 +30,7 @@
 				<Setter Property="HorizontalAlignment" Value="Stretch"/>
 				<Setter Property="HorizontalContentAlignment" Value="Left"/>
 				<Setter Property="Height" Value="26"/>
+				<Setter Property="Margin" Value="5,2"/>
 			</Style.Setters>
 		</Style>
 		<Style x:Key="UniformButton" TargetType="Button">
@@ -48,51 +50,59 @@
 				<Setter Property="Margin" Value="5,0"/>
 			</Style.Setters>
 		</Style>
+		<Style x:Key="UniformCombobox" TargetType="ComboBox">
+			<Style.Setters>
+				<Setter Property="Height" Value="26"/>
+				<Setter Property="Margin" Value="5,2"/>
+			</Style.Setters>
+		</Style>
 	</UserControl.Resources>
 	<ScrollViewer>
-	<Grid>
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="150"/>
-			<ColumnDefinition Width="*" MinWidth="30" x:Name="DataColumn"/>
-			<ColumnDefinition Width="230" x:Name="ImageColumn"/>
-		</Grid.ColumnDefinitions>
-		<UniformGrid Grid.Column="0" Rows="14" Columns="1">
-			<Label Style="{StaticResource Row0Label}" Content="UserGame ID" />
-			<StackPanel Orientation="Horizontal">
-				<Label Style="{StaticResource Row0Label}" Content="(❌ File Not Found)" Foreground="Red" Visibility="{Binding FileExists, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=1}" />
-				<Label Style="{StaticResource Row0Label}" Content="File"/>
-			</StackPanel>
-			<Button Style="{StaticResource UniformButton}" Content="Browse to file" Click="BrowseToFolderClick"/>
-			<Label Style="{StaticResource Row0Label}" Content="User Defined Name" />
-			<Label Style="{StaticResource Row0Label}" Content="Tag" />
-			<Label Style="{StaticResource Row0Label}" Content="VNID" />
-			<Label Style="{StaticResource Row0Label}" Content="Launch Path" />
-			<Label Style="{StaticResource Row0Label}" Content="Launch Mode Override" />
-			<Label Style="{StaticResource Row0Label}" Content="Hook Code" />
-			<Label Style="{StaticResource Row0Label}" Content="Encoding" />
-			<Label Style="{StaticResource Row0Label}" Content="Hook Mode" />
-		</UniformGrid>
-		<UniformGrid Grid.Column="1" Rows="14">
-			<TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding Id, Mode=OneWay}" />
-			<TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding FilePath, Mode=OneWay}" />
-			<Button  Style="{StaticResource UniformButton}" Content="Change File Path" Click="ChangeFileLocationClick"/>
-			<TextBox Style="{StaticResource Row1TextBox}" x:Name="DisplayNameBox" Text="{Binding UserDefinedName, Mode=OneWay}" KeyUp="SaveUserDefinedName" />
-			<TextBox Style="{StaticResource Row1TextBox}" x:Name="TagBox" Text="{Binding Tag, Mode=OneWay}" KeyUp="SaveTag" />
-			<TextBox Style="{StaticResource Row1TextBox}" x:Name="VnidNameBox" Text="{Binding VNID, Mode=OneWay}" KeyUp="SaveVNID" PreviewTextInput="DigitsOnly" />
-			<TextBox Style="{StaticResource Row1TextBox}" x:Name="LaunchPathBox" Text="{Binding LaunchPath, Mode=OneWay}" KeyUp="SaveLaunchPath" />
-			<ComboBox ItemsSource="{Binding LaunchOverrideModes}" SelectedValuePath="Tag" SelectedValue="{Binding LaunchModeOverride}" />
-			<TextBox Style="{StaticResource Row1TextBox}" x:Name="HookCodeBox" Text="{Binding GameHookSettings.HookCodes, Mode=OneWay}" KeyUp="SaveHookCode" />
-			<ComboBox ItemsSource="{Binding GameHookSettings.Encodings}" DisplayMemberPath="EncodingName" SelectedItem="{Binding GameHookSettings.PrefEncoding}" />
-			<ComboBox ItemsSource="{Binding GameHookSettings.HookModes}" SelectedItem="{Binding GameHookSettings.HookProcess}" />
-			<CheckBox Style="{StaticResource UniformCheckbox}" Content="Merge By Hook Code" IsChecked="{Binding GameHookSettings.MergeByHookCode}"/>
-			<CheckBox Style="{StaticResource UniformCheckbox}" Content="Capture By Hook Code" IsChecked="{Binding GameHookSettings.MatchHookCode}" 
+		<Grid>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="150"/>
+				<ColumnDefinition Width="*" MinWidth="30" x:Name="DataColumn"/>
+				<ColumnDefinition Width="230" x:Name="ImageColumn"/>
+			</Grid.ColumnDefinitions>
+			<UniformGrid Grid.Column="0" Rows="15" Columns="1">
+				<Label Style="{StaticResource Row0Label}" Content="UserGame ID" />
+				<StackPanel Orientation="Horizontal">
+					<Label Style="{StaticResource Row0Label}" Content="(❌ File Not Found)" Foreground="Red" Visibility="{Binding FileExists, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=1}" />
+					<Label Style="{StaticResource Row0Label}" Content="File"/>
+				</StackPanel>
+				<Button Style="{StaticResource UniformButton}" Content="Browse to file" Click="BrowseToFolderClick"/>
+				<Label Style="{StaticResource Row0Label}" Content="User Defined Name" />
+				<Label Style="{StaticResource Row0Label}" Content="Tag" />
+				<Label Style="{StaticResource Row0Label}" Content="Notes" />
+				<Label Style="{StaticResource Row0Label}" Content="VNID" />
+				<Label Style="{StaticResource Row0Label}" Content="Launch Path" />
+				<Label Style="{StaticResource Row0Label}" Content="Launch Mode Override" />
+				<Label Style="{StaticResource Row0Label}" Content="Hook Code" />
+				<Label Style="{StaticResource Row0Label}" Content="Encoding" />
+				<Label Style="{StaticResource Row0Label}" Content="Hook Mode" />
+			</UniformGrid>
+			<UniformGrid Grid.Column="1" Rows="15">
+				<TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding Id, Mode=OneWay}" />
+				<TextBox Style="{StaticResource Row1TextBoxTransparent}" Text="{Binding FilePath, Mode=OneWay}" />
+				<Button  Style="{StaticResource UniformButton}" Content="Change File Path" Click="ChangeFileLocationClick"/>
+				<TextBox Style="{StaticResource Row1TextBox}" x:Name="DisplayNameBox" Text="{Binding UserDefinedName, Mode=OneWay}" KeyUp="SaveUserDefinedName" />
+				<TextBox Style="{StaticResource Row1TextBox}" x:Name="TagBox" Text="{Binding Tag, Mode=OneWay}" KeyUp="SaveTag" />
+				<TextBox Style="{StaticResource Row1TextBox}" x:Name="NoteBox" Text="{Binding Note, Mode=OneWay}" KeyUp="SaveNote" />
+				<TextBox Style="{StaticResource Row1TextBox}" x:Name="VnidNameBox" Text="{Binding VNID, Mode=OneWay}" KeyUp="SaveVNID" PreviewTextInput="DigitsOnly" />
+				<TextBox Style="{StaticResource Row1TextBox}" x:Name="LaunchPathBox" Text="{Binding LaunchPath, Mode=OneWay}" KeyUp="SaveLaunchPath" />
+				<ComboBox Style="{StaticResource UniformCombobox}" ItemsSource="{Binding LaunchOverrideModes}" SelectedValuePath="Tag" SelectedValue="{Binding LaunchModeOverride}" />
+				<TextBox Style="{StaticResource Row1TextBox}" x:Name="HookCodeBox" Text="{Binding GameHookSettings.HookCodes, Mode=OneWay}" KeyUp="SaveHookCode" />
+				<ComboBox Style="{StaticResource UniformCombobox}" ItemsSource="{Binding GameHookSettings.Encodings}" DisplayMemberPath="EncodingName" SelectedItem="{Binding GameHookSettings.PrefEncoding}" />
+				<ComboBox Style="{StaticResource UniformCombobox}" ItemsSource="{Binding GameHookSettings.HookModes}" SelectedItem="{Binding GameHookSettings.HookProcess}" />
+				<CheckBox Style="{StaticResource UniformCheckbox}" Content="Merge By Hook Code" IsChecked="{Binding GameHookSettings.MergeByHookCode}"/>
+				<CheckBox Style="{StaticResource UniformCheckbox}" Content="Capture By Hook Code" IsChecked="{Binding GameHookSettings.MatchHookCode}" 
 			          ToolTip="Post all threads with specified hook code, instead of saving user settings in between sessions, for games where thread identifiers change."/>
-			<CheckBox Style="{StaticResource UniformCheckbox}" Content="Remove Repetition" IsChecked="{Binding GameHookSettings.RemoveRepetition}"
+				<CheckBox Style="{StaticResource UniformCheckbox}" Content="Remove Repetition" IsChecked="{Binding GameHookSettings.RemoveRepetition}"
 			          ToolTip="Remove repeated text at the start of strings to be translated, this occurs before Stage 1."/>
-		</UniformGrid>
+			</UniformGrid>
 			<Border x:Name="ImageBorder" BorderBrush="Black" BorderThickness="4" Grid.Column="2" Background="#FF3EAE8F" MaxHeight="375">
 				<Image x:Name="Image" Source="{Binding Image, Mode=OneWay}" Margin="5"  />
-</Border>
+			</Border>
 		</Grid>
 	</ScrollViewer>
 </UserControl>

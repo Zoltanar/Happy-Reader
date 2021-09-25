@@ -91,6 +91,7 @@ namespace Happy_Reader.Database
 			}
 		}
 		public string Tag { get; private set; }
+		public string Note { get; private set; }
 		public bool HasVN => VNID.HasValue && VN != null;
 		public bool FileExists => File.Exists(FilePath);
 		public TimeSpan TimeOpen
@@ -249,6 +250,7 @@ namespace Happy_Reader.Database
 			GameHookSettings.MatchHookCode = Convert.ToInt32(reader["MatchHookCode"]) == 1;
 			ProcessName = Convert.ToString(reader["ProcessName"]);
 			Tag = Convert.ToString(reader["Tag"]);
+			Note = Convert.ToString(reader["Note"]);
 			GameHookSettings.RemoveRepetition = Convert.ToInt32(reader["RemoveRepetition"]) == 1;
 			TimeOpen = TimeSpan.FromTicks(Convert.ToDateTime(reader["TimeOpenDT"]).Ticks);
 			GameHookSettings.PrefEncodingEnum = (EncodingEnum)Convert.ToInt32(reader["PrefEncodingEnum"]);
@@ -337,6 +339,13 @@ namespace Happy_Reader.Database
 			Tag = string.IsNullOrWhiteSpace(text) ? null : text.Trim();
 			StaticMethods.Data.UserGames.Upsert(this, true);
 			OnPropertyChanged(nameof(Tag));
+		}
+
+		public void SaveNote([NotNull] string text)
+		{
+			Note = string.IsNullOrWhiteSpace(text) ? null : text.Trim();
+			StaticMethods.Data.UserGames.Upsert(this, true);
+			OnPropertyChanged(nameof(Note));
 		}
 
 		public bool SaveVNID(int? vnid)

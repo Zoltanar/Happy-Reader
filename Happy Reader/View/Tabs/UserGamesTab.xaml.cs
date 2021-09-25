@@ -23,6 +23,7 @@ namespace Happy_Reader.View.Tabs
 	public partial class UserGamesTab : UserControl
 	{
 		private readonly DispatcherTimer _scrollLabelTimer;
+		private static readonly Random Random = new();
 
 		private UserGamesViewModel ViewModel => (UserGamesViewModel)DataContext;
 
@@ -329,7 +330,10 @@ namespace Happy_Reader.View.Tabs
 			var userGame = ((UserGameTile)obj).UserGame;
 			return (userGame.DisplayName.ToLowerInvariant().Contains(searchTerm)) ||
 						 (userGame.VN != null && VisualNovelDatabase.SearchForVN(searchTerm)(userGame.VN)) ||
-						 (userGame.VN?.Producer?.Name.ToLowerInvariant().Contains(searchTerm) ?? false);
+						 (userGame.VN?.Producer?.Name.ToLowerInvariant().Contains(searchTerm) ?? false) ||
+						 (userGame.VN?.UserVN?.ULNote?.ToLowerInvariant().Contains(searchTerm) ?? false) ||
+						 (userGame.Tag?.ToLowerInvariant().Contains(searchTerm) ?? false) ||
+						 (userGame.Note?.ToLowerInvariant().Contains(searchTerm) ?? false);
 		}
 
 		private void SearchTextBox_OnTextChanged(object sender, TextChangedEventArgs e)
@@ -338,13 +342,11 @@ namespace Happy_Reader.View.Tabs
 			if (SearchTextBox.Text.Length < 3 && view.Filter != null) view.Filter = null;
 			else if (SearchTextBox.Text.Length >= 3) view.Filter = FilterUserGames;
 		}
-
-		private static Random _random = new Random();
-
+		
 		private void SelectRandom(object sender, RoutedEventArgs e)
 		{
 			if (GameFiles.Items.Count == 0) return;
-			var item =  _random.Next(0, GameFiles.Items.Count);
+			var item =  Random.Next(0, GameFiles.Items.Count);
 				GameFiles.SelectedItem = GameFiles.Items[item];
 				GameFiles.UpdateLayout();
 				((UIElement)GameFiles.ItemContainerGenerator.ContainerFromIndex(item)).Focus();

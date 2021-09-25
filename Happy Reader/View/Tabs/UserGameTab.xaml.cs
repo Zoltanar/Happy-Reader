@@ -57,6 +57,12 @@ namespace Happy_Reader.View.Tabs
 			ViewModel.SaveTag(TagBox.Text);
 		}
 
+		private void SaveNote(object sender, KeyEventArgs e)
+		{
+			if (e.Key != Key.Enter) return;
+			ViewModel.SaveNote(NoteBox.Text);
+		}
+
 		private void SaveVNID(object sender, KeyEventArgs e)
 		{
 			if (e.Key != Key.Enter) return;
