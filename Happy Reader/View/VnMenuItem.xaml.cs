@@ -34,7 +34,7 @@ namespace Happy_Reader.View
 			}
 		}
 
-		private void BrowseToVndbPage(object sender, RoutedEventArgs e) => Process.Start($"http://vndb.org/v{VN.VNID}/");
+		public void BrowseToVndbPage(object sender, RoutedEventArgs e) => Process.Start($"http://vndb.org/v{VN.VNID}/");
 
 		private void BrowseToReleasePage(object sender, RoutedEventArgs e)
 		{

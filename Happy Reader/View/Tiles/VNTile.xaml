@@ -12,9 +12,9 @@
 	<Border BorderBrush="Black" BorderThickness="1" CornerRadius="10" Background="{Binding UserVN, Converter={StaticResource UserVnToBackgroundConverter}}">
 		<Grid>
 			<Label Content="{Binding Title}" Margin="10,10,10,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="Black"/>
-			<Label Foreground="{Binding Path=., Converter={StaticResource VnToProducerForegroundConverter}, NotifyOnSourceUpdated=True, Mode=OneWay}" Margin="10,0,10,52" VerticalAlignment="Bottom" Padding="0">
+			<Label Margin="10,0,10,52" VerticalAlignment="Bottom" Padding="0">
 				<TextBlock >
-					<Hyperlink RequestNavigate="OpenProducerTab" NavigateUri="Blank">
+					<Hyperlink RequestNavigate="OpenProducerTab" NavigateUri="Blank" Foreground="{Binding Path=., Converter={StaticResource VnToProducerForegroundConverter}, NotifyOnSourceUpdated=True, Mode=OneWay}">
 						<TextBlock Text="{Binding Producer.Name}"/>
 					</Hyperlink>
 				</TextBlock>
@@ -59,7 +59,11 @@
 					<Run Text="{Binding Suggestion.TraitScore, StringFormat=0.##, Mode=OneWay}" Foreground="DeepSkyBlue"></Run>
 				</TextBlock>
 			</Border>
-			<Label Content="{Binding VNID}" HorizontalAlignment="Left" Margin="194,-1,0,0" VerticalAlignment="Top" Foreground="#FF9C9C9C" FontSize="9" Width="34" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"/>
+			<Label HorizontalAlignment="Left" Margin="194,-1,0,0" VerticalAlignment="Top" Foreground="#FF9C9C9C" FontSize="9" Width="34" HorizontalContentAlignment="Right" VerticalContentAlignment="Center">
+				<Hyperlink Click="ID_OnClick">
+					<Run Text="{Binding VNID}"/>
+				</Hyperlink>
+			</Label>
 		</Grid>
 	</Border>
 </UserControl>

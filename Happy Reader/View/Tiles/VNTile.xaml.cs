@@ -42,5 +42,10 @@ namespace Happy_Reader.View.Tiles
 		{
 			StaticMethods.MainWindow.OpenProducerPanel(VN.Producer);
 		}
+
+		private void ID_OnClick(object sender, RoutedEventArgs e)
+		{
+			VnMenu.BrowseToVndbPage(sender,e);
+		}
 	}
 }
