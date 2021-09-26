@@ -189,6 +189,21 @@ namespace Happy_Reader_Tests
 				$"I am {Name2T} {Name1T}{Suffix1T} and you are {Name1T}{Suffix1T}.");
 		}
 
+		[TestMethod]
+		public void NameF1Suffix1_Name2()
+		{
+			TranslateAndAssert(
+				$"私は{NameF1}{Suffix1}ですそれともあなたは{Name2}。",
+				$"I am {NameF1T}{Suffix1T} and you are {Name2T}.");
+		}
+
+		[TestMethod]
+		public void MainRoleTest()
+		{
+			TranslateAndAssert(
+				$"{Name1}{Suffix1}できたそしてもお腹すいたみたい。",
+				$"{Name1T}{Suffix1T} came and he looked hungry.");
+		}
 
 		[TestMethod]
 		public void SubRoleTest()

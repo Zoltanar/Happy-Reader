@@ -159,7 +159,7 @@ namespace Happy_Reader.Database
 			}
 			else
 			{
-				var hookCodes = HookCodes.Split(' ');
+				var hookCodes = (HookCodes ?? string.Empty).Split(new [] {' '}, StringSplitOptions.RemoveEmptyEntries);
 				var newHookCode = string.IsNullOrWhiteSpace(hookCode) ? null : hookCode.Trim();
 				if (newHookCode == null || hookCodes.Contains(newHookCode, StringComparer.OrdinalIgnoreCase)) return;
 				HookCodes = string.Join(" ", hookCodes.Concat(new[] { newHookCode }));

@@ -49,9 +49,10 @@ namespace Happy_Reader.TranslationEngine
 					usefulEntriesWithProxies.Remove(entry);
 					continue;
 				}
+				var inputRoleString = entry.AssignedProxy.FullRoleString;
 				AssignProxy(proxies, entry, true);
 				foreach (var proxyMod in entry.AssignedProxy.ProxyMods) result.AddEntryUsed(proxyMod);
-				LogReplace(sb, entry.AssignedProxy.FullRoleString, entry.AssignedProxy.Entry.Input, result, entry);
+				LogReplace(sb, inputRoleString, entry.AssignedProxy.Entry.Input, result, entry);
 			}
 			StaticHelpers.Logger.Verbose($"Stage 4.2: {sb}");
 			result[4] = sb.ToString();

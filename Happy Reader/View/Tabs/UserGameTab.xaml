@@ -71,7 +71,7 @@
 					<Label Style="{StaticResource Row0Label}" Content="File"/>
 				</StackPanel>
 				<Button Style="{StaticResource UniformButton}" Content="Browse to file" Click="BrowseToFolderClick"/>
-				<Label Style="{StaticResource Row0Label}" Content="User Defined Name" />
+				<Label Style="{StaticResource Row0Label}" Content="Display Name" />
 				<Label Style="{StaticResource Row0Label}" Content="Tag" />
 				<Label Style="{StaticResource Row0Label}" Content="Notes" />
 				<Label Style="{StaticResource Row0Label}" Content="VNID" />

@@ -6,12 +6,13 @@
         xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
         xmlns:view="clr-namespace:Happy_Reader.View"
         mc:Ignorable="d"
-        Title="Output" Height="216" Width="800" 
+        Title="Happy Reader Output" Height="216" Width="800" 
         ShowInTaskbar="False" WindowStyle="None" AllowsTransparency="True"  
         Topmost="True" 
         Loaded="OutputWindow_OnLoaded"
         ResizeMode="CanResizeWithGrip"
-        SizeChanged="SizeOrLocationChanged" LocationChanged="SizeOrLocationChanged" MouseLeave="OutputWindow_OnMouseLeave">
+        SizeChanged="SizeOrLocationChanged" LocationChanged="SizeOrLocationChanged" MouseLeave="OutputWindow_OnMouseLeave"
+        Icon="../Resources/logo-hr.ico">
 	<Window.DataContext>
 		<viewModel:OutputWindowViewModel/>
 	</Window.DataContext>
