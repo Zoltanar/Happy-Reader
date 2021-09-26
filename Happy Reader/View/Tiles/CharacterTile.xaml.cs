@@ -79,8 +79,9 @@ namespace Happy_Reader.View.Tiles
 				{
 					Inline content = new Run(trait?.Name ?? "Not Found");
 					if (trait != null && StaticHelpers.CSettings.AlertTraitIDs.Contains(trait.ID)) content = new Bold(content);
-					var link = new Hyperlink(content) { Tag = trait };
-					link.Click += ShowCharactersWithTrait;
+					var tooltip = trait != null ? TitleDescriptionConverter.Instance.Convert(trait.Description, typeof(string), null, CultureInfo.CurrentCulture) : null;
+					var link = new Hyperlink(content) { Tag = trait, ToolTip = tooltip };
+					if(trait != null) link.Click += ShowCharactersWithTrait;
 					TraitsControl.Items.Add(link);
 				}
 			}

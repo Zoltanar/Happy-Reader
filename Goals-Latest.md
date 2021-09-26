@@ -32,7 +32,6 @@
 - **vn: display languages other than original**
 - add 'update available' notice (can hide)
 - warn if an instance is already running (maybe show database file for opening instance) 
-- **show written tag description on tooltip**
 - MainWindow: add close all tabs button
 - Settings: if login response is error with id 'needlogin' show user that credentials are wrong
 - DatabaseDumpReader: Parallelise?

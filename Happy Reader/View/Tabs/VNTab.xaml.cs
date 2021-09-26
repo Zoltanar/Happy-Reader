@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -11,6 +12,7 @@ using System.Windows.Input;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
+using Happy_Reader.View.Converters;
 using Happy_Reader.View.Tiles;
 using Happy_Reader.ViewModel;
 
@@ -63,9 +65,11 @@ namespace Happy_Reader.View.Tabs
 				allInlines.Add(new Run($"{@group.Key}: "));
 				foreach (var tag in @group.OrderBy(x => x.Print()))
 				{
-					var link = new Hyperlink(new Run(tag.Print())) { Tag = tag };
+					var writtenTag = DumpFiles.GetTag(tag.TagId);
+					var tooltip = writtenTag != null ? TitleDescriptionConverter.Instance.Convert(writtenTag.Description, typeof(string), null, CultureInfo.CurrentCulture) : null;
+					var link = new Hyperlink(new Run(tag.Print())) { Tag = writtenTag, ToolTip = tooltip };
 					if (StaticMethods.MainWindow.ViewModel.DatabaseViewModel.SuggestionScorer?.IdTags?.Contains(tag.TagId) ?? false) link.FontWeight = FontWeights.Bold;
-					link.PreviewMouseLeftButtonDown += OnTagClick;
+					if(writtenTag != null) link.PreviewMouseLeftButtonDown += OnTagClick;
 					allInlines.Add(link);
 				}
 			}
@@ -75,8 +79,8 @@ namespace Happy_Reader.View.Tabs
 		private void OnTagClick(object sender, MouseButtonEventArgs e)
 		{
 			StaticMethods.MainWindow.SelectTab(typeof(VNTabViewModel));
-			var tag = (DbTag)((Hyperlink)sender).Tag;
-			StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ShowTagged(DumpFiles.GetTag(tag.TagId));
+			var tag = (DumpFiles.WrittenTag)((Hyperlink)sender).Tag;
+			StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ShowTagged(tag);
 		}
 
 		private void VNPanel_OnLoaded(object sender, RoutedEventArgs e)

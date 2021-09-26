@@ -10,12 +10,14 @@ namespace Happy_Reader.View.Converters
 		private static readonly Regex NewLineRegex = new(@"\\n", RegexOptions.Compiled);
 		private static readonly Regex UrlRegex = new(@"(.*)\[url=[^];]*]([^[;]*)\[\/url](.*)", RegexOptions.Compiled);
 
+		public static readonly TitleDescriptionConverter Instance = new();
+
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if (value is null) return null;
 			if (value is not string sValue) throw new NotSupportedException();
 			var result = NewLineRegex.Replace(sValue, Environment.NewLine);
-			result = UrlRegex.Replace(result, "$1$2$3");
+			while(UrlRegex.IsMatch(result)) result = UrlRegex.Replace(result, "$1$2$3");
 			return result;
 		}
 
