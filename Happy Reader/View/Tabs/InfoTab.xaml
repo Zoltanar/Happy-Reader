@@ -30,11 +30,18 @@
 		<TextBox Text="{Binding DatabaseDate, Mode=OneWay}"/>
 		<TextBox Text="{Binding VnDatabaseSize, Mode=OneWay}"/>
 		<TextBox Text="{Binding UserDatabaseSize, Mode=OneWay}"/>
-		<StackPanel Orientation="Horizontal" Margin="10,2">
-			<TextBox Text="{Binding TranslationsData, Mode=OneWay}" Margin="0,0,2,0"/>
-			<Button Content="Delete Old" Click="DeleteOldCachedTranslations" Margin="2,0,0,0" Padding="2,0"/>
-			<Button Content="Delete All" Click="DeleteAllCachedTranslations" Margin="2,0,0,0" Padding="2,0"/>
-		</StackPanel>
+		<Grid Margin="10,0,10,0" >
+				<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
+			</Grid.ColumnDefinitions>
+				<ScrollViewer Grid.Column="0"  VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
+				<TextBox Text="{Binding TranslationsData, Mode=OneWay}" Margin="0"  />
+				</ScrollViewer>
+			<Button Grid.Column="1" Content="Delete Old" Click="DeleteOldCachedTranslations" Margin="2,0,0,0" Padding="2,0"/>
+			<Button Grid.Column="2" Content="Delete All" Click="DeleteAllCachedTranslations" Margin="2,0,0,0" Padding="2,0"/>
+			</Grid>
 		<TextBox Text="{Binding RecordedTime, Mode=OneWay}"/>
 		<TextBox Text="{Binding ApproxVndbTime, Mode=OneWay}"/>
 		<TextBox Text="{Binding ApproxOverallTime, Mode=OneWay}"/>

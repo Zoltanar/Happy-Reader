@@ -31,7 +31,6 @@ namespace Happy_Apps_Core
 		public static readonly string ProgramDataFolder = Path.Combine(Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName, "Program Data\\");
 		public static readonly string DefaultTraitsJson = Path.Combine(ProgramDataFolder, "Default Files\\traits.json");
 		public static readonly string DefaultTagsJson = Path.Combine(ProgramDataFolder, "Default Files\\tags.json");
-		private static readonly string FlagsFolder = Path.Combine(ProgramDataFolder, "Flags\\");
 		public static readonly string CertificatesFolder = Path.Combine(ProgramDataFolder, "Certificates");
 		public static readonly string TranslationPluginsFolder = Path.Combine(ProgramDataFolder, "Translation Plugins");
 		public static readonly string AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Happy Reader");
@@ -47,7 +46,6 @@ namespace Happy_Apps_Core
 		private const string PasswordRegistryKey = "SOFTWARE\\" + ClientName;
 		private const string PasswordRegistryCipherValueName = "Data1";
 		private const string PasswordRegistryEntropyValueName = "Data2";
-		private static readonly Dictionary<string, bool> FlagExistsDictionary = new();
 
 		public static VisualNovelDatabase LocalDatabase;
 		public static readonly MultiLogger Logger;
@@ -418,31 +416,7 @@ namespace Happy_Apps_Core
 			}
 			return imageSource;
 		}
-
-		public static string GetFlag(IEnumerable<string> languageStrings)
-		{
-			foreach (var languageFile in languageStrings.Select(language => $"{FlagsFolder}{language}.png"))
-			{
-				if (!FlagExistsDictionary.TryGetValue(languageFile, out bool exists))
-				{
-					exists = FlagExistsDictionary[languageFile] = File.Exists(Path.GetFullPath(languageFile));
-				}
-				if (exists) return Path.GetFullPath(languageFile);
-			}
-			return null;
-		}
-
-		public static string GetFlag(string language)
-		{
-			if (language == null) return null;
-			var languageFile = $"{FlagsFolder}{language}.png";
-			if (!FlagExistsDictionary.TryGetValue(languageFile, out bool exists))
-			{
-				exists = FlagExistsDictionary[languageFile] = File.Exists(Path.GetFullPath(languageFile));
-			}
-			return exists ? Path.GetFullPath(languageFile) : null;
-		}
-
+		
 		public static string GetTranslatorSettings(string sourceName) => Path.Combine(TranslationPluginsSettingsFolder, $"{sourceName}.json");
 	}
 }

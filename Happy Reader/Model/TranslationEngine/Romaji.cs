@@ -38,7 +38,7 @@ namespace Happy_Reader.TranslationEngine
 
 		private void ReplacePreRomaji(StringBuilder sb, TranslationResults result)
 		{
-			var entries = OrderEntries(_entries.Where(x => x.Type == EntryType.Name || x.Type == EntryType.Yomi || x.Type == EntryType.PreRomaji)).ToArray();
+			var entries = OrderEntries(_entries.Where(x => x.Type == EntryType.Name || x.Type == EntryType.Yomi || x.Type == EntryType.PreRomaji)).ToList();
 			var usefulEntries = RemoveUnusedEntriesAndSetLocation(sb, entries);
 			MergeNeighbouringEntries(usefulEntries);
 			foreach (var entry in usefulEntries)

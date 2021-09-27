@@ -9,7 +9,8 @@
              xmlns:DV="clr-namespace:System.Windows.Controls.DataVisualization;assembly=DotNetProjects.DataVisualization.Toolkit"
              xmlns:DVC="clr-namespace:System.Windows.Controls.DataVisualization.Charting;assembly=DotNetProjects.DataVisualization.Toolkit"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="800"
+             Background="LightGray">
 	<d:UserControl.DataContext>
 		<database:ListedProducer/>
 	</d:UserControl.DataContext>
@@ -21,13 +22,13 @@
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
-		<Grid Grid.Row="0">
+		<Grid Grid.Row="0" Margin="3,3,0,0">
 			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto" MaxWidth="24"/>
 				<ColumnDefinition Width="*"/>
-				<ColumnDefinition Width="Auto"/>
 			</Grid.ColumnDefinitions>
-			<TextBlock Grid.Row="0" HorizontalAlignment="Left" Text="{Binding Name}"/>
-	    <Image Grid.Row="0" Grid.Column="1" Source="{Binding FlagSource}"/>
+			<Image Grid.Column="0" Source="{Binding Language, Converter={StaticResource ImageStringConverter}}" MaxHeight="12" MaxWidth="24"/>
+			<TextBlock Grid.Column="1" HorizontalAlignment="Left" Text="{Binding Name}" Margin="5,0,0,0"/>
 		</Grid>
 		<Label Grid.Row="1" Grid.Column="0" x:Name="TimeActiveLabel"/>
 		<Label Grid.Row="2" Grid.Column="0" x:Name="TitlesLabel"/>

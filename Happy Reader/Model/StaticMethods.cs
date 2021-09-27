@@ -17,7 +17,9 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Happy_Apps_Core.Database;
+using Happy_Reader.TranslationEngine;
 using Happy_Reader.View;
 using Happy_Reader.View.Tabs;
 using Happy_Reader.ViewModel;
@@ -38,8 +40,10 @@ namespace Happy_Reader
 		public static readonly string SavedDataJson = Path.Combine(StaticHelpers.StoredDataFolder, "HR_SavedData.json");
 		public static readonly string AllFiltersJson = Path.Combine(StaticHelpers.StoredDataFolder, "HR_Filters.json");
 		public static readonly string UserGameIconsFolder = Path.Combine(StaticHelpers.StoredDataFolder, "Usergame_Icons\\");
+		private static readonly string FlagsFolder = Path.Combine(StaticHelpers.ProgramDataFolder, "Flags\\");
 		public static readonly JsonSerializerSettings SerialiserSettings = new() { TypeNameHandling = TypeNameHandling.Objects };
 		public static readonly NativeMethods.RECT OutputWindowStartPosition = new() { Left = 20, Top = 20, Right = 420, Bottom = 220 };
+		private static readonly Dictionary<string, ImageSource> FlagExistsDictionary = new();
 		private static SettingsViewModel _settings;
 		public static FiltersData AllFilters { get; set; }
 		public static HappyReaderDatabase Data { get; set; }
@@ -70,13 +74,13 @@ namespace Happy_Reader
 						ff.FamilyNames.GroupBy(fn => fn.Value).Select(fng => fng.First())
 							//create map of font name to font family (for this font family)
 							.Select(f => new KeyValuePair<string, FontFamily>(f.Value, ff))).ToArray();
-				var dict = new Dictionary<string,FontFamily>();
+				var dict = new Dictionary<string, FontFamily>();
 				foreach (var pair in fonts)
 				{
 					if(dict.ContainsKey(pair.Key)) StaticHelpers.Logger.ToFile($"Duplicate font family found: {pair.Key}");
 					dict[pair.Key] = pair.Value;
 				}
-				FontsInstalled = new ReadOnlyDictionary<string,FontFamily>(dict);
+				FontsInstalled = new ReadOnlyDictionary<string, FontFamily>(dict);
 		}
 		public static string GetLocalizedTime(this DateTime dateTime)
 		{
@@ -244,8 +248,7 @@ namespace Happy_Reader
 		}
 
 		public static readonly IReadOnlyDictionary<string, FontFamily> FontsInstalled;
-
-
+		
 		public static string GetProcessFileName(Process process)
 		{
 			string processFileName;
@@ -337,11 +340,37 @@ namespace Happy_Reader
 
 		public static void UpdateTooltip(ToolTip mouseoverTip, string text)
 		{
-			if (text.Length < 1 || TranslationEngine.Translator.LatinOnlyRegex.IsMatch(text)) return;
-			if (!TranslationEngine.Translator.Instance.OfflineDictionary.SearchOuter(text, out var result)) return;
+			if (text.Length < 1 || Translator.LatinOnlyRegex.IsMatch(text)) return;
+			if (!Translator.Instance.OfflineDictionary.SearchOuter(text, out var result)) return;
 			if (result.Equals(mouseoverTip.Content)) return;
 			mouseoverTip.Content = result;
 			if (!mouseoverTip.IsOpen) mouseoverTip.IsOpen = true;
+		}
+
+		public static ImageSource GetFlag(VNLanguages languages, int order)
+		{
+			int counter = 0;
+			foreach (var languageFile in languages.Originals.Concat(languages.Others).Select(language => $"{FlagsFolder}{language}.png"))
+			{
+				if (!FlagExistsDictionary.TryGetValue(languageFile, out var exists))
+				{
+					exists = FlagExistsDictionary[languageFile] = File.Exists(Path.GetFullPath(languageFile)) ? new BitmapImage(new Uri(Path.GetFullPath(languageFile))) : null;
+				}
+				if (exists != null) counter++;
+				if (counter == order) return exists;
+			}
+			return null;
+		}
+
+		public static ImageSource GetFlag(string language)
+		{
+			if (language == null) return null;
+			var languageFile = $"{FlagsFolder}{language}.png";
+			if (!FlagExistsDictionary.TryGetValue(languageFile, out var exists))
+			{
+				exists = FlagExistsDictionary[languageFile] = File.Exists(Path.GetFullPath(languageFile)) ? new BitmapImage(new Uri(Path.GetFullPath(languageFile))) : null;
+			}
+			return exists;
 		}
 	}
 

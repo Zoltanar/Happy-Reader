@@ -34,6 +34,7 @@
 		<converters:UserRelatedTooltipConverter x:Key="UserRelatedTooltipConverter"/>
 		<converters:EntryGameConverter x:Key="EntryGameConverter"/>
 		<converters:TitleDescriptionConverter x:Key="TitleDescriptionConverter"/>
+		<converters:ImageStringConverter x:Key="ImageStringConverter"/>
 		<system:Boolean x:Key="True">True</system:Boolean>
 		<system:Boolean x:Key="False">False</system:Boolean>
 		<Style x:Key="NoBorderTextBox" TargetType="TextBox">

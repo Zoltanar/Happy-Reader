@@ -241,8 +241,6 @@ namespace Happy_Apps_Core.Database
 		/// </summary>
 		public string ImageSource => StaticHelpers.GetImageSource(ImageId, ref _imageSourceSet, ref _imageSource);
 		
-		public string FlagSource => StaticHelpers.GetFlag(LanguagesObject.Originals);
-
 		private bool? _specialFlag;
 
 		public bool GetAlertFlag(List<int> tagIds, List<int> traitIds)

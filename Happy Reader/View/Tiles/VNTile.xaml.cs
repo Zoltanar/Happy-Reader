@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using Happy_Apps_Core.Database;
 
 namespace Happy_Reader.View.Tiles
@@ -28,6 +29,14 @@ namespace Happy_Reader.View.Tiles
 		{
 			if (_loaded) return;
 			VnMenu.TransferItems(VnMenuParent);
+			int order = 1;
+			ImageSource source;
+			while ((source = StaticMethods.GetFlag(VN.LanguagesObject, order++)) != null)
+			{
+				var image = new Image { Source = source, MaxHeight = 12, MaxWidth = 24 };
+				DockPanel.SetDock(image, Dock.Right);
+				LanguagesPanel.Children.Add(image);
+			}
 			_loaded = true;
 		}
 
@@ -45,7 +54,7 @@ namespace Happy_Reader.View.Tiles
 
 		private void ID_OnClick(object sender, RoutedEventArgs e)
 		{
-			VnMenu.BrowseToVndbPage(sender,e);
+			VnMenu.BrowseToVndbPage(sender, e);
 		}
 	}
 }

@@ -19,6 +19,7 @@
 - look at global hooks for changing ITHVNR settings via global hotkeys [GlobalMouseKeyHook](https://github.com/gmamaladze/globalmousekeyhook)
 #### Output Window
 - alternate colors between blocks
+- **properly load settings mode (mini or full)**
 #### User Games
 - see details should change to correct user game tab when multiple user games for one vn
 - allow keeping time played for multiple games/allow process monitor to keep running always/make process monitor only have one instance
@@ -29,7 +30,6 @@
 - Producer Tab: charts for popularity
 - Producer Tab: list staff and number of contributions
 - tray: update last played titles in real time
-- **vn: display languages other than original**
 - add 'update available' notice (can hide)
 - warn if an instance is already running (maybe show database file for opening instance) 
 - MainWindow: add close all tabs button
@@ -39,6 +39,7 @@
 - Information Tab: Show Size of Vndb Images, show total size.
 - Use Screenshot Thumbnails when full-size is not found.
 - show random titles in database tab
+- style scrollbars
 
 ## Issues  
 - can't show outputwindow on top of some fullscreen games, steals focus on games where it works (might need direct draw)

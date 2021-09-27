@@ -94,15 +94,12 @@ namespace Happy_Apps_Core.Database
 		/// Producer Name
 		/// </summary>
 		public string Name { get; set; }
-
-
+		
 		/// <summary>
 		/// Language of Producer
 		/// </summary>
 		public string Language { get; set; }
-
-		public string FlagSource => StaticHelpers.GetFlag(Language);
-
+		
 		#endregion
 		/// <summary>Returns a string that represents the current object.</summary>
 		/// <returns>A string that represents the current object.</returns>
