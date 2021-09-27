@@ -61,6 +61,8 @@ namespace Happy_Reader.TranslationEngine
 		{
 			var result = Task.Run(() => KawazuConvert(text)).GetAwaiter().GetResult();
 			result = result.Replace('ゔ', 'v');
+			result = result.Replace("mp", "np");
+			result = result.Replace("mb", "nb");
 			return result;
 		}
 
