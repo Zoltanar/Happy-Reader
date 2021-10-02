@@ -17,6 +17,7 @@ namespace Happy_Reader
 		private readonly List<TranslationResults> _partResults = new();
 		private readonly List<Entry> _entriesUsedStageOne = new();
 		public readonly string[] Results = new string[8];
+		public readonly string Untouched;
 		public readonly string Original;
 		public string Romaji { get; }
 		public string Output => Results[7];
@@ -29,6 +30,7 @@ namespace Happy_Reader
 
 		public Translation(string original, bool translate)
 		{
+			Untouched = original;
 			var stageOneResult = new TranslationResults(true);
 			if (!translate)
 			{

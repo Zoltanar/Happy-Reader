@@ -20,6 +20,7 @@ Before reporting issues or requesting features, please see [Goals](https://githu
 - Enter /H Hook Code if available
 - Back on `Games` Tab, launch Game by clicking `Off` button, or right-click and choose specific launch mode
 - In launched game, progress to dialog section
+- It is highly advised that you change the text speed in game to the maximum, to prevent text being broken up or repeated
 - Back on Happy Reader, switch to `Text Hooking` tab
 - Look for dialog text in the text thread panels or
 - use the command ':s' or :sa' followed by the text to search for Happy Reader to search for the text

@@ -121,9 +121,8 @@ namespace Happy_Reader.ViewModel
 			SettingsViewModel = Happy_Apps_Core.SettingsJsonFile.Load<SettingsViewModel>(AllSettingsJson);
 			StaticMethods.Settings = SettingsViewModel;
 			CSettings = SettingsViewModel.CoreSettings;
-			IthVnrSharpLib.StaticHelpers.LogToFileAction = StaticHelpers.Logger.ToFile;
-			IthVnrSharpLib.StaticHelpers.LogToDebugAction = StaticHelpers.Logger.ToDebug;
-			IthVnrSharpLib.StaticHelpers.LogExceptionToFileAction = StaticHelpers.Logger.ToFile;
+			IthVnrSharpLib.StaticHelpers.Initialise(IthVnrSettingsJson, StaticHelpers.Logger.ToFile, StaticHelpers.Logger.ToDebug, StaticHelpers.Logger.ToFile);
+			StaticMethods.Settings.IthVnrSettings = IthVnrSharpLib.StaticHelpers.Settings;
 			SettingsViewModel.TranslatorSettings.CaptureClipboardChanged = CaptureClipboardSettingChanged;
 			StaticMethods.AllFilters = Happy_Apps_Core.SettingsJsonFile.Load<FiltersData>(StaticMethods.AllFiltersJson, StaticMethods.SerialiserSettings);
 			InformationViewModel = new InformationViewModel();
@@ -366,17 +365,17 @@ namespace Happy_Reader.ViewModel
 		public void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
 		//todo make editable
-		private static readonly HashSet<string> ClipboardProcessNames = new (new [] {"ithvnr", "ithvnrsharp", "textractor"});
+		private static readonly HashSet<string> ClipboardProcessNames = new (new [] {"ithvnr", "ithvnrsharp", "textractor"}, StringComparer.OrdinalIgnoreCase);
 
 		private void ClipboardChanged(object sender, EventArgs e)
 		{
 			if (TranslatePaused || StaticMethods.CtrlKeyIsHeld()) return;
 			if (UserGame?.Process == null) return;
 			var cpOwner = StaticMethods.GetClipboardOwner();
-			var b1 = cpOwner == null;
-			var b2 = cpOwner?.Id == UserGame.Process.Id;
-			var b3 = cpOwner != null && ClipboardProcessNames.Contains(cpOwner.ProcessName.ToLower());
-			if (!(b1 || b2 || b3)) return; //if process isn't hooked process or in list of allowed names
+			var noOwner = cpOwner == null;
+			var userGameOwner = cpOwner?.Id == UserGame.Process.Id;
+			var allowedOwner = cpOwner != null && ClipboardProcessNames.Contains(cpOwner.ProcessName);
+			if (!(noOwner || userGameOwner || allowedOwner)) return; //if process isn't hooked process or in list of allowed names
 			var text = RunWithRetries(
 				Clipboard.GetText,
 				() => Thread.Sleep(10),
@@ -397,7 +396,8 @@ namespace Happy_Reader.ViewModel
 				if (TranslatePaused) return false;
 				if (StaticMethods.CtrlKeyIsHeld()) return false;
 				Logger.Verbose($"{nameof(RunTranslation)} - {e}");
-				if (UserGame.Process == null) return false;
+				if (UserGame.Process == null ||
+				    StaticMethods.DispatchIfRequired(()=> OutputWindowViewModel.IsClipboardCopy(e))) return false;
 				TestViewModel.OriginalText = e.Text;
 				var translation = Translator.Instance.Translate(User, TestViewModel.EntryGame, e.Text, false, UserGame?.GameHookSettings.RemoveRepetition ?? false);
 				if (string.IsNullOrWhiteSpace(translation?.Output)) return false;

@@ -275,7 +275,7 @@ namespace Happy_Reader
 			else Application.Current.Dispatcher.Invoke(action, timeout);
 		}
 
-		private static T DispatchIfRequired<T>(Func<T> action)
+		public static T DispatchIfRequired<T>(Func<T> action)
 		{
 			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			return Application.Current.Dispatcher.CheckAccess() ? action() : Application.Current.Dispatcher.Invoke(action);

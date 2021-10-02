@@ -10,6 +10,7 @@ using System.Windows.Input;
 using Happy_Reader.Database;
 using Happy_Reader.TranslationEngine;
 using Happy_Reader.View;
+using IthVnrSharpLib;
 using JetBrains.Annotations;
 
 namespace Happy_Reader.ViewModel
@@ -182,5 +183,11 @@ namespace Happy_Reader.ViewModel
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 
+		public bool IsClipboardCopy(TextOutputEventArgs textOutput)
+		{
+			var last = _translations.Items.LastOrDefault();
+			var result = last != null && textOutput.FromClipboard && textOutput.Text.Equals(last.Untouched);
+			return result;
+		}
 	}
 }

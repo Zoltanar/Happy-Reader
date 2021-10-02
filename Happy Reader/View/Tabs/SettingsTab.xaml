@@ -113,9 +113,12 @@
 			</StackPanel>
 		</GroupBox>
 		<GroupBox Header="Translation Settings" Grid.Row="2" DataContext="{Binding TranslatorSettings}">
-			<StackPanel x:Name="PluginSettingsPanel">
-				<CheckBox Content="Capture Clipboard" IsChecked="{Binding CaptureClipboard}"/>
-				<Grid>
+				<StackPanel x:Name="PluginSettingsPanel">
+					<CheckBox Content="Capture Clipboard" IsChecked="{Binding CaptureClipboard}" ToolTip="Capture text in clipboard and post it in Output Window"/>
+					<CheckBox Content="Copy Input to Clipboard" 
+					          IsChecked="{Binding DataContext.IthVnrSettings.ClipboardFlag, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+					          ToolTip="Copy hooked text to clipboard, for use in other programs."/>
+					<Grid>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="160"/>
 						<ColumnDefinition/>

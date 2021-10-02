@@ -1,5 +1,7 @@
 ﻿using Happy_Apps_Core;
+using IthVnrSharpLib;
 using Newtonsoft.Json;
+using SettingsJsonFile = Happy_Apps_Core.SettingsJsonFile;
 
 namespace Happy_Reader.ViewModel
 {
@@ -34,6 +36,7 @@ namespace Happy_Reader.ViewModel
 		public CoreSettings CoreSettings { get; set; }
 		public GuiSettings GuiSettings { get; set; }
 		public TranslatorSettings TranslatorSettings { get; set; }
+		[JsonIgnore] public IthVnrSettings IthVnrSettings { get; set; }
 		
 		public SettingsViewModel()
 		{
