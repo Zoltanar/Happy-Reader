@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -296,9 +297,13 @@ namespace Happy_Apps_Core
 			Items = 38,
 			Personality = 39,
 			Role = 40,
+			[Description("Engages in")]
 			EngagesIn = 41,
+			[Description("Subject of")]
 			SubjectOf = 42,
+			[Description("Engages in (Sexual)")]
 			EngagesInSexual = 43,
+			[Description("Subject of (Sexual)")]
 			SubjectOfSexual = 1625
 		}
 

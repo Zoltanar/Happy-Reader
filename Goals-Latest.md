@@ -40,7 +40,7 @@
 - DatabaseDumpReader: Parallelise?
 - Logs: Link to folder, show size taken, option to clear.
 - Information Tab: Show Size of Vndb Images, show total size.
-- Use Screenshot Thumbnails when full-size is not found.
+- **Use Screenshot Thumbnails when full-size is not found.**
 - Database Tab: Sort by Random
 - style scrollbars
 

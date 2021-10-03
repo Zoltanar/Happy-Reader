@@ -281,12 +281,12 @@ namespace Happy_Apps_Core.Database
 
 		public bool HasLanguage(string value)
 		{
-			return LanguagesObject.All.Contains(value);
+			return LanguagesObject.All.Contains(value, StringComparer.OrdinalIgnoreCase);
 		}
 
 		public bool HasOriginalLanguage(string value)
 		{
-			return LanguagesObject.Originals.Contains(value);
+			return LanguagesObject.Originals.Contains(value, StringComparer.OrdinalIgnoreCase);
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;

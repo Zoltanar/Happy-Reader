@@ -175,7 +175,7 @@ namespace Happy_Reader
 		}
 
 		/// <summary>
-		/// Truncates strings if they are longer than 'maxChars' (minimum is 4 characters).
+		/// Truncates strings if they are longer than <see cref="maxChars"/> (minimum is 4 characters).
 		/// </summary>
 		/// <param name="maxChars">The maximum number of characters</param>
 		/// <returns>Truncated string</returns>
