@@ -7,39 +7,34 @@ using Happy_Apps_Core.Translation;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace HRDeepLTranslate
+namespace HRYandexTranslate
 {
 	// ReSharper disable once UnusedType.Global used with plugin model.
-	public class DeepLTranslate : ITranslator
+	public class YandexTranslate : ITranslator
 	{
-		private const string TranslationFailed = @"Translation failed: ";
-		private const string UrlPropertyName = @"API Url";
-		private const string AuthKeyPropertyName = @"Authentication Key";
-		private const string PreventDetailsPropertyName = @"Prevent Details";
-
-		public string Version => @"1.1";
-		public string SourceName => @"DeepL API";
-
-		private static readonly HttpClient FreeClient = new();
-		private FreeSettings Settings { get; set; }
-
+		public string Version => "1.0";
+		public string SourceName => "Yandex API";
 		public IReadOnlyDictionary<string, Type> Properties { get; } = new ReadOnlyDictionary<string, Type>(new Dictionary<string, Type>
 		{
 			{UrlPropertyName, typeof(string)},
-			{AuthKeyPropertyName, typeof(string)},
-			{PreventDetailsPropertyName, typeof(bool)}
+			{ApiKeyPropertyName, typeof(string)}
 		});
-
 		public string Error { get; set; }
+
+		private const string TranslationFailed = @"Translation failed: ";
+		private const string UrlPropertyName = @"API Url";
+		private const string ApiKeyPropertyName = @"API Key";
+		private static readonly HttpClient FreeClient = new();
+		private YandexSettings Settings { get; set; }
 
 		public void Initialise()
 		{
-			Error = string.IsNullOrWhiteSpace(Settings.AuthenticationKey) ? "Authentication Key is not set" : null;
+			Error = string.IsNullOrWhiteSpace(Settings.ApiKey) ? "API Key is not set" : null;
 		}
 
 		public void LoadProperties(string filePath)
 		{
-			Settings = SettingsJsonFile.Load<FreeSettings>(filePath);
+			Settings = SettingsJsonFile.Load<YandexSettings>(filePath);
 		}
 
 		public void SaveProperties(string filePath)
@@ -55,11 +50,8 @@ namespace HRDeepLTranslate
 				case UrlPropertyName when value is string url:
 					Settings.Url = url;
 					break;
-				case AuthKeyPropertyName when value is string authenticationKey:
-					Settings.AuthenticationKey = authenticationKey;
-					break;
-				case PreventDetailsPropertyName when value is bool preventDetails:
-					Settings.PreventDetails = preventDetails;
+				case ApiKeyPropertyName when value is string apiKey:
+					Settings.ApiKey = apiKey;
 					break;
 				default:
 					throw new ArgumentOutOfRangeException(propertyName,
@@ -72,8 +64,7 @@ namespace HRDeepLTranslate
 			return propertyName switch
 			{
 				UrlPropertyName => Settings.Url,
-				AuthKeyPropertyName => Settings.AuthenticationKey,
-				PreventDetailsPropertyName => Settings.PreventDetails,
+				ApiKeyPropertyName => Settings.ApiKey,
 				_ => throw new ArgumentOutOfRangeException(propertyName, $"Property not found: '{propertyName}'.")
 			};
 		}
@@ -87,7 +78,6 @@ namespace HRDeepLTranslate
 				if (!success) return false;
 				success = TryDeserializeJsonResponse(output, out output);
 				if (!success) return false;
-				if (Settings.PreventDetails && input.Length <= 4) PreventDetails(ref output);
 				return true;
 			}
 			catch (Exception ex)
@@ -98,18 +88,9 @@ namespace HRDeepLTranslate
 			}
 		}
 
-		private void PreventDetails(ref string output)
-		{
-			var openBracket = output.IndexOf('(');
-			if (openBracket <= 0) return;
-			var closeBracket = output.IndexOf(')', openBracket);
-			if (closeBracket == -1 || closeBracket != output.Length-1) return;
-			output = output.Substring(0, openBracket).Trim();
-		}
-
 		private string FormUrl(string input)
 		{
-			return $"{Settings.Url}&auth_key={Settings.AuthenticationKey}&text={Uri.EscapeDataString(input)}";
+			return $"{Settings.Url}&key={Settings.ApiKey}&text={Uri.EscapeDataString(input)}";
 		}
 
 		private static bool GetPostResultAsString(HttpClient client, string url, out string output)
@@ -134,22 +115,22 @@ namespace HRDeepLTranslate
 			output = response;
 			return true;
 		}
-		
+
 		private static bool TryDeserializeJsonResponse(string jsonString, out string translated)
 		{
 			translated = null;
 			try
 			{
 				var jObject = JsonConvert.DeserializeObject<JObject>(jsonString) ?? throw new InvalidOperationException("Json Response was null.");
-				var message = jObject["message"];
-				if (message != null)
+				var code = jObject["code"];
+				if (code?.Value<int>() != 200)
 				{
-					translated = message.Value<string>();
+					translated = jsonString;
 					return false;
 				}
-				var translationsObject = jObject["translations"] ?? throw new InvalidOperationException("Translations object not found");
+				var translationsObject = jObject["text"] ?? throw new InvalidOperationException("Translations object not found");
 				var firstTranslation = translationsObject.First ?? throw new InvalidOperationException("Translations object was empty.");
-				translated = (firstTranslation["text"] ?? throw new InvalidOperationException("Text element not found.")).Value<string>();
+				translated = firstTranslation.Value<string>();
 				return true;
 			}
 			catch (Exception ex)
@@ -158,46 +139,33 @@ namespace HRDeepLTranslate
 				return false;
 			}
 		}
-	}
 
-	public class FreeSettings : SettingsJsonFile
-	{
-		private string _url = @"https://api-free.deepl.com/v2/translate?source_lang=JA&target_lang=EN-US&split_sentences=0";
-		private string _authenticationKey = string.Empty;
-		private bool _preventDetails = true;
-
-		public string Url
+		public class YandexSettings : SettingsJsonFile
 		{
-			get => _url;
-			set
+			private string _url = @"https://translate.yandex.net/api/v1.5/tr.json/translate?lang=ja-en&format=plain";
+			private string _apiKey = string.Empty;
+
+			public string Url
 			{
-				if (_url == value) return;
-				_url = value;
-				if (Loaded) Save();
+				get => _url;
+				set
+				{
+					if (_url == value) return;
+					_url = value;
+					if (Loaded) Save();
+				}
+			}
+
+			public string ApiKey
+			{
+				get => _apiKey;
+				set
+				{
+					if (_apiKey == value) return;
+					_apiKey = value;
+					if (Loaded) Save();
+				}
 			}
 		}
-
-		public string AuthenticationKey
-		{
-			get => _authenticationKey;
-			set
-			{
-				if (_authenticationKey == value) return;
-				_authenticationKey = value;
-				if (Loaded) Save();
-			}
-		}
-
-		public bool PreventDetails
-		{
-			get => _preventDetails;
-			set
-			{
-				if (_preventDetails == value) return;
-				_preventDetails = value;
-				if (Loaded) Save();
-			}
-		}
-
 	}
 }

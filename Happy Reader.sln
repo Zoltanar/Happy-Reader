@@ -60,6 +60,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vnragent", "IthVnrSharpLib\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HRDeepLTranslate", "HRDeepLTranslate\HRDeepLTranslate.csproj", "{ADA8AB4D-41F1-496C-B7EB-6B7B7A0C487F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HRYandexTranslate", "HRYandexTranslate\HRYandexTranslate.csproj", "{D7D4E67B-4920-4331-B61D-01AAA50518BF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|64HR86ELSE = Debug|64HR86ELSE
@@ -260,12 +262,28 @@ Global
 		{ADA8AB4D-41F1-496C-B7EB-6B7B7A0C487F}.Release|x64.Build.0 = Release|Any CPU
 		{ADA8AB4D-41F1-496C-B7EB-6B7B7A0C487F}.Release|x86.ActiveCfg = Release|x86
 		{ADA8AB4D-41F1-496C-B7EB-6B7B7A0C487F}.Release|x86.Build.0 = Release|x86
+		{D7D4E67B-4920-4331-B61D-01AAA50518BF}.Debug|64HR86ELSE.ActiveCfg = Debug|Any CPU
+		{D7D4E67B-4920-4331-B61D-01AAA50518BF}.Debug|64HR86ELSE.Build.0 = Debug|Any CPU
+		{D7D4E67B-4920-4331-B61D-01AAA50518BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7D4E67B-4920-4331-B61D-01AAA50518BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7D4E67B-4920-4331-B61D-01AAA50518BF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D7D4E67B-4920-4331-B61D-01AAA50518BF}.Debug|x64.Build.0 = Debug|Any CPU
+		{D7D4E67B-4920-4331-B61D-01AAA50518BF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D7D4E67B-4920-4331-B61D-01AAA50518BF}.Debug|x86.Build.0 = Debug|Any CPU
+		{D7D4E67B-4920-4331-B61D-01AAA50518BF}.Release|64HR86ELSE.ActiveCfg = Release|Any CPU
+		{D7D4E67B-4920-4331-B61D-01AAA50518BF}.Release|64HR86ELSE.Build.0 = Release|Any CPU
+		{D7D4E67B-4920-4331-B61D-01AAA50518BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7D4E67B-4920-4331-B61D-01AAA50518BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7D4E67B-4920-4331-B61D-01AAA50518BF}.Release|x64.ActiveCfg = Release|Any CPU
+		{D7D4E67B-4920-4331-B61D-01AAA50518BF}.Release|x64.Build.0 = Release|Any CPU
+		{D7D4E67B-4920-4331-B61D-01AAA50518BF}.Release|x86.ActiveCfg = Release|Any CPU
+		{D7D4E67B-4920-4331-B61D-01AAA50518BF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {2C3F6D43-6AFB-44A6-91C8-7E90A5625DE8}
 		Qt5Version = 5.15.0_msvc2019
+		SolutionGuid = {2C3F6D43-6AFB-44A6-91C8-7E90A5625DE8}
 	EndGlobalSection
 EndGlobal
