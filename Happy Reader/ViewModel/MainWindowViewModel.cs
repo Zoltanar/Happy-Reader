@@ -363,10 +363,7 @@ namespace Happy_Reader.ViewModel
 
 		[NotifyPropertyChangedInvocator]
 		public void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-		//todo make editable
-		private static readonly HashSet<string> ClipboardProcessNames = new (new [] {"ithvnr", "ithvnrsharp", "textractor"}, StringComparer.OrdinalIgnoreCase);
-
+		
 		private void ClipboardChanged(object sender, EventArgs e)
 		{
 			if (TranslatePaused || StaticMethods.CtrlKeyIsHeld()) return;
@@ -374,7 +371,7 @@ namespace Happy_Reader.ViewModel
 			var cpOwner = StaticMethods.GetClipboardOwner();
 			var noOwner = cpOwner == null;
 			var userGameOwner = cpOwner?.Id == UserGame.Process.Id;
-			var allowedOwner = cpOwner != null && ClipboardProcessNames.Contains(cpOwner.ProcessName);
+			var allowedOwner = cpOwner != null && SettingsViewModel.TranslatorSettings.ClipboardProcessNames.Contains(cpOwner.ProcessName);
 			if (!(noOwner || userGameOwner || allowedOwner)) return; //if process isn't hooked process or in list of allowed names
 			var text = RunWithRetries(
 				Clipboard.GetText,

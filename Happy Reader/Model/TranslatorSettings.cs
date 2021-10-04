@@ -43,6 +43,9 @@ namespace Happy_Reader
 		//todo make editable
 		public HashSet<string> UntouchedStrings { get; set; } = new() { "", "\r\n" };
 
+		//todo make editable
+		public HashSet<string> ClipboardProcessNames { get; set; }  = new(new[] { "ithvnr", "ithvnrsharp", "textractor" }, StringComparer.OrdinalIgnoreCase);
+
 		//not sure if this has to be made editable in GUI
 		public string ExclusiveSeparators { get; set; } = "『「」』…♥";
 		public string InclusiveSeparators { get; set; } = "。？！";
