@@ -15,7 +15,6 @@
 - show if translation was cached or not and give option to re-fetch
 - list entries used per stage.
 #### Text Hooking
-- **allow editable Clipboard owner list (no gui needed at this point)**
 - use tab to also show captured clipboard text format like: \[process/pid] \[outputted] \[text]
 - let user name threads and delete saved
 - VnrHook: handle maximum threads either change limit or reset ability
@@ -40,7 +39,6 @@
 - DatabaseDumpReader: Parallelise?
 - Logs: Link to folder, show size taken, option to clear.
 - Information Tab: Show Size of Vndb Images, show total size.
-- **Use Screenshot Thumbnails when full-size is not found.**
 - Database Tab: Sort by Random
 - style scrollbars
 

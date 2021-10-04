@@ -398,21 +398,26 @@ namespace Happy_Apps_Core
 			throw new InvalidOperationException($"Method '{nameof(RunWithRetries)}' should not return here.");
 		}
 
-		private static string GetImageLocation(string imageId)
+		private static string GetImageLocation(string imageId, string overrideFolder = null)
 		{
-			var folder = imageId.Substring(0, 2);
+			var folder = overrideFolder ?? imageId.Substring(0, 2);
 			var id = int.Parse(imageId.Substring(2));
 			var filePath = Path.GetFullPath($"{CSettings.ImageFolderPath}\\{folder}\\{id % 100:00}\\{id}.jpg");
 			return filePath;
 		}
 
-		public static string GetImageSource(string imageId, ref bool imageSourceSet, ref string imageSource)
+		public static string GetImageSource(string imageId, ref bool imageSourceSet, ref string imageSource, string backupFolder = null)
 		{
 			if (imageId == null) return null;
 			if (!imageSourceSet)
 			{
 				var filePath = GetImageLocation(imageId);
 				imageSource = File.Exists(filePath) ? filePath : null;
+				if (imageSource == null && backupFolder != null)
+				{
+					filePath = GetImageLocation(imageId, backupFolder);
+					imageSource = File.Exists(filePath) ? filePath : null;
+				}
 				imageSourceSet = true;
 			}
 			return imageSource;

@@ -16,6 +16,6 @@ namespace Happy_Apps_Core
 		/// Get path of stored screenshot
 		/// </summary>
 		[JsonIgnore]
-		public string StoredLocation => StaticHelpers.GetImageSource(ImageId, ref _imageSourceSet, ref _imageSource);
+		public string StoredLocation => StaticHelpers.GetImageSource(ImageId, ref _imageSourceSet, ref _imageSource, "st");
 	}
 }
