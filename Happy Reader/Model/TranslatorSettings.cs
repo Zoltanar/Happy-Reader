@@ -34,6 +34,7 @@ namespace Happy_Reader
 		private bool _showTagsOnMouseover;
 		private bool _outputOriginal;
 		private bool _outputRomaji;
+		private bool _outputTranslation;
 		private VerticalAlignment _outputVerticalAlignment = VerticalAlignment.Top;
 		private TextAlignment _outputHorizontalAlignment = TextAlignment.Center;
 
@@ -336,6 +337,17 @@ namespace Happy_Reader
 			{
 				if (_outputRomaji == value) return;
 				_outputRomaji = value;
+				if (Loaded) Save();
+			}
+		}
+
+		public bool OutputTranslation
+		{
+			get => _outputTranslation;
+			set
+			{
+				if (_outputTranslation == value) return;
+				_outputTranslation = value;
 				if (Loaded) Save();
 			}
 		}

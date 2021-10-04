@@ -49,11 +49,12 @@ namespace Happy_Reader.View
 		public void AddTranslation(Translation translation)
 		{
 			if (!InitialisedWindowLocation) _initialiseWindowForGame?.Invoke();
-			if (!IsVisible && !translation.IsError) Show();
 			if (!_loaded) OutputWindow_OnLoaded(null, null);
+			var anyEnabled = _viewModel.OriginalOn || _viewModel.RomajiOn || _viewModel.TranslationOn;
+			if (!IsVisible && !translation.IsError && anyEnabled) Show();
 			_viewModel.AddTranslation(translation);
-			_viewModel.UpdateOutput();
-			if (FullScreenOn) Activate();
+			if(anyEnabled) _viewModel.UpdateOutput();
+			if (anyEnabled && FullScreenOn) Activate();
 		}
 
 		internal void SetLocation(NativeMethods.RECT rectangle)
@@ -84,6 +85,7 @@ namespace Happy_Reader.View
 			_viewModel.SettingsOn = StaticMethods.Settings.TranslatorSettings.SettingsViewState;
 			_viewModel.OriginalOn = StaticMethods.Settings.TranslatorSettings.OutputOriginal;
 			_viewModel.RomajiOn = StaticMethods.Settings.TranslatorSettings.OutputRomaji;
+			_viewModel.TranslationOn = StaticMethods.Settings.TranslatorSettings.OutputTranslation;
 			var tColor = StaticMethods.Settings.TranslatorSettings.TranslatedColor.Color.Color;
 			var darkerColor = System.Windows.Media.Color.FromRgb((byte)(tColor.R * 0.75), (byte)(tColor.G * 0.75), (byte)(tColor.B * 0.75));
 			var dropShadowEffect = new System.Windows.Media.Effects.DropShadowEffect

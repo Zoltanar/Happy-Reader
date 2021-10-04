@@ -28,11 +28,11 @@ namespace Happy_Reader
 		public Paragraph ErrorBlock { get; private set; }
 		public bool IsError { get; private set; }
 
-		public Translation(string original, bool translate)
+		public Translation(string original, bool modify)
 		{
 			Untouched = original;
 			var stageOneResult = new TranslationResults(true);
-			if (!translate)
+			if (!modify)
 			{
 				for (int i = 0; i < Results.Length; i++) Results[i] = original;
 				Original = original;
@@ -137,13 +137,13 @@ namespace Happy_Reader
 			block.FontFamily = fontFamily;
 		}
 
-		public List<Paragraph> GetBlocks(bool original, bool romaji)
+		public List<Paragraph> GetBlocks(bool original, bool romaji, bool translation)
 		{
 			var blocks = new List<Paragraph>();
 			if (IsError) blocks.Add(ErrorBlock);
 			if (original && OriginalBlock != null) blocks.Add(OriginalBlock);
 			if (romaji && RomajiBlock != null) blocks.Add(RomajiBlock);
-			if (TranslatedBlock != null) blocks.Add(TranslatedBlock);
+			if (translation && TranslatedBlock != null) blocks.Add(TranslatedBlock);
 			foreach (Paragraph block in blocks)
 			{
 				block.Margin = new Thickness(0);
@@ -151,6 +151,7 @@ namespace Happy_Reader
 				block.FontSize = StaticMethods.Settings.TranslatorSettings.FontSize;
 				block.Tag = this;
 			}
+			if (!blocks.Any()) return blocks;
 			var spacer = new Paragraph(new Run("￣￣￣"));
 			spacer.Inlines.FirstInline.Foreground = Brushes.White;
 			spacer.Margin = new Thickness(0);

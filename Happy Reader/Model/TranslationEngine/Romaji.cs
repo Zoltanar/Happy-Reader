@@ -25,7 +25,7 @@ namespace Happy_Reader.TranslationEngine
 		{
 			ReplacePreRomaji(text, result);
 			var parts = new List<(string Part, bool Translate)>();
-			SplitInputIntoParts(text.ToString(), parts);
+			SplitInputIntoParts(text.ToString(), parts, true);
 			text.Clear();
 			foreach (var part in parts) text.Append(part.Translate ? GetRomaji(part.Part) : part.Part);
 			ReplacePostRomaji(text, result);

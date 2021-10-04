@@ -19,6 +19,7 @@ namespace Happy_Reader.ViewModel
 	{
 		private bool _originalOn;
 		private bool _romajiOn;
+		private bool _translationOn;
 		private DateTime _lastOutputTime;
 		private Func<string> _getSelectedText;
 		private Action _scrollToBottom;
@@ -54,6 +55,16 @@ namespace Happy_Reader.ViewModel
 			{
 				_romajiOn = value;
 				StaticMethods.Settings.TranslatorSettings.OutputRomaji = value;
+				UpdateOutput();
+			}
+		}
+		public bool TranslationOn
+		{
+			get => _translationOn;
+			set
+			{
+				_translationOn = value;
+				StaticMethods.Settings.TranslatorSettings.OutputTranslation = value;
 				UpdateOutput();
 			}
 		}
@@ -130,7 +141,7 @@ namespace Happy_Reader.ViewModel
 		public void UpdateOutput()
 		{
 			_flowDocument.Blocks.Clear();
-			IEnumerable<Paragraph> items = _translations.Items.SelectMany(t => t.GetBlocks(_originalOn, _romajiOn));
+			IEnumerable<Paragraph> items = _translations.Items.SelectMany(t => t.GetBlocks(_originalOn, _romajiOn, _translationOn));
 			var fromBottom = StaticMethods.Settings.TranslatorSettings.OutputVerticalAlignment == VerticalAlignment.Bottom;
 			if (fromBottom) items = items.Reverse();
 			_flowDocument.Blocks.AddRange(items);

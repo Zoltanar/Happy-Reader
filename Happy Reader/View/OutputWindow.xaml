@@ -103,6 +103,7 @@
 				<ToggleButton Style="{StaticResource MiniIconStyle}" Tag="FS,Fullscreen" DockPanel.Dock="Top" Content="Fullscreen" IsChecked="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=view:OutputWindow}, Path=FullScreenOn}" />
 				<ToggleButton Style="{StaticResource MiniIconStyle}" Tag="字,Original" DockPanel.Dock="Top" Content="Original" IsChecked="{Binding OriginalOn}" />
 				<ToggleButton Style="{StaticResource MiniIconStyle}" Tag="Ro,Romaji" DockPanel.Dock="Top" Content="Romaji" IsChecked="{Binding RomajiOn}" />
+				<ToggleButton Style="{StaticResource MiniIconStyle}" Tag="Tr,Translation" DockPanel.Dock="Top" Content="Translation" IsChecked="{Binding TranslationOn}" />
 				<ToggleButton Style="{StaticResource MiniIconStyle}" Tag="⏸,Paused" DockPanel.Dock="Top" Content="Paused" IsChecked="{Binding TranslatePaused}" />
 				<Button DockPanel.Dock="Top" Style="{StaticResource MiniIconBaseStyle}" Tag="TA,Text Align" Content="Text Align" Click="HorizontalAlignmentClick" />
 				<Button DockPanel.Dock="Top" Style="{StaticResource MiniIconBaseStyle}" Tag="VD,Vert Direct" Content="Vert Direct" Click="VerticalAlignmentClick" />

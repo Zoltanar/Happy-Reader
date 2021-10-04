@@ -85,7 +85,7 @@ namespace Happy_Reader.TranslationEngine
 				if (user != _lastUser || !game.Equals(_lastGame) || RefreshEntries) SetEntries(user, game);
 				if (LatinOnlyRegex.IsMatch(input)) return Translation.Error("Input was Latin only.");
 				var item = new Translation(input, true);
-				SplitInputIntoParts(item.Original, item.Parts);
+				SplitInputIntoParts(item.Original, item.Parts,false);
 				item.TranslateParts(saveEntriesUsed);
 				return item;
 			}
@@ -157,7 +157,7 @@ namespace Happy_Reader.TranslationEngine
 			return skip != indexOfSecondBracket ? input : input.Substring(skip);
 		}
 
-		private void SplitInputIntoParts(string input, ICollection<(string Part, bool Translate)> parts)
+		private void SplitInputIntoParts(string input, ICollection<(string Part, bool Translate)> parts, bool forRomaji)
 		{
 			int index = 0;
 			string currentPart = "";
@@ -169,7 +169,8 @@ namespace Happy_Reader.TranslationEngine
 					if (_inclusiveSeparators.Contains(@char))
 					{
 						currentPart += @char;
-						parts.Add((currentPart, !currentPart.All(c => _allSeparators.Contains(c)) && !LatinOnlyRegex.IsMatch(currentPart)));
+						var translatePart = !currentPart.All(c => _allSeparators.Contains(c)) && !LatinOnlyRegex.IsMatch(currentPart);
+						parts.Add((currentPart, translatePart && (_settings.OutputTranslation || forRomaji)));
 					}
 					else
 					{
@@ -177,7 +178,7 @@ namespace Happy_Reader.TranslationEngine
 						{
 							//not empty, not all separators, not latin only
 							var translatePart = !string.IsNullOrWhiteSpace(currentPart) && !currentPart.All(c => _allSeparators.Contains(c)) && !LatinOnlyRegex.IsMatch(currentPart);
-							parts.Add((currentPart, translatePart));
+							parts.Add((currentPart, translatePart && (_settings.OutputTranslation || forRomaji)));
 						}
 						parts.Add((@char.ToString(), false));
 					}
@@ -191,7 +192,7 @@ namespace Happy_Reader.TranslationEngine
 			if (currentPart.Length > 0)
 			{
 				var translatePart = !string.IsNullOrWhiteSpace(currentPart) && !currentPart.All(c => _allSeparators.Contains(c)) && !LatinOnlyRegex.IsMatch(currentPart);
-				parts.Add((currentPart, translatePart));
+				parts.Add((currentPart, translatePart && (_settings.OutputTranslation || forRomaji)));
 			}
 		}
 

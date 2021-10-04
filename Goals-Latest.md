@@ -6,7 +6,6 @@
 - export/import translation cache
 - option to do this automatically: remove translations from cache if not used recently or originally cached too long ago.
 - apply translate stage 4 to pre-romaji
-- **allow no translation shown**
 - allow multiple translators at the same time
 #### Filters
 - set default filter (different from permanent filter)
