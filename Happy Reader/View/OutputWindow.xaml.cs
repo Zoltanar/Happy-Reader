@@ -91,6 +91,7 @@ namespace Happy_Reader.View
 				Color = darkerColor
 			};
 			OutputTextBox.Effect = dropShadowEffect;
+			UpdateSettingToggles(sender, e);
 			_viewModel.OnPropertyChanged(null);
 			_loaded = true;
 		}

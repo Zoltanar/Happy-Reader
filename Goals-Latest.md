@@ -21,7 +21,6 @@
 - look at global hooks for changing ITHVNR settings via global hotkeys [GlobalMouseKeyHook](https://github.com/gmamaladze/globalmousekeyhook)
 #### Output Window
 - alternate colors between blocks
-- **properly load settings mode (mini or full)**
 #### User Games
 - see details should change to correct user game tab when multiple user games for one vn
 - allow keeping time played for multiple games/allow process monitor to keep running always/make process monitor only have one instance
