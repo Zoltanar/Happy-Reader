@@ -185,8 +185,8 @@ namespace Happy_Reader.ViewModel
 
 		public bool IsClipboardCopy(TextOutputEventArgs textOutput)
 		{
-			var last = _translations.Items.LastOrDefault();
-			var result = last != null && textOutput.FromClipboard && textOutput.Text.Equals(last.Untouched);
+			var translation = _translations.Items.FirstOrDefault();
+			var result = translation != null && textOutput.FromClipboard && textOutput.Text.Equals(translation.Untouched);
 			return result;
 		}
 	}
