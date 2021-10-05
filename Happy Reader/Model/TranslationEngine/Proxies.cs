@@ -84,7 +84,7 @@ namespace Happy_Reader.TranslationEngine
 			var proxyParts = entry.RoleString.Split('.');
 			var mainProxy = proxyParts[0];
 			var proxy = GetProxy(entry.RoleString);
-			if (proxy == null && proxyParts.Any()) GetProxy(mainProxy);
+			if (proxy == null && proxyParts.Any()) proxy = GetProxy(mainProxy);
 			proxies[mainProxy].Count++;
 			if (proxy == null && dequeue)
 			{
@@ -116,8 +116,20 @@ namespace Happy_Reader.TranslationEngine
 			RoleProxy GetProxy(string roleString)
 			{
 				var proxiesWithCount = proxies[roleString];
-				return proxiesWithCount.Proxies.Count == 0 ? null :
-					!dequeue ? proxiesWithCount.Proxies.Count<proxiesWithCount.Used+1 ? null : proxiesWithCount.Proxies.ElementAt(proxiesWithCount.Used++) : proxiesWithCount.Proxies.Dequeue();
+				if (proxiesWithCount.Proxies.Count == 0) return null;
+				RoleProxy result;
+				if (dequeue)
+				{
+					result = proxiesWithCount.Proxies.Dequeue();
+				}
+				else
+				{
+					result = proxiesWithCount.Proxies.Count < proxiesWithCount.Used + 1
+						? null
+						: proxiesWithCount.Proxies.ElementAt(proxiesWithCount.Used++);
+				}
+
+				return result;
 			}
 		}
 
@@ -139,7 +151,7 @@ namespace Happy_Reader.TranslationEngine
 				loopCount++;
 				foreach (var entry in proxyMods)
 				{
-					ResolveProxyMod(sb, entriesWithProxies, result, proxies, entry,ref matchFound);
+					ResolveProxyMod(sb, entriesWithProxies, result, proxies, entry, ref matchFound);
 				}
 				//something could have gone wrong causing infinite loop
 				if (loopCount > 100) break;
@@ -149,7 +161,7 @@ namespace Happy_Reader.TranslationEngine
 		}
 
 		private void ResolveProxyMod(StringBuilder sb, ICollection<Entry> entriesWithProxies, TranslationResults result,
-			Dictionary<string, ProxiesWithCount> proxies, Entry proxyMod,ref bool matchFound)
+			Dictionary<string, ProxiesWithCount> proxies, Entry proxyMod, ref bool matchFound)
 		{
 			var input = Stage4P1InputRegex.Replace(proxyMod.Input, @"\[\[$1#(\d+)]]");
 			var matches = Regex.Matches(sb.ToString(), input).Cast<Match>().ToList();
@@ -158,7 +170,7 @@ namespace Happy_Reader.TranslationEngine
 			matchFound = true;
 			foreach (var match in groupedMatches)
 			{
-				ResolveMatchGroup(match, sb,entriesWithProxies,proxies,proxyMod, result);
+				ResolveMatchGroup(match, sb, entriesWithProxies, proxies, proxyMod, result);
 			}
 		}
 
@@ -189,7 +201,7 @@ namespace Happy_Reader.TranslationEngine
 					if (newEntry.AssignedProxy == null) AssignProxy(proxies, newEntry);
 					Debug.Assert(newEntry.AssignedProxy != null, "mergedEntry.AssignedProxy != null");
 					newEntry.AssignedProxy.ProxyMods.AddRange(matchedEntry.AssignedProxy.ProxyMods);
-					newEntry.Output = newEntry.Output.Replace(matchedEntry.AssignedProxy.WithId(index+1), matchedEntry.Output);
+					newEntry.Output = newEntry.Output.Replace(matchedEntry.AssignedProxy.WithId(index + 1), matchedEntry.Output);
 				}
 				else
 				{

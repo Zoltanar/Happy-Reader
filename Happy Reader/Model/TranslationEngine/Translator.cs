@@ -138,8 +138,25 @@ namespace Happy_Reader.TranslationEngine
 			else TranslateStageFive(sb, result);
 			TranslateStageSix(sb, usefulEntriesWithProxies, result);
 			TranslateStageSeven(sb, result);
+			Capitalise(sb, result);
 			return result;
 		}
+
+		private void Capitalise(StringBuilder sb, TranslationResults result)
+		{
+			int i = 0;
+			while (i < sb.Length)
+			{
+				if (char.IsLetter(sb[i]))
+				{
+					sb[i] = char.ToUpperInvariant(sb[i]);
+					result[7] = sb.ToString();
+					return;
+				}
+				i++;
+			}
+		}
+
 
 		/// <summary>
 		/// If start of input is repeated, it is removed.
