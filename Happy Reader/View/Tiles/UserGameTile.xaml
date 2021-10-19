@@ -41,15 +41,15 @@
 			</Setter>
 		</Style>
 	</UserControl.Resources>
-	<Border Background="Salmon" CornerRadius="10">
+	<Border x:Name="OuterBorder" Background="Salmon" CornerRadius="10">
 		<Grid Width="160">
 			<Grid.RowDefinitions>
-				<RowDefinition Height="160"/>
-				<RowDefinition Height="30"/>
-				<RowDefinition Height="Auto" MaxHeight="30"/>
-				<RowDefinition Height="30"/>
+				<RowDefinition Height="160" x:Name="Row1"/>
+				<RowDefinition Height="30" x:Name="Row2"/>
+				<RowDefinition Height="Auto" MaxHeight="30" x:Name="Row3"/>
+				<RowDefinition Height="30" x:Name="Row4"/>
 			</Grid.RowDefinitions>
-			<Border Name="Mask" Background="Salmon" CornerRadius="10"/>
+			<Border x:Name="Mask" Background="Salmon" CornerRadius="10"/>
 			<Grid Grid.Row="0">
 				<Grid.OpacityMask>
 					<VisualBrush Visual="{Binding ElementName=Mask}"/>

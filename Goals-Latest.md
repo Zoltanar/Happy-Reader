@@ -1,7 +1,6 @@
 ﻿# For Latest Committed
 ## Future Features  
 #### Translation
-- **Yandex API Translation**
 - Make mouseover dictionary tooltip nicer
 - export/import translation cache
 - option to do this automatically: remove translations from cache if not used recently or originally cached too long ago.

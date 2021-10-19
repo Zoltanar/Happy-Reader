@@ -14,6 +14,7 @@ using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
 using Happy_Reader.View.Tabs;
+using Happy_Reader.View.Tiles;
 using Happy_Reader.ViewModel;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -382,6 +383,19 @@ namespace Happy_Reader.View
 		{
 			var tab = MainTabControl.Items.OfType<TabItem>().FirstOrDefault(t => ((FrameworkElement)t.Content).DataContext.GetType() == viewModelType);
 			MainTabControl.SelectedItem = tab ?? throw new ArgumentNullException(nameof(tab), $"Did not find tab with ViewModel of type {viewModelType}");
+		}
+
+		private void ActiveGameTileLoaded(object sender, RoutedEventArgs e)
+		{
+			if (sender is not UserGameTile tile) return;
+			tile.Row1.Height = new GridLength(0);
+			tile.Row2.Height = new GridLength(1, GridUnitType.Star);
+			tile.Row3.Height = new GridLength(0);
+			tile.Row4.Height = new GridLength(0);
+			tile.OuterBorder.Background = Brushes.Transparent;
+			tile.OuterBorder.CornerRadius = new CornerRadius(0);
+			tile.Mask.Background = Brushes.Transparent;
+			tile.Mask.CornerRadius = new CornerRadius(0);
 		}
 	}
 }

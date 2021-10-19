@@ -14,7 +14,7 @@ namespace Happy_Reader.View.Tiles
 		private VnMenuItem _vnMenu;
 		private bool _loaded;
 
-		public UserGame UserGame { get; }
+		public UserGame UserGame => (UserGame) DataContext;
 
 		private VnMenuItem VnMenu => _vnMenu ??= new VnMenuItem(UserGame?.VN);
 
@@ -27,7 +27,6 @@ namespace Happy_Reader.View.Tiles
 		{
 			InitializeComponent();
 			DataContext = userGame;
-			UserGame = userGame;
 		}
 
 		public void ViewDetails(object sender, EventArgs e)
@@ -109,8 +108,6 @@ namespace Happy_Reader.View.Tiles
 		{
 			ViewDetails(sender, e);
 		}
-
-
 
 		private void OnMouseUp(object sender, MouseButtonEventArgs e)
 		{
