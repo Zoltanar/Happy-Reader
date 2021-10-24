@@ -77,7 +77,22 @@
 			<Button Margin="2" Content="Toggle Post Others" Command="{Binding TogglePostOthersCommand}"/>
 			<Button Margin="2" Content="Toggle Pause Others"      Command="{Binding TogglePauseOthersCommand}" />
 			<Button Margin="2" Content="Clear Others"      Command="{Binding ClearOtherThreadsCommand}"/>
+			<ToggleButton Margin="2" Name="DeleteSavedThreadsButton" Click="DeleteSavedThreads" ToolTip="Deletes saved options for text threads previously encountered." Content="Delete Saved Threads" Style="{StaticResource GeneralToggleStyle}"/>
 		</UniformGrid>
+		<Popup Grid.Row="0" x:Name="DeletedSavedThreadsPopup" PlacementTarget="{Binding ElementName=DeleteSavedThreadsButton}">
+			<Border>
+				<StackPanel>
+					<Button Content="Delete for Game" Click="DeleteSavedThreadsForGame" IsEnabled="{Binding UserGameInitialized}"/>
+					<Button Content="Delete All"  Click="DeleteAllSavedThreads"/>
+				</StackPanel>
+			</Border>
+			<Popup.Style>
+				<Style TargetType="{x:Type Popup}">
+					<Setter Property="StaysOpen" Value="False" />
+					<EventSetter Event="Button.Click" Handler="ClosePopupOnClick" />
+				</Style>
+			</Popup.Style>
+		</Popup>
 		<!-- row 1 -->
 		<ComboBox Grid.Row="1" Margin="5,5,0,5" x:Name="ProcessComboBox" ItemsSource="{Binding DisplayProcesses}" SelectedItem="{Binding SelectedProcess, Mode=TwoWay}"  HorizontalAlignment="Left"  Width="120">
 			<ComboBox.ItemContainerStyle>

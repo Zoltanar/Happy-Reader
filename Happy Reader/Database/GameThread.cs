@@ -26,8 +26,8 @@ namespace Happy_Reader.Database
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
 		{
 			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO {nameof(GameThread)}s" +
-			             "(GameId, Identifier, IsDisplay, IsPaused, IsPosting, Encoding, Label) VALUES " +
-			             "(@GameId, @Identifier, @IsDisplay, @IsPaused, @IsPosting, @Encoding, @Label)";
+			             "(GameId, Identifier, IsDisplay, IsPaused, IsPosting, Encoding, Label, RetnRight, Spl) VALUES " +
+			             "(@GameId, @Identifier, @IsDisplay, @IsPaused, @IsPosting, @Encoding, @Label, @RetnRight, @Spl)";
 			var command = connection.CreateCommand();
 			command.CommandText = sql;
 			command.AddParameter("@GameId", Item.GameId);
@@ -37,6 +37,9 @@ namespace Happy_Reader.Database
 			command.AddParameter("@IsPosting", Item.IsPosting);
 			command.AddParameter("@Encoding", Item.Encoding);
 			command.AddParameter("@Label", Item.Label);
+			//these are stored are longs because uint is misinterpreted in sqlite
+			command.AddParameter("@RetnRight", (long)Item.RetnRight);
+			command.AddParameter("@Spl", (long)Item.Spl);
 			return command;
 		}
 
@@ -49,6 +52,9 @@ namespace Happy_Reader.Database
 			Item.IsPosting = Convert.ToInt32(reader["IsPosting"]) == 1;
 			Item.Encoding = Convert.ToString(reader["Encoding"]);
 			Item.Label = Convert.ToString(reader["Label"]);
+			//these are stored are longs because uint is misinterpreted in sqlite
+			Item.RetnRight = (uint)Convert.ToInt64(reader["RetnRight"]);
+			Item.Spl = (uint)Convert.ToInt64(reader["Spl"]);
 		}
 	}
 }

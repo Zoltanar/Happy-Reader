@@ -101,5 +101,29 @@ namespace Happy_Reader.ViewModel
 			//this data will be persisted on HookedProcessOnExited callback.
 			GameTextThreads = null;
 		}
+
+		public void DeleteGameThreads()
+		{
+			if (_mainViewModel?.UserGame == null) return;
+			StaticMethods.Data.DeleteGameThreadsForGame(_mainViewModel.UserGame.Id);
+			ResetOptionsOnPresentThreads();
+		}
+
+		public void DeleteAllGameThreads()
+		{
+			StaticMethods.Data.DeleteAllGameThreads();
+			ResetOptionsOnPresentThreads();
+		}
+
+		private void ResetOptionsOnPresentThreads()
+		{
+			HookManager.ConsoleOutput("Resetting options on existing threads...", true);
+			GameTextThreads?.Clear();
+			foreach (var thread in ThreadTable.Map.Values)
+			{
+				if (!thread.IsNotConsole) continue;
+				HookManager.SetOptionsToNewThread(thread);
+			}
+		}
 	}
 }

@@ -460,6 +460,9 @@
   <ItemGroup>
     <Content Include="Database\FindDuplicateEntries.sql" />
     <Content Include="Database\ReturnVNRStyleEntries.sql" />
+    <EmbeddedResource Include="Database\Updates\Update5.sql">
+      <SubType>Component</SubType>
+    </EmbeddedResource>
     <EmbeddedResource Include="Database\Updates\Update4.sql" />
     <EmbeddedResource Include="Database\Updates\Update3.sql" />
     <EmbeddedResource Include="Database\Updates\Update2.sql" />

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using Happy_Reader.ViewModel;
 
@@ -16,9 +11,15 @@ namespace Happy_Reader.View.Tabs
 			InitializeComponent();
 		}
 
-		private void DeleteOldCachedTranslations(object sender, RoutedEventArgs e) => (DataContext as InformationViewModel).DeletedCachedTranslations(false);
+		private void DeleteOldCachedTranslations(object sender, RoutedEventArgs e) => ((InformationViewModel) DataContext).DeletedCachedTranslations(false);
 
-		private void DeleteAllCachedTranslations(object sender, RoutedEventArgs e) => (DataContext as InformationViewModel).DeletedCachedTranslations(true);
-
+		private void DeleteAllCachedTranslations(object sender, RoutedEventArgs e)
+		{
+			var result = MessageBox.Show($"Are you sure you want to delete all cached translations?", "Happy Reader - Confirm", MessageBoxButton.YesNo);
+			if (result == MessageBoxResult.Yes)
+			{
+				((InformationViewModel) DataContext).DeletedCachedTranslations(true);
+			}
+		}
 	}
 }

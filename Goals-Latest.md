@@ -6,6 +6,7 @@
 - option to do this automatically: remove translations from cache if not used recently or originally cached too long ago.
 - apply translate stage 4 to pre-romaji
 - allow multiple translators at the same time
+- Romaji: Create own romaji engine using JMDict (missing deinflections).
 #### Filters
 - set default filter (different from permanent filter)
 - handle mtl flag for release languages

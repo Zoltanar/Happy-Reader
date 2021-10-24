@@ -152,6 +152,8 @@ namespace Happy_Reader.Database
 	`IsPosting`	INTEGER,
 	`Encoding`	TEXT,
 	`Label`	TEXT,
+	`RetnRight`	INTEGER,
+	`Spl`	INTEGER,
 	PRIMARY KEY(`GameId`, `Identifier`)
 )");
 				DatabaseTableBuilder.ExecuteSql(Connection, $@"CREATE TABLE `{nameof(UserGame)}s` (
@@ -302,6 +304,54 @@ namespace Happy_Reader.Database
 				Connection.Close();
 			}
 		}
+		
+		public void DeleteGameThreadsForGame(long userGameId)
+		{
+			var sql = $"DELETE FROM {nameof(GameThread)}s WHERE GameId = @GameId";
+			Connection.Open();
+			try
+			{
+				var cmd = Connection.CreateCommand();
+				cmd.CommandText = sql;
+				cmd.AddParameter("@GameId", userGameId);
+				var result = cmd.ExecuteNonQuery();
+				StaticHelpers.Logger.ToFile($"Deleted Game Threads for GameId {userGameId}: {result} records.");
+				if (result == 0) return;
+				GameThreads.Load(false);
+			}
+			catch (Exception ex)
+			{
+				StaticHelpers.Logger.ToFile(ex);
+			}
+			finally
+			{
+				Connection.Close();
+			}
+		}
+
+		public void DeleteAllGameThreads()
+		{
+			var sql = $"DELETE FROM {nameof(GameThread)}s";
+			Connection.Open();
+			try
+			{
+				var cmd = Connection.CreateCommand();
+				cmd.CommandText = sql;
+				var result = cmd.ExecuteNonQuery();
+				StaticHelpers.Logger.ToFile($"Deleted All Game Threads: {result} records.");
+				if (result == 0) return;
+				GameThreads.Load(false);
+			}
+			catch (Exception ex)
+			{
+				StaticHelpers.Logger.ToFile(ex);
+			}
+			finally
+			{
+				Connection.Close();
+			}
+		}
+
 
 		/// <summary>
 		/// Upserts entries into database, inserting Ids as required, opens own connection and transaction.
