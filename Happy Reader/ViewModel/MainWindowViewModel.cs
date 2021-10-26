@@ -378,11 +378,13 @@ namespace Happy_Reader.ViewModel
 				() => Thread.Sleep(10),
 				5,
 				ex => ex is COMException comEx && (uint)comEx.ErrorCode == WinAPIConstants.CLIPBRD_E_CANT_OPEN);
+			IthViewModel.HookManager.ClipboardOutput(text, cpOwner, userGameOwner ? UserGame.DisplayName : null);
 			var timeSinceLast = DateTime.UtcNow - _lastUpdateTime;
 			if (timeSinceLast.TotalMilliseconds < 100 && _lastUpdateText == text) return;
 			Logger.Verbose($"Capturing clipboard from {cpOwner?.ProcessName ?? "??"}\t {DateTime.UtcNow:HH\\:mm\\:ss\\:fff}\ttimeSinceLast:{timeSinceLast.Milliseconds}\t{text}");
 			_lastUpdateTime = DateTime.UtcNow;
 			_lastUpdateText = text;
+
 			RunTranslation(this, new TextOutputEventArgs(null, text, cpOwner?.ProcessName, true));
 		}
 

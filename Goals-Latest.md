@@ -14,7 +14,6 @@
 - show if translation was cached or not and give option to re-fetch
 - list entries used per stage.
 #### Text Hooking
-- use tab to also show captured clipboard text format like: \[process/pid] \[outputted] \[text]
 - let user name threads and delete saved
 - VnrHook: handle maximum threads either change limit or reset ability
 - look at global hooks for changing ITHVNR settings via global hotkeys [GlobalMouseKeyHook](https://github.com/gmamaladze/globalmousekeyhook)
