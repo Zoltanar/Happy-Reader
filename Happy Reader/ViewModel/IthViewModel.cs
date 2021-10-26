@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls.Primitives;
-using System.Windows.Input;
 using Happy_Reader.Database;
 using Happy_Reader.View;
 using IthVnrSharpLib;
@@ -119,9 +118,8 @@ namespace Happy_Reader.ViewModel
 		{
 			HookManager.ConsoleOutput("Resetting options on existing threads...", true);
 			GameTextThreads?.Clear();
-			foreach (var thread in ThreadTable.Map.Values)
+			foreach (var thread in HookManager.TextThreads.Values)
 			{
-				if (!thread.IsNotConsole) continue;
 				HookManager.SetOptionsToNewThread(thread);
 			}
 		}
