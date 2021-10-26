@@ -14,11 +14,11 @@
 			</Grid.RowDefinitions>
 			<TextBlock Grid.Row="0" Text="{Binding DisplayName}" Margin="5,2,434,0"/>
 			<CheckBox Grid.Row="0" Content="Display" Margin="0,0,366,0" IsChecked="{Binding IsDisplay, Mode=TwoWay}" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="63" Checked="DisplayToggled" Unchecked="DisplayToggled"/>
-			<CheckBox Grid.Row="0" Content="Posting" Margin="0,0,298,0" IsChecked="{Binding IsPosting, Mode=TwoWay}" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="63" IsEnabled="{Binding IsSystem}"/>
-			<CheckBox Grid.Row="0" Content="Paused" Margin="0,0,230,0" IsChecked="{Binding IsPaused, Mode=TwoWay}" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="63" IsEnabled="{Binding IsSystem}"/>
-			<Button Grid.Row="0" Content="Stop/Hide" Margin="0,0,103,0" HorizontalAlignment="Right" Click="StopHideThread" IsEnabled="{Binding IsSystem}"/>
+			<CheckBox Grid.Row="0" Content="Posting" Margin="0,0,298,0" IsChecked="{Binding IsPosting, Mode=TwoWay}" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="63" IsEnabled="{Binding IsSystem, Converter={StaticResource BooleanInverter}}"/>
+			<CheckBox Grid.Row="0" Content="Paused" Margin="0,0,230,0" IsChecked="{Binding IsPaused, Mode=TwoWay}" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="63" IsEnabled="{Binding IsSystem, Converter={StaticResource BooleanInverter}}"/>
+			<Button Grid.Row="0" Content="Stop/Hide" Margin="0,0,103,0" HorizontalAlignment="Right" Click="StopHideThread" IsEnabled="{Binding IsSystem, Converter={StaticResource BooleanInverter}}"/>
 			<Button Grid.Row="0" Content="Save" Margin="0,0,164,0" HorizontalAlignment="Right" Click="SaveHookCode" IsEnabled="{Binding CanSaveHookCode}"/>
-			<Button Grid.Row="0" Content="Clear" Margin="0,0,196,0" HorizontalAlignment="Right" Click="ClearText" IsEnabled="{Binding IsSystem}"/>
+			<Button Grid.Row="0" Content="Clear" Margin="0,0,196,0" HorizontalAlignment="Right" Click="ClearText" IsEnabled="{Binding IsSystem, Converter={StaticResource BooleanInverter}}"/>
 			<ComboBox Grid.Row="0" ItemsSource="{Binding AllEncodings}" DisplayMemberPath="EncodingName" SelectedItem="{Binding PrefEncoding, Mode=TwoWay}" Margin="0,0,5,0" SelectionChanged="EncodingChanged" HorizontalAlignment="Right" Width="93" IsEnabled="{Binding EncodingCanChange}">
 				<ComboBox.ItemContainerStyle>
 					<Style TargetType="{x:Type ComboBoxItem}">

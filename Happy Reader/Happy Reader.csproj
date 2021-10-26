@@ -176,6 +176,7 @@
       <DependentUpon>ColorSelector.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\Converters.cs" />
+    <Compile Include="View\Converters\BooleanInverter.cs" />
     <Compile Include="View\Converters\DateToMonthStringConverter.cs" />
     <Compile Include="View\Converters\EntryGameConverter.cs" />
     <Compile Include="View\Converters\ImageStringConverter.cs" />
