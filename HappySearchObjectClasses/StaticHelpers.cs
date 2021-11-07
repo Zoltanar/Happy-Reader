@@ -43,7 +43,7 @@ namespace Happy_Apps_Core
 		#endregion
 
 		public const string ClientName = "Happy Reader";
-		public const string ClientVersion = "2.4.0";
+		public const string ClientVersion = "2.5.0";
 		private const string PasswordRegistryKey = "SOFTWARE\\" + ClientName;
 		private const string PasswordRegistryCipherValueName = "Data1";
 		private const string PasswordRegistryEntropyValueName = "Data2";
