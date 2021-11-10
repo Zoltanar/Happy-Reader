@@ -12,12 +12,17 @@ namespace Happy_Reader.View
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (!(value is DateTime dt)) return value;
+			if (value is not DateTime dt) return value;
+			//todo editable?
 			if (dt == DateTime.MinValue) return "Never";
 			var timeSince = DateTime.Now - dt;
 			if (timeSince.TotalDays < 3) return "Last 3 days";
-			if (timeSince.TotalDays < 7) return "Last week";
-			return timeSince.TotalDays < 30 ? "Last month" : "Earlier";
+			if (timeSince.TotalDays < 7) return "3-7 days ago";
+			if (timeSince.TotalDays < 14) return "7-14 days ago";
+			if (timeSince.TotalDays < 30) return "14-30 days ago";
+			if (timeSince.TotalDays < 60) return "30-60 days ago";
+			if (timeSince.TotalDays < 120) return "60-120 days ago";
+			return "Earlier";
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
@@ -28,7 +33,8 @@ namespace Happy_Reader.View
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (!(value is TimeSpan time)) return value;
+			if (value is not TimeSpan time) return value;
+			//todo editable?
 			if (time == TimeSpan.Zero) return "Never";
 			if (time.TotalMinutes < 1) return "<1 Minute";
 			if (time.TotalHours < 0.5) return "<30 Minutes";
