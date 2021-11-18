@@ -30,6 +30,7 @@
 		<TextBox Text="{Binding DatabaseDate, Mode=OneWay}"/>
 		<TextBox Text="{Binding VnDatabaseSize, Mode=OneWay}"/>
 		<TextBox Text="{Binding UserDatabaseSize, Mode=OneWay}"/>
+		<TextBox Text="{Binding VnImagesSize, Mode=OneWay}"/>
 		<Grid Margin="10,0,10,0" >
 				<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="*"/>

@@ -26,6 +26,7 @@
 - Implement priority
 - Change Series-specific to three-way dropdown (none,title,series, producer?)
 #### Other
+- Add screenshots to basic guide
 - Producer Tab: charts for popularity
 - Producer Tab: list staff and number of contributions
 - tray: update last played titles in real time
@@ -35,7 +36,6 @@
 - Settings: if login response is error with id 'needlogin' show user that credentials are wrong
 - DatabaseDumpReader: Parallelise?
 - Logs: Link to folder, show size taken, option to clear.
-- Information Tab: Show Size of Vndb Images, show total size.
 - Database Tab: Sort by Random
 - style scrollbars
 

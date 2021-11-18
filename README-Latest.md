@@ -19,6 +19,8 @@ Before reporting issues or requesting features, please see [Goals](https://githu
 - Change `Hook Mode` as necessary (usually `VnrHook`)
 - Enter /H Hook Code if available
 - Back on `Games` Tab, launch Game by clicking `Off` button, or right-click and choose specific launch mode
+- The game must be launched from Happy Reader itself at least once
+- If you get an 'Access Denied' error, you may need to run Happy Reader as Administrator.
 - In launched game, progress to dialog section
 - It is highly advised that you change the text speed in game to the maximum, to prevent text being broken up or repeated
 - Back on Happy Reader, switch to `Text Hooking` tab
@@ -28,7 +30,7 @@ Before reporting issues or requesting features, please see [Goals](https://githu
   - example: `:sa おはよう！` to search for `おはよう！` in each text thread, in all 3 encodings possible (Unicode, UTF-8, Shift-JIS) (can take longer)
   - Results will appear in Console thread at the top
   - If :sa is used and text is is a different encoding to the one selected in text thread panel, you can change the encoding with the drop-down on the right
-- On the relevant text thread panel, tick the `Posting` checkbox, to allow text to appear in Output Window.
+- On the relevant text thread panel, check the `Posting` checkbox, to allow text to appear in Output Window.
 - Advance in game to next dialog
 - A window should pop up on top of the Game Window
   - If it does not, it may have appeared out of screen, click `Reset Output Window` in Text Hooking tab to reset it to a visible location
@@ -41,7 +43,7 @@ Before reporting issues or requesting features, please see [Goals](https://githu
   - Select the `Posting` panel (click on thread name and not text box) then click `Toggle Display Others`/`Toggle Post Others`/`Toggle Pause Others` or
   - You can also click `Clear Others` to clear existing text from threads other than selected or
   - You can click `Ignore Other Threads` if you are sure that no other text threads are required
-- Note: in some games, the text thread identifiers change every time it is launched, when this is the case and you have identified a hook code, it is best to save this hook code to the game, and tick the `Capture By Hook Code` option, to automatically post text from threads matching that hook code instead of using thread identifiers to store user settings.
+- Note: in some games, the text thread identifiers change every time it is launched, when this is the case and you have identified a hook code, it is best to save this hook code to the game, and check the `Capture By Hook Code` option, to automatically post text from threads matching that hook code instead of using thread identifiers to store user settings.
 - Play game
 - Settings for which thread to capture should be saved so next time you launch the game, you should not have to set them up again.
 

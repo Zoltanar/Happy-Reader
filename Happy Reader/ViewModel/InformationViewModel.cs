@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Happy_Apps_Core;
@@ -17,6 +18,7 @@ namespace Happy_Reader.ViewModel
 		public string DatabaseDate { get; private set; }
 		public string UserDatabaseSize { get; private set; }
 		public string VnDatabaseSize { get; private set; }
+		public string VnImagesSize { get; private set; }
 		public string TranslationsData { get; private set; }
 		public string RecordedTime { get; private set; }
 		public string ApproxVndbTime { get; private set; }
@@ -38,9 +40,35 @@ namespace Happy_Reader.ViewModel
 			var databaseDate = vnData.GetLatestDumpUpdate();
 			DatabaseDate = $"Database Dump Date: {databaseDate?.ToString("yyyy-MM-dd")}";
 			VnDatabaseSize = $"VN Database Size: {GetFileSizeStringForDb(vnData.Connection)}";
+			VnImagesSize = $"VNDB Images Size: {GetFileSizeStringForFolder(StaticMethods.Settings.CoreSettings.ImageFolderPath)}";
 			SetUserDatabaseData(userGameData);
 			SetTimeSpentData(userGameData);
 			OnPropertyChanged(null);
+		}
+
+		private string GetFileSizeStringForFolder(string directory)
+		{
+			try
+			{
+				if (!Directory.Exists(directory)) return "Folder not found.";
+				var directoryInfo = new DirectoryInfo(directory);
+				var sizeBytes = directoryInfo.EnumerateFiles("*.*", SearchOption.AllDirectories).Sum(i => i.Length);
+				return GetSizeStringFromBytes(sizeBytes);
+			}
+			catch (IOException ex)
+			{
+				return $"Failed to access folder {ex}";
+			}
+			catch (Exception ex)
+			{
+				return $"Failed: {ex}";
+			}
+		}
+
+		private static string GetSizeStringFromBytes(long bytes)
+		{
+			var mb = bytes / 1024d / 1024d;
+			return mb > 10_000 ? $"{mb / 1024d:0.00} GB" : $"{bytes / 1024d / 1024d:0} MB";
 		}
 
 		private void SetTimeSpentData(HappyReaderDatabase userGameData)
@@ -79,7 +107,6 @@ namespace Happy_Reader.ViewModel
 						var approxTime = GetApproxTime(game.VN.LengthTime, ratio);
 						vnTime ??= TimeSpan.FromHours(approxTime);
 					}
-
 					Debug.Assert(vnTime != null, nameof(vnTime) + " != null");
 					var timeToAdd = timeForVn.TotalHours < vnTime.Value.TotalHours * 0.25d ? vnTime : timeForVn;
 					approxOverallTime = approxOverallTime.Add(timeToAdd.Value);
@@ -108,13 +135,17 @@ namespace Happy_Reader.ViewModel
 			var dataSource = GetSourceFromDatabase(connection);
 			try
 			{
-				if (!System.IO.File.Exists(dataSource)) return "File not found.";
-				var sizeBytes = new System.IO.FileInfo(dataSource).Length;
-				return $"{sizeBytes / 1024d / 1024d:0} MB";
+				if (!File.Exists(dataSource)) return "File not found.";
+				var sizeBytes = new FileInfo(dataSource).Length;
+				return GetSizeStringFromBytes(sizeBytes);
 			}
-			catch (System.IO.IOException ex)
+			catch (IOException ex)
 			{
 				return $"Failed to access file {ex}";
+			}
+			catch (Exception ex)
+			{
+				return $"Failed: {ex}";
 			}
 		}
 
