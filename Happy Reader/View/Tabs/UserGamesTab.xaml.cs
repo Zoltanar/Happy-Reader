@@ -26,11 +26,13 @@ namespace Happy_Reader.View.Tabs
 		private static readonly Random Random = new();
 
 		private UserGamesViewModel ViewModel => (UserGamesViewModel)DataContext;
+		private UIElement[] NormalContent { get; }
 
 		public UserGamesTab()
 		{
 			InitializeComponent();
 			_scrollLabelTimer = new DispatcherTimer(new TimeSpan(0, 0, 2), DispatcherPriority.ContextIdle, HideScrollLabel, Dispatcher);
+			NormalContent = ((Grid)Content).Children.Cast<UIElement>().ToArray();
 		}
 
 		private void AddNewUserGame(object sender, RoutedEventArgs e)
@@ -342,14 +344,45 @@ namespace Happy_Reader.View.Tabs
 			if (SearchTextBox.Text.Length < 3 && view.Filter != null) view.Filter = null;
 			else if (SearchTextBox.Text.Length >= 3) view.Filter = FilterUserGames;
 		}
-		
+
 		private void SelectRandom(object sender, RoutedEventArgs e)
 		{
 			if (GameFiles.Items.Count == 0) return;
-			var item =  Random.Next(0, GameFiles.Items.Count);
-				GameFiles.SelectedItem = GameFiles.Items[item];
-				GameFiles.UpdateLayout();
-				((UIElement)GameFiles.ItemContainerGenerator.ContainerFromIndex(item)).Focus();
+			var item = Random.Next(0, GameFiles.Items.Count);
+			GameFiles.SelectedItem = GameFiles.Items[item];
+			GameFiles.UpdateLayout();
+			((UIElement)GameFiles.ItemContainerGenerator.ContainerFromIndex(item)).Focus();
+		}
+
+		public void ShowMergeGameControl(bool selectTab, UserGame userGame)
+		{
+			var grid = (Grid)Content;
+			var mergeWindow = new MergeGameControl(userGame, Callback);
+			grid.Children.Clear();
+			grid.Children.Add(mergeWindow);
+			if (selectTab) StaticMethods.MainWindow.SelectTab(typeof(UserGamesViewModel));
+
+			void Callback(bool b, MergeGame[] m)
+			{
+				MergeGamesCallback(userGame, b, m);
+				grid.Children.Clear();
+				foreach (var gridChild in StaticMethods.MainWindow.UserGamesTabItem.NormalContent)
+				{
+					grid.Children.Add(gridChild);
+				}
 			}
+		}
+
+		private void MergeGamesCallback(UserGame userGame, bool successful, MergeGame[] mergeResults)
+		{
+			if (!successful) return;
+			var additionalTimePlayedTicks = mergeResults.Sum(t => t.UserGame.TimeOpen.Ticks);
+			var additionalTimePlayed = new TimeSpan(additionalTimePlayedTicks);
+			userGame.MergeTimePlayed(additionalTimePlayed);
+			foreach (var mergeTarget in mergeResults)
+			{
+				StaticMethods.MainWindow.ViewModel.UserGamesViewModel.RemoveUserGame(mergeTarget.UserGame);
+			}
+		}
 	}
 }

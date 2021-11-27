@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using Happy_Reader.Database;
+using Happy_Reader.View.Tabs;
 
 namespace Happy_Reader.View.Tiles
 {
@@ -58,17 +58,8 @@ namespace Happy_Reader.View.Tiles
 
 		private void MergeGamesToThis(object sender, RoutedEventArgs e)
 		{
-			var mergeWindow = new MergeWindow(UserGame);
-			var result = mergeWindow.ShowDialog();
-			Debug.Assert(result != null, nameof(result) + " != null");
-			if (!result.Value) return;
-			var additionalTimePlayedTicks = mergeWindow.MergeResults.Sum(t => t.UserGame.TimeOpen.Ticks);
-			var additionalTimePlayed = new TimeSpan(additionalTimePlayedTicks);
-			UserGame.MergeTimePlayed(additionalTimePlayed);
-			foreach (var mergeTarget in mergeWindow.MergeResults)
-			{
-				StaticMethods.MainWindow.ViewModel.UserGamesViewModel.RemoveUserGame(mergeTarget.UserGame);
-			}
+			var parent = this.FindParent<UserGamesTab>();
+			StaticMethods.MainWindow.UserGamesTabItem.ShowMergeGameControl(parent == null, UserGame);
 		}
 
 		private void LaunchGameWithoutHooking(object sender, RoutedEventArgs e)

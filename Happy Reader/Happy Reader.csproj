@@ -194,8 +194,8 @@
     <Compile Include="View\LabeledTextBox.xaml.cs">
       <DependentUpon>LabeledTextBox.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View\MergeWindow.xaml.cs">
-      <DependentUpon>MergeWindow.xaml</DependentUpon>
+    <Compile Include="View\MergeGameControl.xaml.cs">
+      <DependentUpon>MergeGameControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\RadioButtonCheckedConverter.cs" />
     <Compile Include="Model\SavedData.cs" />
@@ -303,7 +303,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\MergeWindow.xaml">
+    <Page Include="View\MergeGameControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

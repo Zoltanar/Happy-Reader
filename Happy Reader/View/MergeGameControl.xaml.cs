@@ -56,27 +56,29 @@ namespace Happy_Reader.View
 		}
 	}
 	
-	public partial class MergeWindow : Window
+	public partial class MergeGameControl : UserControl
 	{
 		public UserGame UserGame { get; }
 		public MergeGame[] MergeGames { get; private set; }
 		public MergeGame[] MergeResults { get; private set; }
 		public string GameName => UserGame.DisplayName;
+		public Action<bool,MergeGame[]> Callback { get; set; }
 
-		public MergeWindow(UserGame userGame)
+		public MergeGameControl(UserGame userGame, Action<bool, MergeGame[]> callback)
 		{
 			UserGame = userGame;
+			Callback = callback;
 			InitializeComponent();
 		}
 
 		private void Save(object sender, RoutedEventArgs e)
 		{
-			DialogResult = true;
 			MergeResults = MergeGames.Where(g => g.Selected).ToArray();
+			Callback(true, MergeResults);
 		}
 
 
-		private void Cancel(object sender, RoutedEventArgs e) => Close();
+		private void Cancel(object sender, RoutedEventArgs e) => Callback(false, null);
 
 		private async void DataGridLoaded(object sender, RoutedEventArgs e)
 		{

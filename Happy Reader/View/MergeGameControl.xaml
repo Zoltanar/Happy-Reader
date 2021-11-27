@@ -1,14 +1,18 @@
-﻿<Window x:Class="Happy_Reader.View.MergeWindow"
+﻿<UserControl x:Class="Happy_Reader.View.MergeGameControl"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:view="clr-namespace:Happy_Reader.View"
         mc:Ignorable="d"
-        Title="Merge Games" Height="450" Width="603.345" WindowStyle="ToolWindow"
+				d:DesignHeight="600"
+				d:DesignWidth="800"
         DataContext="{Binding RelativeSource={RelativeSource Self}}">
 	<Grid>
-		<TextBox Height="23" Margin="10,10,10,0" TextWrapping="Wrap" Text="{Binding GameName, Mode=OneTime}" VerticalAlignment="Top" Style="{StaticResource NoBorderTextBox}"/>
+		<TextBlock Height="23" Margin="10,10,10,0" TextWrapping="Wrap" VerticalAlignment="Top">
+			<Run Text="Merge games to "/>
+			<Run Text="{Binding GameName, Mode=OneTime}"/>
+</TextBlock>
 		<DataGrid x:Name="MergeDataGrid" ItemsSource="{Binding MergeGames}" Margin="10,38,10,47" AutoGenerateColumns="False" Loaded="DataGridLoaded" MouseLeftButtonUp="DataGridMouseLeftUp" SelectionMode="Single">
 			<DataGrid.Columns>
 				<DataGridCheckBoxColumn Header="Merge" Binding="{Binding Selected, Mode=TwoWay}" IsReadOnly="True"/>
@@ -29,4 +33,4 @@
 		<Button Content="Cancel" Margin="0,0,10,10" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="75" Click="Cancel"/>
 
 	</Grid>
-</Window>
+</UserControl>
