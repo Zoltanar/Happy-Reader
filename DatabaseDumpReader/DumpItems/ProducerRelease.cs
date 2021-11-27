@@ -21,7 +21,6 @@ namespace DatabaseDumpReader.DumpItems
 		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
 
 		public int ReleaseId { get; set; }
-		public string Type { get; set; }
 		public string Released { get; set; }
 		public string Website { get; set; }
 		public List<string> Languages { get; set; }
@@ -30,7 +29,6 @@ namespace DatabaseDumpReader.DumpItems
 		public void LoadFromStringParts(string[] parts)
 		{
 			ReleaseId = Convert.ToInt32(GetPart(parts, "id").Substring(1));
-			Type = GetPart(parts, "type");
 			Released = GetPart(parts, "released");
 			Website = GetPart(parts, "website");
 		}
@@ -81,11 +79,14 @@ namespace DatabaseDumpReader.DumpItems
 		{
 			ReleaseId = Convert.ToInt32(GetPart(parts, "id").Substring(1));
 			VnId = Convert.ToInt32(GetPart(parts, "vid").Substring(1));
+			ReleaseType = GetPart(parts, "rtype");
 		}
 
 		public int VnId { get; set; }
 
 		public int ReleaseId { get; set; }
+
+		public string ReleaseType { get; set; }
 	}
 
 	public class LangRelease : IDumpItem

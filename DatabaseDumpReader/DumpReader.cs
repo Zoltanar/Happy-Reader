@@ -155,14 +155,12 @@ namespace DatabaseDumpReader
 				if (!LangReleases.ContainsKey(i.ReleaseId)) LangReleases[i.ReleaseId] = new List<string>();
 				LangReleases[i.ReleaseId].Add(i.Lang);
 			}, "db\\releases_lang");
-			Load<Release>((i, _) =>
-			{
-				if (i.Type != "trial") Releases[i.ReleaseId] = i;
-			}, "db\\releases");
+			Load<Release>((i, _) => Releases[i.ReleaseId] = i, "db\\releases");
 			Load<VnRelease>((i, _) =>
 			{
 				if (!VnReleases.ContainsKey(i.VnId)) VnReleases[i.VnId] = new List<Release>();
 				if (!Releases.TryGetValue(i.ReleaseId, out var release)) return;
+				if (i.ReleaseType == "trial") Releases.Remove(i.ReleaseId);
 				release.Languages = LangReleases[i.ReleaseId];
 				ProducerReleases.TryGetValue(i.ReleaseId, out var producerRelease);
 				release.Producers = producerRelease ?? new List<int>();

@@ -39,7 +39,7 @@ namespace Happy_Reader.View.Tabs
 			};
 			if(scoreSeriesData.Any()) ReleaseChart.Series.Add(scoreSeries);
 			ReleaseChart.DataContext = ReleaseSeries.ItemsSource;
-			var averageRating = ScoreConverter.Instance.Convert(series.Average(p => p.Value), typeof(string), null, CultureInfo.CurrentCulture);
+			var averageRating = series.Any() ? ScoreConverter.Instance.Convert(series.Average(p => p.Value), typeof(string), null, CultureInfo.CurrentCulture) : "N/A";
 			var years3Ago = DateTime.Now.AddYears(-3);
 			var recentTitles = series.Where(p => p.Key >= years3Ago).ToList();
 			var recentAverageRating = recentTitles.Any() ? ScoreConverter.Instance.Convert(recentTitles.Average(p => p.Value), typeof(string), null, CultureInfo.CurrentCulture) : "N/A";
