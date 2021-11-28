@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Happy_Apps_Core.Database;
@@ -239,22 +240,48 @@ namespace Happy_Reader.View
 			if (success) VN.OnPropertyChanged(null);
 		}
 
-		private async void ChangePreciseNumber(object sender, RoutedEventArgs e)
+		private static bool _showingInputControl;
+
+		public void ChangePreciseNumber(object sender, RoutedEventArgs e)
 		{
-			var inputWindow = new InputWindow
+			if (_showingInputControl) return;
+			var selectedTab = (TabItem)StaticMethods.MainWindow.MainTabControl.SelectedItem;
+			var grid = (Grid)((UserControl)selectedTab.Content).Content;
+			var gridChildren = grid.Children.Cast<UIElement>().ToArray();
+			_showingInputControl = true;
+			var inputWindow = new InputControl($"Enter your vote for {VN.Title}:", Callback)
 			{
-				Title = $"{StaticHelpers.ClientName} - Enter Visual Novel Vote",
 				InputLabel = StaticMethods.Settings.GuiSettings.UseDecimalVoteScores ? "Enter vote value from 1 to 10" : "Enter vote value from 10 to 100",
 				Filter = s => (StaticMethods.Settings.GuiSettings.UseDecimalVoteScores && double.TryParse(s, out var dVote) && dVote >= 1 && dVote <= 10)
-											|| int.TryParse(s, out var vote) && vote >= 10 && vote <= 100
+				              || int.TryParse(s, out var vote) && vote >= 10 && vote <= 100
 			};
-			var result = inputWindow.ShowDialog();
-			if (result == true)
+			grid.Children.Clear();
+			grid.Children.Add(inputWindow);
+
+			async Task Callback(bool success, string inputText)
 			{
-				var voteValue = StaticMethods.Settings.GuiSettings.UseDecimalVoteScores ? (int)(double.Parse(inputWindow.InputText) * 10) : int.Parse(inputWindow.InputText);
-				var success = await StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ChangeVote(VN, voteValue);
-				if (success) VN.OnPropertyChanged(null);
+				try
+				{
+					await ChangeVoteCallback(success, VN, inputText);
+					grid.Children.Clear();
+					foreach (var gridChild in gridChildren)
+					{
+						grid.Children.Add(gridChild);
+					}
+				}
+				finally
+				{
+					_showingInputControl = false;
+				}
 			}
+		}
+
+		private async Task ChangeVoteCallback(bool successful, ListedVN vn, string inputText)
+		{
+			if (!successful) return;
+			var voteValue = StaticMethods.Settings.GuiSettings.UseDecimalVoteScores ? (int)(double.Parse(inputText) * 10) : int.Parse(inputText);
+			var success = await StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ChangeVote(vn, voteValue);
+			if (success) vn.OnPropertyChanged(null);
 		}
 
 		private void ShowRelatedTitles(object sender, RoutedEventArgs e)

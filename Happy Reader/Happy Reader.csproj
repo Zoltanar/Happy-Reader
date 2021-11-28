@@ -188,8 +188,8 @@
     <Compile Include="View\FiltersPane.xaml.cs">
       <DependentUpon>FiltersPane.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View\InputWindow.xaml.cs">
-      <DependentUpon>InputWindow.xaml</DependentUpon>
+    <Compile Include="View\InputControl.xaml.cs">
+      <DependentUpon>InputControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\LabeledTextBox.xaml.cs">
       <DependentUpon>LabeledTextBox.xaml</DependentUpon>
@@ -295,7 +295,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\InputWindow.xaml">
+    <Page Include="View\InputControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

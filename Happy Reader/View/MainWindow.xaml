@@ -84,7 +84,7 @@
 			<TabItem Header="Test" x:Name="TestTabItem">
 				<tabs:TestTranslationTab DataContext="{Binding TestViewModel}"/>
 			</TabItem>
-			<TabItem Header="Visual Novels" Style="{StaticResource DatabaseTabItem}">
+			<TabItem Header="Visual Novels" x:Name="VnTabItem" Style="{StaticResource DatabaseTabItem}">
 				<tabs:DatabaseTab DataContext="{Binding DatabaseViewModel}"/>
 			</TabItem>
 			<TabItem Header="Characters" Style="{StaticResource DatabaseTabItem}">

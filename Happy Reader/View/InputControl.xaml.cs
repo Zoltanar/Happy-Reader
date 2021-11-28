@@ -1,16 +1,19 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using Happy_Apps_Core.Database;
 using JetBrains.Annotations;
 
 namespace Happy_Reader.View
 {
-	public partial class InputWindow : Window, INotifyPropertyChanged
+	public partial class InputControl : UserControl, INotifyPropertyChanged
 	{
 
 		public static readonly DependencyProperty InputLabelProperty =
-			DependencyProperty.Register(nameof(InputLabel), typeof(string), typeof(InputWindow), new UIPropertyMetadata(null));
+			DependencyProperty.Register(nameof(InputLabel), typeof(string), typeof(InputControl), new UIPropertyMetadata(null));
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
@@ -26,7 +29,14 @@ namespace Happy_Reader.View
 			set { InputTextBox.Text = value; OnPropertyChanged(nameof(OkEnabled)); }
 		}
 		
-		public InputWindow() => InitializeComponent();
+		private Func<bool, string, Task> Callback { get; }
+
+		public InputControl(string description, Func<bool, string, Task> callback)
+		{
+			InitializeComponent();
+			DescriptionLabel.Content = description;
+			Callback = callback;
+		}
 
 		/// <summary>
 		/// Will toggle the OK button's enabled state based on the input text passing through the <see cref="Filter"/>.
@@ -38,16 +48,14 @@ namespace Happy_Reader.View
 		/// </summary>
 		public Func<string, bool> Filter { get; set; } = _ => true;
 
-		private void OkClick(object sender, RoutedEventArgs e)
+		private async void OkClick(object sender, RoutedEventArgs e)
 		{
-			DialogResult = true;
-			Close();
+			await Callback(true, InputText);
 		}
 
-		private void CancelClick(object sender, RoutedEventArgs e)
+		private async void CancelClick(object sender, RoutedEventArgs e)
 		{
-			DialogResult = false;
-			Close();
+			await Callback(false, null);
 		}
 
 		private void UpdateOkEnabled(object sender, RoutedEventArgs e) => OnPropertyChanged(nameof(OkEnabled));
