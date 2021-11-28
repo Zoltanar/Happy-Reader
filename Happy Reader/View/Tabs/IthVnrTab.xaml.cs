@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -11,13 +12,28 @@ namespace Happy_Reader.View.Tabs
 	public partial class IthVnrTab
 	{
 		private IthViewModel _viewModel;
+		private readonly UIElement[] _normalContent;
 
 		public IthVnrTab()
 		{
 			InitializeComponent();
+			_normalContent = MainGrid.Children.Cast<UIElement>().ToArray();
 		}
 
-		private void OpenProcessExplorer(object sender, RoutedEventArgs e) => new ProcessExplorer(_viewModel).ShowDialog();
+		private void OpenProcessExplorer(object sender, RoutedEventArgs e)
+		{
+			var processExplorer = new ProcessExplorer(_viewModel, Callback);
+			MainGrid.Children.Clear();
+			MainGrid.Children.Add(processExplorer);
+			void Callback()
+			{
+					MainGrid.Children.Clear();
+					foreach (var gridChild in _normalContent)
+					{
+						MainGrid.Children.Add(gridChild);
+					}
+			}
+		}
 
 		private void EnterCommand(object sender, KeyEventArgs e)
 		{

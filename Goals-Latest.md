@@ -27,7 +27,6 @@
 - Change Series-specific to three-way dropdown (none,title,series, producer?)
 #### Other
 - Database Tab/DatabaseDumpReader: Flag for new VN since last update
-- Change other dialog windows into on-main-window controls
 - Add screenshots to basic guide
 - Producer Tab: charts for popularity
 - Producer Tab: list staff and number of contributions

@@ -32,7 +32,7 @@
 			</Setter>
 		</Style>
 	</UserControl.Resources>
-	<Grid Background="#FFC9E1F5" AllowDrop="True">
+	<Grid Background="#FFC9E1F5" AllowDrop="True" x:Name="MainGrid">
 		<ListBox x:Name="GameFiles" ItemsSource="{Binding UserGameItems}" Margin="10,10,10,30" 
 						         ScrollViewer.VerticalScrollBarVisibility="Visible" 
 						         ScrollViewer.HorizontalScrollBarVisibility="Disabled" 

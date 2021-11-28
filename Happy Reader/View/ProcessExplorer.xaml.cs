@@ -2,21 +2,22 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Controls;
 using IthVnrSharpLib;
 
 namespace Happy_Reader.View
 {
-	/// <summary>
-	/// Interaction logic for Process_Explorer.xaml
-	/// </summary>
-	public partial class ProcessExplorer : Window
+	public partial class ProcessExplorer : UserControl
 	{
 		private readonly IthVnrViewModel _ithViewModel;
 
-		public ProcessExplorer(IthVnrViewModel ithViewModel)
+		private Action Callback { get; }
+
+		public ProcessExplorer(IthVnrViewModel ithViewModel, Action callback)
 		{
 			InitializeComponent();
 			_ithViewModel = ithViewModel;
+			Callback = callback;
 			RefreshProcessList();
 		}
 
@@ -74,12 +75,17 @@ namespace Happy_Reader.View
 				if (!result2) _ithViewModel.HookManager.ConsoleOutput("Failed to hijack process.", true);
 			}
 			else _ithViewModel.HookManager.ConsoleOutput($"Failed to inject process: {errorMessage}", true);
-			Close();
+			Callback();
 		}
 
 		private void RefreshProcessList(object sender, RoutedEventArgs e)
 		{
 			RefreshProcessList();
+		}
+
+		private void OnOkClick(object sender, RoutedEventArgs e)
+		{
+			Callback();
 		}
 	}
 }

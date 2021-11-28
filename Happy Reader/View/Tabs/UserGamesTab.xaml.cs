@@ -26,13 +26,13 @@ namespace Happy_Reader.View.Tabs
 		private static readonly Random Random = new();
 
 		private UserGamesViewModel ViewModel => (UserGamesViewModel)DataContext;
-		private UIElement[] NormalContent { get; }
+		private readonly UIElement[] _normalContent;
 
 		public UserGamesTab()
 		{
 			InitializeComponent();
 			_scrollLabelTimer = new DispatcherTimer(new TimeSpan(0, 0, 2), DispatcherPriority.ContextIdle, HideScrollLabel, Dispatcher);
-			NormalContent = ((Grid)Content).Children.Cast<UIElement>().ToArray();
+			_normalContent =MainGrid.Children.Cast<UIElement>().ToArray();
 		}
 
 		private void AddNewUserGame(object sender, RoutedEventArgs e)
@@ -356,19 +356,18 @@ namespace Happy_Reader.View.Tabs
 
 		public void ShowMergeGameControl(bool selectTab, UserGame userGame)
 		{
-			var grid = (Grid)Content;
 			var mergeWindow = new MergeGameControl(userGame, Callback);
-			grid.Children.Clear();
-			grid.Children.Add(mergeWindow);
+			MainGrid.Children.Clear();
+			MainGrid.Children.Add(mergeWindow);
 			if (selectTab) StaticMethods.MainWindow.SelectTab(typeof(UserGamesViewModel));
 
 			void Callback(bool b, MergeGame[] m)
 			{
 				MergeGamesCallback(userGame, b, m);
-				grid.Children.Clear();
-				foreach (var gridChild in StaticMethods.MainWindow.UserGamesTabItem.NormalContent)
+				MainGrid.Children.Clear();
+				foreach (var gridChild in _normalContent)
 				{
-					grid.Children.Add(gridChild);
+					MainGrid.Children.Add(gridChild);
 				}
 			}
 		}

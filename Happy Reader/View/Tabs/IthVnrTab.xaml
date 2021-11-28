@@ -58,7 +58,7 @@
 		</Style>
 		<Style TargetType="Button" BasedOn="{StaticResource ButtonBaseStyle}"/>
 	</UserControl.Resources>
-	<Grid Background="Bisque">
+	<Grid Background="Bisque" x:Name="MainGrid">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
