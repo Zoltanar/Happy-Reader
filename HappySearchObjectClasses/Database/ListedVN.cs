@@ -18,7 +18,7 @@ namespace Happy_Apps_Core.Database
 		private bool _imageSourceSet;
 		private string _imageSource;
 
-		#region Columns
+		#region Database Columns
 		/// <summary>
 		/// VN's ID
 		/// </summary>
@@ -126,6 +126,8 @@ namespace Happy_Apps_Core.Database
 		public IEnumerable<DbTag> Tags => StaticHelpers.LocalDatabase.Tags[VNID];
 
 		public string ReleaseLink { get; set; }
+
+		public bool NewSinceUpdate { get; set; }
 
 		#endregion
 
@@ -387,9 +389,9 @@ namespace Happy_Apps_Core.Database
 		{
 			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO ListedVNs" +
 				"(VNID,Title,KanjiTitle,ReleaseDateString,ProducerID,Image,ImageNSFW,Description,LengthTime,Popularity," +
-				"Rating,VoteCount,Relations,Screens,Anime,Aliases,Languages,ReleaseDate,ReleaseLink,TagScore,TraitScore) VALUES " +
+				"Rating,VoteCount,Relations,Screens,Anime,Aliases,Languages,ReleaseDate,ReleaseLink, NewSinceUpdate,TagScore,TraitScore) VALUES " +
 				"(@VNID,@Title,@KanjiTitle,@ReleaseDateString,@ProducerId,@Image,@ImageNSFW,@Description,@LengthTime,@Popularity," +
-				"@Rating,@VoteCount,@Relations,@Screens,@Anime,@Aliases,@Languages,@ReleaseDate,@ReleaseLink,@TagScore,@TraitScore)";
+				"@Rating,@VoteCount,@Relations,@Screens,@Anime,@Aliases,@Languages,@ReleaseDate,@ReleaseLink,@NewSinceUpdate,@TagScore,@TraitScore)";
 			var command = connection.CreateCommand();
 			command.CommandText = sql;
 			command.AddParameter("@VNID", VNID);
@@ -411,6 +413,7 @@ namespace Happy_Apps_Core.Database
 			command.AddParameter("@Languages", Languages);
 			command.AddParameter("@ReleaseDate", ReleaseDate);
 			command.AddParameter("@ReleaseLink", ReleaseLink);
+			command.AddParameter("@NewSinceUpdate", NewSinceUpdate);
 			command.AddParameter("@TagScore", Suggestion?.TagScore);
 			command.AddParameter("@TraitScore", Suggestion?.TraitScore);
 			return command;
@@ -442,6 +445,7 @@ namespace Happy_Apps_Core.Database
 				ReleaseDate = Convert.ToDateTime(reader["ReleaseDate"]);
 				ReleaseLink = Convert.ToString(reader["ReleaseLink"]);
 				Suggestion = new SuggestionScoreObject(StaticHelpers.GetNullableDouble(reader["TagScore"]), StaticHelpers.GetNullableDouble(reader["TraitScore"]));
+				NewSinceUpdate = Convert.ToInt32(reader["NewSinceUpdate"]) == 1;
 			}
 			catch (Exception ex)
 			{

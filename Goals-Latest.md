@@ -26,7 +26,6 @@
 - Implement priority
 - Change Series-specific to three-way dropdown (none,title,series, producer?)
 #### Other
-- Database Tab/DatabaseDumpReader: Flag for new VN since last update
 - Add screenshots to basic guide
 - Producer Tab: charts for popularity
 - Producer Tab: list staff and number of contributions

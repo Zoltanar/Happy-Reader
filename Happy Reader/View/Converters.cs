@@ -230,6 +230,18 @@ namespace Happy_Reader.View
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 	}
 
+	public class NewlyAddedBorderBrushConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			if (value is null) return Brushes.Transparent;
+			if (value is not bool newlyAdded) throw new NotSupportedException();
+			return newlyAdded ? Theme.NewlyAddedBorderBrush : Brushes.Transparent;
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
+	}
+
 	public class CharacterToBackBrushConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

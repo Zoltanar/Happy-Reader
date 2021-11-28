@@ -55,7 +55,7 @@ namespace DatabaseDumpReader
 				Database);
 		}
 
-		public void Run(DateTime dumpDate)
+		public void Run(DateTime dumpDate, int[] previousVnIds)
 		{
 			StaticHelpers.Logger.ToFile("Starting Dump Reader...");
 			Console.ForegroundColor = ConsoleColor.DarkYellow;
@@ -75,6 +75,8 @@ namespace DatabaseDumpReader
 			Load<ListedVN>((i, t) =>
 			{
 				ResolveOtherForVn(i);
+				//if database was not empty and this vn wasn't in previous update
+				if (previousVnIds.Length != 0 && Array.BinarySearch(previousVnIds, i.VNID) < 0) i.NewSinceUpdate = true;
 				Database.VisualNovels.Add(i, false, true, t);
 				ResolveUserVnForVn(i, t);
 			}, "db\\vn");
@@ -349,11 +351,19 @@ namespace DatabaseDumpReader
 			return day == "99" ? $"{year}-{month}" : $"{year}-{month}-{day}";
 		}
 
-		public static DateTime? GetLatestDumpUpdate(string databaseFile)
+		public static void GetDbStats(string databaseFile, out DateTime? latestDumpUpdate, out int[] vnids)
 		{
-			if (!File.Exists(databaseFile)) return null;
+			if (!File.Exists(databaseFile))
+			{
+				latestDumpUpdate  = null;
+				vnids = Array.Empty<int>();
+				return;
+			}
 			var database = new VisualNovelDatabase(databaseFile, false);
-			return database.GetLatestDumpUpdate();
+			latestDumpUpdate = database.GetLatestDumpUpdate();
+			database.VisualNovels.Load(true);
+			//we order this collection so we can run a binary search on it
+			vnids = database.VisualNovels.Select(v => v.VNID).OrderBy(n=>n).ToArray();
 		}
 	}
 }

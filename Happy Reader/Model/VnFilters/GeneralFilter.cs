@@ -190,6 +190,8 @@ namespace Happy_Reader
 					return SearchByText;
 				case GeneralFilterType.VNID:
 					return i => (GetVisualNovel(i, out var vn) && vn.VNID == IntValue) != Exclude;
+				case GeneralFilterType.NewlyAdded:
+					return i => (GetVisualNovel(i, out var vn) && vn.NewSinceUpdate) != Exclude;
 				default: throw new ArgumentOutOfRangeException();
 			}
 		}
@@ -373,6 +375,7 @@ namespace Happy_Reader
 				case GeneralFilterType.UserVN:
 				case GeneralFilterType.HasAnime:
 				case GeneralFilterType.CharacterHasImage:
+				case GeneralFilterType.NewlyAdded:
 					return result;
 				case GeneralFilterType.SuggestionScore:
 				case GeneralFilterType.ReleaseDate:
@@ -471,6 +474,8 @@ namespace Happy_Reader
 		Name = 26,
 		[TypeConverter(typeof(int))]
 		VNID = 27,
+		[Description("Newly Added"), TypeConverter(typeof(bool))]
+		NewlyAdded = 28,
 #pragma warning restore 1591
 	}
 }

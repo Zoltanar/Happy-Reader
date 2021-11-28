@@ -34,6 +34,7 @@ namespace Happy_Reader.View
 		public static readonly Brush ULPlayingBrush = Brushes.Yellow;
 		public static readonly Brush UnreleasedBrush = Brushes.White;
 		public static readonly Brush UnreleasedBorderBrush = Brushes.Black;
+		public static readonly Brush NewlyAddedBorderBrush = Brushes.Yellow;
 
 		public static readonly BitmapImage FileNotFoundImage;
 		public static readonly BitmapImage ImageNotFoundImage;

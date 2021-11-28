@@ -173,6 +173,7 @@ namespace Happy_Apps_Core.Database
 	""ReleaseLink""	TEXT,
 	""TagScore""	REAL,
 	""TraitScore""	REAL,
+	""NewSinceUpdate""	INTEGER,
 	PRIMARY KEY(""VNID"")
 );");
 		}

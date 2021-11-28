@@ -24,8 +24,9 @@
 		<view:DateToBrushConverter x:Key="DateToBrushConverter" />
 		<converters:UserVnToBackgroundConverter x:Key="UserVnToBackgroundConverter" />
 		<converters:RunningStatusToBrushConverter x:Key="RunningStatusToBrushConverter" />
-		<converters:GameDisplayNameConverter x:Key="GameDisplayNameConverter" /> 
+		<converters:GameDisplayNameConverter x:Key="GameDisplayNameConverter" />
 		<view:VnToProducerForegroundConverter x:Key="VnToProducerForegroundConverter" />
+		<view:NewlyAddedBorderBrushConverter x:Key="NewlyAddedBorderBrushConverter" />
 		<view:StringToNullableIntConverter x:Key="StringToNullableIntConverter" />
 		<view:VnOrScreenToImagePathConverter x:Key="VnOrScreenToImagePathConverter"/>
 		<view:StringAndBracketedConverter x:Key="StringAndBracketedConverter"/>

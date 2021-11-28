@@ -49,8 +49,10 @@
 					<TextBox Text="{Binding GenderSymbol, Mode=OneWay}" Foreground="Black" Visibility="{Binding Original, Converter={StaticResource NullableToVisibilityConverter}}" Padding="5,0,0,0" />
 					<TextBox Text="{Binding Seiyuu, Mode=OneWay}" Foreground="Black" Visibility="{Binding Seiyuu, Mode=OneWay, Converter={StaticResource NullableToVisibilityConverter}}" Padding="5,0,0,0"/>
 					<TextBox x:Name="VisualNovelNameBox" Text="{Binding VisualNovel.Title, Mode=OneWay}" Foreground="Black" Padding="5,0,0,0" />
-					<TextBox x:Name="VisualNovelReleaseBox" Text="{Binding VisualNovel.ReleaseDateString, Mode=OneWay}" Foreground="{Binding VisualNovel.ReleaseDate, Converter={StaticResource DateToBrushConverter}}" Padding="5,0,0,0"/>
-				</StackPanel>
+					<Border Padding="5,0,0,0" BorderBrush="{Binding VisualNovel.NewSinceUpdate, Converter={StaticResource NewlyAddedBorderBrushConverter}}" BorderThickness="1">
+						<TextBox x:Name="VisualNovelReleaseBox" Text="{Binding VisualNovel.ReleaseDateString, Mode=OneWay}" Foreground="{Binding VisualNovel.ReleaseDate, Converter={StaticResource DateToBrushConverter}}"/>
+					</Border>
+					</StackPanel>
 			</Grid>
 			<Label Grid.Column="0" Margin="0,-1,2,0" VerticalAlignment="Top" Foreground="#FF9C9C9C" FontSize="9" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="34">
 				<Hyperlink Click="ID_OnClick">
