@@ -144,7 +144,7 @@ namespace DatabaseDumpReader
 
 		private static ExitCode Run(string dumpFolder, int userId)
 		{
-			DumpReader.GetDbStats(StaticHelpers.DatabaseFile,out var previousDumpUpdate, out var previousVnIds);
+			DumpReader.GetDbStats(StaticHelpers.DatabaseFile,out var previousDumpUpdate, out var previousVnIds, out var previousCharacterIds);
 			var dumpFileInfo = GetLatestDump(previousDumpUpdate, dumpFolder);
 			var oldDateString = previousDumpUpdate.HasValue
 				? $"Current update was from: {previousDumpUpdate.Value.ToShortDateString()}."
@@ -163,7 +163,7 @@ namespace DatabaseDumpReader
 			Debug.Assert(dumpFileInfo.NewFileDate != null, nameof(dumpFileInfo.NewFileDate) + " != null");
 			StaticHelpers.Logger.ToFile(oldDateString, $"Getting update to: {dumpFileInfo.NewFileDate.Value.ToShortDateString()}.");
 			var processor = new DumpReader(dumpFileInfo.LatestDumpFolder, StaticHelpers.DatabaseFile, userId);
-			processor.Run(dumpFileInfo.NewFileDate.Value, previousVnIds);
+			processor.Run(dumpFileInfo.NewFileDate.Value, previousVnIds, previousCharacterIds);
 			var result = dumpFileInfo.UpToDate ? ExitCode.ReloadLatest : ExitCode.Update;
 			RemovePastBackups(dumpFolder, dumpFileInfo);
 			return result;

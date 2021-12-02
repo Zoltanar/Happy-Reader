@@ -55,7 +55,7 @@ namespace DatabaseDumpReader
 				Database);
 		}
 
-		public void Run(DateTime dumpDate, int[] previousVnIds)
+		public void Run(DateTime dumpDate, int[] previousVnIds, int[] previousCharacterIds)
 		{
 			StaticHelpers.Logger.ToFile("Starting Dump Reader...");
 			Console.ForegroundColor = ConsoleColor.DarkYellow;
@@ -66,7 +66,7 @@ namespace DatabaseDumpReader
 			LoadReleases();
 			LoadAndResolveTags();
 			LoadStaff();
-			LoadCharacters();
+			LoadCharacters(previousCharacterIds);
 			var votesUngrouped = new List<DumpVote>();
 			Load<DumpVote>((i, _) => votesUngrouped.Add(i), votesFilePath, false);
 			Votes = votesUngrouped.GroupBy(vote => vote.VNId).ToDictionary(g => g.Key, g => g.ToList());
@@ -126,7 +126,7 @@ namespace DatabaseDumpReader
 			}, "db\\vn_relations");
 		}
 
-		private void LoadCharacters()
+		private void LoadCharacters(int[] previousCharacterIds)
 		{
 			Load<CharacterVN>((i, t) =>
 			{
@@ -140,6 +140,7 @@ namespace DatabaseDumpReader
 			Load<CharacterItem>((i, t) =>
 			{
 				SuggestionScorer.SetScore(i, Database.Traits[i.ID].Select(trait => trait.TraitId));
+				if (previousCharacterIds.Length != 0 && Array.BinarySearch(previousCharacterIds, i.ID) < 0) i.NewSinceUpdate = true;
 				Database.Characters.Add(i, false, true, t);
 			}, "db\\chars");
 		}
@@ -351,19 +352,22 @@ namespace DatabaseDumpReader
 			return day == "99" ? $"{year}-{month}" : $"{year}-{month}-{day}";
 		}
 
-		public static void GetDbStats(string databaseFile, out DateTime? latestDumpUpdate, out int[] vnids)
+		public static void GetDbStats(string databaseFile, out DateTime? latestDumpUpdate, out int[] vnIds, out int[] characterIds)
 		{
 			if (!File.Exists(databaseFile))
 			{
 				latestDumpUpdate  = null;
-				vnids = Array.Empty<int>();
+				vnIds = Array.Empty<int>();
+				characterIds = Array.Empty<int>();
 				return;
 			}
 			var database = new VisualNovelDatabase(databaseFile, false);
 			latestDumpUpdate = database.GetLatestDumpUpdate();
 			database.VisualNovels.Load(true);
+			database.Characters.Load(true);
 			//we order this collection so we can run a binary search on it
-			vnids = database.VisualNovels.Select(v => v.VNID).OrderBy(n=>n).ToArray();
+			vnIds = database.VisualNovels.Select(v => v.VNID).OrderBy(n => n).ToArray();
+			characterIds = database.Characters.Select(v => v.ID).OrderBy(n => n).ToArray();
 		}
 	}
 }

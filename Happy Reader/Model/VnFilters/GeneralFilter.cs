@@ -191,7 +191,9 @@ namespace Happy_Reader
 				case GeneralFilterType.VNID:
 					return i => (GetVisualNovel(i, out var vn) && vn.VNID == IntValue) != Exclude;
 				case GeneralFilterType.NewlyAdded:
-					return i => (GetVisualNovel(i, out var vn) && vn.NewSinceUpdate) != Exclude;
+					return i => ((i is CharacterItem ch && ch.NewSinceUpdate) ||
+					             (i is ListedVN vn && vn.NewSinceUpdate))
+					            != Exclude;
 				default: throw new ArgumentOutOfRangeException();
 			}
 		}

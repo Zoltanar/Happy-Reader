@@ -22,6 +22,7 @@ namespace Happy_Apps_Core
 		public string Description { get; set; }
 		public string ImageId { get; set; }
 		public double? TraitScore { get; set; }
+		public bool NewSinceUpdate { get; set; }
 
 		public IEnumerable<DbTrait> DbTraits => StaticHelpers.LocalDatabase.Traits[ID];
 		public IEnumerable<VnSeiyuu> Seiyuus => StaticHelpers.LocalDatabase.VnSeiyuus.Where(s => s.CharacterID == ID);
@@ -52,8 +53,8 @@ namespace Happy_Apps_Core
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
 		{
 			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO CharacterItems" +
-									 "(ID,Name,Original,Gender,Aliases,Description,Image,TraitScore) VALUES " +
-									 "(@ID,@Name,@Original,@Gender,@Aliases,@Description,@Image,@TraitScore)";
+									 "(ID,Name,Original,Gender,Aliases,Description,Image,TraitScore, NewSinceUpdate) VALUES " +
+									 "(@ID,@Name,@Original,@Gender,@Aliases,@Description,@Image,@TraitScore, @NewSinceUpdate)";
 			var command = connection.CreateCommand();
 			command.CommandText = sql;
 			command.AddParameter("@ID", ID);
@@ -64,6 +65,7 @@ namespace Happy_Apps_Core
 			command.AddParameter("@Description", Description);
 			command.AddParameter("@Image", ImageId);
 			command.AddParameter("@TraitScore", TraitScore);
+			command.AddParameter("@NewSinceUpdate", NewSinceUpdate);
 			return command;
 		}
 
@@ -80,6 +82,7 @@ namespace Happy_Apps_Core
 				var imageIdObject = reader["Image"];
 				if (!imageIdObject.Equals(DBNull.Value)) ImageId = Convert.ToString(imageIdObject);
 				TraitScore = StaticHelpers.GetNullableDouble(reader["TraitScore"]);
+				NewSinceUpdate = Convert.ToInt32(reader["NewSinceUpdate"]) == 1;
 			}
 			catch (Exception ex)
 			{
