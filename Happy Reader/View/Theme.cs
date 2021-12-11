@@ -31,6 +31,7 @@ namespace Happy_Reader.View
 		// ReSharper disable UnusedMember.Local
 		//tile text colors
 		public static readonly Brush FavoriteProducerBrush = Brushes.Yellow;
+		public static readonly Brush FavoriteProducerDarkBrush = Brushes.DarkKhaki;
 		public static readonly Brush ULPlayingBrush = Brushes.Yellow;
 		public static readonly Brush UnreleasedBrush = Brushes.White;
 		public static readonly Brush UnreleasedBorderBrush = Brushes.Black;

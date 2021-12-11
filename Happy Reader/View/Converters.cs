@@ -224,7 +224,9 @@ namespace Happy_Reader.View
 		{
 			if (value is null) return Brushes.White;
 			if (value is not ListedVN vn) throw new NotSupportedException();
-			return StaticHelpers.VNIsByFavoriteProducer(vn) ? Theme.FavoriteProducerBrush : Brushes.Black;
+			return StaticHelpers.VNIsByFavoriteProducer(vn) 
+				? vn.UserVN?.PriorityLabel == UserVN.LabelKind.Playing ? Theme.FavoriteProducerDarkBrush : Theme.FavoriteProducerBrush 
+				: Brushes.Black;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();

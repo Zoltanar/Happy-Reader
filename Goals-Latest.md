@@ -27,8 +27,9 @@
 - Change Series-specific to three-way dropdown (none,title,series, producer?)
 #### Other
 - **Add screenshots to basic guide**
-- - Producer Tab: charts for popularity
-- Producer Tab: list staff and number of contributions
+- Producer Tab: charts for popularity
+- Database: Sort By and show english release date
+- Database: History item is duplicated when going back
 - tray: update last played titles in real time
 - add 'update available' notice (can hide)
 - warn if an instance is already running (maybe show database file for opening instance) 

@@ -3,11 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:Happy_Reader.View.Tabs"
              xmlns:tabs="clr-namespace:Happy_Reader.View.Tabs"
              xmlns:database="clr-namespace:Happy_Apps_Core.Database;assembly=Happy_Apps_Core"
              xmlns:DV="clr-namespace:System.Windows.Controls.DataVisualization;assembly=DotNetProjects.DataVisualization.Toolkit"
              xmlns:DVC="clr-namespace:System.Windows.Controls.DataVisualization.Charting;assembly=DotNetProjects.DataVisualization.Toolkit"
+             xmlns:happyReader="clr-namespace:Happy_Reader"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              Background="LightGray">
@@ -16,6 +16,8 @@
 	</d:UserControl.DataContext>
 	<Grid>
 		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
@@ -33,7 +35,36 @@
 		<Label Grid.Row="1" Grid.Column="0" x:Name="TimeActiveLabel"/>
 		<Label Grid.Row="2" Grid.Column="0" x:Name="TitlesLabel"/>
 		<Label Grid.Row="3" Grid.Column="0" x:Name="RatingLabel"/>
-		<DVC:Chart   Grid.Row="4" x:Name="ReleaseChart" Title="Releases">
+		<Label Grid.Row="4" Grid.Column="0" Content="List of Staff (>1 titles)" />
+		<ListBox Grid.Row="5" Grid.Column="0" x:Name="StaffListBox" MaxHeight="150" Margin="0,5">
+			<ListBox.ItemTemplate>
+				<DataTemplate DataType="happyReader:StaffAndDetail">
+					<Border BorderThickness="0">
+						<Grid>
+							<StackPanel Orientation="Horizontal">
+								<TextBlock Text="{Binding Detail}">
+									<TextBlock.ContextMenu>
+										<ContextMenu>
+											<MenuItem Header="Show titles with staff" Click="ShowVNsForStaff"/>
+											<Separator/>
+											<MenuItem Header="Show characters from titles with staff" Click="ShowCharactersForStaff"/>
+										</ContextMenu>
+									</TextBlock.ContextMenu>
+								</TextBlock>
+							</StackPanel>
+						</Grid>
+					</Border>
+				</DataTemplate>
+			</ListBox.ItemTemplate>
+			<ListBox.ItemContainerStyle>
+				<Style TargetType="{x:Type ListBoxItem}">
+					<Setter Property="Padding" Value="0" />
+					<Setter Property="Margin" Value="0" />
+				</Style>
+			</ListBox.ItemContainerStyle>
+		</ListBox>
+
+		<DVC:Chart   Grid.Row="6" x:Name="ReleaseChart" Title="Releases">
 			<DVC:LineSeries IndependentValuePath="Key" DependentValuePath="Value" x:Name="ReleaseSeries"/>
 		</DVC:Chart>
 	</Grid>

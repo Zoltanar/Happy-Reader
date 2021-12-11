@@ -248,6 +248,7 @@
     <Compile Include="View\Tabs\SettingsTab.xaml.cs">
       <DependentUpon>SettingsTab.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Model\StaffAndDetail.cs" />
     <Compile Include="View\Tabs\TestTranslationTab.xaml.cs">
       <DependentUpon>TestTranslationTab.xaml</DependentUpon>
     </Compile>
