@@ -7,7 +7,7 @@ namespace Happy_Apps_Core.Translation
 {
 	public class CachedTranslation : IDataItem<string>
 	{
-		public CachedTranslation(string input, string output, string source)
+		public CachedTranslation(string input, string output, string source, int? gameId, bool isUserGame)
 		{
 			Input = input;
 			Output = output;
@@ -15,6 +15,8 @@ namespace Happy_Apps_Core.Translation
 			Timestamp = DateTime.UtcNow;
 			Count = 1;
 			Source = source;
+			GameId = gameId;
+			IsUserGame = isUserGame;
 		}
 
 		public CachedTranslation()
@@ -37,14 +39,16 @@ namespace Happy_Apps_Core.Translation
 		/// </summary>
 		public int Count { get; private set; }
 		public string Source { get; private set; }
+		public int? GameId { get; private set; }
+		public bool IsUserGame { get; private set; }
 		public string KeyField => nameof(Input);
 		public string Key => Input;
 
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
 		{
 			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO {nameof(CachedTranslation)}s" +
-									 "(Input, Output, CreatedAt, Timestamp, Count, Source) VALUES " +
-									 "(@Input, @Output, @CreatedAt, @Timestamp, @Count, @Source)";
+									 "(Input, Output, CreatedAt, Timestamp, Count, Source, GameId, IsUserGame) VALUES " +
+									 "(@Input, @Output, @CreatedAt, @Timestamp, @Count, @Source, @GameId, @IsUserGame)";
 			var command = connection.CreateCommand();
 			command.CommandText = sql;
 			command.AddParameter("@Input", Input);
@@ -53,6 +57,8 @@ namespace Happy_Apps_Core.Translation
 			command.AddParameter("@Timestamp", Timestamp);
 			command.AddParameter("@Count", Count);
 			command.AddParameter("@Source", Source);
+			command.AddParameter("@GameId", GameId);
+			command.AddParameter("@IsUserGame", IsUserGame);
 			return command;
 		}
 
@@ -64,6 +70,8 @@ namespace Happy_Apps_Core.Translation
 			Timestamp = Convert.ToDateTime(reader["Timestamp"]);
 			Count = Convert.ToInt32(reader["Count"]);
 			Source = Convert.ToString(reader["Source"]);
+			GameId = StaticHelpers.GetNullableInt(reader["GameId"]);
+			IsUserGame = Convert.ToInt32(reader["IsUserGame"]) == 1;
 		}
 
 		/// <summary>

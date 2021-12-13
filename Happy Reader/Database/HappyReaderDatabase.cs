@@ -134,6 +134,8 @@ namespace Happy_Reader.Database
 	`Timestamp`	DATETIME,
 	`Count`	INTEGER,
   `Source` TEXT NOT NULL,
+	`GameId`	INTEGER,
+	`IsUserGame`	INTEGER,
 	PRIMARY KEY(`Input`)
 )");
 				DatabaseTableBuilder.ExecuteSql(Connection, $@"CREATE TABLE `{nameof(Log)}s` (

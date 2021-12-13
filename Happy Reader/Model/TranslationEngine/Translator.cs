@@ -505,7 +505,7 @@ namespace Happy_Reader.TranslationEngine
 		{
 			GotFromApiCount++;
 			text.Append(translated);
-			var translation = new CachedTranslation(input, translated, sourceName);
+			var translation = new CachedTranslation(input, translated, sourceName, _lastGame.GameId, _lastGame.IsUserGame);
 			_data.Translations.UpsertLater(translation);
 		}
 
