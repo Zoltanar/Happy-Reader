@@ -2,7 +2,7 @@
 ## Future Features  
 #### Translation
 - Make mouseover dictionary tooltip nicer
-- export/import translation cache
+- **export/import translation cache**
 - option to do this automatically: remove translations from cache if not used recently or originally cached too long ago.
 - apply translate stage 4 to pre-romaji
 - allow multiple translators at the same time
@@ -26,6 +26,7 @@
 - Implement priority
 - Change Series-specific to three-way dropdown (none,title,series, producer?)
 #### Other
+- Option to stop monitor
 - **Add screenshots to basic guide**
 - Producer Tab: charts for popularity
 - Database: Sort By and show english release date

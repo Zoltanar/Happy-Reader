@@ -22,6 +22,8 @@ namespace Happy_Reader.View
 			if (timeSince.TotalDays < 30) return "14-30 days ago";
 			if (timeSince.TotalDays < 60) return "30-60 days ago";
 			if (timeSince.TotalDays < 120) return "60-120 days ago";
+			if (timeSince.TotalDays < 240) return "120-240 days ago";
+			if (timeSince.TotalDays < 480) return "240-480 days ago";
 			return "Earlier";
 		}
 

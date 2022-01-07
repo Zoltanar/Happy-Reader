@@ -421,8 +421,9 @@ namespace Happy_Reader.Database
 		public Process StartProcess(string filePath, string args, bool usingProxy)
 		{
 			Logger.ToFile($"{nameof(StartProcess)}, Using Proxy = {usingProxy}: '{filePath}' {args}'");
-			var processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(FilePath));
-			var existing = processes.FirstOrDefault();
+			var processes = Process.GetProcesses();
+			var existing = processes.FirstOrDefault(p => p.ProcessName == Path.GetFileName(FilePath));
+			if(existing == null) existing = processes.FirstOrDefault(p => p.ProcessName == Path.GetFileNameWithoutExtension(FilePath));
 			if (existing != null)
 			{
 				Logger.ToFile($"{nameof(StartProcess)}: Already existed.");
@@ -441,8 +442,9 @@ namespace Happy_Reader.Database
 			if (usingProxy)
 			{
 				Thread.Sleep(3000);
-				processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(FilePath));
-				var process =  processes.FirstOrDefault();
+				processes = Process.GetProcesses();
+				var process = processes.FirstOrDefault(p => p.ProcessName == Path.GetFileName(FilePath));
+				if (process == null) existing = processes.FirstOrDefault(p => p.ProcessName == Path.GetFileNameWithoutExtension(FilePath));
 				Logger.ToFile($"{nameof(StartProcess)}: {(process != null ? "Process found." : "Process not found.")}");
 				return process;
 			}
