@@ -15,7 +15,7 @@ namespace Happy_Reader.View
 {
 	public partial class VnMenuItem : ItemsControl
 	{
-		private static readonly Regex MinusRegex = new(@"[-－]");
+		private static readonly Regex ExcludedSearchCharacters = new(@"[-－‐～]");
 
 		private ListedVN VN => (ListedVN)DataContext;
 		public VnMenuItem(ListedVN vn)
@@ -49,8 +49,7 @@ namespace Happy_Reader.View
 			var title = pageLink.UseRomaji
 				? !string.IsNullOrWhiteSpace(VN.Title) ? VN.Title : VN.KanjiTitle
 				: !string.IsNullOrWhiteSpace(VN.KanjiTitle) ? VN.KanjiTitle : VN.Title;
-			//remove minus so search includes term
-			var titleFixed = MinusRegex.Replace(title, string.Empty);
+			var titleFixed = ExcludedSearchCharacters.Replace(title, string.Empty);
 			var link = pageLink.Link.Replace("%s", titleFixed).Replace(" ", "%20");
 			if (!Uri.IsWellFormedUriString(link, UriKind.Absolute)) throw new InvalidOperationException($"'{link}' is not a well formed URI.");
 			Process.Start(link);
