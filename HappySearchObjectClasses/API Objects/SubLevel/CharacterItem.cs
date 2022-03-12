@@ -1,18 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Happy_Apps_Core.DataAccess;
 using Happy_Apps_Core.Database;
+using JetBrains.Annotations;
 
 namespace Happy_Apps_Core
 {
-	public class CharacterItem : IDataItem<int>, IDumpItem, ICloneable
+	public class CharacterItem : IDataItem<int>, IDumpItem, ICloneable, INotifyPropertyChanged
 	{
 		private bool _imageSourceSet;
 		private string _imageSource;
 		private bool? _alertFlag;
+
+		public event PropertyChangedEventHandler PropertyChanged;
 
 		public int ID { get; set; }
 		public string Name { get; set; }
@@ -155,6 +160,12 @@ namespace Happy_Apps_Core
 				.Select(trait => DumpFiles.GetTrait(trait.TraitId))
 				.GroupBy(x => x?.TopmostParentName ?? "Not Found");
 			return groups;
+		}
+
+		[NotifyPropertyChangedInvocator]
+		public void OnPropertyChanged([CallerMemberName] string propertyName = null)
+		{
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 	}
 }

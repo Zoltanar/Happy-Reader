@@ -7,7 +7,6 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
@@ -26,7 +25,7 @@ namespace Happy_Reader.View.Tiles
 
 		private VnMenuItem _vnMenu;
 		private bool _loaded;
-		
+
 		private VnMenuItem VnMenu => _vnMenu ??= new VnMenuItem(_viewModel.VisualNovel);
 
 		public static CharacterTile FromCharacterVN(CharacterVN cvn)
@@ -50,7 +49,7 @@ namespace Happy_Reader.View.Tiles
 			_hideTraits = hideTraits;
 			_forVnTab = forVnTab;
 		}
-		
+
 		private void CharacterTile_OnLoaded(object sender, RoutedEventArgs e)
 		{
 			if (_loaded) return;
@@ -64,7 +63,10 @@ namespace Happy_Reader.View.Tiles
 			else
 			{
 				//if not for VN tab, we set the background based on user vn status.
-				BorderElement.Background = (Brush)StaticUserVnToBackgroundConverter.Convert(_viewModel.VisualNovel?.UserVN, typeof(Brush), null, CultureInfo.CurrentCulture);
+				var binding = BorderElement.SetBinding(Border.BackgroundProperty,
+					new Binding($"{nameof(CharacterItem.VisualNovel)}.{nameof(CharacterItem.VisualNovel.UserVN)}")
+					{ Converter = StaticUserVnToBackgroundConverter });
+				binding.UpdateTarget();
 			}
 			if (_viewModel.ID != 0 && !_hideTraits) SetTraitsList();
 			_loaded = true;
@@ -81,7 +83,7 @@ namespace Happy_Reader.View.Tiles
 					if (trait != null && StaticHelpers.CSettings.AlertTraitIDs.Contains(trait.ID)) content = new Bold(content);
 					var tooltip = trait != null ? TitleDescriptionConverter.Instance.Convert(trait.Description, typeof(string), null, CultureInfo.CurrentCulture) : null;
 					var link = new Hyperlink(content) { Tag = trait, ToolTip = tooltip };
-					if(trait != null) link.Click += ShowCharactersWithTrait;
+					if (trait != null) link.Click += ShowCharactersWithTrait;
 					TraitsControl.Items.Add(link);
 				}
 			}
@@ -133,8 +135,8 @@ namespace Happy_Reader.View.Tiles
 
 		private void ShowCharactersWithTrait(object sender, EventArgs args)
 		{
-			var element = (FrameworkContentElement) sender;
-			var trait = (DumpFiles.WrittenTrait) element.Tag;
+			var element = (FrameworkContentElement)sender;
+			var trait = (DumpFiles.WrittenTrait)element.Tag;
 			StaticMethods.MainWindow.SelectTab(typeof(CharactersTabViewModel));
 			StaticMethods.MainWindow.ViewModel.CharactersViewModel.ShowWithTrait(trait);
 		}

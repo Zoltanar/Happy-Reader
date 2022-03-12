@@ -251,8 +251,8 @@ namespace Happy_Reader.View
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if (value is null) return Theme.DefaultTileBrush;
-			if (!(value is CharacterItem character)) throw new NotSupportedException();
-			return character.CharacterVN?.Role switch
+			if (value is not CharacterVN characterVN) throw new NotSupportedException();
+			return characterVN.Role switch
 			{
 				CharacterRole.Main => Brushes.Gold,
 				CharacterRole.Primary => Brushes.Orchid,

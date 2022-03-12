@@ -225,7 +225,10 @@ namespace Happy_Reader.View
 			if (success)
 			{
 				VN.OnPropertyChanged(null);
-				VN.Producer.OnPropertyChanged(null);
+				VN.Producer?.OnPropertyChanged(null);
+				var vnCharacters = StaticHelpers.LocalDatabase.CharacterVNs[VN.VNID];
+				var characters = StaticHelpers.LocalDatabase.Characters.WithKeyIn(vnCharacters.Select(c=>c.CharacterId).ToList());
+				foreach(var character in characters) character.OnPropertyChanged(null);
 			}
 		}
 

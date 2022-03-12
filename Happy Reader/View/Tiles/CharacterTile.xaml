@@ -21,7 +21,7 @@
 			<MenuItem IsEnabled="{Binding VisualNovel, Converter={StaticResource NullableToBooleanConverter}}" Header="Visual Novel" SubmenuOpened="OpenVnSubmenu" x:Name="VnMenuParent" />
 		</ContextMenu>
 	</UserControl.ContextMenu>
-	<Border x:Name="BorderElement" BorderBrush="Black" BorderThickness="1" CornerRadius="10" Background="{Binding ., Converter={StaticResource CharacterToBackBrushConverter}}">
+	<Border x:Name="BorderElement" BorderBrush="Black" BorderThickness="1" CornerRadius="10" Background="{Binding CharacterVN, Converter={StaticResource CharacterToBackBrushConverter}}">
 		<Grid>
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="230"/>
