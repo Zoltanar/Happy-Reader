@@ -20,7 +20,7 @@ namespace DatabaseDumpReader
 		public VisualNovelDatabase Database { get; }
 		public SuggestionScorer SuggestionScorer { get; }
 		public Dictionary<int, Release> Releases { get; } = new();
-		public Dictionary<int, List<string>> LangReleases { get; } = new();
+		public Dictionary<int, List<LangRelease>> LangReleases { get; } = new();
 		public Dictionary<int, List<int>> ProducerReleases { get; } = new();
 		public Dictionary<int, List<Release>> VnReleases { get; } = new();
 		public Dictionary<int, DumpAnime> Animes { get; } = new();
@@ -30,6 +30,7 @@ namespace DatabaseDumpReader
 		public Dictionary<int, List<DumpRelation>> VnRelations { get; } = new();
 		public Dictionary<int, UserVN.LabelKind> UserLabels { get; } = new();
 		public Dictionary<int, UserVn> UserVns { get; } = new();
+		public Dictionary<int, List<DumpTitle>> VnTitles { get; } = new();
 		public List<VnTag> VnTags { get; } = new();
 		public Dictionary<int, List<DumpVote>> Votes { get; private set; }
 
@@ -72,6 +73,11 @@ namespace DatabaseDumpReader
 			Votes = votesUngrouped.GroupBy(vote => vote.VNId).ToDictionary(g => g.Key, g => g.ToList());
 			LoadAnimeScreensRelations();
 			LoadUserVn();
+			Load<DumpTitle>((i, t) =>
+			{
+				if (!VnTitles.ContainsKey(i.VNId)) VnTitles[i.VNId] = new List<DumpTitle>();
+				VnTitles[i.VNId].Add(i);
+			}, "db\\vn_titles");
 			Load<ListedVN>((i, t) =>
 			{
 				ResolveOtherForVn(i);
@@ -155,16 +161,21 @@ namespace DatabaseDumpReader
 			}, "db\\releases_producers");
 			Load<LangRelease>((i, _) =>
 			{
-				if (!LangReleases.ContainsKey(i.ReleaseId)) LangReleases[i.ReleaseId] = new List<string>();
-				LangReleases[i.ReleaseId].Add(i.Lang);
+				if (!LangReleases.ContainsKey(i.ReleaseId)) LangReleases[i.ReleaseId] = new List<LangRelease>();
+				LangReleases[i.ReleaseId].Add(i);
 			}, "db\\releases_lang");
 			Load<Release>((i, _) => Releases[i.ReleaseId] = i, "db\\releases");
 			Load<VnRelease>((i, _) =>
 			{
 				if (!VnReleases.ContainsKey(i.VnId)) VnReleases[i.VnId] = new List<Release>();
 				if (!Releases.TryGetValue(i.ReleaseId, out var release)) return;
-				if (i.ReleaseType == "trial") Releases.Remove(i.ReleaseId);
+				if (i.ReleaseType == "trial")
+				{
+					Releases.Remove(i.ReleaseId);
+					return;
+				}
 				release.Languages = LangReleases[i.ReleaseId];
+				foreach (var langRelease in release.Languages) langRelease.Partial = i.ReleaseType == "partial";
 				ProducerReleases.TryGetValue(i.ReleaseId, out var producerRelease);
 				release.Producers = producerRelease ?? new List<int>();
 				VnReleases[i.VnId].Add(release);
@@ -297,7 +308,9 @@ namespace DatabaseDumpReader
 				vn.VoteCount = votes.Count;
 				if (votes.Count > 0) vn.Rating = votes.Average(v => v.Vote);
 			}
+
 			ResolveRelease();
+			ResolveTitle();
 			ResolveRelations();
 			ResolveAnime();
 			ResolveScreens();
@@ -329,14 +342,35 @@ namespace DatabaseDumpReader
 			{
 				if (!VnReleases.ContainsKey(vn.VNID)) return;
 				var releases = VnReleases[vn.VNID].OrderBy(r => r.Released).ToList();
-				var release = releases.FirstOrDefault();
-				if (release == null) return;
-				vn.SetReleaseDate(StringToDateString(release.Released));
-				var languages = new VNLanguages(release.Languages.ToArray(),
-					releases.SelectMany(r => r.Languages).Distinct().ToArray());
+				if (!releases.Any()) return;
+				//set release date to each LangRelease object
+				foreach (var rel in releases)
+				{
+					foreach (var lang in rel.Languages)
+					{
+						lang.SetReleaseDate(StringToDateString(rel.Released));
+					}
+				}
+				var otherLanguages = FilterLanguages(releases, out var firstRelease);
+				vn.SetReleaseDate(StringToDateString(firstRelease.Released));
+				var languages = new VNLanguages(firstRelease.Languages, otherLanguages);
 				vn.Languages = JsonConvert.SerializeObject(languages);
 				vn.ProducerID = releases.SelectMany(r => r.Producers).FirstOrDefault(p => Database.Producers[p] != null);
-				vn.ReleaseLink = release.Website;
+				vn.ReleaseLink = firstRelease.Website;
+			}
+			void ResolveTitle()
+			{
+				if (VnTitles.TryGetValue(vn.VNID, out var titles))
+				{
+					var cTitles = titles.Where(t=>t.Lang == vn.OriginalLanguage).OrderByDescending(t => t.Official).ToList();
+					var chosen = cTitles.First();
+					vn.Title = string.IsNullOrWhiteSpace(chosen.Latin) ? chosen.Title : chosen.Latin;
+					vn.KanjiTitle = string.IsNullOrWhiteSpace(chosen.Latin) ? null : chosen.Title;
+				}
+				else
+				{
+					vn.Title = "(No title found)";
+				}
 			}
 		}
 
@@ -352,11 +386,25 @@ namespace DatabaseDumpReader
 			return day == "99" ? $"{year}-{month}" : $"{year}-{month}-{day}";
 		}
 
+		private static List<LangRelease> FilterLanguages(List<Release> releases, out Release firstRelease)
+		{
+			firstRelease = releases.First();
+			var firstLanguages = firstRelease.Languages.Select(l => l.Lang).ToList();
+			var languages = releases.Skip(1).SelectMany(l => l.Languages).Where(lang => !firstLanguages.Contains(lang.Lang));
+			//not machine translation first, not partial first
+			var filteredLanguages = languages.GroupBy(l => l.Lang).Select(g => g
+					.OrderBy(l2 => l2.Mtl)
+					.ThenBy(l2 => l2.Partial)
+					.First()
+				).ToList();
+			return filteredLanguages;
+		}
+
 		public static void GetDbStats(string databaseFile, out DateTime? latestDumpUpdate, out int[] vnIds, out int[] characterIds)
 		{
 			if (!File.Exists(databaseFile))
 			{
-				latestDumpUpdate  = null;
+				latestDumpUpdate = null;
 				vnIds = Array.Empty<int>();
 				characterIds = Array.Empty<int>();
 				return;

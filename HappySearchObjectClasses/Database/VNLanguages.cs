@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Newtonsoft.Json;
 
@@ -14,24 +15,24 @@ namespace Happy_Apps_Core.Database
 		/// <summary>
 		/// Languages for original release
 		/// </summary>
-		public string[] Originals { get; set; }
+		public LangRelease[] Originals { get; set; }
 		/// <summary>
 		/// Languages for other releases
 		/// </summary>
-		public string[] Others { get; set; }
+		public LangRelease[] Others { get; set; }
 
 		/// <summary>
-		/// Languages for all releases
+		/// Languages for all releases (Originals first)
 		/// </summary>
-		public IEnumerable<string> All => Originals.Concat(Others);
+		public IEnumerable<LangRelease> All => Originals.Concat(Others);
 
 		/// <summary>
 		/// Empty Constructor for serialization
 		/// </summary>
 		public VNLanguages()
 		{
-			Originals = new string[0];
-			Others = new string[0];
+			Originals = Array.Empty<LangRelease>();
+			Others = Array.Empty<LangRelease>();
 		}
 
 		/// <summary>
@@ -39,12 +40,85 @@ namespace Happy_Apps_Core.Database
 		/// </summary>
 		/// <param name="originals">Languages for original release</param>
 		/// <param name="all">Languages for all releases</param>
-		public VNLanguages(string[] originals, string[] all)
+		public VNLanguages(List<LangRelease> originals, List<LangRelease> all)
 		{
-			Originals = originals;
+			Originals = originals.ToArray();
 			Others = all.Except(originals).ToArray();
 		}
 
+		/// <summary>
+		/// Displays a json-serialized string.
+		/// </summary>
+		/// <returns></returns>
+		public override string ToString()
+		{
+			return JsonConvert.SerializeObject(this);
+		}
+	}
+
+	public class LangRelease : IDumpItem
+	{
+		private static Dictionary<string, int> _headers = new();
+
+		private bool? _hasFullDate;
+		private string _releaseDateString;
+
+		public string GetPart(string[] parts, string columnName) => parts[_headers[columnName]];
+
+		public void SetDumpHeaders(string[] parts)
+		{
+			int colIndex = 0;
+			_headers = parts.ToDictionary(c => c, _ => colIndex++);
+		}
+
+		public void LoadFromStringParts(string[] parts)
+		{
+			ReleaseId = Convert.ToInt32(GetPart(parts, "id").Substring(1));
+			Lang = GetPart(parts, "lang");
+			Mtl = GetPart(parts, "mtl") == "t";
+		}
+
+		public string Lang { get; set; }
+
+		/// <summary>
+		/// We don't need to save this to the database
+		/// </summary>
+		[JsonIgnore]
+		public int ReleaseId { get; set; }
+
+		public bool Mtl { get; set; }
+
+		public bool Partial { get; set; }
+
+		[JsonIgnore]
+		public bool HasFullDate
+		{
+			get
+			{
+				if (_hasFullDate == null)
+				{
+					SetReleaseDate(ReleaseDateString);
+				}
+				Debug.Assert(_hasFullDate != null, nameof(_hasFullDate) + " != null");
+				return _hasFullDate.Value;
+			}
+		}
+
+		public string ReleaseDateString
+		{
+			get => _releaseDateString;
+			set => SetReleaseDate(value);
+		}
+
+		[JsonIgnore]
+		public DateTime ReleaseDate { get; set; }
+		
+		public void SetReleaseDate(string releaseDateString)
+		{
+			_releaseDateString = releaseDateString;
+			ReleaseDate = StaticHelpers.StringToDate(releaseDateString, out var hasFullDate);
+			_hasFullDate = hasFullDate;
+		}
 		/// <summary>
 		/// Displays a json-serialized string.
 		/// </summary>

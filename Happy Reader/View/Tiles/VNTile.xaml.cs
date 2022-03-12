@@ -31,11 +31,24 @@ namespace Happy_Reader.View.Tiles
 			VnMenu.TransferItems(VnMenuParent);
 			int order = 1;
 			ImageSource source;
-			while ((source = StaticMethods.GetFlag(VN.LanguagesObject, order++)) != null)
+			//todo move these flags to left side going down
+			while ((source = StaticMethods.GetFlag(VN.LanguagesObject, order++, out var release)) != null)
 			{
-				var image = new Image { Source = source, MaxHeight = 12, MaxWidth = 24 };
-				DockPanel.SetDock(image, Dock.Right);
-				LanguagesPanel.Children.Add(image);
+				var image = new Image { Source = source, MaxHeight = 12, MaxWidth = 24, Margin = new Thickness(3, 2, 3, 2) };
+				if (!string.IsNullOrWhiteSpace(release.ReleaseDateString)) image.ToolTip = release.ReleaseDateString;
+				var borderBrush = release.Mtl ? Brushes.Yellow /*Theme.PartialBorderBrush*/ : Brushes.Black;
+				var grid = new Grid();
+				var rectangle = new System.Windows.Shapes.Rectangle()
+				{
+					Stroke = borderBrush,
+					StrokeThickness = 2,
+					SnapsToDevicePixels = true
+				};
+				if (release.Partial) rectangle.StrokeDashArray = new DoubleCollection(new[] { 2d, 2d });
+				grid.Children.Add(rectangle);
+				grid.Children.Add(image);
+				DockPanel.SetDock(grid, Dock.Right);
+				LanguagesPanel.Children.Add(grid);
 			}
 			_loaded = true;
 		}

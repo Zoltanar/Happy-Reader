@@ -347,18 +347,24 @@ namespace Happy_Reader
 			if (!mouseoverTip.IsOpen) mouseoverTip.IsOpen = true;
 		}
 
-		public static ImageSource GetFlag(VNLanguages languages, int order)
+		public static ImageSource GetFlag(VNLanguages languages, int order, out LangRelease release)
 		{
 			int counter = 0;
-			foreach (var languageFile in languages.Originals.Concat(languages.Others).Select(language => $"{FlagsFolder}{language}.png"))
+			foreach (var lang in languages.All)
 			{
-				if (!FlagExistsDictionary.TryGetValue(languageFile, out var exists))
+				var filePath = $"{FlagsFolder}{lang.Lang}.png";
+				if (!FlagExistsDictionary.TryGetValue(filePath, out var exists))
 				{
-					exists = FlagExistsDictionary[languageFile] = File.Exists(Path.GetFullPath(languageFile)) ? new BitmapImage(new Uri(Path.GetFullPath(languageFile))) : null;
+					exists = FlagExistsDictionary[filePath] = File.Exists(Path.GetFullPath(filePath)) ? new BitmapImage(new Uri(Path.GetFullPath(filePath))) : null;
 				}
 				if (exists != null) counter++;
-				if (counter == order) return exists;
+				if (counter == order)
+				{
+					release = lang;
+					return exists;
+				}
 			}
+			release = null;
 			return null;
 		}
 

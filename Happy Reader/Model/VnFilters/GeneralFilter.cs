@@ -151,9 +151,9 @@ namespace Happy_Reader
 				case GeneralFilterType.Label:
 					return i => (GetVisualNovel(i, out var vn) && (vn.UserVN?.Labels.Any(l => l == (UserVN.LabelKind)IntValue) ?? false)) != Exclude;
 				case GeneralFilterType.Language:
-					return i => (GetVisualNovel(i, out var vn) && vn.HasLanguage(StringValue)) != Exclude;
+					return i => (GetVisualNovel(i, out var vn) && vn.HasLanguage(StringValue, false)) != Exclude;
 				case GeneralFilterType.OriginalLanguage:
-					return i => (GetVisualNovel(i, out var vn) && vn.HasOriginalLanguage(StringValue)) != Exclude;
+					return i => (GetVisualNovel(i, out var vn) && vn.HasLanguage(StringValue, true)) != Exclude;
 				case GeneralFilterType.Tags:
 					return TagsFunction;
 				case GeneralFilterType.Traits:

@@ -25,19 +25,21 @@
 ##### Entries
 - Implement priority
 - Change Series-specific to three-way dropdown (none,title,series, producer?)
+##### DatabaseDumpReader
+- **Do not use trial release date v34004**
+- DatabaseDumpReader: Parallelise?
+- DatabaseDumpReader: Run RSync while processing database dump, after downloading files
 #### Other
 - Option to stop monitor
 - **Add screenshots to basic guide**
 - Producer Tab: charts for popularity
 - Database: Sort By and show english release date
 - Database: History item is duplicated when going back
-- tray: update last played titles in real time
+- **tray: update last played titles in real time**
 - add 'update available' notice (can hide)
 - warn if an instance is already running (maybe show database file for opening instance) 
 - Main Window: add close all tabs button
 - Settings: if login response is error with id 'needlogin' show user that credentials are wrong
-- DatabaseDumpReader: Parallelise?
-- DatabaseDumpReader: Run RSync while processing database dump, after downloading files
 - Database Tab: Handle broken connections to vndb (catch exception and/or allow reestablishment)
 - Logs: Link to folder, show size taken, option to clear.
 - Database Tab: Sort by Random

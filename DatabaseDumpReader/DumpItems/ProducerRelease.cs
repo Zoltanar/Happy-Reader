@@ -23,7 +23,7 @@ namespace DatabaseDumpReader.DumpItems
 		public int ReleaseId { get; set; }
 		public string Released { get; set; }
 		public string Website { get; set; }
-		public List<string> Languages { get; set; }
+		public List<LangRelease> Languages { get; set; }
 		public List<int> Producers { get; set; }
 
 		public void LoadFromStringParts(string[] parts)
@@ -87,28 +87,5 @@ namespace DatabaseDumpReader.DumpItems
 		public int ReleaseId { get; set; }
 
 		public string ReleaseType { get; set; }
-	}
-
-	public class LangRelease : IDumpItem
-	{
-		public static Dictionary<string, int> Headers = new();
-
-		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
-
-		public void SetDumpHeaders(string[] parts)
-		{
-			int colIndex = 0;
-			Headers = parts.ToDictionary(c => c, _ => colIndex++);
-		}
-
-		public void LoadFromStringParts(string[] parts)
-		{
-			ReleaseId = Convert.ToInt32(GetPart(parts, "id").Substring(1));
-			Lang = GetPart(parts, "lang");
-		}
-
-		public string Lang { get; set; }
-
-		public int ReleaseId { get; set; }
 	}
 }

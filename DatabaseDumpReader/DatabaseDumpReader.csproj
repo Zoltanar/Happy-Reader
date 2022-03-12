@@ -102,6 +102,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DumpItems\DumpRelation.cs" />
+    <Compile Include="DumpItems\DumpTitle.cs" />
     <Compile Include="DumpReader.cs" />
     <Compile Include="DumpItems\VnTag.cs" />
     <Compile Include="DumpItems\DumpVote.cs" />

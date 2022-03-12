@@ -36,13 +36,14 @@ namespace Happy_Reader.View
 		public static readonly Brush UnreleasedBrush = Brushes.White;
 		public static readonly Brush UnreleasedBorderBrush = Brushes.Black;
 		public static readonly Brush NewlyAddedBorderBrush = Brushes.Yellow;
+		public static readonly Brush MtlBrush = new LinearGradientBrush(Colors.Black, Colors.Transparent, 0);
 
 		public static readonly BitmapImage FileNotFoundImage;
 		public static readonly BitmapImage ImageNotFoundImage;
 		public static readonly BitmapImage NsfwImage;
 
 		public const string ImageNotFoundPath = @"pack://application:,,,/Resources/no-image.png";
-
+		
 		static Theme()
 		{
 			// ReSharper disable once PossibleNullReferenceException

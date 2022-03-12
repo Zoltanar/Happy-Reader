@@ -37,7 +37,7 @@ namespace Happy_Apps_Core.Database
 		/// <summary>
 		/// VN's first non-trial release date, set by calling SetReleaseDate(string)
 		/// </summary>
-		public string ReleaseDateString { get; set; }
+		public string ReleaseDateString { get; private set; }
 
 		public int? ProducerID
 		{
@@ -232,6 +232,8 @@ namespace Happy_Apps_Core.Database
 
 		private HashSet<RelationsItem> AllRelations { get; set; }
 
+		public string OriginalLanguage { get; set; }
+
 		/// <summary>Returns a string that represents the current object.</summary>
 		/// <returns>A string that represents the current object.</returns>
 		/// <filterpriority>2</filterpriority>
@@ -281,16 +283,11 @@ namespace Happy_Apps_Core.Database
 			return _specialFlag.Value;
 		}
 
-		public bool HasLanguage(string value)
+		public bool HasLanguage(string value, bool originalOnly)
 		{
-			return LanguagesObject.All.Contains(value, StringComparer.OrdinalIgnoreCase);
+			return (originalOnly ? LanguagesObject.Originals : LanguagesObject.All).Select(l => l.Lang).Contains(value, StringComparer.OrdinalIgnoreCase);
 		}
-
-		public bool HasOriginalLanguage(string value)
-		{
-			return LanguagesObject.Originals.Contains(value, StringComparer.OrdinalIgnoreCase);
-		}
-
+		
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		[NotifyPropertyChangedInvocator]
@@ -357,8 +354,7 @@ namespace Happy_Apps_Core.Database
 			try
 			{
 				VNID = Convert.ToInt32(GetPart(parts, "id").Substring(1));
-				Title = GetPart(parts, "title");
-				KanjiTitle = GetPart(parts, "original");
+				OriginalLanguage = GetPart(parts, "olang");
 				Aliases = GetPart(parts, "alias");
 				if (!string.IsNullOrWhiteSpace(GetPart(parts, "length"))) LengthTime = (LengthFilterEnum)Convert.ToInt32(GetPart(parts, "length"));
 				var imageId = GetPart(parts, "image");
