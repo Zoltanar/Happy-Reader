@@ -31,6 +31,7 @@ namespace Happy_Reader.View
 {
 	public partial class MainWindow
 	{
+        private bool _initialised;
 		private bool _finalizing;
 		private bool _finalized;
 		private NotifyIcon _trayIcon;
@@ -66,25 +67,36 @@ namespace Happy_Reader.View
 				Visible = true
 			};
 			_trayIcon.DoubleClick += open;
+            _trayIcon.ContextMenuStrip.Opening += BuildTrayPopup;
+        }
+		
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
+		{
+			if (DesignerProperties.GetIsInDesignMode(this) || _initialised) return;
+            try
+            {
+                Stopwatch watch = Stopwatch.StartNew();
+                ViewModel.ClipboardManager = new ClipboardManager(this);
+                ViewModel.CaptureClipboardSettingChanged(
+                    ViewModel.SettingsViewModel.TranslatorSettings.CaptureClipboard);
+                var commandLineArgs = Environment.GetCommandLineArgs();
+                var noEntries = commandLineArgs.Contains("-ne");
+                var logVerbose = commandLineArgs.Contains("-lv");
+                await ViewModel.Initialize(watch, !noEntries, logVerbose);
+				//we call this here to create icons ahead of time.
+				BuildTrayPopup(sender,e);
+                UserGamesTabItem.GroupUserGames();
+                LoadSavedData();
+            }
+            finally
+            {
+                _initialised = true;
+            }
 		}
 
-		private async void Window_Loaded(object sender, RoutedEventArgs e)
+		private void BuildTrayPopup(object sender, EventArgs e)
 		{
-			if (DesignerProperties.GetIsInDesignMode(this)) return;
-			Stopwatch watch = Stopwatch.StartNew();
-			ViewModel.ClipboardManager = new ClipboardManager(this);
-			ViewModel.CaptureClipboardSettingChanged(ViewModel.SettingsViewModel.TranslatorSettings.CaptureClipboard);
-			var commandLineArgs = Environment.GetCommandLineArgs();
-			var noEntries = commandLineArgs.Contains("-ne");
-			var logVerbose = commandLineArgs.Contains("-lv");
-			await ViewModel.Initialize(watch, !noEntries, logVerbose);
-			AddRecentlyPlayedToTray();
-			UserGamesTabItem.GroupUserGames();
-			LoadSavedData();
-		}
-
-		private void AddRecentlyPlayedToTray()
-		{
+            while (_trayIcon.ContextMenuStrip.Items.Count > 2) _trayIcon.ContextMenuStrip.Items.RemoveAt(_trayIcon.ContextMenuStrip.Items.Count-3);
 			int? added = null;
 			foreach (var gameId in UserGame.LastGamesPlayed.Values.Reverse().Take(5))
 			{

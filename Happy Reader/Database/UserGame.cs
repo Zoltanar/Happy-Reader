@@ -299,7 +299,10 @@ namespace Happy_Reader.Database
 			Process = null;
 			var log = Log.NewTimePlayedLog(Id, timeToAdd, notify);
 			StaticMethods.Data.Logs.Add(log, true, true);
-		}
+            var indexOfGame = LastGamesPlayed.IndexOfValue(Id);
+			if (indexOfGame > -1) LastGamesPlayed.RemoveAt(indexOfGame);
+			LastGamesPlayed.Add(log.Timestamp,Id);
+        }
 
 		public void MergeTimePlayed(TimeSpan mergedTimePlayed)
 		{
@@ -321,7 +324,7 @@ namespace Happy_Reader.Database
 		{
 			SaveTimePlayed(true);
 			GameHookSettings.DisposeWindow();
-		}
+        }
 
 		[NotifyPropertyChangedInvocator]
 		public void OnPropertyChanged([CallerMemberName] string propertyName = null) =>

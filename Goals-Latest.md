@@ -26,7 +26,6 @@
 - Implement priority
 - Change Series-specific to three-way dropdown (none,title,series, producer?)
 ##### DatabaseDumpReader
-- **Do not use trial release date v34004**
 - DatabaseDumpReader: Parallelise?
 - DatabaseDumpReader: Run RSync while processing database dump, after downloading files
 #### Other
@@ -35,7 +34,6 @@
 - Producer Tab: charts for popularity
 - Database: Sort By and show english release date
 - Database: History item is duplicated when going back
-- **tray: update last played titles in real time**
 - add 'update available' notice (can hide)
 - warn if an instance is already running (maybe show database file for opening instance) 
 - Main Window: add close all tabs button

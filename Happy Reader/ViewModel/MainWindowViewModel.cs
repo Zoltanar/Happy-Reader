@@ -574,7 +574,11 @@ namespace Happy_Reader.ViewModel
 			IthViewModel.FinaliseVnrHost(1000);
 			UserGame.Process = null;
 			UserGame.GameHookSettings.OutputWindow = null;
-			UserGame = null;
+			UserGame = null; 
+            Application.Current.Dispatcher.Invoke(() =>
+			{
+                StaticMethods.MainWindow.UserGamesTabItem.GroupUserGames();
+			});
 			//restart monitor
 			if (_finalizing || _monitor != null && _monitor.IsAlive) return;
 			_monitor = GetAndStartMonitorThread();
