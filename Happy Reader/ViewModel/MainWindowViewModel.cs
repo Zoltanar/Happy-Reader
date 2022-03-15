@@ -395,7 +395,7 @@ namespace Happy_Reader.ViewModel
 				if (TranslatePaused) return false;
 				if (StaticMethods.CtrlKeyIsHeld()) return false;
 				Logger.Verbose($"{nameof(RunTranslation)} - {e}");
-				if (UserGame.Process == null ||
+				if (UserGame?.Process == null ||
 				    StaticMethods.DispatchIfRequired(()=> OutputWindowViewModel.IsClipboardCopy(e))) return false;
 				TestViewModel.OriginalText = e.Text;
 				var translation = Translator.Instance.Translate(User, TestViewModel.EntryGame, e.Text, false, UserGame?.GameHookSettings.RemoveRepetition ?? false);

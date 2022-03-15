@@ -2,10 +2,8 @@
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\LibNMeCab.IpaDicBin.0.10.0\build\LibNMeCab.IpaDicBin.props" Condition="Exists('..\packages\LibNMeCab.IpaDicBin.0.10.0\build\LibNMeCab.IpaDicBin.props')" />
   <PropertyGroup>
-    <SSDTUnitTestPath Condition="'$(SSDTUnitTestPath)' == ''">$(VsInstallRoot)\Common7\IDE\Extensions\Microsoft\SQLDB</SSDTUnitTestPath>
   </PropertyGroup>
   <PropertyGroup>
-    <SSDTPath Condition="'$(SSDTPath)' == ''">$(VsInstallRoot)\Common7\IDE\Extensions\Microsoft\SQLDB\DAC\130</SSDTPath>
   </PropertyGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -486,20 +484,6 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup />
-  <ItemGroup Condition="$(VisualStudioVersion) == '16.0'">
-    <Reference Include="Microsoft.Data.Tools.Schema.Sql, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>$(SSDTPath)\Microsoft.Data.Tools.Schema.Sql.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.Data.Tools.Schema.Sql.UnitTesting, Version=16.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>$(SSDTUnitTestPath)\Microsoft.Data.Tools.Schema.Sql.UnitTesting.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.Data.Tools.Schema.Sql.UnitTestingAdapter, Version=16.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>$(SSDTUnitTestPath)\Microsoft.Data.Tools.Schema.Sql.UnitTestingAdapter.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <ContentSQLiteInteropFiles>true</ContentSQLiteInteropFiles>
@@ -521,9 +505,6 @@
     <Error Condition="!Exists('..\packages\LibNMeCab.IpaDicBin.0.10.0\build\LibNMeCab.IpaDicBin.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\LibNMeCab.IpaDicBin.0.10.0\build\LibNMeCab.IpaDicBin.targets'))" />
   </Target>
   <PropertyGroup>
-    <SsdtUnitTestVersion>3.1</SsdtUnitTestVersion>
   </PropertyGroup>
-  <Import Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.Sql.UnitTesting.targets" Condition="$(VisualStudioVersion) != '15.0' And '$(SQLDBExtensionsRefPath)' != ''" />
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.Sql.UnitTesting.targets" Condition="$(VisualStudioVersion) != '15.0' And '$(SQLDBExtensionsRefPath)' == ''" />
   <Import Project="..\packages\LibNMeCab.IpaDicBin.0.10.0\build\LibNMeCab.IpaDicBin.targets" Condition="Exists('..\packages\LibNMeCab.IpaDicBin.0.10.0\build\LibNMeCab.IpaDicBin.targets')" />
 </Project>
