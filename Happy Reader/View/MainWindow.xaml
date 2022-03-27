@@ -13,11 +13,36 @@
     Closing="MainWindow_OnClosing"
     Icon="/Happy Reader;component/Resources/logo-hr.png" d:DataContext="{d:DesignInstance viewModel:MainWindowViewModel}">
 	<Window.Resources>
+		<Style TargetType="TabItem" x:Key="SystemTab">
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="TabItem">
+						<Border Name="Border" Padding="0" Background="LightBlue" Margin="-2,-2,0,0" Height="35" Width="100">
+							<ContentPresenter x:Name="ContentSite" VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Header" TextBlock.TextAlignment="Center" />
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsSelected" Value="True">
+								<Setter Property="Panel.ZIndex" Value="100"/>
+								<Setter TargetName="Border" Property="Background" Value="AliceBlue" />
+								<Setter TargetName="Border" Property="BorderThickness" Value="1" />
+								<Setter TargetName="Border" Property="BorderBrush" Value="Black" />
+								<Setter TargetName="ContentSite" Property="TextBlock.FontWeight" Value="Bold" />
+							</Trigger>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter Property="Panel.ZIndex" Value="100"/>
+								<Setter TargetName="Border" Property="BorderThickness" Value="1" />
+								<Setter TargetName="Border" Property="BorderBrush" Value="Black" />
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
 		<Style TargetType="TabItem">
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="TabItem">
-						<Border Name="Border" Padding="0" Background="LightBlue" Margin="-2,-2,0,0" Width="100" Height="50">
+						<Border Name="Border" Padding="0" Background="LightBlue" Margin="-2,-2,0,0" Height="50" Width="100">
 							<ContentPresenter x:Name="ContentSite" VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Header" TextBlock.TextAlignment="Center" />
 						</Border>
 						<ControlTemplate.Triggers>
@@ -72,16 +97,16 @@
 					</Grid>
 				</ControlTemplate>
 			</TabControl.Template>
-			<TabItem Header="Games" >
+			<TabItem Header="Games" Style="{StaticResource SystemTab}">
 				<tabs:UserGamesTab x:Name="UserGamesTabItem" DataContext="{Binding UserGamesViewModel}"/>
 			</TabItem>
-			<TabItem Header="Text Hooking" x:Name="IthTabItem">
+			<TabItem Header="Text Hooking" x:Name="IthTabItem" Style="{StaticResource SystemTab}">
 				<tabs:IthVnrTab DataContext="{Binding IthViewModel}"/>
 			</TabItem>
-			<TabItem Header="Entries" x:Name="EntriesTabItem">
+			<TabItem Header="Entries" x:Name="EntriesTabItem" Style="{StaticResource SystemTab}">
 				<tabs:EntriesTab DataContext="{Binding EntriesViewModel}"/>
 			</TabItem>
-			<TabItem Header="Test" x:Name="TestTabItem">
+			<TabItem Header="Test" x:Name="TestTabItem" Style="{StaticResource SystemTab}">
 				<tabs:TestTranslationTab DataContext="{Binding TestViewModel}"/>
 			</TabItem>
 			<TabItem Header="Visual Novels" x:Name="VnTabItem" Style="{StaticResource DatabaseTabItem}">
@@ -93,16 +118,16 @@
 			<TabItem Header="Producers" Style="{StaticResource DatabaseTabItem}">
 				<tabs:ProducersTab DataContext="{Binding ProducersViewModel}"/>
 			</TabItem>
-			<TabItem Header="Settings">
+			<TabItem Header="Settings" Style="{StaticResource SystemTab}">
 				<tabs:SettingsTab DataContext="{Binding SettingsViewModel}" x:Name="SettingsTab"/>
 			</TabItem>
-			<TabItem Header="Information">
+			<TabItem Header="Information" Style="{StaticResource SystemTab}">
 				<tabs:InfoTab DataContext="{Binding InformationViewModel}"/>
 			</TabItem>
-			<TabItem Header="API Log">
+			<TabItem Header="API Log" Style="{StaticResource SystemTab}">
 				<tabs:ApiLogTab DataContext="{Binding ApiLogViewModel}"/>
 			</TabItem>
-			<TabItem Header="Logs">
+			<TabItem Header="Logs" Style="{StaticResource SystemTab}">
 				<DataGrid ItemsSource="{Binding LogsList}" AutoGenerateColumns="False" CanUserAddRows="False" >
 					<DataGrid.Columns>
 						<DataGridTextColumn Binding="{Binding Timestamp, StringFormat=yyyy-MM-dd}" Header="Date" Width="Auto"/>

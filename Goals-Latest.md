@@ -24,10 +24,10 @@
 - allow keeping time played for multiple games/allow process monitor to keep running always/make process monitor only have one instance
 ##### Entries
 - Implement priority
-- Change Series-specific to three-way dropdown (none,title,series, producer?)
+- Change Series-specific to dropdown (none,title,series, producer?)
 ##### DatabaseDumpReader
-- DatabaseDumpReader: Parallelise?
-- DatabaseDumpReader: Run RSync while processing database dump, after downloading files
+- Parallelise?
+- Run RSync while processing database dump, after downloading files
 #### Other
 - Option to stop monitor
 - **Add screenshots to basic guide**

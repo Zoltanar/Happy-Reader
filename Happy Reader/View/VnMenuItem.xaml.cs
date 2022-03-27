@@ -22,6 +22,7 @@ namespace Happy_Reader.View
 		{
 			InitializeComponent();
 			DataContext = vn;
+            if (System.ComponentModel.DesignerProperties.GetIsInDesignMode(this)) return;
 			var itemIndex = Items.IndexOf(ReleaseLinkItem);
 			foreach (var link in StaticMethods.Settings.GuiSettings.PageLinks ?? Array.Empty<PageLink>().AsEnumerable())
 			{

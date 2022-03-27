@@ -454,7 +454,7 @@ namespace Happy_Reader.ViewModel
 					if (UserGame.GameHookSettings.HookProcess == HookMode.None || doNotHook) return;
 					if (SettingsViewModel.GuiSettings.HookGlobalMouse) _globalHook = WinAPI.HookMouseEvents(GlobalMouseClick);
 					while (!_loadingComplete) Thread.Sleep(25);
-					SetIthUserGameParameters();
+					SetIthUserGameParametersAndHook();
 				}
 				//todo catch more specific exception
 				catch (Exception ex)
@@ -500,7 +500,7 @@ namespace Happy_Reader.ViewModel
 
 		private void InitialiseOutputWindowForGame()
 		{
-			if (OutputWindow.InitialisedWindowLocation) return;
+			if (OutputWindow.InitialisedWindowLocation || UserGame?.Process == null) return;
 			UserGame.Process.Refresh();
 			var success = NativeMethods.GetWindowRect(UserGame.Process.MainWindowHandle, out var windowLocation);
 			if (!success) OutputWindow.SetLocation(StaticMethods.OutputWindowStartPosition);
@@ -532,7 +532,7 @@ namespace Happy_Reader.ViewModel
 			OutputWindow.InitialisedWindowLocation = true;
 		}
 
-		private void SetIthUserGameParameters()
+		private void SetIthUserGameParametersAndHook()
 		{
 			IthViewModel.MergeByHookCode = UserGame.GameHookSettings.MergeByHookCode;
 			IthViewModel.PrefEncoding = UserGame.GameHookSettings.PrefEncoding;

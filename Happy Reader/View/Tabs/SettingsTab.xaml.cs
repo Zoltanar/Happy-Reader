@@ -49,7 +49,7 @@ namespace Happy_Reader.View.Tabs
 		
 		private void SettingsTab_OnLoaded(object sender, RoutedEventArgs e)
 		{
-			if (_loaded) return;
+			if (System.ComponentModel.DesignerProperties.GetIsInDesignMode(this) || _loaded) return;
 			OriginalColorSelector.TrySetColor();
 			RomajiColorSelector.TrySetColor();
 			TranslatedColorSelector.TrySetColor();

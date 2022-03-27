@@ -41,7 +41,7 @@ namespace Happy_Reader.View.Tabs
 			var textBox = (TextBox)sender;
 			if (string.IsNullOrWhiteSpace(textBox.Text)) return;
 			var processInfo = ProcessComboBox.SelectedItem as ProcessInfo;
-			_viewModel.Commands.ProcessCommand(textBox.Text, processInfo?.Id ?? 0);
+            _viewModel.Commands.ProcessCommand(textBox.Text, processInfo?.Id ?? 0);
 		}
 		
 		private void IthVnrTab_OnLoaded(object sender, RoutedEventArgs e)

@@ -69,12 +69,7 @@ namespace Happy_Reader.View
 			var initialised = _ithViewModel.InitialiseVnrHost();
 			if (!initialised) return;
 			var result = _ithViewModel.VnrHost.InjectIntoProcess(pid, out var errorMessage);
-			if (result)
-			{
-				var result2 = _ithViewModel.VnrHost.Host_HijackProcess(pid);
-				if (!result2) _ithViewModel.HookManager.ConsoleOutput("Failed to hijack process.", true);
-			}
-			else _ithViewModel.HookManager.ConsoleOutput($"Failed to inject process: {errorMessage}", true);
+			if (!result) _ithViewModel.HookManager.ConsoleOutput($"Failed to inject process: {errorMessage}", true);
 			Callback();
 		}
 
