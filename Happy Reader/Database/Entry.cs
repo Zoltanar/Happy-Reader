@@ -14,6 +14,9 @@ namespace Happy_Reader.Database
 
 	public class Entry : INotifyPropertyChanged, IDataItem<long>, IReadyToUpsert
 	{
+        public const string DefaultNameRole = "m.f";
+		public static IEqualityComparer<Entry> ClashComparer { get; } = new EntryClashComparer();
+
 		public string KeyField => nameof(Id);
 		public long Key => Id;
 		public bool ReadyToUpsert { get; set; }
@@ -122,9 +125,7 @@ namespace Happy_Reader.Database
 
 		private sealed class EntryClashComparer : IEqualityComparer<Entry>
 		{
-			//todo remove rolestring?
-
-			public bool Equals(Entry x, Entry y)
+            public bool Equals(Entry x, Entry y)
 			{
 				if (ReferenceEquals(x, y)) return true;
 				if (ReferenceEquals(x, null)) return false;
@@ -138,7 +139,6 @@ namespace Happy_Reader.Database
 							 //if one is series specific and another isn't, they don't clash
 							 && ((x.GameId == y.GameId && x.SeriesSpecific && y.SeriesSpecific) || !x.SeriesSpecific && !y.SeriesSpecific)
 							 && x.Type == y.Type
-							 && x.RoleString == y.RoleString
 							 //only one entry can be used for the input, regardless of output or priority
 							 && x.Input == y.Input;
 				return result;
@@ -153,16 +153,13 @@ namespace Happy_Reader.Database
 					//if not series specific, game id doesn't matter
 					if (obj.SeriesSpecific) hashCode = (hashCode * 397) ^ obj.GameId.GetHashCode();
 					hashCode = (hashCode * 397) ^ (int)obj.Type;
-					hashCode = (hashCode * 397) ^ (obj.RoleString != null ? obj.RoleString.GetHashCode() : 0);
 					hashCode = (hashCode * 397) ^ (obj.Input != null ? obj.Input.GetHashCode() : 0);
 					return hashCode;
 				}
 			}
 		}
-
-		public static IEqualityComparer<Entry> ClashComparer { get; } = new EntryClashComparer();
-
-		public void InitGameId()
+		
+        public void InitGameId()
 		{
 			SetGameId(GameId, GameIdIsUserGame);
 			ReadyToUpsert = false;

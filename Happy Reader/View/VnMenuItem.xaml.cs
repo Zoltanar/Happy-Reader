@@ -315,7 +315,7 @@ namespace Happy_Reader.View
 		private void ImportNames(object sender, RoutedEventArgs e)
 		{
 			var cvns = StaticHelpers.LocalDatabase.CharacterVNs[VN.VNID].ToList();
-			var characterEntries = cvns.SelectMany(GetEntriesFromCharacter);
+			var characterEntries = cvns.SelectMany(GetEntriesFromCharacter).ToList();
 			var newEntries = characterEntries.Except(StaticMethods.Data.Entries, Entry.ClashComparer).OrderBy(i => i.Input).ToList();
 			if (newEntries.Count == 0)
 			{
@@ -338,11 +338,12 @@ namespace Happy_Reader.View
 			if (string.IsNullOrWhiteSpace(character.Name) || string.IsNullOrWhiteSpace(character.Original)) return entries;
 			var outputParts = character.Name.Split(' ', '・');
 			var inputParts = character.Original.Split(' ', '・');
+            var roleString = character.Gender == "f" ? "m.f" : "m";
 			if (outputParts.Length != inputParts.Length)
 			{
 				var entry = new Entry
 				{
-					RoleString = "m",
+					RoleString = roleString,
 					Input = character.Original,
 					Output = character.Name,
 					SeriesSpecific = true,
@@ -353,7 +354,6 @@ namespace Happy_Reader.View
 			}
 			else
 			{
-				var roleString = character.Gender == "f" ? "m.f" : "m";
 				for (int i = 0; i < outputParts.Length; i++)
 				{
 					var entry = new Entry

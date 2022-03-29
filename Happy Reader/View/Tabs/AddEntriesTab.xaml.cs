@@ -72,12 +72,10 @@ namespace Happy_Reader.View.Tabs
 			{
 				switch (entry.Type)
 				{
-					case EntryType.Name:
-						entry.RoleString = "m";
-						break;
 					case EntryType.Translation:
 						entry.RoleString = "n";
 						break;
+                    case EntryType.Name:
 					case EntryType.Proxy:
 					case EntryType.ProxyMod:
 						ResponseLabel.Content = $@"Entries of type '{entry.Type}' require a role.";
@@ -96,7 +94,8 @@ namespace Happy_Reader.View.Tabs
 			if (string.IsNullOrWhiteSpace(item.Entry.Input))
 			{
 				item.Type = EntryType.Name;
-			}
+                item.Role = Entry.DefaultNameRole;
+            }
 			item.Entry.UserId = StaticMethods.MainWindow.ViewModel.User.Id;
 			var game = StaticMethods.MainWindow.ViewModel.UserGame;
 			if (game?.VNID.HasValue ?? false) item.Entry.SetGameId(game.VNID, false);
