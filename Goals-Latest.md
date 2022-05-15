@@ -2,7 +2,7 @@
 ## Future Features  
 #### Translation
 - Make mouseover dictionary tooltip nicer
-- **export/import translation cache**
+- **import translation cache**
 - option to do this automatically: remove translations from cache if not used recently or originally cached too long ago.
 - apply translate stage 4 to pre-romaji
 - allow multiple translators at the same time

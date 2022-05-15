@@ -50,7 +50,7 @@ namespace Happy_Reader.TranslationEngine
 			_allSeparators = _settings.ExclusiveSeparators.Concat(_settings.InclusiveSeparators).ToArray();
 			_logVerbose = logVerbose;
 			UpdateOfflineDictionaryFolder();
-		}
+        }
 
 		private void UpdateOfflineDictionaryFolder()
 		{

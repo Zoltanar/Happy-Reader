@@ -13,33 +13,48 @@ namespace Happy_Reader.Database
 		{
 			GameId = gameId;
 			IsUserGame = isUserGame;
-			CachedName = cacheName ? GetName(gameId, isUserGame) : null;
+			CachedName = cacheName ? GetName() : null;
 		}
 
-		private static string GetName(int? gameId, bool isUserGame)
-		{
-			if (!gameId.HasValue) return "(No Game)";
+        private string GetName()
+        {
+            if (CachedName != null) return CachedName;
+			if (!GameId.HasValue) return "(No Game)";
 			string result;
-			if (isUserGame)
+			if (IsUserGame)
 			{
-				var game = StaticMethods.Data.UserGames[gameId.Value];
+				var game = StaticMethods.Data.UserGames[GameId.Value];
 				var gameName = game == null ? "Not Found" : game.DisplayName;
-				result = $"(UserGame) [{gameId.Value}] {gameName}";
+				result = $"(UserGame) [{GameId.Value}] {gameName}";
 			}
 			else
 			{
-				var game = StaticHelpers.LocalDatabase.VisualNovels[gameId.Value];
+				var game = StaticHelpers.LocalDatabase.VisualNovels[GameId.Value];
 				var gameName = game == null ? "Not Found" : StaticMethods.TruncateStringFunction30(game.Title);
-				result = $"(VN) [{gameId.Value}] {gameName}";
+				result = $"(VN) [{GameId.Value}] {gameName}";
 			}
+            CachedName = result;
 			return result;
+		}
+
+        public string GetGameNameOnly()
+		{
+            if (!GameId.HasValue) return "(No Game)";
+            if (IsUserGame)
+            {
+                var game = StaticMethods.Data.UserGames[GameId.Value];
+                return game == null ? "Not Found" : game.DisplayName;
+            }
+            else
+            {
+                var game = StaticHelpers.LocalDatabase.VisualNovels[GameId.Value];
+                return game == null ? "Not Found" : StaticMethods.TruncateStringFunction30(game.Title);
+            }
 		}
 
 		public override string ToString()
 		{
-			if (CachedName != null) return CachedName;
-			CachedName = GetName(GameId, IsUserGame);
-			return CachedName;
+			return GetName();
 		}
 
 		public bool Equals(EntryGame other)

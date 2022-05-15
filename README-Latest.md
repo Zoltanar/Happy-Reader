@@ -29,7 +29,11 @@ Before reporting issues or requesting features, please see [Goals](https://githu
   - example: `:s おはよう！` to search for `おはよう！` in each text thread, in the encodings that each thread is set to
   - example: `:sa おはよう！` to search for `おはよう！` in each text thread, in all 3 encodings possible (Unicode, UTF-8, Shift-JIS) (can take longer)
   - Results will appear in Console thread at the top
-  - If :sa is used and text is is a different encoding to the one selected in text thread panel, you can change the encoding with the drop-down on the right
+  - If \:sa is used and text is is a different encoding to the one selected in text thread panel, you can change the encoding with the drop-down on the right or use the following command to change the encoding of all panels
+- use the command `:e <encoding>` to switch the encoding of all text thread panels to the desired one.
+  - example: `:e Unicode` to switch all panels to Unicode
+  - example: `:e Shift-JIS` to switch all panels to Shift-JIS
+  - example: `:e UTF-8` to switch all panels to UTF-8
 - On the relevant text thread panel, check the `Posting` checkbox, to allow text to appear in Output Window.
 - Advance in game to next dialog
 - A window should pop up on top of the Game Window

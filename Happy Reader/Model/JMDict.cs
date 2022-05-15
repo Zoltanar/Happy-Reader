@@ -140,8 +140,8 @@ namespace Happy_Reader
 			var list = new List<Term>();
 			int index = 0;
 			while (index < _dictionaryTerms.Length)
-			{
-				if (term.StartsWith(_dictionaryTerms[index].Expression)) list.Add(_dictionaryTerms[index]);
+            {
+                if (term.StartsWith(_dictionaryTerms[index].Expression)) list.Add(_dictionaryTerms[index]);
 				if (string.Compare(_dictionaryTerms[index].Expression, term, StringComparison.Ordinal) > 0) break;
 				index++;
 			}
