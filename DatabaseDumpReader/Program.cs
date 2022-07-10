@@ -26,17 +26,16 @@ namespace DatabaseDumpReader
 		private static int Main(string[] args)
 		{
 			ExitCode result;
+            Stopwatch downloadWatch = null;
 			Stopwatch runWatch = null;
 			Stopwatch syncWatch = null;
-			try
+            try
 			{
 				string settingsPath = args.Length < 1 ? StaticHelpers.AllSettingsJson : args[0];
 				if (!File.Exists(settingsPath)) throw new FileNotFoundException("Settings File not found.", settingsPath);
 				var dumpFolder = DumpFolder;
 				StaticHelpers.CSettings = SettingsJsonFile.Load<SettingsViewModel>(settingsPath).CoreSettings;
-				runWatch = Stopwatch.StartNew();
-				result = Run(dumpFolder, StaticHelpers.CSettings.UserID);
-				runWatch.Stop();
+				result = Run(dumpFolder, StaticHelpers.CSettings.UserID, out downloadWatch, out runWatch);
 				if (result != ExitCode.Error)
 				{
 					syncWatch = Stopwatch.StartNew();
@@ -53,6 +52,7 @@ namespace DatabaseDumpReader
 			}
 			finally
 			{
+                if (downloadWatch != null) StaticHelpers.Logger.ToFile($"Time for Dump Download: {downloadWatch.Elapsed.TotalMinutes:00}:{downloadWatch.Elapsed.Seconds:00}");
 				if (runWatch != null) StaticHelpers.Logger.ToFile($"Time for DB Update: {runWatch.Elapsed.TotalMinutes:00}:{runWatch.Elapsed.Seconds:00}");
 				if (syncWatch != null) StaticHelpers.Logger.ToFile($"Time for Image Sync: {syncWatch.Elapsed.TotalMinutes:00}:{syncWatch.Elapsed.Seconds:00}");
 			}
@@ -142,10 +142,11 @@ namespace DatabaseDumpReader
 			}
 		}
 
-		private static ExitCode Run(string dumpFolder, int userId)
-		{
+		private static ExitCode Run(string dumpFolder, int userId, out Stopwatch downloadWatch, out Stopwatch runWatch)
+        {
+            runWatch = null;
 			DumpReader.GetDbStats(StaticHelpers.DatabaseFile,out var previousDumpUpdate, out var previousVnIds, out var previousCharacterIds);
-			var dumpFileInfo = GetLatestDump(previousDumpUpdate, dumpFolder);
+			var dumpFileInfo = GetLatestDump(previousDumpUpdate, dumpFolder, out downloadWatch);
 			var oldDateString = previousDumpUpdate.HasValue
 				? $"Current update was from: {previousDumpUpdate.Value.ToShortDateString()}."
 				: "There was no previous dump file.";
@@ -162,18 +163,23 @@ namespace DatabaseDumpReader
 			}
 			Debug.Assert(dumpFileInfo.NewFileDate != null, nameof(dumpFileInfo.NewFileDate) + " != null");
 			StaticHelpers.Logger.ToFile(oldDateString, $"Getting update to: {dumpFileInfo.NewFileDate.Value.ToShortDateString()}.");
+			runWatch = Stopwatch.StartNew();
 			var processor = new DumpReader(dumpFileInfo.LatestDumpFolder, StaticHelpers.DatabaseFile, userId);
 			processor.Run(dumpFileInfo.NewFileDate.Value, previousVnIds, previousCharacterIds);
 			var result = dumpFileInfo.UpToDate ? ExitCode.ReloadLatest : ExitCode.Update;
+			runWatch.Stop();
 			RemovePastBackups(dumpFolder, dumpFileInfo);
 			return result;
 		}
 
-		private static DumpFileInfo GetLatestDump(DateTime? previousUpdate, string dumpsFolder)
+		private static DumpFileInfo GetLatestDump(DateTime? previousUpdate, string dumpsFolder, out Stopwatch downloadWatch)
 		{
 			var upToDate = !(previousUpdate == null || (DateTime.UtcNow - previousUpdate.Value).TotalDays > UpToDateDays);
 			var di = Directory.CreateDirectory(dumpsFolder);
-			DownloadLatestDumpFiles(out var latestDump, out var latestVoteDump);
+            downloadWatch = Stopwatch.StartNew();
+			DownloadLatestDumpFiles(out var latestDump, out var latestVoteDump, out var anyDownload);
+			downloadWatch.Stop();
+            if (!anyDownload) downloadWatch = null;
 			var newFileDate = latestDump.LastWriteTimeUtc;
 			var targetFolder = ExtractTarToFolder(latestDump, di);
 			ExtractGzToFolder(latestVoteDump, new DirectoryInfo(targetFolder));
@@ -212,11 +218,12 @@ namespace DatabaseDumpReader
 			zip.CopyTo(newFileStream);
 		}
 
-		private static void DownloadLatestDumpFiles(out FileInfo databaseDump, out FileInfo voteDump)
-		{
-			var dbDownloaded = StaticHelpers.DownloadFile(LatestDbDumpUrl, DumpFolder, null, out var dbDumpPath);
+		private static void DownloadLatestDumpFiles(out FileInfo databaseDump, out FileInfo voteDump, out bool anyDownload)
+        {
+            anyDownload = false;
+			var dbDownloaded = StaticHelpers.DownloadFile(LatestDbDumpUrl, DumpFolder, null, out var dbDumpPath, ref anyDownload);
 			if (!dbDownloaded) throw new InvalidOperationException("Failed to download database dump.");
-			var voteDownloaded = StaticHelpers.DownloadFile(LatestVoteDumpUrl, DumpFolder, null, out var voteDumpPath);
+			var voteDownloaded = StaticHelpers.DownloadFile(LatestVoteDumpUrl, DumpFolder, null, out var voteDumpPath, ref anyDownload);
 			if (!voteDownloaded) throw new InvalidOperationException("Failed to download vote dump.");
 			databaseDump = new FileInfo(dbDumpPath);
 			voteDump = new FileInfo(voteDumpPath);
@@ -290,7 +297,7 @@ namespace DatabaseDumpReader
 			public DateTime? NewFileDate { get; set; }
 			public bool UpToDate { get; set; }
 
-			public bool Contains(FileSystemInfo info)
+            public bool Contains(FileSystemInfo info)
 			{
 				return (info is DirectoryInfo && info.FullName == LatestDumpFolder) ||
 							 (info is FileInfo && info.FullName == LatestDumpFile.FullName) ||

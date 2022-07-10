@@ -323,8 +323,8 @@ namespace Happy_Apps_Core
 			return dbObject == DBNull.Value ? null : Convert.ToString(dbObject);
 		}
 
-		public static bool DownloadFile(string uri, string destinationFolderPath, string destinationFileName, out string destinationFilePath)
-		{
+		public static bool DownloadFile(string uri, string destinationFolderPath, string destinationFileName, out string destinationFilePath, ref bool downloaded)
+        {
 			destinationFilePath = null;
 			try
 			{
@@ -349,6 +349,7 @@ namespace Happy_Apps_Core
 				using var destinationStream = File.OpenWrite(destinationFilePath);
 				Logger.ToFile($"Downloading to {destinationFilePath}");
 				stream.CopyTo(destinationStream);
+                downloaded = true;
 				return true;
 			}
 			catch (Exception ex) when (ex is NotSupportedException || ex is ArgumentNullException ||
