@@ -12,9 +12,10 @@ namespace Happy_Apps_Core.Database
 		public int VNID { get; set; }
 		public int AliasID { get; set; }
 		public string Role { get; set; }
-		public string Note { get; set; }
+        public string Note { get; set; }
+        public string EID { get; set; }
 
-		public string KeyField => "(VNID,AliasID)";
+		public string KeyField => "(VNID,AliasID, Role)";
 		public (int, int, string) Key => (VNID, AliasID, Role);
 		public static Dictionary<string, int> Headers { get; set; }
 
@@ -53,7 +54,8 @@ namespace Happy_Apps_Core.Database
 			VNID = Convert.ToInt32(GetPart(parts, "id").Substring(1));
 			AliasID = Convert.ToInt32(GetPart(parts, "aid"));
 			Role = GetPart(parts, "role");
-			Note = GetPart(parts, "note");
+            Note = GetPart(parts, "note");
+            EID = GetPart(parts, "eid");
 		}
 
 		public void SetDumpHeaders(string[] parts)

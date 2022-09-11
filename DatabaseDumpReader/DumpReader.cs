@@ -73,7 +73,7 @@ namespace DatabaseDumpReader
 			Votes = votesUngrouped.GroupBy(vote => vote.VNId).ToDictionary(g => g.Key, g => g.ToList());
 			LoadAnimeScreensRelations();
 			LoadUserVn();
-			Load<DumpTitle>((i, t) =>
+			Load<DumpTitle>((i, _) =>
 			{
 				if (!VnTitles.ContainsKey(i.VNId)) VnTitles[i.VNId] = new List<DumpTitle>();
 				VnTitles[i.VNId].Add(i);
@@ -103,6 +103,8 @@ namespace DatabaseDumpReader
 			}, "db\\staff_alias");
 			Load<VnStaff>((i, t) =>
 			{
+				//todo vnstaff editions
+                if (Database.VnStaffs[i.Key]!= null) return;
 				Database.VnStaffs.Add(i, false, true, t);
 			}, "db\\vn_staff");
 			Load<VnSeiyuu>((i, t) =>
