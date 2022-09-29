@@ -18,13 +18,15 @@ namespace HRGoogleTranslate
 	{
 		private const string CredentialPropertyKey = "API Key / File Path";
 		private const string ModelPropertyKey = "Translation Model";
-		private const string BadRepetitionKey = "Prevent Bad Repetition";
+        private const string BadRepetitionKey = "Prevent Bad Repetition";
+        private const string QuotationKey = "Prevent Extra Quotations (\")";
 		private const string TargetLanguage = "en";
 		private const string SourceLanguage = "ja";
 		private const string EmptyResponseMessage = "Failed to translate, empty response.";
 		private readonly Regex _badRepetitionPattern = new(@"(.)\1{5,}", RegexOptions.Compiled);
+        private TranslationClient _client;
 
-		private TranslationClient _client;
+        private ApiSettings Settings { get; set; }
 
 		public string Version => "1.1";
 		public string SourceName => "Google Translate API";
@@ -33,7 +35,8 @@ namespace HRGoogleTranslate
 		{
 			{CredentialPropertyKey, typeof(string)},
 			{ModelPropertyKey, typeof(TranslationModel)},
-			{BadRepetitionKey, typeof(bool)}
+            {BadRepetitionKey, typeof(bool)},
+            {QuotationKey, typeof(bool)}
 		});
 
 		public void Initialise()
@@ -49,8 +52,6 @@ namespace HRGoogleTranslate
 			}
 		}
 
-		private ApiSettings Settings { get; set; }
-
 		public bool Translate(string input, out string output)
 		{
 			try
@@ -59,10 +60,13 @@ namespace HRGoogleTranslate
 				if (!string.IsNullOrWhiteSpace(response?.TranslatedText))
 				{
 					output = response.TranslatedText;
+                    if (Settings.NoExtraQuotes)
+                    {
+                        if (!StripQuotes(ref output)) return false;
+					}
 					if (Settings.PreventBadRepetition)
 					{
-						var success = PreventBadRepetition(input, ref output);
-						return success;
+						if(!PreventBadRepetition(input, ref output)) return false;
 					}
 					return true;
 				}
@@ -96,6 +100,22 @@ namespace HRGoogleTranslate
 			return true;
 		}
 
+        private bool StripQuotes(ref string output)
+        {
+            const string quote = "\"";
+            if (output.StartsWith(quote) && output.EndsWith(quote))
+            {
+                if (output.Length == 2)
+				{
+					output = EmptyResponseMessage;
+                    return false;
+				}
+                output = output.Substring(1, output.Length - 2);
+                return true;
+            }
+            return true;
+        }
+
 		public void SetProperty(string propertyKey, object value)
 		{
 			switch (propertyKey)
@@ -116,8 +136,11 @@ namespace HRGoogleTranslate
 				case BadRepetitionKey when value is bool preventBadRepetition:
 					Settings.PreventBadRepetition = preventBadRepetition;
 					break;
+				case QuotationKey when value is bool noExtraQuotes:
+                    Settings.NoExtraQuotes = noExtraQuotes;
+                    break;
 				default:
-					throw new ArgumentOutOfRangeException(nameof(propertyKey), $"Unrecognized property key: {propertyKey}");
+					throw new ArgumentOutOfRangeException(nameof(propertyKey), $"Unrecognized property key/type: {propertyKey}/{value.GetType()}");
 			}
 		}
 
@@ -128,6 +151,7 @@ namespace HRGoogleTranslate
 				CredentialPropertyKey => Settings.GoogleCredential,
 				ModelPropertyKey => Settings.TranslationModel,
 				BadRepetitionKey => Settings.PreventBadRepetition,
+				QuotationKey => Settings.NoExtraQuotes,
 				_ => throw new ArgumentOutOfRangeException(nameof(propertyKey), $"Unrecognized property key: {propertyKey}")
 			};
 		}
@@ -161,7 +185,8 @@ namespace HRGoogleTranslate
 		{
 			private string _googleCredential = @"";
 			private TranslationModel _translationModel = TranslationModel.NeuralMachineTranslation;
-			private bool _preventBadRepetition = true;
+            private bool _preventBadRepetition = true;
+            private bool _noExtraQuotes = false;
 
 			public string GoogleCredential
 			{
@@ -200,6 +225,21 @@ namespace HRGoogleTranslate
 					if (Loaded) Save();
 				}
 			}
+
+			/// <summary>
+			/// Sometimes Google API returns quoted results despite no quotation marks in original string.
+			/// Quotation marks (『』「」 etc) are usually handled outside translation system.
+			/// </summary>
+			public bool NoExtraQuotes
+            {
+                get => _noExtraQuotes;
+                set
+                {
+                    if (_noExtraQuotes == value) return;
+                    _noExtraQuotes = value;
+                    if (Loaded) Save();
+                }
+            }
 		}
 
 	}
