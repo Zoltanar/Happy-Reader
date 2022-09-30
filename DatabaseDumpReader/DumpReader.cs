@@ -20,8 +20,8 @@ namespace DatabaseDumpReader
 		public VisualNovelDatabase Database { get; }
 		public SuggestionScorer SuggestionScorer { get; }
 		public Dictionary<int, Release> Releases { get; } = new();
-		public Dictionary<int, List<LangRelease>> LangReleases { get; } = new();
-		public Dictionary<int, List<int>> ProducerReleases { get; } = new();
+        public Dictionary<int, List<LangRelease>> LangReleases { get; } = new();
+        public Dictionary<int, List<int>> ProducerReleases { get; } = new();
 		public Dictionary<int, List<Release>> VnReleases { get; } = new();
 		public Dictionary<int, DumpAnime> Animes { get; } = new();
 		public Dictionary<int, List<DumpVnAnime>> VnAnimes { get; } = new();
@@ -165,8 +165,8 @@ namespace DatabaseDumpReader
 			{
 				if (!LangReleases.ContainsKey(i.ReleaseId)) LangReleases[i.ReleaseId] = new List<LangRelease>();
 				LangReleases[i.ReleaseId].Add(i);
-			}, "db\\releases_lang");
-			Load<Release>((i, _) => Releases[i.ReleaseId] = i, "db\\releases");
+			}, "db\\releases_titles");
+            Load<Release>((i, _) => Releases[i.ReleaseId] = i, "db\\releases");
 			Load<VnRelease>((i, _) =>
 			{
 				if (!VnReleases.ContainsKey(i.VnId)) VnReleases[i.VnId] = new List<Release>();
