@@ -56,9 +56,10 @@ namespace Happy_Reader.View.Tiles
 			VnMenu.TransferItems(VnMenuParent);
 			ImageBox.Source = _viewModel.ImageSource == null ? Theme.ImageNotFoundImage : new BitmapImage(new Uri(_viewModel.ImageSource));
 			if (_forVnTab)
-			{
-				VisualNovelNameBox.Visibility = Visibility.Collapsed;
-				VisualNovelReleaseBox.Visibility = Visibility.Collapsed;
+            {
+                VisualNovelNameBox.Visibility = Visibility.Collapsed;
+                ProducerBox.Visibility = Visibility.Collapsed;
+                VisualNovelReleaseBox.Visibility = Visibility.Collapsed;
 			}
 			else
 			{
