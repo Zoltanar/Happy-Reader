@@ -423,33 +423,63 @@ select AliasID from StaffAliass join StaffItems on StaffAliass.StaffID = StaffIt
 
 		public static Func<ListedVN, bool> SearchForVN(string searchString)
 		{
-			var lowerSearchString = searchString.ToLower();
-			if (searchString.StartsWith("\"") && searchString.EndsWith("\""))
-			{
-				var trimmedSearchString = lowerSearchString.Trim('\"');
-				return vn => HasWholeWord(vn.Title, trimmedSearchString)
-										 || HasWholeWord(vn.KanjiTitle, trimmedSearchString)
-										 || HasWholeWord(vn.Aliases, trimmedSearchString);
-			}
-			return vn => vn.Title.ToLower().Contains(lowerSearchString) ||
-									 vn.KanjiTitle != null && vn.KanjiTitle.ToLower().Contains(lowerSearchString) ||
-									 vn.Aliases != null && vn.Aliases.ToLower().Contains(lowerSearchString);
-		}
+			var lowerSearchString = searchString.ToLower().Trim();
+            var searchParts = lowerSearchString.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+            (string Word, bool Exact)[] searchPairs = searchParts.Select(word =>
+            {
+                if (searchString.StartsWith("\"") && searchString.EndsWith("\""))
+                {
+                    var trimmedSearchString = word.Trim('\"');
+                    return (trimmedSearchString, true);
+                }
+                return (word, false);
+            }).ToArray();
+            return vn => searchPairs.All(p => SearchNameInner(p, vn));
 
-		public static Func<CharacterItem, bool> SearchForCharacter(string searchString)
-		{
-			var lowerSearchString = searchString.ToLower();
-			if (searchString.StartsWith("\"") && searchString.EndsWith("\""))
+        }
+
+        private static bool SearchNameInner((string Word, bool Exact) p, ListedVN vn)
+        {
+            if (p.Exact)
 			{
-				var trimmedSearchString = lowerSearchString.Trim('\"');
-				return ch => HasWholeWord(ch.Name, trimmedSearchString)
-										 || HasWholeWord(ch.Original, trimmedSearchString)
-										 || HasWholeWord(ch.Aliases, trimmedSearchString);
-			}
-			return ch => ch.Name.ToLower().Contains(lowerSearchString) ||
-									 ch.Original != null && ch.Original.ToLower().Contains(lowerSearchString) ||
-									 ch.Aliases != null && ch.Aliases.ToLower().Contains(lowerSearchString);
-		}
+				return HasWholeWord(vn.Title, p.Word) || 
+                       HasWholeWord(vn.KanjiTitle, p.Word) || 
+                       HasWholeWord(vn.Aliases, p.Word);
+            }
+            return vn.Title.ToLower().Contains(p.Word) || 
+                   vn.KanjiTitle != null && vn.KanjiTitle.ToLower().Contains(p.Word) ||
+                   vn.Aliases != null && vn.Aliases.ToLower().Contains(p.Word);
+        }
+
+        public static Func<CharacterItem, bool> SearchForCharacter(string searchString)
+        {
+            var lowerSearchString = searchString.ToLower().Trim();
+            var searchParts = lowerSearchString.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            (string Word, bool Exact)[] searchPairs = searchParts.Select(word =>
+            {
+                if (searchString.StartsWith("\"") && searchString.EndsWith("\""))
+                {
+                    var trimmedSearchString = word.Trim('\"');
+                    return (trimmedSearchString, true);
+                }
+                return (word, false);
+            }).ToArray();
+            return ch => searchPairs.All(p => SearchNameInner(p, ch));
+
+        }
+
+		private static bool SearchNameInner((string Word, bool Exact) p, CharacterItem ch)
+        {
+            if (p.Exact)
+            {
+                return HasWholeWord(ch.Name, p.Word) ||
+                       HasWholeWord(ch.Original, p.Word) ||
+                       HasWholeWord(ch.Aliases, p.Word);
+            }
+            return ch.Name.ToLower().Contains(p.Word) ||
+                   ch.Original != null && ch.Original.ToLower().Contains(p.Word) ||
+                   ch.Aliases != null && ch.Aliases.ToLower().Contains(p.Word);
+        }
 
 		public IEnumerable<CharacterItem> GetCharactersForVN(int vnid)
 		{
