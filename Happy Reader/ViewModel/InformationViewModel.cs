@@ -251,5 +251,17 @@ namespace Happy_Reader.ViewModel
 
             return export;
         }
+
+        public void ImportCachedTranslations()
+        {
+            var dialog = new OpenFileDialog() { AddExtension = true, DefaultExt = ".sqlite" };
+            var result = dialog.ShowDialog();
+            if (result != true) return;
+            var import = new HappyReaderDatabase(dialog.FileName, true);
+            var translations = import.Translations.AsEnumerable();
+            //key is import user game id, value is local user game id
+            var userGameMap = new Dictionary<long, long>();
+            //todo continue
+        }
     }
 }

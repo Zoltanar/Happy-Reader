@@ -9,6 +9,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Translation;
+using Happy_Reader.View;
 using IthVnrSharpLib.Properties;
 using Newtonsoft.Json;
 
@@ -179,7 +180,7 @@ namespace Happy_Reader
 		[JsonIgnore] public (SolidColorBrush Color, string Name) OriginalColor { get; private set; } = (new(Colors.Ivory), "Ivory");
 		[JsonIgnore] public (SolidColorBrush Color, string Name) RomajiColor { get; private set; } = (new(Colors.Pink), "Pink");
 		[JsonIgnore] public (SolidColorBrush Color, string Name) TranslatedColor { get; private set; } = (new(Colors.GreenYellow), "GreenYellow");
-		[JsonIgnore] public Brush ErrorColor => Brushes.Red;
+		[JsonIgnore] public Brush ErrorColor => Theme.OutputErrorForeground;
 
 		public double FontSize
 		{

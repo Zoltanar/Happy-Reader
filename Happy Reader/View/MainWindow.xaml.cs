@@ -342,7 +342,7 @@ namespace Happy_Reader.View
 					header.Background = Theme.ProducerTabBackground;
 					break;
 				default:
-					header.Background = Brushes.IndianRed;
+					header.Background = Theme.TypeNotFoundTabBackground;
 					break;
 			}
 			header.Children.Add(headerTextBlock);

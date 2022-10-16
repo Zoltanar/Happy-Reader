@@ -14,9 +14,9 @@ namespace Happy_Reader.View.Converters
 			if (value is not UserGame.ProcessStatus runningStatus) throw new NotSupportedException();
 			return runningStatus switch
 			{
-				UserGame.ProcessStatus.Off => Brushes.Red,
-				UserGame.ProcessStatus.Paused => Brushes.Yellow,
-				UserGame.ProcessStatus.On => Brushes.LimeGreen,
+				UserGame.ProcessStatus.Off => Theme.ProcessOffBackground,
+				UserGame.ProcessStatus.Paused => Theme.ProcessPausedBackground,
+				UserGame.ProcessStatus.On => Theme.ProcessOnBackground,
 				_ => throw new ArgumentOutOfRangeException()
 			};
 		}

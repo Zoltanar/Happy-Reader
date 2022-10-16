@@ -13,6 +13,7 @@ using System.Windows.Threading;
 using Happy_Apps_Core;
 using Happy_Apps_Core.DataAccess;
 using Happy_Apps_Core.Database;
+using Happy_Reader.View;
 using JetBrains.Annotations;
 
 namespace Happy_Reader.ViewModel
@@ -129,28 +130,28 @@ namespace Happy_Reader.ViewModel
 						StaticHelpers.Logger.Verbose($"{StaticHelpers.Conn.ActiveQuery?.ActionName} Ended");
 						if (StaticHelpers.Conn.ActiveQuery != null) StaticHelpers.Conn.ActiveQuery.Completed = true;
 						VndbConnectionStatus = status.ToString();
-						VndbConnectionForeground = Brushes.Black;
-						VndbConnectionBackground = Brushes.LightGreen;
+						VndbConnectionForeground = Theme.VndbConnectionReadyForeground;
+						VndbConnectionBackground = Theme.VndbConnectionReadyBackground;
 						break;
 					case VndbConnection.APIStatus.Busy:
 						StaticHelpers.Logger.Verbose($"{StaticHelpers.Conn.ActiveQuery.ActionName} Started");
-						VndbConnectionForeground = new SolidColorBrush(Colors.Red);
-						VndbConnectionBackground = new SolidColorBrush(Colors.Khaki);
+						VndbConnectionForeground = Theme.VndbConnectionBusyForeground;
+						VndbConnectionBackground = Theme.VndbConnectionBusyBackground;
 						break;
 					case VndbConnection.APIStatus.Throttled:
 						StaticHelpers.Logger.Verbose($"{StaticHelpers.Conn.ActiveQuery.ActionName} Throttled");
 						VndbConnectionStatus = $@"{status} ({StaticHelpers.Conn.ActiveQuery.ActionName})";
-						VndbConnectionForeground = new SolidColorBrush(Colors.DarkRed);
-						VndbConnectionBackground = new SolidColorBrush(Colors.Khaki);
+						VndbConnectionForeground = Theme.VndbConnectionThrottledForeground;
+						VndbConnectionBackground = Theme.VndbConnectionThrottledBackground;
 						break;
 					case VndbConnection.APIStatus.Error:
-						VndbConnectionForeground = new SolidColorBrush(Colors.Black);
-						VndbConnectionBackground = new SolidColorBrush(Colors.Red);
+						VndbConnectionForeground = Theme.VndbConnectionErrorForeground;
+						VndbConnectionBackground = Theme.VndbConnectionErrorBackground;
 						StaticHelpers.Conn.Close();
 						break;
 					case VndbConnection.APIStatus.Closed:
-						VndbConnectionForeground = new SolidColorBrush(Colors.White);
-						VndbConnectionBackground = new SolidColorBrush(Colors.Black);
+                        VndbConnectionForeground = Theme.VndbConnectionClosedForeground;
+                        VndbConnectionBackground = Theme.VndbConnectionClosedBackground;
 						break;
 				}
 			});

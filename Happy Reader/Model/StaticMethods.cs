@@ -304,11 +304,11 @@ namespace Happy_Reader
 			{
 				case VNTab vnTab:
 					savedTabs?.Add(new SavedData.SavedTab(vnTab.ViewModel.VNID, nameof(VNTab)));
-					header.Background = Brushes.HotPink;
+					header.Background = Theme.VNTabBackground;
 					break;
 				case ListedVN vn:
 					savedTabs?.Add(new SavedData.SavedTab(vn.VNID, nameof(VNTab)));
-					header.Background = Brushes.HotPink;
+					header.Background = Theme.VNTabBackground;
 					break;
 				case UserGameTab gameTab:
 					savedTabs?.Add(new SavedData.SavedTab(gameTab.ViewModel.Id, nameof(UserGameTab)));
@@ -319,7 +319,7 @@ namespace Happy_Reader
 					header.Background = Theme.UserGameTabBackground;
 					break;
 				default:
-					header.Background = Brushes.IndianRed;
+					header.Background = Theme.TypeNotFoundTabBackground;
 					break;
 			}
 			header.Children.Add(headerTextBlock);
@@ -331,8 +331,8 @@ namespace Happy_Reader
 			var tooltip = new ToolTip()
 			{
 				Placement = placementMode,
-				Background = new SolidColorBrush(Colors.Black) {Opacity = 0.6},
-				Foreground = Brushes.White
+				Background = Theme.MouseoverTooltipBackground,
+				Foreground = Theme.MouseoverTooltipForeground 
 			};
 			if (placementTarget != null) tooltip.PlacementTarget = placementTarget;
 			return tooltip;

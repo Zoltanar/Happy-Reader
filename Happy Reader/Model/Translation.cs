@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Documents;
-using System.Windows.Media;
 using Happy_Apps_Core;
 using Happy_Reader.Database;
 using Happy_Reader.TranslationEngine;
+using Happy_Reader.View;
 
 namespace Happy_Reader
 {
@@ -153,7 +153,7 @@ namespace Happy_Reader
 			}
 			if (!blocks.Any()) return blocks;
 			var spacer = new Paragraph(new Run("￣￣￣"));
-			spacer.Inlines.FirstInline.Foreground = Brushes.White;
+			spacer.Inlines.FirstInline.Foreground = Theme.OutputSpacerForeground;
 			spacer.Margin = new Thickness(0);
 			spacer.TextAlignment = StaticMethods.Settings.TranslatorSettings.OutputHorizontalAlignment;
 			spacer.FontSize = 3d;

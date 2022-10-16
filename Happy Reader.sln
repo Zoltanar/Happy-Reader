@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28803.352
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32901.215
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Happy Reader", "Happy Reader\Happy Reader.csproj", "{662ACC6B-35BE-4F7A-B876-0E1764DCAED6}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -283,7 +283,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {2C3F6D43-6AFB-44A6-91C8-7E90A5625DE8}
 		Qt5Version = 5.15.0_msvc2019
+		SolutionGuid = {2C3F6D43-6AFB-44A6-91C8-7E90A5625DE8}
 	EndGlobalSection
 EndGlobal

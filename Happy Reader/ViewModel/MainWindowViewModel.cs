@@ -228,7 +228,7 @@ namespace Happy_Reader.ViewModel
 			StatusText = "Loading complete.";
 			NotificationEvent(this, $"Took {watch.Elapsed.ToSeconds()}.", "Loading Complete");
 		}
-
+		
 		private bool GlobalMouseClick(MouseEventExtArgs args)
 		{
 			//On global mouse click, when a game is hooked and left button is pressed, disable combining output.
@@ -607,5 +607,5 @@ namespace Happy_Reader.ViewModel
 				tile.VN.OnPropertyChanged(nameof(Database.UserGame.VN.UserVN));
 			}
 		}
-	}
+    }
 }

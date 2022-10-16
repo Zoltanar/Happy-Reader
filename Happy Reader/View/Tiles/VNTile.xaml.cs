@@ -36,7 +36,7 @@ namespace Happy_Reader.View.Tiles
 			{
 				var image = new Image { Source = source, MaxHeight = 12, MaxWidth = 24, Margin = new Thickness(3, 2, 3, 2) };
 				if (!string.IsNullOrWhiteSpace(release.ReleaseDateString)) image.ToolTip = release.ReleaseDateString;
-				var borderBrush = release.Mtl ? Brushes.Yellow /*Theme.PartialBorderBrush*/ : Brushes.Black;
+				var borderBrush = release.Mtl ? Theme.MtlBorder : Theme.NonMtlBorder;
 				var grid = new Grid();
 				var rectangle = new System.Windows.Shapes.Rectangle()
 				{

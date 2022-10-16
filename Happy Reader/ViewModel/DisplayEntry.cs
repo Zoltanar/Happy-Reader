@@ -6,6 +6,7 @@ using System.Windows.Media;
 using Happy_Apps_Core.Database;
 using Happy_Reader.Database;
 using Happy_Reader.TranslationEngine;
+using Happy_Reader.View;
 
 namespace Happy_Reader.ViewModel
 {
@@ -124,7 +125,7 @@ namespace Happy_Reader.ViewModel
 			_deleteButton = button;
 			_deleteEntryTimer.Elapsed += RevertPrimeDeletion;
 			_deleteButton.Content = "Press again to confirm";
-			_deleteButton.Background = Brushes.Red;
+			_deleteButton.Background = Theme.DeleteEntryPrimedBackground;
 			DeletePrimed = true;
 			_deleteEntryTimer.Start();
 		}
@@ -135,7 +136,7 @@ namespace Happy_Reader.ViewModel
 			Application.Current.Dispatcher.Invoke(() =>
 			{
 				_deleteButton.Content = "Delete";
-				_deleteButton.Background = Brushes.CornflowerBlue;
+				_deleteButton.Background = Theme.DeleteEntryBackground;
 			});
 			DeletePrimed = false;
 			_deleteEntryTimer?.Stop();

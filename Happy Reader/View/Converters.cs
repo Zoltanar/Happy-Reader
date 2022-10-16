@@ -56,7 +56,7 @@ namespace Happy_Reader.View
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (!(value is string text)) throw new NotSupportedException("Input must be a string.");
+			if (value is not string text) throw new NotSupportedException("Input must be a string.");
 			if (string.IsNullOrWhiteSpace(text)) return null;
 			return int.Parse(text);
 		}
@@ -154,7 +154,7 @@ namespace Happy_Reader.View
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (!(value is OwnedStatus val)) throw new NotSupportedException();
+			if (value is not OwnedStatus val) throw new NotSupportedException();
 			return val == OwnedStatus.NeverOwned ? Visibility.Hidden : Visibility.Visible;
 		}
 
@@ -166,12 +166,12 @@ namespace Happy_Reader.View
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (!(value is OwnedStatus val)) throw new NotSupportedException();
+			if (value is not OwnedStatus val) throw new NotSupportedException();
 			return val switch
 			{
-				OwnedStatus.NeverOwned => Brushes.Transparent,
-				OwnedStatus.PastOwned => Brushes.DarkKhaki,
-				OwnedStatus.CurrentlyOwned => Brushes.Green,
+				OwnedStatus.NeverOwned => Theme.NeverOwnedBackground,
+				OwnedStatus.PastOwned => Theme.PastOwnedBackground,
+				OwnedStatus.CurrentlyOwned => Theme.CurrentlyOwnedBackground,
 				_ => throw new ArgumentOutOfRangeException()
 			};
 		}
@@ -214,7 +214,7 @@ namespace Happy_Reader.View
 		{
 			if (value is null) return Brushes.Black;
 			if (value is not DateTime dt) throw new NotSupportedException($"Value was type {value.GetType()}");
-			return dt > DateTime.UtcNow ? Theme.UnreleasedBrush : Brushes.Black;
+			return dt > DateTime.UtcNow ? Theme.UnreleasedBrush : Theme.ReleasedBrush;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
@@ -228,7 +228,7 @@ namespace Happy_Reader.View
 			if (value is not ListedVN vn) throw new NotSupportedException();
 			return StaticHelpers.VNIsByFavoriteProducer(vn) 
 				? vn.UserVN?.PriorityLabel == UserVN.LabelKind.Playing ? Theme.FavoriteProducerDarkBrush : Theme.FavoriteProducerBrush 
-				: Brushes.Black;
+				: Theme.NotFavoriteProducerBrush;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
@@ -240,7 +240,7 @@ namespace Happy_Reader.View
 		{
 			if (value is null) return Brushes.Transparent;
 			if (value is not bool newlyAdded) throw new NotSupportedException();
-			return newlyAdded ? Theme.NewlyAddedBorderBrush : Brushes.Transparent;
+			return newlyAdded ? Theme.NewlyAddedBorderBrush : Theme.NotNewlyAddedBorderBrush;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
@@ -254,11 +254,11 @@ namespace Happy_Reader.View
 			if (value is not CharacterVN characterVN) throw new NotSupportedException();
 			return characterVN.Role switch
 			{
-				CharacterRole.Main => Brushes.Gold,
-				CharacterRole.Primary => Brushes.Orchid,
-				CharacterRole.Side => Brushes.GreenYellow,
-				CharacterRole.Appears => Brushes.LightBlue,
-				CharacterRole.Unknown => Brushes.Gray,
+				CharacterRole.Main => Theme.MainCharacterBackground,
+				CharacterRole.Primary => Theme.PrimaryCharacterBackground,
+				CharacterRole.Side => Theme.SideCharacterBackground,
+				CharacterRole.Appears => Theme.AppearsCharacterBackground,
+				CharacterRole.Unknown => Theme.UnknownCharacterBackground,
 				_ => Brushes.White
 			};
 		}

@@ -60,7 +60,7 @@ namespace Happy_Reader.View
 
 				ReplyBox.Text = "Invalid";
 				ReplyBox.ToolTip = invalidText;
-				ColorBorder.Background = Brushes.Transparent;
+				ColorBorder.Background = Theme.InvalidColorBoxBackground;
 			}
 		}
 	}
