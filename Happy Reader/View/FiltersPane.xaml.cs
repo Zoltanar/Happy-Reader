@@ -95,16 +95,18 @@ namespace Happy_Reader.View
 						HorizontalAlignment = HorizontalAlignment.Stretch,
 						Margin = new Thickness(130 + 5, 2, 2, 2),
 					};
-					var rootControl = new ComboBox
+                    var traitRootItems = StaticMethods.GetEnumValues(typeof(DumpFiles.RootTrait));
+                    traitRootItems[0].Content = "Any";
+                    traitRootItems[0].Tag = (DumpFiles.RootTrait)(-1);
+                    var rootControl = new ComboBox
 					{
-						ItemsSource = StaticMethods.GetEnumValues(typeof(DumpFiles.RootTrait)),
-						SelectedIndex = 0,
+						ItemsSource = traitRootItems,
 						SelectedValuePath = nameof(Tag),
 						HorizontalAlignment = HorizontalAlignment.Left,
-						Width = 130,
+						Width = 130
 					};
-
-					rootControl.SelectionChanged += RootControl_SelectionChanged;
+                    rootControl.SelectionChanged += RootControl_SelectionChanged;
+                    rootControl.SelectedIndex = 0;
 					FilterValuesGrid.Children.Add(rootControl);
 					control = _traitOrTagControl;
 					bindingProperty = AutoCompleteBox.SelectedItemProperty;
@@ -131,7 +133,7 @@ namespace Happy_Reader.View
 		{
 			if (e.AddedItems.Count == 0) return;
 			var selectedTraitRoot = (DumpFiles.RootTrait)((ComboBoxItem)e.AddedItems[0]).Tag;
-			_traitOrTagControl.ItemsSource = DumpFiles.GetTraitsForRoot(selectedTraitRoot);
+			_traitOrTagControl.ItemsSource = selectedTraitRoot == (DumpFiles.RootTrait)(-1) ? DumpFiles.GetAllTraits() : DumpFiles.GetTraitsForRoot(selectedTraitRoot);
 		}
 
 		private bool DumpfileFilter(string input, object item)

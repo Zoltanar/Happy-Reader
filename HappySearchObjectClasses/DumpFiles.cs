@@ -321,5 +321,10 @@ namespace Happy_Apps_Core
 		{
 			return _plainTags.Values;
 		}
-	}
+
+        public static IEnumerable<WrittenTrait> GetAllTraits()
+        {
+            return _plainTraits.Values;
+        }
+    }
 }

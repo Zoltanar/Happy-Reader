@@ -15,9 +15,6 @@
 			<Setter Property="Margin" Value="0" />
 			<Setter Property="Padding" Value="0" />
 		</Style>
-		<Style TargetType="TabItem" BasedOn="{StaticResource {x:Type TabItem}}">
-
-		</Style>
 		<Style x:Key="RightLabel" TargetType="Label" >
 			<Setter Property="VerticalContentAlignment" Value="Center"/>
 			<Setter Property="HorizontalContentAlignment" Value="Right"/>
