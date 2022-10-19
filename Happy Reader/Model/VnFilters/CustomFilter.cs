@@ -70,9 +70,11 @@ namespace Happy_Reader
 			if (globalFilters.Count == 0) return getAllFunc(database).Select(i => i.Key).ToArray();
 			var result = getAllFunc(database).Select(i => i.Key);
 			foreach (var filter in globalFilters)
-			{
-				result = result.Intersect(filter.GetGlobalFunction(getAllFunc)(database));
-			}
+            {
+                result = filter.Exclude 
+                    ? result.Except(filter.GetGlobalFunction(getAllFunc)(database)) 
+                    : result.Intersect(filter.GetGlobalFunction(getAllFunc)(database));
+            }
 			return result.ToArray();
 		}
 

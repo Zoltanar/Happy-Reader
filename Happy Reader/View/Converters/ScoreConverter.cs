@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Globalization;
 using System.Windows.Data;
 
@@ -9,8 +10,9 @@ namespace Happy_Reader.View.Converters
 		public static readonly ScoreConverter Instance = new();
 
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			if (value is null || value.Equals(System.Windows.DependencyProperty.UnsetValue)) return "None";
+        {
+            if (DesignerProperties.GetIsInDesignMode(App.Current.MainWindow)) return value;
+            if (value is null || value.Equals(System.Windows.DependencyProperty.UnsetValue)) return "None";
 			if (value is not IConvertible voteObject) throw new NotSupportedException();
 			var vote = voteObject.ToDouble(culture);
 			if (StaticMethods.Settings.GuiSettings.UseDecimalVoteScores)

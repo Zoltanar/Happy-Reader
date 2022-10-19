@@ -47,8 +47,18 @@ namespace Happy_Reader
 				var result = new HashSet<int>(); 
 				Action<IEnumerable<int>> unionOrIntersect = IsOrGroup ? result.UnionWith : result.IntersectWith;
 				foreach (var filter in Filters.Where(f => f.IsGlobal))
-				{
-					unionOrIntersect(filter.GetGlobalFunction(getAllFunc)(db));
+                {
+                    var results = filter.GetGlobalFunction(getAllFunc)(db);
+                    if (!IsOrGroup)
+                    {
+						if(filter.Exclude) result.ExceptWith(results);
+						else result.IntersectWith(results);
+                    }
+                    else
+                    {
+						//if it is OR group, and filter is to exclude, we union with all that do not match filter
+                        result.UnionWith(filter.Exclude ? getAllFunc(db).Select(i => i.Key).Except(results) : results);
+                    }
 				}
 				foreach (var filter in Filters.Where(f => !f.IsGlobal))
 				{

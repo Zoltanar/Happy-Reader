@@ -25,6 +25,7 @@ namespace Happy_Reader
 
 		/// <summary>
 		/// Gets function that returns results from entire database in a single call.
+		/// This should return a positive list and ignore <see cref="Exclude"/>, as it is handled by caller.
 		/// </summary>
 		Func<VisualNovelDatabase, HashSet<int>> GetGlobalFunction(Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> getAllFunc);
 		

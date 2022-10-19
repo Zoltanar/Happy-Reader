@@ -250,22 +250,27 @@ where VNID = @vnid;";
 			}
 		}
 
-		public IEnumerable<CharacterItem> GetCharactersWithTrait(int traitID)
+		public List<int> GetCharactersWithTrait(int[] traitIDs)
 		{
 			Connection.Open();
 			try
 			{
-				using var command = Connection.CreateCommand();
-				command.CommandText = @"select ID
+				using var command = Connection.CreateCommand(); 
+                var paramsString = string.Join(",", traitIDs.Select((trait, index) =>
+                {
+                    var param = $"@Trait{index:00}";
+                    command.AddParameter(param, trait);
+                    return param;
+                }));
+                command.CommandText = $@"select distinct ID
 from CharacterItems
 left join DbTraits on CharacterItems.ID = DbTraits.CharacterItem_ID
-where TraitId = @TraitId";
-				command.AddParameter("@TraitId", traitID);
-				var list = new List<CharacterItem>();
+where TraitId IN ({paramsString})";
+				var list = new List<int>();
 				using var reader = command.ExecuteReader();
 				while (reader.Read())
 				{
-					list.Add(Characters[Convert.ToInt32(reader["ID"])]);
+					list.Add(Convert.ToInt32(reader["ID"]));
 				}
 				return list;
 			}
@@ -274,8 +279,38 @@ where TraitId = @TraitId";
 				Connection.Close();
 			}
 		}
+        public List<int> GetVnsWithTrait(int[] traitIDs)
+        {
+            Connection.Open();
+            try
+            {
+                using var command = Connection.CreateCommand();
+                var paramsString = string.Join(",", traitIDs.Select((trait, index) =>
+                {
+                    var param = $"@Trait{index:00}";
+                    command.AddParameter(param, trait);
+                    return param;
+                }));
+                command.CommandText = $@"select distinct vnid
+from CharacterItems
+left join DbTraits on CharacterItems.ID = DbTraits.CharacterItem_ID
+left join CharacterVNs on CharacterVNs.CharacterId = CharacterItem_ID
+where TraitId IN ({paramsString})";
+                var list = new List<int>();
+                using var reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    list.Add(Convert.ToInt32(reader["vnid"]));
+                }
+                return list;
+            }
+            finally
+            {
+                Connection.Close();
+            }
+        }
 
-		public bool VnHasStaff(int vnid, int staffId)
+        public bool VnHasStaff(int vnid, int staffId)
 		{
 			Connection.Open();
 			try
