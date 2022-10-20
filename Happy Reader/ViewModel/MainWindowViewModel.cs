@@ -211,7 +211,7 @@ namespace Happy_Reader.ViewModel
 				{
 					//it's ok to fail here, proxies can be added via the UI anyway.
 					Logger.ToFile(ex);
-					NotificationEvent(this, ex.Message, "Populate Proxies failed");
+					NotificationEvent(this, ex.Message, "Populate Proxies failed", true);
 				});
 				StatusText = "Loading Entries...";
 				EntriesViewModel.SetEntryGames();
@@ -226,7 +226,7 @@ namespace Happy_Reader.ViewModel
 			_monitor = GetAndStartMonitorThread();
 			_loadingComplete = true;
 			StatusText = "Loading complete.";
-			NotificationEvent(this, $"Took {watch.Elapsed.ToSeconds()}.", "Loading Complete");
+			NotificationEvent(this, $"Took {watch.Elapsed.ToSeconds()}.", "Loading Complete", true);
 		}
 		
 		private bool GlobalMouseClick(MouseEventExtArgs args)
@@ -313,7 +313,7 @@ namespace Happy_Reader.ViewModel
 				}
 				catch (Exception ex)
 				{
-					NotificationEvent.Invoke(this, ex.Message, "Error in MonitorStart/Loop");
+					NotificationEvent.Invoke(this, ex.Message, "Error in MonitorStart/Loop", false);
 				}
 				Thread.Sleep(5000);
 			}
@@ -434,7 +434,9 @@ namespace Happy_Reader.ViewModel
 				{
 					if (process == null)
 					{
-						NotificationEvent(this, $"Failed to get process for user game '{userGame.DisplayName}'", "Process Launch Failed");
+						NotificationEvent(this,
+                            $"Failed to get process for user game '{userGame.DisplayName}'", 
+                            "Process Launch Failed", false);
 						UserGame = null;
 						return;
 					}
@@ -442,7 +444,7 @@ namespace Happy_Reader.ViewModel
 					{
 						NotificationEvent(this,
 							"Game Process has exited prematurely, check that executable is the running process.",
-							"Process Has Exited");
+							"Process Has Exited", false);
 						UserGame = null;
 						return;
 					}

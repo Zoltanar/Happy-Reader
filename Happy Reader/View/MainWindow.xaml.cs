@@ -180,10 +180,10 @@ namespace Happy_Reader.View
 			NotificationWindow.Launch(message);
 		}
 
-		public void ShowNotification(object sender, [NotNull] string message, string title = "Notification")
+		public void ShowNotification(object sender, [NotNull] string message, string title, bool showInWindow)
 		{
 			StaticHelpers.Logger.ToDebug($"Notification - {title} - {message}");
-			NotificationWindow.Launch(title, message);
+			NotificationWindow.Launch(title, message, showInWindow);
 		}
 
 		public void TabMiddleClick(object sender, MouseButtonEventArgs e)

@@ -91,7 +91,7 @@ namespace Happy_Reader.ViewModel
 			var offlineDict = Translator.Instance.OfflineDictionary;
 			var success = offlineDict.SearchOuter(input, out var result);
 			var text = !success ? "No results found." : result;
-			NotificationWindow.Launch("Dictionary", text);
+			NotificationWindow.Launch("Dictionary", text, false);
 		}
 
 		public void Initialize(Func<string> getSelectedText, FlowDocument flowDocument, Action scrollToBottom)

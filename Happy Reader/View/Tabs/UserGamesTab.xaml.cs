@@ -78,7 +78,7 @@ namespace Happy_Reader.View.Tabs
 			catch (Exception ex)
 			{
 				StaticHelpers.Logger.ToFile(ex);
-				ViewModel.MainViewModel.NotificationEvent(sender, ex.Message, "Error Dragging File");
+				ViewModel.MainViewModel.NotificationEvent(sender, ex.Message, "Error Dragging File", true);
 			}
 		}
 

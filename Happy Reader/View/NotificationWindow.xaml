@@ -8,23 +8,24 @@
 	<Window.Resources>
 	</Window.Resources>
 	<Grid RenderTransformOrigin="0,1" >
-        <!-- Notification area -->
-        <Border BorderThickness="1" Background="Beige" BorderBrush="Black" CornerRadius="10">
-            <Grid Margin="5">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <Image Grid.Row="0" Width="30" HorizontalAlignment="Left" RenderOptions.BitmapScalingMode="HighQuality" SnapsToDevicePixels="True" RenderSize="30,30"
+		<!-- Notification area -->
+		<Border BorderThickness="1" Background="Beige" BorderBrush="Black" CornerRadius="10">
+			<Grid Margin="5">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+				</Grid.RowDefinitions>
+				<Image Grid.Row="0" Width="30" HorizontalAlignment="Left" RenderOptions.BitmapScalingMode="HighQuality" SnapsToDevicePixels="True" RenderSize="30,30"
                        Source="/Happy Reader;component/Resources/logo-hr.png" />
-                <Label Grid.Row="0" Margin="30,0,0,0"><Bold><Run x:Name="TitleRun"></Run></Bold></Label>
-                <RichTextBox Grid.Row="1" IsReadOnly="True" x:Name="TextBox" Margin="0,5" Background="{x:Null}" BorderThickness="0"/>
-            </Grid>
-        </Border>
-        <Grid.RenderTransform>
-            <ScaleTransform ScaleY="1" />
-        </Grid.RenderTransform>
-        <Grid.Triggers>
+				<Label Grid.Row="0" Margin="30,0,18,0" FontWeight="Bold" x:Name="TitleLabel"/>
+				<Button Grid.Row="0" Content="❌" Foreground="White" Background="DarkGray" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Padding="0" HorizontalAlignment="Right" Width="18" Height="18" VerticalAlignment="Top" Click="CloseClick"/>
+				<RichTextBox Grid.Row="1" IsReadOnly="True" x:Name="TextBox" Margin="0,5" Background="{x:Null}" BorderThickness="0"/>
+			</Grid>
+		</Border>
+		<Grid.RenderTransform>
+			<ScaleTransform ScaleY="1" />
+		</Grid.RenderTransform>
+		<Grid.Triggers>
 			<EventTrigger RoutedEvent="FrameworkElement.Loaded">
 				<BeginStoryboard>
 					<Storyboard Completed="Timeline_OnCompleted" >
@@ -40,7 +41,7 @@
 					</Storyboard>
 				</BeginStoryboard>
 			</EventTrigger>
-        </Grid.Triggers>
+		</Grid.Triggers>
 	</Grid>
 
 </Window>

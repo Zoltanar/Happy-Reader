@@ -319,7 +319,7 @@ namespace Happy_Reader.View
 			var newEntries = characterEntries.Except(StaticMethods.Data.Entries, Entry.ClashComparer).OrderBy(i => i.Input).ToList();
 			if (newEntries.Count == 0)
 			{
-				StaticMethods.MainWindow.ViewModel.NotificationEvent(this, "No new names to import.", "Import Names");
+				StaticMethods.MainWindow.ViewModel.NotificationEvent(this, "No new names to import.", "Import Names", true);
 				return;
 			}
 			StaticMethods.MainWindow.CreateAddEntriesTab(newEntries);
@@ -327,7 +327,7 @@ namespace Happy_Reader.View
 
 		private void Launch(object sender, RoutedEventArgs e)
 		{
-			if (sender is not MenuItem menu || menu.Tag is not UserGame game) return;
+			if (sender is not MenuItem { Tag: UserGame game }) return;
 			StaticMethods.MainWindow.ViewModel.HookUserGame(game,null,null,false);
 		}
 
@@ -395,7 +395,7 @@ namespace Happy_Reader.View
 			{
 				message = ex.Message;
 			}
-			StaticMethods.MainWindow.ViewModel.NotificationEvent(this, message, $"Translated Title for {VN.Title}");
+			StaticMethods.MainWindow.ViewModel.NotificationEvent(this, message, $"Translated Title for {VN.Title}", true);
 		}
 	}
 }

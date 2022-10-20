@@ -57,7 +57,6 @@ namespace Happy_Reader.ViewModel
 		{
 			_mainViewModel = mainViewModel;
 			InitializeUserGameAction = initializeUserGameAction;
-			Notify = new Action<object, string, string>(_mainViewModel.NotificationEvent);
 		}
 
 		public override void AddNewThreadToDisplayCollection(TextThread textThread)

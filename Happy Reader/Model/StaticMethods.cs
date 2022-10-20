@@ -33,7 +33,7 @@ namespace Happy_Reader
 {
 	public static class StaticMethods
 	{
-		public delegate void NotificationEventHandler(object sender, string message, string title = null);
+		public delegate void NotificationEventHandler(object sender, string message, string title, bool showInWindow);
 		
 		public static readonly string ReaderDatabaseFile = Path.Combine(StaticHelpers.StoredDataFolder, "Happy-Reader.sqlite");
 		public static readonly string ProxiesJson = Path.Combine(StaticHelpers.ProgramDataFolder, "Default Files\\proxies.json");
