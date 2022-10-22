@@ -142,7 +142,7 @@ namespace Happy_Reader.Database
 		}
 		public string DisplayName => !string.IsNullOrWhiteSpace(UserDefinedName)
 			? UserDefinedName
-			: StaticMethods.TruncateStringFunction30(VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath));
+			: StaticHelpers.TruncateString30(VN?.Title ?? Path.GetFileNameWithoutExtension(FilePath));
 
 		public BitmapImage Image
 		{

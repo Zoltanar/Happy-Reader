@@ -21,6 +21,10 @@
 			<Setter Property="Margin" Value="0,0,5,0" />
 			<Setter Property="Padding" Value="0" />
 		</Style>
+		<Style TargetType="TabItem" BasedOn="{StaticResource DefaultTabStyle}">
+			<Setter Property="MinWidth" Value="100"/>
+			<Setter Property="Height" Value="33"/>
+		</Style>
 		<CollectionViewSource x:Key="StaffBoxItems" Source="{Binding Path=Staff}">
 			<CollectionViewSource.SortDescriptions>
 				<componentModel:SortDescription PropertyName="RoleDetail" Direction="Ascending"/>

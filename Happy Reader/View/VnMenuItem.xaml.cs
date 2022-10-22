@@ -176,7 +176,7 @@ namespace Happy_Reader.View
 			var databaseViewModel = StaticMethods.MainWindow.ViewModel.DatabaseViewModel;
 			StaticMethods.MainWindow.SelectTab(typeof(VNTabViewModel));
 			if (staff.Count == 1) databaseViewModel.ShowForStaffWithAlias(staff.First());
-			else databaseViewModel.ShowForStaffWithAlias($"{staffType} ({staff.Count}) for {StaticHelpers.TruncateString(VN.Title, 15)}", staff);
+			else databaseViewModel.ShowForStaffWithAlias($"{staffType} ({staff.Count}) for {StaticHelpers.TruncateString15(VN.Title)}", staff);
 		}
 
 		private void ShowByStaffArtScenario(object sender, RoutedEventArgs e)
@@ -184,7 +184,7 @@ namespace Happy_Reader.View
 			var menuItem = (MenuItem)sender;
 			var filter = new CustomFilter
 			{
-				Name = $"Art/Scenario: {StaticHelpers.TruncateString(VN.Title, 15)}"
+				Name = $"Art/Scenario: {StaticHelpers.TruncateString15(VN.Title)}"
 			};
 			var staffGroups = (IEnumerable<IGrouping<string,VnStaff>>)menuItem.Tag;
 			foreach (var group in staffGroups)

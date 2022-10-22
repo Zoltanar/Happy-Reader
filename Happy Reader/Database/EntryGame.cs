@@ -30,7 +30,7 @@ namespace Happy_Reader.Database
 			else
 			{
 				var game = StaticHelpers.LocalDatabase.VisualNovels[GameId.Value];
-				var gameName = game == null ? "Not Found" : StaticMethods.TruncateStringFunction30(game.Title);
+				var gameName = game == null ? "Not Found" : StaticHelpers.TruncateString30(game.Title);
 				result = $"(VN) [{GameId.Value}] {gameName}";
 			}
             CachedName = result;
@@ -48,7 +48,7 @@ namespace Happy_Reader.Database
             else
             {
                 var game = StaticHelpers.LocalDatabase.VisualNovels[GameId.Value];
-                return game == null ? "Not Found" : StaticMethods.TruncateStringFunction30(game.Title);
+                return game == null ? "Not Found" : StaticHelpers.TruncateString30(game.Title);
             }
 		}
 

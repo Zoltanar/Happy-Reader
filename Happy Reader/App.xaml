@@ -70,6 +70,32 @@
 				</Setter.Value>
 			</Setter>
 		</Style>
+		<Style TargetType="TabItem" x:Key="DefaultTabStyle">
+			<Setter Property="Background" Value="LightBlue"/>
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="TabItem">
+						<Border Name="Border" Padding="0" Background="{TemplateBinding Background}"  BorderThickness="1" BorderBrush="{TemplateBinding Background}" Margin="-2,-2,0,0" 
+						        Height="{TemplateBinding Height}" Width="{TemplateBinding Width}"
+						        MouseDown="TabMiddleClick">
+							<TextBlock Name="ContentPresenter" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{TemplateBinding Header}" TextWrapping="{TemplateBinding TextBlock.TextWrapping}"/>
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsSelected" Value="True">
+								<Setter Property="Panel.ZIndex" Value="100"/>
+								<Setter TargetName="Border" Property="Background" Value="AliceBlue" />
+								<Setter TargetName="Border" Property="BorderBrush" Value="Black" />
+								<Setter TargetName="ContentPresenter" Property="TextBlock.FontWeight" Value="Bold" />
+							</Trigger>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter Property="Panel.ZIndex" Value="100"/>
+								<Setter TargetName="Border" Property="BorderBrush" Value="Black" />
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
 		<Style TargetType="Border" x:Key="AlertFlagStyle">
 			<Setter Property="Width" Value="20"/>
 			<Setter Property="Height" Value="20"/>

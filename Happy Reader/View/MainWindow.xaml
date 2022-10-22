@@ -38,30 +38,10 @@
 				</Setter.Value>
 			</Setter>
 		</Style>
-		<Style TargetType="TabItem">
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="TabItem">
-						<Border Name="Border" Padding="0" Background="LightBlue" Margin="-2,-2,0,0" Height="50" Width="100">
-							<ContentPresenter x:Name="ContentSite" VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Header" TextBlock.TextAlignment="Center" />
-						</Border>
-						<ControlTemplate.Triggers>
-							<Trigger Property="IsSelected" Value="True">
-								<Setter Property="Panel.ZIndex" Value="100"/>
-								<Setter TargetName="Border" Property="Background" Value="AliceBlue" />
-								<Setter TargetName="Border" Property="BorderThickness" Value="1" />
-								<Setter TargetName="Border" Property="BorderBrush" Value="Black" />
-								<Setter TargetName="ContentSite" Property="TextBlock.FontWeight" Value="Bold" />
-							</Trigger>
-							<Trigger Property="IsMouseOver" Value="True">
-								<Setter Property="Panel.ZIndex" Value="100"/>
-								<Setter TargetName="Border" Property="BorderThickness" Value="1" />
-								<Setter TargetName="Border" Property="BorderBrush" Value="Black" />
-							</Trigger>
-						</ControlTemplate.Triggers>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
+		<Style TargetType="TabItem" BasedOn="{StaticResource DefaultTabStyle}">
+			<Setter Property="Width" Value="100"/>
+			<Setter Property="Height" Value="50"/>
+			<Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
 		</Style>
 		<Style TargetType="ListBoxItem">
 			<Setter Property="HorizontalContentAlignment" Value="Left"/>

@@ -29,10 +29,12 @@ namespace Happy_Apps_Core.Database
 		/// </summary>
 		public string Title { get; set; }
 
-		/// <summary>
-		/// VN kanji title
-		/// </summary>
-		public string KanjiTitle { get; set; }
+        public string DisplayTitle => StaticHelpers.TruncateString30(Title);
+
+        /// <summary>
+        /// VN kanji title
+        /// </summary>
+        public string KanjiTitle { get; set; }
 
 		/// <summary>
 		/// VN's first non-trial release date, set by calling SetReleaseDate(string)

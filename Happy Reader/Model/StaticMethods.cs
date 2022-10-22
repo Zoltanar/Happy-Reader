@@ -173,22 +173,7 @@ namespace Happy_Reader
 			NativeMethods.GetWindowThreadProcessId(handle, out uint pid);
 			return pid == 0 ? null : Process.GetProcessById((int)pid);
 		}
-
-		/// <summary>
-		/// Truncates strings if they are longer than <see cref="maxChars"/> (minimum is 4 characters).
-		/// </summary>
-		/// <param name="maxChars">The maximum number of characters</param>
-		/// <returns>Truncated string</returns>
-		private static Expression<Func<string, string>> TruncateStringExpression(int maxChars)
-		{
-			maxChars = Math.Max(maxChars, 4);
-			Expression<Func<string, string>> expression = x => x == null ? null :
-				(x.Length <= maxChars ? x : x.Substring(0, maxChars - 3) + "...");
-			return expression;
-		}
-
-		public static readonly Func<string, string> TruncateStringFunction30 = TruncateStringExpression(30).Compile();
-
+		
 		public static string ToHumanReadable(this TimeSpan timeSpan)
 		{
 			if (timeSpan.TotalMinutes < 1) return $"{timeSpan.Seconds} seconds";
@@ -280,53 +265,53 @@ namespace Happy_Reader
 			Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
 			return Application.Current.Dispatcher.CheckAccess() ? action() : Application.Current.Dispatcher.Invoke(action);
 		}
-
-		public static Grid GetTabHeader(string text, BindingBase headerBinding, object content, HashSet<SavedData.SavedTab> savedTabs)
-		{
-			var headerTextBlock = new TextBlock
-			{
-				Text = text,
-				TextWrapping = TextWrapping.Wrap,
-				TextAlignment = TextAlignment.Center,
-				VerticalAlignment = VerticalAlignment.Center,
-				HorizontalAlignment = HorizontalAlignment.Center,
-				Margin = new Thickness(2)
-			};
-			if (headerBinding != null) headerTextBlock.SetBinding(TextBlock.TextProperty, headerBinding);
-			var header = new Grid
-			{
-				Width = 100,
-				Height = 50,
-				VerticalAlignment = VerticalAlignment.Stretch,
-				HorizontalAlignment = HorizontalAlignment.Stretch
-			};
-			switch (content)
-			{
+		
+        public static Grid GetTabHeader(string text, BindingBase headerBinding, object content, HashSet<SavedData.SavedTab> savedTabs)
+        {
+            var headerTextBlock = new TextBlock
+            {
+                Text = text,
+                TextWrapping = TextWrapping.Wrap,
+                TextAlignment = TextAlignment.Center,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            if (headerBinding != null) headerTextBlock.SetBinding(TextBlock.TextProperty, headerBinding);
+            var header = new Grid
+            {
+                Width = 100,
+                Height = 50,
+                VerticalAlignment = VerticalAlignment.Stretch,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                Background = GetTabHeaderBackgroundAndSaveTab(content, savedTabs)
+            };
+            header.Children.Add(headerTextBlock);
+            return header;
+        }
+		
+		/// <summary>
+		/// Adds tab to <see cref="savedTabs"/> if it is not null.
+		/// </summary>
+        public static Brush GetTabHeaderBackgroundAndSaveTab(object content, HashSet<SavedData.SavedTab> savedTabs)
+        {
+            switch (content)
+            {
 				case VNTab vnTab:
-					savedTabs?.Add(new SavedData.SavedTab(vnTab.ViewModel.VNID, nameof(VNTab)));
-					header.Background = Theme.VNTabBackground;
-					break;
-				case ListedVN vn:
-					savedTabs?.Add(new SavedData.SavedTab(vn.VNID, nameof(VNTab)));
-					header.Background = Theme.VNTabBackground;
-					break;
-				case UserGameTab gameTab:
-					savedTabs?.Add(new SavedData.SavedTab(gameTab.ViewModel.Id, nameof(UserGameTab)));
-					header.Background = Theme.UserGameTabBackground;
-					break;
-				case UserGame game:
-					savedTabs?.Add(new SavedData.SavedTab(game.Id, nameof(UserGameTab)));
-					header.Background = Theme.UserGameTabBackground;
-					break;
-				default:
-					header.Background = Theme.TypeNotFoundTabBackground;
-					break;
-			}
-			header.Children.Add(headerTextBlock);
-			return header;
-		}
+                    savedTabs?.Add(new SavedData.SavedTab(vnTab.ViewModel.VNID, nameof(VNTab)));
+                    return Theme.VNTabBackground;
+                case UserGameTab gameTab:
+                    savedTabs?.Add(new SavedData.SavedTab(gameTab.ViewModel.Id, nameof(UserGameTab)));
+                    return Theme.UserGameTabBackground;
+                case ProducerTab producerTab:
+                    savedTabs?.Add(new SavedData.SavedTab(producerTab.ViewModel.ID, nameof(ProducerTab)));
+                    return Theme.ProducerTabBackground;
+                default:
+                    return Theme.TypeNotFoundTabBackground;
+            }
+        }
 
-		public static ToolTip CreateMouseoverTooltip(UIElement placementTarget, PlacementMode placementMode)
+        public static ToolTip CreateMouseoverTooltip(UIElement placementTarget, PlacementMode placementMode)
 		{
 			var tooltip = new ToolTip()
 			{

@@ -40,7 +40,7 @@ namespace Happy_Reader.ViewModel
 		public void ShowForVisualNovel(CharacterVN visualNovel)
 		{
 			var vn = LocalDatabase.VisualNovels[visualNovel.VNId];
-			var cf = new CustomFilter($"VN: {TruncateString(vn.Title, 15)}");
+			var cf = new CustomFilter($"VN: {TruncateString15(vn.Title)}");
 			cf.AndFilters.Add(new GeneralFilter(GeneralFilterType.VNID, vn.VNID));
 			SelectedFilter = cf;
 		}

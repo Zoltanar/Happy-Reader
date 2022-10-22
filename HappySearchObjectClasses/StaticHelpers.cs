@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -242,20 +243,24 @@ namespace Happy_Apps_Core
 			if (updatedDate == DateTime.MinValue) return -1;
 			return (DateTime.UtcNow - updatedDate).Days;
 		}
+		
+        /// <summary>
+        /// Truncates strings if they are longer than <see cref="maxChars"/> (minimum is 4 characters).
+        /// </summary>
+        /// <param name="maxChars">The maximum number of characters</param>
+        /// <returns>Truncated string</returns>
+        private static Expression<Func<string, string>> TruncateStringExpression(int maxChars)
+        {
+            maxChars = Math.Max(maxChars, 4);
+            Expression<Func<string, string>> expression = x => x == null ? null :
+                (x.Length <= maxChars ? x : x.Substring(0, maxChars - 3) + "...");
+            return expression;
+        }
 
-		/// <summary>
-		/// Truncates strings if they are longer than 'maxChars'.
-		/// </summary>
-		/// <param name="value">The string to be truncated</param>
-		/// <param name="maxChars">The maximum number of characters</param>
-		/// <returns>Truncated string</returns>
-		public static string TruncateString(string value, int maxChars)
-		{
-			if (value == null || maxChars < 4) return value;
-			return value.Length <= maxChars ? value : value.Substring(0, maxChars - 3) + "...";
-		}
+        public static readonly Func<string, string> TruncateString15 = TruncateStringExpression(15).Compile();
+        public static readonly Func<string, string> TruncateString30 = TruncateStringExpression(30).Compile();
 
-		public static string ToSeconds(this TimeSpan time) => $"{(int)(time.TotalSeconds):N0}.{time.Milliseconds} seconds";
+        public static string ToSeconds(this TimeSpan time) => $"{(int)(time.TotalSeconds):N0}.{time.Milliseconds} seconds";
 
 		/// <summary>
 		/// Save user's VNDB login password to Windows Registry (encrypted).

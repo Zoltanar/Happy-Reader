@@ -32,26 +32,22 @@ namespace Happy_Reader.View.Tabs
 			DataContext = vn;
 			TileBox.Children.Add(VNTile.FromListedVN(vn));
 			UserGames = userGames;
-			var differentDisplayNames = userGames.Where(ug => !string.IsNullOrWhiteSpace(ug.UserDefinedName)).Select(ug => ug.UserDefinedName).Distinct().Count() == userGames.Count;
-			var differentFileNames = userGames.Select(ug => Path.GetFileName(ug.FilePath)).Distinct().Count() == userGames.Count;
-			int index = 0;
 			foreach (var userGame in userGames)
-			{
-				index++;
-				var headerName = userGames.Count == 1 ? "User Game" :
-					differentDisplayNames ? $"UG: {userGame.UserDefinedName}" :
-					differentFileNames ? $"UG: {Path.GetFileName(userGame.FilePath)}" : $"User Game {index}";
-				var header = StaticMethods.GetTabHeader(headerName, new Binding(nameof(UserGame.DisplayName)) { Source = userGame }, userGame, null);
-				var tabItem = new TabItem
+            {
+				var userGameTab = new UserGameTab(userGame, true);
+                var background = StaticMethods.GetTabHeaderBackgroundAndSaveTab(userGameTab, null);
+                var tabItem = new TabItem
 				{
-					Header = header,
 					Name = nameof(UserGameTab),
-					Content = new UserGameTab(userGame, true),
+					Content = userGameTab,
 					Tag = userGame,
 					HorizontalAlignment = HorizontalAlignment.Stretch,
-					VerticalAlignment = VerticalAlignment.Stretch
+					VerticalAlignment = VerticalAlignment.Stretch,
+					Background = background
 				};
-				TabControl.Items.Insert(0, tabItem);
+                var headerProperty = new Binding(nameof(UserGame.DisplayName)) { Source = userGame };
+                tabItem.SetBinding(HeaderedContentControl.HeaderProperty, headerProperty);
+                TabControl.Items.Insert(0, tabItem);
 			}
 		}
 
