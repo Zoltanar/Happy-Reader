@@ -117,16 +117,19 @@ namespace Happy_Reader.View
 	}
 
 	/// <summary>
-	/// Will convert boolean value to visibility value, visible if true and hidden if not.
-	/// If parameter given is "1" (string), it will flip these values, so boolean being true would return hidden visibility.
+	/// Will convert boolean value to visibility value, visible if true and hidden/collapsed if not.
+	/// If parameter given is a string containing "1", it will flip these values, so boolean being true would return hidden/collapsed visibility.
+	/// By Default, the negative state is Hidden, if parameter given is a string containing "C", it will use Collapsed as the negative state.
 	/// </summary>
 	public class BooleanToVisibilityConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if (value is not bool val) throw new NotSupportedException();
-			var flip = parameter?.Equals("1") ?? false;
-			return val != flip ? Visibility.Visible : Visibility.Hidden;
+            var paramString = parameter as string;
+            var flip = paramString?.Contains("1") ?? false;
+            var negativeVisibility = (paramString?.Contains("C") ?? false) ? Visibility.Collapsed : Visibility.Hidden;
+            return val != flip ? Visibility.Visible : negativeVisibility;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>

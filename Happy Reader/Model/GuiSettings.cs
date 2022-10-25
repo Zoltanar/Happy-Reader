@@ -21,7 +21,17 @@ namespace Happy_Reader
 		private bool _hookGlobalMouse;
 		private bool _useDecimalVoteScores = true;
 		private bool _excludeLowVotesForRatingSort = true;
-		private string _localeEmulatorPath;
+        private bool _displayGamesTab = true;
+        private bool _displayHookTab = true;
+        private bool _displayEntriesTab = true;
+        private bool _displayTestTab = true;
+        private bool _displayDatabaseTab = true;
+        private bool _displayCharactersTab = true;
+        private bool _displayProducersTab = true;
+        private bool _displayInformationTab = true;
+        private bool _displayApiLogTab = true;
+        private bool _displayOtherLogsTab = true;
+        private string _localeEmulatorPath;
 		private string _culture;
 		private GameLaunchMode _launchMode;
 		private UserGameGrouping _userGameGrouping = UserGameGrouping.Added;
@@ -44,8 +54,8 @@ namespace Happy_Reader
 			"plugin"
 			// ReSharper restore StringLiteralTypo
 		};
-
-		[JsonIgnore]
+		
+        [JsonIgnore]
 		public CultureInfo[] Cultures { get; } = CultureInfo.GetCultures(CultureTypes.InstalledWin32Cultures);
 
 		[JsonIgnore]
@@ -247,7 +257,118 @@ namespace Happy_Reader
 			}
 		}
 
-		public void SavePageLinks(IEnumerable<PageLink> pageLinks)
+        public bool DisplayGamesTab
+        {
+            get => _displayGamesTab;
+            set
+            {
+                if (_displayGamesTab == value) return;
+                _displayGamesTab = value;
+                if (Loaded) Save();
+				OnPropertyChanged();
+            }
+        }
+        public bool DisplayHookTab
+        {
+            get => _displayHookTab;
+            set
+            {
+                if (_displayHookTab == value) return;
+                _displayHookTab = value;
+                if (Loaded) Save();
+                OnPropertyChanged();
+            }
+        }
+        public bool DisplayEntriesTab
+        {
+            get => _displayEntriesTab;
+            set
+            {
+                if (_displayEntriesTab == value) return;
+                _displayEntriesTab = value;
+                if (Loaded) Save();
+                OnPropertyChanged();
+            }
+        }
+        public bool DisplayTestTab
+        {
+            get => _displayTestTab;
+            set
+            {
+                if (_displayTestTab == value) return;
+                _displayTestTab = value;
+                if (Loaded) Save();
+                OnPropertyChanged();
+            }
+        }
+        public bool DisplayDatabaseTab
+        {
+            get => _displayDatabaseTab;
+            set
+            {
+                if (_displayDatabaseTab == value) return;
+                _displayDatabaseTab = value;
+                if (Loaded) Save();
+                OnPropertyChanged();
+            }
+        }
+        public bool DisplayCharactersTab
+        {
+            get => _displayCharactersTab;
+            set
+            {
+                if (_displayCharactersTab == value) return;
+                _displayCharactersTab = value;
+                if (Loaded) Save();
+                OnPropertyChanged();
+            }
+        }
+        public bool DisplayProducersTab
+        {
+            get => _displayProducersTab;
+            set
+            {
+                if (_displayProducersTab == value) return;
+                _displayProducersTab = value;
+                if (Loaded) Save();
+                OnPropertyChanged();
+            }
+        }
+        public bool DisplayInformationTab
+        {
+            get => _displayInformationTab;
+            set
+            {
+                if (_displayInformationTab == value) return;
+                _displayInformationTab = value;
+                if (Loaded) Save();
+                OnPropertyChanged();
+            }
+        }
+        public bool DisplayApiLogTab
+        {
+            get => _displayApiLogTab;
+            set
+            {
+                if (_displayApiLogTab == value) return;
+                _displayApiLogTab = value;
+                if (Loaded) Save();
+                OnPropertyChanged();
+            }
+        }
+        public bool DisplayOtherLogsTab
+        {
+            get => _displayOtherLogsTab;
+            set
+            {
+                if (_displayOtherLogsTab == value) return;
+                _displayOtherLogsTab = value;
+                if (Loaded) Save();
+                OnPropertyChanged();
+            }
+        }
+
+        public void SavePageLinks(IEnumerable<PageLink> pageLinks)
 		{
 			PageLinks = pageLinks.ToList();
 		}

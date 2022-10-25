@@ -109,8 +109,22 @@
 							</Style>
 						</ComboBox.ItemContainerStyle>
 					</ComboBox>
-				</Grid>
-			</StackPanel>
+					</Grid>
+					<GroupBox Header="System Tabs">
+						<UniformGrid Columns="2">
+						<CheckBox Content="User Games" IsChecked="{Binding DisplayGamesTab}"/>
+						<CheckBox Content="Text Hooking" IsChecked="{Binding DisplayHookTab}"/>
+						<CheckBox Content="Entries" IsChecked="{Binding DisplayEntriesTab}"/>
+						<CheckBox Content="Test" IsChecked="{Binding DisplayTestTab}"/>
+						<CheckBox Content="Visual Novels" IsChecked="{Binding DisplayDatabaseTab}"/>
+						<CheckBox Content="Characters" IsChecked="{Binding DisplayCharactersTab}"/>
+						<CheckBox Content="Producers" IsChecked="{Binding DisplayProducersTab}"/>
+						<CheckBox Content="Information" IsChecked="{Binding DisplayInformationTab}"/>
+						<CheckBox Content="API Log" IsChecked="{Binding DisplayApiLogTab}"/>
+							<CheckBox Content="Other Logs" IsChecked="{Binding DisplayOtherLogsTab}"/>
+						</UniformGrid>
+					</GroupBox>
+				</StackPanel>
 		</GroupBox>
 		<GroupBox Header="Translation Settings" Grid.Row="2" DataContext="{Binding TranslatorSettings}">
 				<StackPanel x:Name="PluginSettingsPanel">

@@ -77,37 +77,47 @@
 					</Grid>
 				</ControlTemplate>
 			</TabControl.Template>
-			<TabItem Header="Games" Style="{StaticResource SystemTab}">
+			<TabItem Header="Games" Style="{StaticResource SystemTab}" 
+			         Visibility="{Binding SettingsViewModel.GuiSettings.DisplayGamesTab, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=C}">
 				<tabs:UserGamesTab x:Name="UserGamesTabItem" DataContext="{Binding UserGamesViewModel}"/>
 			</TabItem>
-			<TabItem Header="Text Hooking" x:Name="IthTabItem" Style="{StaticResource SystemTab}">
+			<TabItem Header="Text Hooking" x:Name="IthTabItem" Style="{StaticResource SystemTab}" 
+			         Visibility="{Binding SettingsViewModel.GuiSettings.DisplayHookTab, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=C}">
 				<tabs:IthVnrTab DataContext="{Binding IthViewModel}"/>
 			</TabItem>
-			<TabItem Header="Entries" x:Name="EntriesTabItem" Style="{StaticResource SystemTab}">
+			<TabItem Header="Entries" x:Name="EntriesTabItem" Style="{StaticResource SystemTab}" 
+			         Visibility="{Binding SettingsViewModel.GuiSettings.DisplayEntriesTab, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=C}">
 				<tabs:EntriesTab DataContext="{Binding EntriesViewModel}"/>
 			</TabItem>
-			<TabItem Header="Test" x:Name="TestTabItem" Style="{StaticResource SystemTab}">
+			<TabItem Header="Test" x:Name="TestTabItem" Style="{StaticResource SystemTab}" 
+			         Visibility="{Binding SettingsViewModel.GuiSettings.DisplayTestTab, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=C}">
 				<tabs:TestTranslationTab DataContext="{Binding TestViewModel}"/>
 			</TabItem>
-			<TabItem Header="Visual Novels" x:Name="VnTabItem" Style="{StaticResource DatabaseTabItem}">
+			<TabItem Header="Visual Novels" x:Name="VnTabItem" Style="{StaticResource DatabaseTabItem}" 
+			         Visibility="{Binding SettingsViewModel.GuiSettings.DisplayDatabaseTab, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=C}">
 				<tabs:DatabaseTab DataContext="{Binding DatabaseViewModel}"/>
 			</TabItem>
-			<TabItem Header="Characters" Style="{StaticResource DatabaseTabItem}">
+			<TabItem Header="Characters" Style="{StaticResource DatabaseTabItem}" 
+			         Visibility="{Binding SettingsViewModel.GuiSettings.DisplayCharactersTab, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=C}">
 				<tabs:DatabaseTab DataContext="{Binding CharactersViewModel}"/>
 			</TabItem>
-			<TabItem Header="Producers" Style="{StaticResource DatabaseTabItem}">
+			<TabItem Header="Producers" Style="{StaticResource DatabaseTabItem}" 
+			         Visibility="{Binding SettingsViewModel.GuiSettings.DisplayProducersTab, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=C}">
 				<tabs:ProducersTab DataContext="{Binding ProducersViewModel}"/>
 			</TabItem>
 			<TabItem Header="Settings" Style="{StaticResource SystemTab}">
 				<tabs:SettingsTab DataContext="{Binding SettingsViewModel}" x:Name="SettingsTab"/>
 			</TabItem>
-			<TabItem Header="Information" Style="{StaticResource SystemTab}">
+			<TabItem Header="Information" Style="{StaticResource SystemTab}" 
+			         Visibility="{Binding SettingsViewModel.GuiSettings.DisplayInformationTab, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=C}">
 				<tabs:InfoTab DataContext="{Binding InformationViewModel}"/>
 			</TabItem>
-			<TabItem Header="API Log" Style="{StaticResource SystemTab}">
+			<TabItem Header="API Log" Style="{StaticResource SystemTab}" 
+			         Visibility="{Binding SettingsViewModel.GuiSettings.DisplayApiLogTab, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=C}">
 				<tabs:ApiLogTab DataContext="{Binding ApiLogViewModel}"/>
 			</TabItem>
-			<TabItem Header="Logs" Style="{StaticResource SystemTab}">
+			<TabItem Header="Logs" Style="{StaticResource SystemTab}" 
+			         Visibility="{Binding SettingsViewModel.GuiSettings.DisplayOtherLogsTab, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=C}">
 				<DataGrid ItemsSource="{Binding LogsList}" AutoGenerateColumns="False" CanUserAddRows="False" >
 					<DataGrid.Columns>
 						<DataGridTextColumn Binding="{Binding Timestamp, StringFormat=yyyy-MM-dd}" Header="Date" Width="Auto"/>
