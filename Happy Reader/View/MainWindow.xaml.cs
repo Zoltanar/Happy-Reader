@@ -164,11 +164,6 @@ namespace Happy_Reader.View
                             if (producer != null) OpenProducerPanel(producer, false);
                             break;
                         }
-                    default:
-                        {
-                            //debug break only
-                            break;
-                        }
                 }
             }
         }
@@ -292,6 +287,7 @@ namespace Happy_Reader.View
             tabItem.Background = background;
             tabItem.SetBinding(HeaderedContentControl.HeaderProperty, headerBinding);
             MainTabControl.Items.Add(tabItem);
+            ToggleCloseTabsButton(true);
             if (!select) return;
             MainTabControl.SelectedItem = tabItem;
             tabItem.Focus();
@@ -345,6 +341,36 @@ namespace Happy_Reader.View
             tile.OuterBorder.CornerRadius = new CornerRadius(0);
             tile.Mask.Background = Brushes.Transparent;
             tile.Mask.CornerRadius = new CornerRadius(0);
+        }
+
+        private void ShowSettingsClick(object sender, RoutedEventArgs e) => SelectTab(typeof(SettingsViewModel));
+
+        private void CloseTabsClick(object sender, RoutedEventArgs e)
+        {
+            foreach (var tab in MainTabControl.Items.OfType<TabItem>().Reverse().ToList())
+            {
+                var content = tab.Content;
+                switch (content)
+                {
+                    case VNTab:
+                    case UserGameTab:
+                    case ProducerTab:
+                        MainTabControl.Items.Remove(tab);
+                        break;
+                }
+            }
+            ToggleCloseTabsButton(false);
+        }
+
+        /// <summary>
+        /// Changes visibility of close tabs button.
+        /// </summary>
+        /// <param name="show">Whether button should be shown, if null, it will determine based on open tabs.</param>
+        public void ToggleCloseTabsButton(bool? show)
+        {
+            show ??= MainTabControl.Items.OfType<TabItem>().Any(t => t.Content is VNTab or UserGameTab or ProducerTab);
+            ApiStatusColumn.Width = new GridLength(show.Value ? 62 : 82);
+            CloseTabButtonColumn.Width = new GridLength(show.Value ? 20 : 0);
         }
     }
 }

@@ -63,6 +63,7 @@ namespace Happy_Reader
                     break;
             }
             ((MainWindow)MainWindow)!.MainTabControl.Items.Remove(tabItem);
+            ((MainWindow)MainWindow)!.ToggleCloseTabsButton(null);
         }
     }
 }
