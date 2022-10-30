@@ -141,7 +141,8 @@ namespace Happy_Reader.ViewModel
 		public void UpdateOutput()
 		{
 			_flowDocument.Blocks.Clear();
-			IEnumerable<Paragraph> items = _translations.Items.SelectMany(t => t.GetBlocks(_originalOn, _romajiOn, _translationOn));
+            var useSeparator = StaticMethods.Settings.TranslatorSettings.UseSeparator;
+            IEnumerable<Paragraph> items = _translations.Items.SelectMany(t => t.GetBlocks(_originalOn, _romajiOn, _translationOn, useSeparator));
 			var fromBottom = StaticMethods.Settings.TranslatorSettings.OutputVerticalAlignment == VerticalAlignment.Bottom;
 			if (fromBottom) items = items.Reverse();
 			_flowDocument.Blocks.AddRange(items);

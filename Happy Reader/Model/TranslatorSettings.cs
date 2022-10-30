@@ -25,10 +25,11 @@ namespace Happy_Reader
 		private double _fontSize = 22d;
 		private bool _captureClipboard;
 		private bool _mouseoverDictionary;
-		private string _originalTextFont;
+        private bool _useSeparator;
+        private string _originalTextFont;
 		private string _romajiTextFont;
 		private string _translatedTextFont;
-		private string _offlineDictionaryFolder;
+        private string _offlineDictionaryFolder;
 		private string _selectedTranslatorName;
 		private string _selectedRomajiTranslator = RomajiTranslators.First();
 		private bool _settingsViewState = true;
@@ -205,35 +206,46 @@ namespace Happy_Reader
 			}
 		}
 
-		public bool CaptureClipboard
-		{
-			get => _captureClipboard;
-			set
-			{
-				if (_captureClipboard == value) return;
-				_captureClipboard = value;
-				if (Loaded)
-				{
-					Save();
-					CaptureClipboardChanged?.Invoke(value);
-				}
-			}
-		}
+        public bool CaptureClipboard
+        {
+            get => _captureClipboard;
+            set
+            {
+                if (_captureClipboard == value) return;
+                _captureClipboard = value;
+                if (Loaded)
+                {
+                    Save();
+                    CaptureClipboardChanged?.Invoke(value);
+                }
+            }
+        }
 
-		public bool MouseoverDictionary
-		{
-			get => _mouseoverDictionary;
-			set
-			{
-				if (_mouseoverDictionary == value) return;
-				_mouseoverDictionary = value;
-				if (Loaded)
-				{
-					Save();
-				}
-			}
-		}
-		public TextAlignment OutputHorizontalAlignment
+        public bool MouseoverDictionary
+        {
+            get => _mouseoverDictionary;
+            set
+            {
+                if (_mouseoverDictionary == value) return;
+                _mouseoverDictionary = value;
+                if (Loaded)
+                {
+                    Save();
+                }
+            }
+        }
+
+        public bool UseSeparator
+        {
+            get => _useSeparator;
+            set
+            {
+                if (_useSeparator == value) return;
+                _useSeparator = value;
+                if (Loaded) Save();
+            }
+        }
+        public TextAlignment OutputHorizontalAlignment
 		{
 			get => _outputHorizontalAlignment;
 			private set

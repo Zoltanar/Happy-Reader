@@ -6,7 +6,7 @@
              xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
              xmlns:view="clr-namespace:Happy_Reader.View"
              mc:Ignorable="d" 
-             d:DesignHeight="750" d:DesignWidth="800"
+             d:DesignHeight="1750" d:DesignWidth="800"
              d:DataContext="{d:DesignInstance viewModel:SettingsViewModel}"
 						 x:Name="Tab"
              Loaded="SettingsTab_OnLoaded">
@@ -178,6 +178,7 @@
 				                     ToolTip="Path to folder with json-formatted JMDict (folder: jmdict_english) and Kanjidic (folder: kanjidic_english) files."/>
 				<CheckBox Content="Dictionary on Mouse-over" IsChecked="{Binding MouseoverDictionary}" ToolTip="Show information about Japanese text when placing mouse over it in certain places." />
 				<CheckBox Content="Show Tags on Mouse-over Dictionary" IsChecked="{Binding ShowTagsOnMouseover}" ToolTip="Include tag information in mouse-over tool tip."/>
+				<CheckBox Content="Show Separator in Output" IsChecked="{Binding UseSeparator}" ToolTip="Include a separator in between text in output window."/>
 			</StackPanel>
 		</GroupBox>
 		</Grid>

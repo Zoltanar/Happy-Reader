@@ -85,8 +85,8 @@ namespace Happy_Reader.View
 			_viewModel.SettingsOn = StaticMethods.Settings.TranslatorSettings.SettingsViewState;
 			_viewModel.OriginalOn = StaticMethods.Settings.TranslatorSettings.OutputOriginal;
 			_viewModel.RomajiOn = StaticMethods.Settings.TranslatorSettings.OutputRomaji;
-			_viewModel.TranslationOn = StaticMethods.Settings.TranslatorSettings.OutputTranslation;
-			var tColor = StaticMethods.Settings.TranslatorSettings.TranslatedColor.Color.Color;
+            _viewModel.TranslationOn = StaticMethods.Settings.TranslatorSettings.OutputTranslation;
+            var tColor = StaticMethods.Settings.TranslatorSettings.TranslatedColor.Color.Color;
 			var darkerColor = System.Windows.Media.Color.FromRgb((byte)(tColor.R * 0.75), (byte)(tColor.G * 0.75), (byte)(tColor.B * 0.75));
 			var dropShadowEffect = new System.Windows.Media.Effects.DropShadowEffect
 			{

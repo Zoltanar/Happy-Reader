@@ -285,7 +285,7 @@ namespace Happy_Reader.View
             tabItem.HorizontalAlignment = HorizontalAlignment.Stretch;
             tabItem.VerticalAlignment = VerticalAlignment.Stretch;
             tabItem.Background = background;
-            tabItem.SetBinding(HeaderedContentControl.HeaderProperty, headerBinding);
+            if(headerBinding != null) tabItem.SetBinding(HeaderedContentControl.HeaderProperty, headerBinding);
             MainTabControl.Items.Add(tabItem);
             ToggleCloseTabsButton(true);
             if (!select) return;

@@ -137,7 +137,7 @@ namespace Happy_Reader
 			block.FontFamily = fontFamily;
 		}
 
-		public List<Paragraph> GetBlocks(bool original, bool romaji, bool translation)
+		public List<Paragraph> GetBlocks(bool original, bool romaji, bool translation, bool separator)
 		{
 			var blocks = new List<Paragraph>();
 			if (IsError) blocks.Add(ErrorBlock);
@@ -152,6 +152,7 @@ namespace Happy_Reader
 				block.Tag = this;
 			}
 			if (!blocks.Any()) return blocks;
+            if (!separator) return blocks;
 			var spacer = new Paragraph(new Run("￣￣￣"));
 			spacer.Inlines.FirstInline.Foreground = Theme.OutputSpacerForeground;
 			spacer.Margin = new Thickness(0);

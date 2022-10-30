@@ -22,6 +22,7 @@
 #### User Games
 - see details should change to correct user game tab when multiple user games for one vn
 - allow keeping time played for multiple games/allow process monitor to keep running always/make process monitor only have one instance
+- bug: time played not saved correctly, possibly only for a game that was added during the same session, or maybe when a game is paused in between (or both).
 ##### Entries
 - Implement priority
 - Change Series-specific to dropdown (none,title,series, producer?)
