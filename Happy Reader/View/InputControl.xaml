@@ -19,7 +19,7 @@
 		</Grid.ColumnDefinitions>
 		<Label Grid.Row="0" x:Name="DescriptionLabel"/>
 		<Label Grid.Row="1" Grid.Column="0" Content="{Binding InputLabel, ElementName=Self}" Margin="5,5,5,5"/>
-		<TextBox Grid.Row="2" Grid.Column="0" x:Name="InputTextBox"  TextChanged="UpdateOkEnabled" Margin="5,0,5,5"/>
+		<TextBox Grid.Row="2" Grid.Column="0" x:Name="InputTextBox"  TextChanged="UpdateOkEnabled" Margin="5,0,5,5" IsReadOnly="False" Background="White" BorderBrush="Black" BorderThickness="1"/>
 		<Button Grid.Row="1" Grid.Column="1" Content="Cancel" Click="CancelClick" Margin="0,5,5,5"/>
 		<Button Grid.Row="2" Grid.Column="1" IsEnabled="{Binding OkEnabled, ElementName=Self}" Content="OK" Click="OkClick" Margin="0,0,5,5"/>
 	</Grid>

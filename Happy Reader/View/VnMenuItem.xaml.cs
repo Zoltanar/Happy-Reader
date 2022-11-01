@@ -258,7 +258,9 @@ namespace Happy_Reader.View
 				Filter = s => (StaticMethods.Settings.GuiSettings.UseDecimalVoteScores && double.TryParse(s, out var dVote) && dVote >= 1 && dVote <= 10)
 				              || int.TryParse(s, out var vote) && vote >= 10 && vote <= 100
 			};
-			grid.Children.Clear();
+			if(grid.ColumnDefinitions.Count > 1) Grid.SetColumnSpan(inputWindow, grid.ColumnDefinitions.Count);
+            if (grid.RowDefinitions.Count > 1) Grid.SetRowSpan(inputWindow, grid.RowDefinitions.Count);
+            grid.Children.Clear();
 			grid.Children.Add(inputWindow);
 
 			async Task Callback(bool success, string inputText)

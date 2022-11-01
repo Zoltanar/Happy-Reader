@@ -168,13 +168,15 @@ namespace Happy_Reader.ViewModel
 				if (_finalizing) return;
 				var exitWatch = Stopwatch.StartNew();
 				Logger.ToDebug($"[{nameof(MainWindowViewModel)}] Starting exit procedures...");
-				if (UserGame?.GameHookSettings.IsHooked ?? false) HookedProcessOnExited(sender, args);
+				//we save user game to variable to be used in try block, because HookedProcessOnExited will set the property to null
+                var userGame = UserGame;
+				if (userGame?.GameHookSettings.IsHooked ?? false) HookedProcessOnExited(sender, args);
 				IthViewModel.Dispose();
 				try
 				{
 					_closing = true;
 					OutputWindow?.Close();
-					UserGame?.SaveTimePlayed(false);
+                    userGame?.SaveTimePlayed(false);
 					Translator.ExitProcedures(StaticMethods.Data.SaveChanges);
 					_monitor?.Join();
 				}
