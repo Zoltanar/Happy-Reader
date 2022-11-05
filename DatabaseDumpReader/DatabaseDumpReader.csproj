@@ -113,7 +113,6 @@
     <Compile Include="SettingsViewModel.cs" />
     <Compile Include="UserLabel.cs" />
     <Compile Include="UserVn.cs" />
-    <Compile Include="UserVnLabel.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

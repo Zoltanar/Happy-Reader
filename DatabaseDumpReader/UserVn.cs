@@ -22,7 +22,7 @@ namespace DatabaseDumpReader
 		public DateTime Added { get; set; }
 		public DateTime LastModified { get; set; }
 		public string Notes { get; set; }
-		public List<UserVN.LabelKind> Labels { get; } = new();
+		public string LabelsString { get; set; }
 
 		public void LoadFromStringParts(string[] parts)
 		{
@@ -32,6 +32,8 @@ namespace DatabaseDumpReader
 			// ReSharper disable once StringLiteralTypo
 			LastModified = Convert.ToDateTime(GetPart(parts, "lastmod"));
 			var notes = GetPart(parts, "notes");
-			Notes = notes == @"\N" ? null : notes; }
-	}
+			Notes = notes == @"\N" ? null : notes;
+            LabelsString = GetPart(parts, "labels");
+        }
+    }
 }

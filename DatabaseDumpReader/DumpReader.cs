@@ -187,15 +187,16 @@ namespace DatabaseDumpReader
 		private void ResolveUserVnForVn(ListedVN vn, SQLiteTransaction transaction)
 		{
 			if (!UserVns.TryGetValue(vn.VNID, out var dumpUserVn)) return;
-			var userVn = new UserVN
+            var labels = dumpUserVn.LabelsString.Substring(1, dumpUserVn.LabelsString.Length - 2).Split(',').Select(i=> UserLabels[int.Parse(i)]).ToHashSet();
+            var userVn = new UserVN
 			{
 				UserId = UserId,
 				VNID = vn.VNID,
 				ULNote = dumpUserVn.Notes,
 				Added = dumpUserVn.Added,
 				LastModified = dumpUserVn.LastModified,
-				Labels = dumpUserVn.Labels.ToHashSet()
-			};
+				Labels = labels
+            };
 			if (Votes.ContainsKey(vn.VNID))
 			{
 				var vote = Votes[vn.VNID].FirstOrDefault(v => v.UserId == UserId);
@@ -219,12 +220,7 @@ namespace DatabaseDumpReader
 			{
 				if (i.UserId != UserId) return;
 				UserVns.Add(i.VnId, i);
-			}, "db\\ulist_vns");
-			Load<UserVnLabel>((i, _) =>
-			{
-				if (i.UserId != UserId) return;
-				UserVns[i.VnId].Labels.Add(UserLabels[i.LabelId]);
-			}, "db\\ulist_vns_labels");
+            }, "db\\ulist_vns");
 		}
 
 		private string FindVotesFile()
