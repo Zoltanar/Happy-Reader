@@ -33,6 +33,18 @@
 		<TextBox Text="{Binding UserDatabaseSize, Mode=OneWay}"/>
 		<TextBox Text="{Binding VnImagesSize, Mode=OneWay}"/>
 		<Grid Margin="10,0,10,0" >
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
+			</Grid.ColumnDefinitions>
+			<ScrollViewer Grid.Column="0"  VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
+				<TextBox Text="{Binding LogsSize, Mode=OneWay}" Margin="0"  />
+			</ScrollViewer>
+			<Button Grid.Column="1" Content="Open Folder" Click="OpenLogsFolder" Margin="2,0,0,0" Padding="2,0"/>
+			<Button Grid.Column="2" Content="Clear" Click="DeleteLogs" Margin="2,0,0,0" Padding="2,0"/>
+		</Grid>
+		<Grid Margin="10,0,10,0" >
 				<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="*"/>
 				<ColumnDefinition Width="Auto"/>

@@ -25,6 +25,7 @@ namespace Happy_Reader.ViewModel
         public string VnDatabaseSize { get; private set; }
         public string VnImagesSize { get; private set; }
         public string TranslationsData { get; private set; }
+        public string LogsSize { get; private set; }
         public string RecordedTime { get; private set; }
         public string ApproxVndbTime { get; private set; }
         public string ApproxOverallTime { get; private set; }
@@ -44,9 +45,16 @@ namespace Happy_Reader.ViewModel
             DatabaseDate = $"Database Dump Date: {databaseDate?.ToString("yyyy-MM-dd")}";
             VnDatabaseSize = $"VN Database Size: {GetFileSizeStringForDb(vnData.Connection)}";
             VnImagesSize = $"VNDB Images Size: {GetFileSizeStringForFolder(StaticMethods.Settings.CoreSettings.ImageFolderPath)}";
+            SetLogsSize();
             SetUserDatabaseData(userGameData);
             SetTimeSpentData(userGameData);
             OnPropertyChanged(null);
+        }
+
+        public void SetLogsSize()
+        {
+            LogsSize = $"Logs Folder Size: {GetFileSizeStringForFolder(StaticHelpers.LogsFolder)}";
+            OnPropertyChanged(nameof(LogsSize));
         }
 
         private string GetFileSizeStringForFolder(string directory)

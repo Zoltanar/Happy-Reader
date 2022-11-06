@@ -38,8 +38,6 @@
 - warn if an instance is already running (maybe show database file for opening instance) 
 - Main Window: add close all tabs button
 - Settings: if login response is error with id 'needlogin' show user that credentials are wrong
-- Database Tab: Handle broken connections to vndb (catch exception and/or allow reestablishment)
-- Logs: Link to folder, show size taken, option to clear.
 - Database Tab: Sort by Random
 - style scrollbars
 

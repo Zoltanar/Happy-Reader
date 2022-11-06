@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -11,7 +13,7 @@ namespace Happy_Reader.View.Tabs
 {
     public partial class InfoTab : UserControl
     {
-        public InformationViewModel _viewModel => (InformationViewModel)DataContext;
+        private InformationViewModel _viewModel => (InformationViewModel)DataContext;
         public InfoTab()
         {
             InitializeComponent();
@@ -63,6 +65,30 @@ namespace Happy_Reader.View.Tabs
         private void ImportTranslations(object sender, RoutedEventArgs e)
         {
             throw new NotImplementedException();
+        }
+
+        private void OpenLogsFolder(object sender, RoutedEventArgs e)
+        {
+            Process.Start("explorer", $"\"{Happy_Apps_Core.StaticHelpers.LogsFolder}\"");
+        }
+
+        private void DeleteLogs(object sender, RoutedEventArgs e)
+        {
+            var logsFolder = new DirectoryInfo(Happy_Apps_Core.StaticHelpers.LogsFolder);
+            var today = DateTime.Now.Date;
+            var logsToDelete = logsFolder.GetFiles("*.log", SearchOption.TopDirectoryOnly).Where(fi => fi.LastWriteTime.Date < today);
+            foreach (var file in logsToDelete.OrderBy(fi=>fi.LastWriteTime))
+            {
+                try
+                {
+                    File.Delete(file.FullName);
+                }
+                catch (IOException)
+                {
+                    //ignore
+                }
+            }
+            _viewModel.SetLogsSize();
         }
     }
 }
