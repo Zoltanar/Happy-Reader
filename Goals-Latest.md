@@ -35,7 +35,6 @@
 - Database: Sort By and show english release date
 - Database: History item is duplicated when going back
 - add 'update available' notice (can hide)
-- warn if an instance is already running (maybe show database file for opening instance) 
 - Main Window: add close all tabs button
 - Settings: if login response is error with id 'needlogin' show user that credentials are wrong
 - Database Tab: Sort by Random

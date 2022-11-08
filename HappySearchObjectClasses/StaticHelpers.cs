@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Common;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -430,5 +431,14 @@ namespace Happy_Apps_Core
 		}
 		
 		public static string GetTranslatorSettings(string sourceName) => Path.Combine(TranslationPluginsSettingsFolder, $"{sourceName}.json");
+
+		public static bool IsAlreadyRunningInstance()
+		{
+			var runningAssembly = Assembly.GetEntryAssembly();
+			var file = runningAssembly.Location;
+			var name = Path.GetFileNameWithoutExtension(file);
+            var processes = Process.GetProcessesByName(name);
+			return processes.Length > 1;
+		}
 	}
 }

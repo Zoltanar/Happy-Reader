@@ -41,6 +41,13 @@ namespace Happy_Reader.View
         public MainWindow()
         {
             InitializeComponent();
+            if (StaticHelpers.IsAlreadyRunningInstance() &&
+                System.Windows.MessageBox.Show($"There is another instance of Happy Reader running currently.{Environment.NewLine}Do you wish to continue loading this instance?", "Happy Reader - Already Running", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
+            {
+                Close();
+                Application.Current.Shutdown();
+                return;
+            }
             ViewModel = new MainWindowViewModel(ShowNotification);
             Log.NotificationEvent = ShowLogNotification;
             DataContext = ViewModel;
@@ -72,6 +79,7 @@ namespace Happy_Reader.View
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             if (DesignerProperties.GetIsInDesignMode(this) || _initialised) return;
+            
             try
             {
                 Stopwatch watch = Stopwatch.StartNew();
