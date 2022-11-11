@@ -10,16 +10,26 @@ Before reporting issues or requesting features, please see [Goals](https://githu
 
 - Launch Happy Reader.exe  
 - (To close the application, you must right click the icon in the Windows tray section, next to the time)
-- Click `Settings` Tab, on the left
+![Guide 1](GuideImages/Guide-100.png)
+- Click on the settings Icon ⚙️ in the bottom left
+![Guide 2](GuideImages/Guide-200.png)
 - Change Translator to use and enter/modify settings as needed.
+![Guide 3](GuideImages/Guide-300.png)
 - Enter path to Locale Emulator if required (LEProc.exe)
-- Switch to `Games` tab
+![Guide 4](GuideImages/Guide-400.png)
+- Go to `Games` tab on the left
 - Drag executable to area in `Games` tab, or click `Add New` to select executable
-- Double-click or 'right-click > See Details' on Game to open Game Settings
+![Guide 5](GuideImages/Guide-500.png)
+- A Game tab will open, you can access this later via double-click or 'right-click > See Details' on game in Games tab
+- If this is a game found on VNDB, Happy Reader will try to find a match, if it fails or is incorrect, you can change this by changing the `VNID` value to that of the correct visual novel, you must press `Enter` to save your change
+![Guide 6](GuideImages/Guide-600.png)
+- You can search for the VN in the Visual Novels tab, the ID can be found in the top right corner of VN tiles
+![Guide 7](GuideImages/Guide-700.png)
 - Change `Hook Mode` as necessary (usually `VnrHook`)
 - Enter /H Hook Code if available
+![Guide 8](GuideImages/Guide-800.png)
 - Back on `Games` Tab, launch Game by clicking `Off` button, or right-click and choose specific launch mode
-- The game must be launched from Happy Reader itself at least once
+- The game must be launched from Happy Reader itself at least once, before it can be automatically found when started outside Happy Reader
 - If you get an 'Access Denied' error, you may need to run Happy Reader as Administrator.
 - In launched game, progress to dialog section
 - It is highly advised that you change the text speed in game to the maximum, to prevent text being broken up or repeated
