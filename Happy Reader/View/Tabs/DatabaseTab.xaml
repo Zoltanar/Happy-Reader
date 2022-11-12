@@ -22,7 +22,8 @@
 			</Grid.ColumnDefinitions>
 			<ListBox Grid.Column="0" x:Name="VisualNovelItems" ItemsSource="{Binding Tiles}" 
 			         ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
-			         ScrollViewer.ScrollChanged="ScrollViewer_OnScrollChanged"
+							 PreviewMouseUp="ListboxPreviewMouseUp"
+							 PreviewMouseWheel="ListboxPreviewMouseWheel"
 			         VirtualizingStackPanel.VirtualizationMode="Recycling" 
 							 MouseDoubleClick="VNTileDoubleClick"
 			         MouseUp="VNTileMouseUp">

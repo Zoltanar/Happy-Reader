@@ -20,15 +20,32 @@ namespace Happy_Reader.View.Tabs
 
 		public DatabaseTab() => InitializeComponent();
 
-		private void ScrollViewer_OnScrollChanged(object sender, ScrollChangedEventArgs e)
-		{
-			if (!(e.VerticalChange > 0)) return;
-			var loc = e.VerticalOffset + e.ViewportHeight * 2;
-			if (loc < e.ExtentHeight) return;
-			ViewModel.AddPage();
-		}
+        private void ListboxPreviewMouseUp(object sender, MouseButtonEventArgs e)
+        {
+			if (e.LeftButton != MouseButtonState.Released) return;
+			AddPageIfAtEnd();
+        }
 
-		private void ShowAll(object sender, RoutedEventArgs e)
+        private void ListboxPreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (e.Delta >= 0) return;
+            AddPageIfAtEnd();
+        }
+
+        private void AddPageIfAtEnd()
+        {
+            var listBox = VisualNovelItems;
+            var scrollViewer = listBox.GetDescendantByType<ScrollViewer>();
+            var position = scrollViewer.VerticalOffset;
+            var maxHeight = scrollViewer.ExtentHeight;
+            var viewHeight = scrollViewer.ViewportHeight;
+			//if the (starting) position of the scrollbar plus the length of the scrollbar exceed or equal the total scroll height,
+			//then we are at the end and want to add a new page.
+            if (position + viewHeight >= maxHeight) ViewModel.AddPage();
+        }
+
+
+        private void ShowAll(object sender, RoutedEventArgs e)
 		{
 			ViewModel.ShowAll();
 		}

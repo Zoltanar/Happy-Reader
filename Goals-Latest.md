@@ -30,12 +30,11 @@
 - Run RSync while processing database dump, after downloading files
 #### Other
 - Option to stop monitor
-- **Add screenshots to basic guide**
+- **Add screenshots to basic guide** (In progress)
 - Producer Tab: charts for popularity
 - Database: Sort By and show english release date
 - Database: History item is duplicated when going back
 - add 'update available' notice (can hide)
-- Main Window: add close all tabs button
 - Settings: if login response is error with id 'needlogin' show user that credentials are wrong
 - Database Tab: Sort by Random
 - style scrollbars
