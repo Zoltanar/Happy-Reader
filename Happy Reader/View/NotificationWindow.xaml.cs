@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Documents;
+using System.Windows.Interop;
 using System.Windows.Threading;
 using Happy_Apps_Core;
 using Happy_Reader.Database;
@@ -64,13 +65,16 @@ namespace Happy_Reader.View
             Debug.Assert(Dispatcher != null, nameof(Dispatcher) + " != null");
             Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(() =>
             {
-                if (_showInWindow)
+                var window = Application.Current.MainWindow;
+                if (_showInWindow && window.WindowState != WindowState.Maximized)
                 {
-                    Left = Application.Current.MainWindow!.Left + Application.Current.MainWindow.Width - (ActualWidth);
-                    Top = Application.Current.MainWindow.Top + Application.Current.MainWindow.Height - ActualHeight;
+                    Left = window!.Left + window.Width - (ActualWidth);
+                    Top = window.Top + window.Height - ActualHeight;
                     return;
                 }
-                var workingArea = System.Windows.Forms.Screen.PrimaryScreen.WorkingArea;
+                var helper = new WindowInteropHelper(window);
+                var screen = System.Windows.Forms.Screen.FromHandle(helper.Handle);
+                var workingArea = screen.WorkingArea;
                 var source = PresentationSource.FromVisual(this);
                 if (source?.CompositionTarget == null) return;
                 var transform = source.CompositionTarget.TransformFromDevice;
