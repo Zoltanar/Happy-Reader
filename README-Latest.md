@@ -40,15 +40,19 @@ Before reporting issues or requesting features, please see [Goals](https://githu
   - example: `:sa おはよう！` to search for `おはよう！` in each text thread, in all 3 encodings possible (Unicode, UTF-8, Shift-JIS) (can take longer)
   - Results will appear in Console thread at the top
   - If \:sa is used and text is is a different encoding to the one selected in text thread panel, you can change the encoding with the drop-down on the right or use the following command to change the encoding of all panels
+  ![Guide 9](GuideImages/Guide-900.png)
 - use the command `:e <encoding>` to switch the encoding of all text thread panels to the desired one.
   - example: `:e Unicode` to switch all panels to Unicode
   - example: `:e Shift-JIS` to switch all panels to Shift-JIS
   - example: `:e UTF-8` to switch all panels to UTF-8
 - On the relevant text thread panel, check the `Posting` checkbox, to allow text to appear in Output Window.
+- ![Guide 10](GuideImages/Guide-1000.png)
 - Advance in game to next dialog
 - A window should pop up on top of the Game Window
+![Guide 11](GuideImages/Guide-1100.png)
   - If it does not, it may have appeared out of screen, click `Reset Output Window` in Text Hooking tab to reset it to a visible location
-  - If it still does not appear, click `Show Output Window` in Text Hooking tab.
+  - If it still does not appear, click `Show Output Window` in Text Hooking tab.  
+![Guide 12](GuideImages/Guide-1200.png)
 - Window should contain captured text (by default, romaji and Translation is shown)
 - Change location, size, and settings of Output Window to your preference
   - Output Window stays on top and will re-appear if closed when new text is captured
