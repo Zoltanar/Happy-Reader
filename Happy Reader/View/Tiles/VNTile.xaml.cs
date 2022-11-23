@@ -35,7 +35,13 @@ namespace Happy_Reader.View.Tiles
 			while ((source = StaticMethods.GetFlag(VN.LanguagesObject, order++, out var release)) != null)
 			{
 				var image = new Image { Source = source, MaxHeight = 12, MaxWidth = 24, Margin = new Thickness(3, 2, 3, 2) };
-				if (!string.IsNullOrWhiteSpace(release.ReleaseDateString)) image.ToolTip = release.ReleaseDateString;
+				if (!string.IsNullOrWhiteSpace(release.ReleaseDateString))
+				{
+					var tooltip = string.Empty;
+                    if (release.Mtl) tooltip += "MTL - ";
+                    if (release.Partial) tooltip += "Partial - ";
+                    image.ToolTip = tooltip + release.ReleaseDateString;
+				}
 				var borderBrush = release.Mtl ? Theme.MtlBorder : Theme.NonMtlBorder;
 				var grid = new Grid();
 				var rectangle = new System.Windows.Shapes.Rectangle()
