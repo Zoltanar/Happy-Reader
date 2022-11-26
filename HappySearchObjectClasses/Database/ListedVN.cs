@@ -285,12 +285,14 @@ namespace Happy_Apps_Core.Database
 			return _specialFlag.Value;
 		}
 
-		public bool HasLanguage(string value, bool originalOnly)
-		{
-			return (originalOnly ? LanguagesObject.Originals : LanguagesObject.All).Select(l => l.Lang).Contains(value, StringComparer.OrdinalIgnoreCase);
-		}
-		
-		public event PropertyChangedEventHandler PropertyChanged;
+        public bool HasLanguage(LangRelease language, bool originalOnly)
+        {
+            return (originalOnly ? LanguagesObject.Originals : LanguagesObject.All)
+				.Where(l=> l.Mtl == language.Mtl && l.Partial == language.Partial)
+				.Select(l => l.Lang).Contains(language.Lang, StringComparer.OrdinalIgnoreCase);
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
 		[NotifyPropertyChangedInvocator]
 		public void OnPropertyChanged([CallerMemberName] string propertyName = null)

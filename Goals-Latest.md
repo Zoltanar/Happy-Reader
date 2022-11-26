@@ -9,7 +9,6 @@
 - Romaji: Create own romaji engine using JMDict (missing deinflections).
 #### Filters
 - set default filter (different from permanent filter)
-- handle mtl flag for release languages
 #### Test Tab
 - show if translation was cached or not and give option to re-fetch
 - list entries used per stage.
@@ -30,7 +29,7 @@
 - Run RSync while processing database dump, after downloading files
 #### Other
 - Option to stop monitor
-- **Add screenshots to basic guide** (In progress)
+- **Add screenshots to basic guide** (In progress, text hooking done)
 - Producer Tab: charts for popularity
 - Database: Sort By and show english release date
 - Database: History item is duplicated when going back

@@ -19,7 +19,8 @@ namespace Happy_Reader
 		[JsonIgnore] public string StringValue { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 		[JsonIgnore] public bool Exclude { get => false; set => throw new NotSupportedException(); }
 		[JsonIgnore] public object Value { set => throw new NotSupportedException(); }
-		[JsonIgnore] public bool IsGlobal => Filters.Any(f => f.IsGlobal);
+		[JsonIgnore] public LangRelease LangRelease { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+            [JsonIgnore] public bool IsGlobal => Filters.Any(f => f.IsGlobal);
 
 		/// <summary>
 		/// Create custom filter

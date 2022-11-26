@@ -126,6 +126,7 @@ namespace Happy_Reader.ViewModel
 
 		public void AddToCustomFilter()
 		{
+			OnPropertyChanged(nameof(NewFilter));
 			if (NewFilterOrGroup) CustomFilter.OrFilters.Add(NewFilter.GetCopy());
 			else CustomFilter.AndFilters.Add(NewFilter.GetCopy());
 			OnPropertyChanged(nameof(CustomFilter));

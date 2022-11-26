@@ -18,6 +18,7 @@ namespace Happy_Reader
         private GeneralFilterType _type;
         private string _typeName;
         private string _stringValue = "";
+        private LangRelease _langRelease;
         [CanBeNull] private Func<double, bool> _doubleFunc;
         [CanBeNull] private Func<DateTime, bool> _dateTimeFunc;
 
@@ -51,6 +52,7 @@ namespace Happy_Reader
                 _stringValue = value;
                 if (int.TryParse(value, out int intValue)) Value = intValue;
                 if (bool.TryParse(value, out bool boolValue)) Value = boolValue;
+                if (Type is GeneralFilterType.OriginalLanguage or GeneralFilterType.Language) _langRelease = GetLangRelease();
             }
         }
 
@@ -59,7 +61,7 @@ namespace Happy_Reader
 
         [JsonIgnore]
         public object Value
-        {
+        {         
             set
             {
                 if (value != null && value.GetType().IsEnum)
@@ -90,6 +92,11 @@ namespace Happy_Reader
                     case DumpFiles.ItemWithParents dumpItemValue:
                         IntValue = dumpItemValue.ID;
                         _stringValue = IntValue.ToString();
+                        break;
+                    case LangRelease langReleaseValue:
+                        IntValue = 0;
+                        _langRelease = langReleaseValue;
+                        _stringValue = JsonConvert.SerializeObject(langReleaseValue);
                         break;
                     case string sValue:
                         IntValue = 0;
@@ -153,9 +160,11 @@ namespace Happy_Reader
                 case GeneralFilterType.Label:
                     return i => (GetVisualNovel(i, out var vn) && (vn.UserVN?.Labels.Any(l => l == (UserVN.LabelKind)IntValue) ?? false)) != Exclude;
                 case GeneralFilterType.Language:
-                    return i => (GetVisualNovel(i, out var vn) && vn.HasLanguage(StringValue, false)) != Exclude;
+                    var langRelease1 = GetLangRelease();
+                    return i => (GetVisualNovel(i, out var vn) && vn.HasLanguage(langRelease1, false)) != Exclude;
                 case GeneralFilterType.OriginalLanguage:
-                    return i => (GetVisualNovel(i, out var vn) && vn.HasLanguage(StringValue, true)) != Exclude;
+                    var langRelease2 = GetLangRelease();
+                    return i => (GetVisualNovel(i, out var vn) && vn.HasLanguage(langRelease2, true)) != Exclude;
                 case GeneralFilterType.Tags: return TagsFunction;
                 case GeneralFilterType.HasFullDate:
                     return i => (GetVisualNovel(i, out var vn) && vn.HasFullDate) != Exclude;
@@ -391,7 +400,7 @@ namespace Happy_Reader
                     return $"{result} - {(StringValue == null ? "None" : ((OwnedStatus)IntValue).GetDescription())}";
                 case GeneralFilterType.Language:
                 case GeneralFilterType.OriginalLanguage:
-                    return $"{result} - {(StringValue == null ? "Empty" : CultureInfo.GetCultureInfo(StringValue).DisplayName)}";
+                    return $"{result} - {GetLangReleaseString()}";
                 case GeneralFilterType.Tags:
                     result += $" - {DumpFiles.GetTag(IntValue)?.ToString() ?? "Not Found"}";
                     if (AdditionalInt != null) result += $" Score >= {AdditionalInt.Value}";
@@ -407,6 +416,47 @@ namespace Happy_Reader
                 case GeneralFilterType.Multi:
                 default:
                     throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        private string GetLangReleaseString()
+        {
+            var langRelease = _stringValue == null ? new LangRelease() : GetLangRelease();
+            var langParts = new List<string>();
+            if (langRelease.Mtl) langParts.Add("MTL");
+            if (langRelease.Partial) langParts.Add("Partial");
+            if (string.IsNullOrEmpty(langRelease.Lang)) langParts.Add("Empty");
+            else
+            {
+                string langName;
+                try
+                {
+                    langName = CultureInfo.GetCultureInfo(langRelease.Lang).DisplayName;
+                }
+                catch (CultureNotFoundException)
+                {
+                    langName = $"{langRelease.Lang} (Not Found)";
+                }
+                langParts.Add(langName);
+            }
+            return StringValue == null ? "Empty" : string.Join(" - ", langParts);
+        }
+
+        private LangRelease GetLangRelease()
+        {
+            if (_langRelease != null) return _langRelease;
+            try
+            {
+                return _langRelease = JsonConvert.DeserializeObject<LangRelease>(_stringValue) ?? new LangRelease();
+            }
+            catch(JsonReaderException)
+            {
+                var langRelease = new LangRelease
+                {
+                    Lang = _stringValue
+                };
+                _stringValue = JsonConvert.SerializeObject(langRelease);
+                return _langRelease = langRelease;
             }
         }
 
@@ -432,9 +482,9 @@ namespace Happy_Reader
         ByFavoriteProducer = 5,
         [Description("Label"), TypeConverter(typeof(UserVN.LabelKind))]
         Label = 7,
-        [TypeConverter(typeof(string))]
+        [TypeConverter(typeof(LangRelease))]
         Language = 8,
-        [Description("Original Language"), TypeConverter(typeof(string))]
+        [Description("Original Language"), TypeConverter(typeof(LangRelease))]
         OriginalLanguage = 9,
         [TypeConverter(typeof(DumpFiles.WrittenTag))]
         Tags = 10,

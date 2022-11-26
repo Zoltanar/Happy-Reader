@@ -300,7 +300,9 @@ where TraitId IN ({paramsString})";
                 using var reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    list.Add(Convert.ToInt32(reader["vnid"]));
+					var row = reader["vnid"];
+					if (row.Equals(DBNull.Value)) continue;
+                    list.Add(Convert.ToInt32(row));
                 }
                 return list;
             }
