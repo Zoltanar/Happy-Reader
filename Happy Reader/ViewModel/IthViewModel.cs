@@ -51,7 +51,13 @@ namespace Happy_Reader.ViewModel
 			set => _mainViewModel.TranslatePaused = value;
 		}
 
-		public Selector Selector { get; set; }
+        public bool MuteOnMinimise
+        {
+            get => _mainViewModel.SettingsViewModel.TranslatorSettings.MuteOnMinimise;
+            set => _mainViewModel.SettingsViewModel.TranslatorSettings.MuteOnMinimise = value;
+        }
+
+        public Selector Selector { get; set; }
 
 		public IthViewModel(MainWindowViewModel mainViewModel, Action initializeUserGameAction)
 		{

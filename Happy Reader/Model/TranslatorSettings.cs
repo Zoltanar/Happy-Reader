@@ -37,7 +37,8 @@ namespace Happy_Reader
 		private bool _outputOriginal;
 		private bool _outputRomaji;
 		private bool _outputTranslation = true;
-		private VerticalAlignment _outputVerticalAlignment = VerticalAlignment.Top;
+		private bool _muteOnMinimise = false;
+        private VerticalAlignment _outputVerticalAlignment = VerticalAlignment.Top;
 		private TextAlignment _outputHorizontalAlignment = TextAlignment.Center;
 
 		[JsonIgnore] public Action<bool> CaptureClipboardChanged;
@@ -368,7 +369,18 @@ namespace Happy_Reader
 		//todo make editable
 		public PlacementMode MouseoverTooltipPlacement { get; set; } = PlacementMode.Right;
 
-		public TextAlignment SetNextHorizontalAlignmentState()
+        public bool MuteOnMinimise
+        {
+            get => _muteOnMinimise;
+            set
+            {
+                if (_muteOnMinimise == value) return;
+                _muteOnMinimise = value;
+                if (Loaded) Save();
+            }
+        }
+
+        public TextAlignment SetNextHorizontalAlignmentState()
 		{
 			return OutputHorizontalAlignment switch
 			{

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using Happy_Reader.Model;
 using Happy_Reader.View;
 using StaticHelpers = Happy_Apps_Core.StaticHelpers;
 
@@ -198,7 +199,8 @@ namespace Happy_Reader.Database
 			StaticHelpers.Logger.ToDebug($"Restored {_userGame.DisplayName}, starting running time at {_userGame.RunningTime.Elapsed}");
 			_userGame.RunningTime.Start();
 			_userGame.OnPropertyChanged(nameof(_userGame.RunningStatus));
-			if (OutputWindow?.InitialisedWindowLocation ?? false) OutputWindow.Show();
+            if (StaticMethods.Settings.TranslatorSettings.MuteOnMinimise) VolumeMixer.SetApplicationMute(_userGame.Process.Id, false);
+            if (OutputWindow?.InitialisedWindowLocation ?? false) OutputWindow.Show();
 		}
 
 		private void WindowIsMinimised(IntPtr windowPointer)
@@ -207,6 +209,7 @@ namespace Happy_Reader.Database
 			StaticHelpers.Logger.ToDebug($"Minimized {_userGame.DisplayName}, stopped running time at {_userGame.RunningTime.Elapsed}");
 			_userGame.OnPropertyChanged(nameof(_userGame.RunningStatus));
 			_userGame.OnPropertyChanged(nameof(_userGame.TimeOpen));
+			if (StaticMethods.Settings.TranslatorSettings.MuteOnMinimise) VolumeMixer.SetApplicationMute(_userGame.Process.Id, true);
 			if (OutputWindow?.InitialisedWindowLocation ?? false) OutputWindow.Hide();
 		}
 
