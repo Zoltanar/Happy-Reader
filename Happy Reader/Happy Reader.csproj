@@ -146,6 +146,7 @@
     <Compile Include="Database\GameHookSettings.cs" />
     <Compile Include="Database\GameThread.cs" />
     <Compile Include="Database\Log.cs" />
+    <Compile Include="Model\ImportUserGame.cs" />
     <Compile Include="Model\JMDict.cs" />
     <Compile Include="Model\TranslationEngine\Proxies.cs" />
     <Compile Include="Model\TranslationEngine\Romaji.cs" />
@@ -268,6 +269,9 @@
       <DependentUpon>UserGameTab.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\TimeSpanConverter.cs" />
+    <Compile Include="View\ImportTranslationsControl.xaml.cs">
+      <DependentUpon>ImportTranslationsControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\VirtualizingWrapPanel.cs" />
     <Compile Include="View\Tabs\VNTab.xaml.cs">
       <DependentUpon>VNTab.xaml</DependentUpon>
@@ -401,6 +405,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="View\Tiles\VNTile.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\ImportTranslationsControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

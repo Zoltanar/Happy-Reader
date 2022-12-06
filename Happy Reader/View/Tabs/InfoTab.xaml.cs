@@ -1,19 +1,26 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Happy_Apps_Core.DataAccess;
+using Happy_Apps_Core.Translation;
 using Happy_Reader.Database;
+using Happy_Reader.Model;
 using Happy_Reader.ViewModel;
 using JetBrains.Annotations;
+using Microsoft.Win32;
 
 namespace Happy_Reader.View.Tabs
 {
     public partial class InfoTab : UserControl
     {
         private InformationViewModel _viewModel => (InformationViewModel)DataContext;
+        private bool _showingInputControl;
+
         public InfoTab()
         {
             InitializeComponent();
@@ -62,11 +69,6 @@ namespace Happy_Reader.View.Tabs
             return result;
         }
 
-        private void ImportTranslations(object sender, RoutedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
         private void OpenLogsFolder(object sender, RoutedEventArgs e)
         {
             Process.Start("explorer", $"\"{Happy_Apps_Core.StaticHelpers.LogsFolder}\"");
@@ -77,7 +79,7 @@ namespace Happy_Reader.View.Tabs
             var logsFolder = new DirectoryInfo(Happy_Apps_Core.StaticHelpers.LogsFolder);
             var today = DateTime.Now.Date;
             var logsToDelete = logsFolder.GetFiles("*.log", SearchOption.TopDirectoryOnly).Where(fi => fi.LastWriteTime.Date < today);
-            foreach (var file in logsToDelete.OrderBy(fi=>fi.LastWriteTime))
+            foreach (var file in logsToDelete.OrderBy(fi => fi.LastWriteTime))
             {
                 try
                 {
@@ -89,6 +91,68 @@ namespace Happy_Reader.View.Tabs
                 }
             }
             _viewModel.SetLogsSize();
+        }
+
+        private void ImportTranslations(object sender, RoutedEventArgs e)
+        {
+            if (_showingInputControl) return;
+            var selectedTab = (TabItem)StaticMethods.MainWindow.MainTabControl.SelectedItem;
+            var stackPanel = (StackPanel)((UserControl)selectedTab.Content).Content;
+            var panelChildren = stackPanel.Children.Cast<UIElement>().ToArray();
+            var importControl = ImportCachedTranslations(false, RestoreTab);
+            if (importControl == null) return;
+            _showingInputControl = true;
+            stackPanel.Children.Clear();
+            stackPanel.Children.Add(importControl);
+            void RestoreTab()
+            {
+                try
+                {
+                    stackPanel.Children.Clear();
+                    foreach (var gridChild in panelChildren)
+                    {
+                        stackPanel.Children.Add(gridChild);
+                    }
+                }
+                finally
+                {
+                    _showingInputControl = false;
+                }
+            };
+        }
+                
+        public ImportTranslationsControl ImportCachedTranslations(bool overwriteExisting, Action callback)
+        {
+            var dialog = new OpenFileDialog() { AddExtension = true, DefaultExt = ".sqlite" };
+            var result = dialog.ShowDialog();
+            if (result != true) return null;
+            var import = new HappyReaderDatabase(dialog.FileName, true);
+            var translations = import.Translations.ToList();
+            if (!overwriteExisting) translations = translations.Where(t => StaticMethods.Data.Translations[t.Key] == null).ToList();
+            if (!translations.Any())
+            {
+                //todo PrintReply($"No translations to import.");
+                return null;
+            }
+            var vnTranslations = translations.Where(t => !t.IsUserGame && t.GameId.HasValue).GroupBy(t => t.GameId).ToList();
+            var ugTranslations = ProcessUserGameTranslations(import.UserGames, translations);
+            var panel = new ImportTranslationsControl(vnTranslations, ugTranslations, callback);
+            return panel;
+        }
+
+        private List<ImportUserGame> ProcessUserGameTranslations(DACollection<long, UserGame> allImportGames, List<CachedTranslation> translations)
+        {
+            var allEntryGames1 = new List<EntryGame> { EntryGame.None };
+            allEntryGames1.AddRange(StaticMethods.Data.UserGames
+                .Where(i => !i.VNID.HasValue)
+                .Select(i => new EntryGame((int)i.Id, true, true))
+                .Distinct());
+            var allEntryGames = allEntryGames1.ToArray();
+            var importGames = translations
+                .Where(t => t.IsUserGame && t.GameId.HasValue)
+                .GroupBy(t => t.GameId)
+                .Select(g => new ImportUserGame(allImportGames, g, StaticMethods.Data.UserGames, allEntryGames)).ToList();
+            return importGames;
         }
     }
 }

@@ -4,14 +4,12 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using Happy_Apps_Core.Database;
 using JetBrains.Annotations;
 
 namespace Happy_Reader.View
 {
 	public partial class InputControl : UserControl, INotifyPropertyChanged
 	{
-
 		public static readonly DependencyProperty InputLabelProperty =
 			DependencyProperty.Register(nameof(InputLabel), typeof(string), typeof(InputControl), new UIPropertyMetadata(null));
 

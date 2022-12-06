@@ -39,8 +39,8 @@ namespace Happy_Apps_Core.Translation
 		/// </summary>
 		public int Count { get; private set; }
 		public string Source { get; private set; }
-		public int? GameId { get; private set; }
-		public bool IsUserGame { get; private set; }
+		public int? GameId { get; set; }
+		public bool IsUserGame { get; set; }
 		public string KeyField => nameof(Input);
 		public string Key => Input;
 
