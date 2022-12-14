@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using Happy_Apps_Core.Translation;
 using Happy_Reader.Database;
 using Happy_Reader.TranslationEngine;
 using JetBrains.Annotations;
@@ -47,8 +48,9 @@ namespace Happy_Reader.ViewModel
         public string Stage5 { get; set; }
         public string Stage6 { get; set; }
         public string Stage7 { get; set; }
+        public PausableUpdateList<CachedTranslation> TranslationsUsed { get; set; } = new();
         public EntryGame EntryGame { get; set; } = EntryGame.None;
-    public PausableUpdateList<DisplayEntry> EntriesUsed { get; } = new();
+        public PausableUpdateList<DisplayEntry> EntriesUsed { get; } = new();
 
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -72,6 +74,7 @@ namespace Happy_Reader.ViewModel
             Stage5 = translation.Results[5].Equals(Stage4) ? "(no change)" : translation.Results[5];
             Stage6 = translation.Results[6].Equals(Stage5) ? "(no change)" : translation.Results[6];
             Stage7 = translation.Results[7].Equals(Stage6) ? "(no change)" : translation.Results[7];
+            SetTranslations(translation.GetMachineTranslationsUsed());
             SetEntries(translation.GetEntriesUsed());
             OnPropertyChanged(null);
         }
@@ -84,6 +87,15 @@ namespace Happy_Reader.ViewModel
 	        {
 		        EntriesUsed.SetRange(displayEntries);
 	        });
+        }
+
+        public void SetTranslations(IEnumerable<CachedTranslation> translations)
+        {
+            Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                TranslationsUsed.SetRange(translations);
+            });
         }
 
         public void DeleteEntry(DisplayEntry displayEntry)

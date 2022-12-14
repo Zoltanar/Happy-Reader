@@ -25,8 +25,9 @@ namespace Happy_Reader.TranslationEngine
 		private readonly TranslatorSettings _settings;
 		private User _lastUser;
 		private EntryGame _lastGame = EntryGame.None;
-		private Entry[] _entries;
-		private bool _logVerbose;
+        private Entry[] _entries;
+        private CachedTranslation[] _translations;
+        private bool _logVerbose;
 		private char[] _inclusiveSeparators = { };
 		private char[] _allSeparators = { };
 		private static bool _useAnyCached = true; //todo keep cache collection grouped by source and change primary key to input + source
@@ -57,7 +58,7 @@ namespace Happy_Reader.TranslationEngine
 			OfflineDictionary.ReadFiles(_settings.OfflineDictionaryFolder);
 		}
 
-		public Translation Translate(User user, EntryGame game, string input, bool saveEntriesUsed, bool removeRepetition)
+		public Translation Translate(User user, EntryGame game, string input, bool saveDataUsed, bool removeRepetition)
 		{
 			if (removeRepetition)
 			{
@@ -86,14 +87,14 @@ namespace Happy_Reader.TranslationEngine
 				if (LatinOnlyRegex.IsMatch(input)) return Translation.Error("Input was Latin only.");
 				var item = new Translation(input, true);
 				SplitInputIntoParts(item.Original, item.Parts,false);
-				item.TranslateParts(saveEntriesUsed);
+				item.TranslateParts(saveDataUsed);
 				return item;
 			}
 		}
 
-		public TranslationResults TranslatePart(string input, bool saveEntriesUsed)
+		public TranslationResults TranslatePart(string input, bool saveDataUsed)
 		{
-			var result = new TranslationResults(saveEntriesUsed);
+			var result = new TranslationResults(saveDataUsed);
 			var sb = new StringBuilder(input);
 			if (TranslateSingleKana(sb, input))
 			{
@@ -286,7 +287,7 @@ namespace Happy_Reader.TranslationEngine
 		private void TranslateStageFive(StringBuilder sb, TranslationResults result)
 		{
 			result.SetStage(5);
-			Translate(sb);
+            MachineTranslate(sb, result);
 			StaticHelpers.Logger.Verbose($"Stage 5: {sb}");
 			result[5] = sb.ToString();
 		}
@@ -408,14 +409,14 @@ namespace Happy_Reader.TranslationEngine
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private void LogReplace(StringBuilder sb, string input, string output, TranslationResults result, Entry entry)
 		{
-			if (_logVerbose || (result != null && result.SaveEntries && entry != null))
+			if (_logVerbose || (result != null && result.SaveData && entry != null))
 			{
 				var sbOriginal = sb.ToString();
 				sb.Replace(input, output);
 				var sbReplaced = sb.ToString();
 				if (sbOriginal == sbReplaced) return;
 				if (_logVerbose) StaticHelpers.Logger.Verbose($"Replace happened - Id {entry?.Id.ToString() ?? "N/A"}: '{input}' > '{output}'");
-				if (result.SaveEntries) result.AddEntryUsed(entry);
+				if (result.SaveData) result.AddEntryUsed(entry);
 			}
 			else sb.Replace(input, output);
 		}
@@ -431,14 +432,14 @@ namespace Happy_Reader.TranslationEngine
 		{
 			string replaced;
 			var rgx = GetRegex(regexInput);
-			if (_logVerbose || (result != null && result.SaveEntries && entry != null))
+			if (_logVerbose || (result != null && result.SaveData && entry != null))
 			{
 				var sbOriginal = sb.ToString();
 				replaced = rgx.Replace(sbOriginal, output);
 				if (sbOriginal != replaced)
 				{
 					if (_logVerbose) StaticHelpers.Logger.Verbose($"Replace happened - Id {entry?.Id.ToString() ?? "N/A"} '{regexInput}' > '{output}'");
-					if (result.SaveEntries) result.AddEntryUsed(entry);
+					if (result.SaveData) result.AddEntryUsed(entry);
 				}
 			}
 			else replaced = rgx.Replace(sb.ToString(), output);
@@ -464,7 +465,7 @@ namespace Happy_Reader.TranslationEngine
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static bool IsKatakana(char character) => character >= 0x30a0 && character <= 0x30ff;
 
-		private bool GetFromCache(string cacheSource, StringBuilder text, string input)
+		private bool GetFromCache(string cacheSource, StringBuilder text, string input, TranslationResults result)
 		{
 			//todo keep cache collection grouped by source and change primary key to input + source
 			var item = cacheSource == null ? _data.Translations[input] : _data.Translations.FirstOrDefault(i => i.Source == cacheSource && i.Key == input);
@@ -474,15 +475,16 @@ namespace Happy_Reader.TranslationEngine
 			item.Update();
 			_data.Translations.UpsertLater(item);
 			text.Append(item.Output);
+			if (result?.SaveData ?? false) result.AddTranslationUsed(item);
 			return true;
 		}
 
-		private bool TryGetWithoutApi(string cacheSource, StringBuilder text, bool isBlocked, out string input)
+		private bool TryGetWithoutApi(string cacheSource, StringBuilder text, bool isBlocked, TranslationResults result, out string input)
 		{
 			input = text.ToString();
 			if (_settings.UntouchedStrings.Contains(input)) return true;
 			text.Clear();
-			if (GetFromCache(cacheSource, text, input)) return true;
+			if (GetFromCache(cacheSource, text, input, result)) return true;
 			if (TranslateSingleKana(text, input)) return true;
 			if (!isBlocked) return false;
 			text.Append("Failed: Translation is blocked.");
@@ -497,32 +499,33 @@ namespace Happy_Reader.TranslationEngine
 			//if character is 'tsu' on its own, we remove it.
 			var output = character == 'っ' || character == 'ッ' ? string.Empty : GetRomaji(input);
 			text.Clear();
-			SetTranslationAndSaveToCache(text, output, input, "Single Kana");
+			SetTranslationAndSaveToCache(text, output, input, "Single Kana", null);
 			return true;
 		}
 
-		private void SetTranslationAndSaveToCache(StringBuilder text, string translated, string input, string sourceName)
+		private void SetTranslationAndSaveToCache(StringBuilder text, string translated, string input, string sourceName, TranslationResults result)
 		{
 			GotFromApiCount++;
 			text.Append(translated);
 			var translation = new CachedTranslation(input, translated, sourceName, _lastGame.GameId, _lastGame.IsUserGame);
 			_data.Translations.UpsertLater(translation);
-		}
+            if (result?.SaveData ?? false) result.AddTranslationUsed(translation);
+        }
 
 		/// <summary>
 		/// Tries to get a translation from cache, if not, tries to use selected translator and saves result to cache if successful.
 		/// </summary>
 		/// <param name="text"></param>
-		private void Translate(StringBuilder text)
+		private void MachineTranslate(StringBuilder text, TranslationResults result)
 		{
-			if (TryGetWithoutApi(_useAnyCached ? null : SelectedTranslator.SourceName, text, false, out var input)) return;
+			if (TryGetWithoutApi(_useAnyCached ? null : SelectedTranslator.SourceName, text, false, result, out var input)) return;
 			if (!string.IsNullOrWhiteSpace(SelectedTranslator.Error))
 			{
 				text.Append(SelectedTranslator.Error);
 				return;
 			}
 			var success = SelectedTranslator.Translate(input, out var translated);
-			if (success) SetTranslationAndSaveToCache(text, translated, input, SelectedTranslator.SourceName);
+			if (success) SetTranslationAndSaveToCache(text, translated, input, SelectedTranslator.SourceName, result);
 			else text.Append(translated);
 		}
 

@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Documents;
 using Happy_Apps_Core;
+using Happy_Apps_Core.Translation;
 using Happy_Reader.Database;
 using Happy_Reader.TranslationEngine;
 using Happy_Reader.View;
@@ -68,7 +69,13 @@ namespace Happy_Reader
 				.Concat(_entriesUsedStageOne).Distinct();
 		}
 
-		public void TranslateParts(bool saveEntriesUsed)
+        public IEnumerable<CachedTranslation> GetMachineTranslationsUsed()
+        {
+            return _partResults.Where(pr => pr.TranslationsUsed != null)
+                .SelectMany(pr => pr.TranslationsUsed).Distinct();
+        }
+
+        public void TranslateParts(bool saveDataUsed)
 		{
 			try
 			{
@@ -79,7 +86,7 @@ namespace Happy_Reader
 						_partResults.Add(new TranslationResults(part));
 						continue;
 					}
-					_partResults.Add(Translator.Instance.TranslatePart(part, saveEntriesUsed));
+					_partResults.Add(Translator.Instance.TranslatePart(part, saveDataUsed));
 				}
 				for (int stage = 0; stage < 7; stage++)
 				{

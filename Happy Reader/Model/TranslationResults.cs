@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Happy_Apps_Core.Translation;
 using Happy_Reader.Database;
 
 namespace Happy_Reader
@@ -7,15 +8,17 @@ namespace Happy_Reader
 	public class TranslationResults
 	{
 		public string[] Text { get; } = new string[8];
-		public List<Entry>[] EntriesUsed { get; }
-		public bool SaveEntries { get; }
+        public List<Entry>[] EntriesUsed { get; }
+        public List<CachedTranslation> TranslationsUsed { get; }
+        public bool SaveData { get; }
 		private int _currentStage;
 
 
-		public TranslationResults(bool saveEntriesUsed)
+		public TranslationResults(bool saveDataUsed)
 		{
-			SaveEntries = saveEntriesUsed;
+            SaveData = saveDataUsed;
 			EntriesUsed = Enumerable.Range(0, 8).Select(_ => new List<Entry>()).ToArray();
+			TranslationsUsed = new List<CachedTranslation>();
 		}
 
 		public TranslationResults(string part)
@@ -33,6 +36,7 @@ namespace Happy_Reader
 		{
 			EntriesUsed[_currentStage].Add(entry);
 		}
+		public void AddTranslationUsed(CachedTranslation translation) => TranslationsUsed.Add(translation);
 
 		public void SetStage(int stage)
 		{
