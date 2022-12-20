@@ -26,7 +26,6 @@ namespace Happy_Reader.TranslationEngine
 		private User _lastUser;
 		private EntryGame _lastGame = EntryGame.None;
         private Entry[] _entries;
-        private CachedTranslation[] _translations;
         private bool _logVerbose;
 		private char[] _inclusiveSeparators = { };
 		private char[] _allSeparators = { };

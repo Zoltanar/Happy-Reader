@@ -184,6 +184,7 @@ namespace Happy_Reader.Database
 				return _image;
 			}
 		}
+		public OutputWindow OutputWindow;
 
 		public string DisplayNameGroup => DisplayName.Substring(0, Math.Min(DisplayName.Length, 1));
 		public string TagSort => string.IsNullOrWhiteSpace(Tag) ? char.MaxValue.ToString() : Tag;
@@ -452,7 +453,7 @@ namespace Happy_Reader.Database
 				Thread.Sleep(3000);
 				processes = Process.GetProcesses();
 				var process = processes.FirstOrDefault(p => p.ProcessName == Path.GetFileName(FilePath));
-				if (process == null) existing = processes.FirstOrDefault(p => p.ProcessName == Path.GetFileNameWithoutExtension(FilePath));
+				if (process == null) process = processes.FirstOrDefault(p => p.ProcessName == Path.GetFileNameWithoutExtension(FilePath));
 				Logger.ToFile($"{nameof(StartProcess)}: {(process != null ? "Process found." : "Process not found.")}");
 				return process;
 			}

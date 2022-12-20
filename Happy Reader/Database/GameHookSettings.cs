@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using Happy_Reader.Model;
 using Happy_Reader.View;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 using StaticHelpers = Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Reader.Database
@@ -133,8 +134,6 @@ namespace Happy_Reader.Database
 			}
 		}
 
-		public OutputWindow OutputWindow { get; set; }
-
 		internal static NativeMethods.RECT GetOutputRectangle(string outputWindow)
 		{
 			if (string.IsNullOrEmpty(outputWindow)) return StaticMethods.OutputWindowStartPosition;
@@ -171,7 +170,7 @@ namespace Happy_Reader.Database
 
 		private void WindowMoveStarts(IntPtr windowPointer)
 		{
-			if (OutputWindow == null) return;
+			if (_userGame.OutputWindow == null) return;
 			var success = NativeMethods.GetWindowRect(windowPointer, out var location);
 			if (success) _locationOnMoveStart = location;
 		}
@@ -181,7 +180,7 @@ namespace Happy_Reader.Database
 			var success = NativeMethods.GetWindowRect(windowPointer, out var gameRectangle);
 			if (!success || !_locationOnMoveStart.HasValue) return;
 			var difference = gameRectangle.GetDifference(_locationOnMoveStart.Value, false);
-			OutputWindow.MoveByDifference(difference);
+            _userGame.OutputWindow.MoveByDifference(difference);
 			_locationOnMoveStart = null;
 		}
 
@@ -200,7 +199,7 @@ namespace Happy_Reader.Database
 			_userGame.RunningTime.Start();
 			_userGame.OnPropertyChanged(nameof(_userGame.RunningStatus));
             if (StaticMethods.Settings.TranslatorSettings.MuteOnMinimise) VolumeMixer.SetApplicationMute(_userGame.Process.Id, false);
-            if (OutputWindow?.InitialisedWindowLocation ?? false) OutputWindow.Show();
+            if (_userGame.OutputWindow?.InitialisedWindowLocation ?? false) _userGame.OutputWindow.Show();
 		}
 
 		private void WindowIsMinimised(IntPtr windowPointer)
@@ -210,7 +209,7 @@ namespace Happy_Reader.Database
 			_userGame.OnPropertyChanged(nameof(_userGame.RunningStatus));
 			_userGame.OnPropertyChanged(nameof(_userGame.TimeOpen));
 			if (StaticMethods.Settings.TranslatorSettings.MuteOnMinimise) VolumeMixer.SetApplicationMute(_userGame.Process.Id, true);
-			if (OutputWindow?.InitialisedWindowLocation ?? false) OutputWindow.Hide();
+			if (_userGame.OutputWindow?.InitialisedWindowLocation ?? false) _userGame.OutputWindow.Hide();
 		}
 
 		public void InitialiseWindow(Process process)

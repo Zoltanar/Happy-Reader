@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
+using Happy_Reader.Database;
 using Happy_Reader.ViewModel;
 
 namespace Happy_Reader.View
@@ -14,48 +15,48 @@ namespace Happy_Reader.View
 		private readonly Action<int> _initialiseWindowForGame;
 		private readonly GridLength _settingsColumnLength;
 		private readonly ToolTip _mouseoverTip;
-		private OutputWindowViewModel _viewModel;
+		public OutputWindowViewModel ViewModel { get; private set; }
 		private bool _loaded;
 		private bool _isResizing;
 		private Point _startPosition;
-		private Database.UserGame _currentGame;
+		private UserGame _userGame;
 
         public bool InitialisedWindowLocation { get; set; }
         public bool FullScreenOn { get; set; }
 
-        public OutputWindow(Action<int> initialiseOutputWindowForGame)
+        public OutputWindow(Action<int> initialiseOutputWindowForGame, UserGame userGame)
 		{
 			InitializeComponent();
 			_initialiseWindowForGame = initialiseOutputWindowForGame;
-			_settingsColumnLength = SettingsColumn.Width;
+			_userGame = userGame;
+            _settingsColumnLength = SettingsColumn.Width;
 			_mouseoverTip = StaticMethods.CreateMouseoverTooltip(this, StaticMethods.Settings.TranslatorSettings.MouseoverTooltipPlacement);
 			_mouseoverTip.Background.Opacity = OpacitySlider.Value;
 		}
 
 		private void UpdateSettingToggles(object sender, RoutedEventArgs e)
 		{
-			if (_viewModel == null) return;
-			SettingsColumn.Width = _viewModel.SettingsOn ? _settingsColumnLength : new GridLength(22);
-			OpacityLabel.Visibility = _viewModel.SettingsOn ? Visibility.Visible : Visibility.Collapsed;
+			if (ViewModel == null) return;
+			SettingsColumn.Width = ViewModel.SettingsOn ? _settingsColumnLength : new GridLength(22);
+			OpacityLabel.Visibility = ViewModel.SettingsOn ? Visibility.Visible : Visibility.Collapsed;
 			foreach (var toggleButton in SettingsPanel.Children.OfType<ContentControl>())
 			{
 				var value = toggleButton.Tag as string;
 				if (string.IsNullOrWhiteSpace(value)) continue;
 				var parts = value.Split(',');
-				toggleButton.Content = parts[_viewModel.SettingsOn ? 1 : 0];
+				toggleButton.Content = parts[ViewModel.SettingsOn ? 1 : 0];
 			}
 		}
 
 
         public void AddTranslation(Translation translation, int processId)
         {
-            _currentGame = StaticMethods.MainWindow.ViewModel.RunningGames.FirstOrDefault(g => g.Process?.Id == processId);
             if (!InitialisedWindowLocation) _initialiseWindowForGame?.Invoke(processId);
             if (!_loaded) OutputWindow_OnLoaded(null, null);
-			var anyEnabled = _viewModel.OriginalOn || _viewModel.RomajiOn || _viewModel.TranslationOn;
+			var anyEnabled = ViewModel.OriginalOn || ViewModel.RomajiOn || ViewModel.TranslationOn;
 			if (!IsVisible && !translation.IsError && anyEnabled) Show();
-			_viewModel.AddTranslation(translation);
-			if(anyEnabled) _viewModel.UpdateOutput();
+			ViewModel.AddTranslation(translation);
+			if(anyEnabled) ViewModel.UpdateOutput();
 			if (anyEnabled && FullScreenOn) Activate();
 		}
 
@@ -82,12 +83,12 @@ namespace Happy_Reader.View
 		private void OutputWindow_OnLoaded(object sender, RoutedEventArgs e)
 		{
 			if (_loaded) return;
-			_viewModel = (OutputWindowViewModel)DataContext;
-			_viewModel.Initialize(() => OutputTextBox.Selection.Text, OutputTextBox.Document, () => Dispatcher.Invoke(OutputTextBox.ScrollToEnd));
-			_viewModel.SettingsOn = StaticMethods.Settings.TranslatorSettings.SettingsViewState;
-			_viewModel.OriginalOn = StaticMethods.Settings.TranslatorSettings.OutputOriginal;
-			_viewModel.RomajiOn = StaticMethods.Settings.TranslatorSettings.OutputRomaji;
-            _viewModel.TranslationOn = StaticMethods.Settings.TranslatorSettings.OutputTranslation;
+			ViewModel = (OutputWindowViewModel)DataContext;
+			ViewModel.Initialize(() => OutputTextBox.Selection.Text, OutputTextBox.Document, () => Dispatcher.Invoke(OutputTextBox.ScrollToEnd));
+			ViewModel.SettingsOn = StaticMethods.Settings.TranslatorSettings.SettingsViewState;
+			ViewModel.OriginalOn = StaticMethods.Settings.TranslatorSettings.OutputOriginal;
+			ViewModel.RomajiOn = StaticMethods.Settings.TranslatorSettings.OutputRomaji;
+            ViewModel.TranslationOn = StaticMethods.Settings.TranslatorSettings.OutputTranslation;
             var tColor = StaticMethods.Settings.TranslatorSettings.TranslatedColor.Color.Color;
 			var darkerColor = System.Windows.Media.Color.FromRgb((byte)(tColor.R * 0.75), (byte)(tColor.G * 0.75), (byte)(tColor.B * 0.75));
 			var dropShadowEffect = new System.Windows.Media.Effects.DropShadowEffect
@@ -96,7 +97,7 @@ namespace Happy_Reader.View
 			};
 			OutputTextBox.Effect = dropShadowEffect;
 			UpdateSettingToggles(sender, e);
-			_viewModel.OnPropertyChanged(null);
+			ViewModel.OnPropertyChanged(null);
 			_loaded = true;
 		}
 
@@ -148,19 +149,19 @@ namespace Happy_Reader.View
 		private void HorizontalAlignmentClick(object sender, RoutedEventArgs e)
 		{
 			StaticMethods.Settings.TranslatorSettings.SetNextHorizontalAlignmentState();
-			_viewModel.UpdateOutput();
+			ViewModel.UpdateOutput();
 		}
 
 		private void VerticalAlignmentClick(object sender, RoutedEventArgs e)
 		{
 			var newState = StaticMethods.Settings.TranslatorSettings.SetNextVerticalAlignmentState();
-			_viewModel.UpdateOutput();
+			ViewModel.UpdateOutput();
 			if (newState == VerticalAlignment.Top) OutputTextBox.ScrollToHome();
 		}
 
 		private void SizeOrLocationChanged(object sender, EventArgs e)
 		{
-			if (!InitialisedWindowLocation || _currentGame == null) return;
+			if (!InitialisedWindowLocation) return;
 			var outputWindowLocation = new NativeMethods.RECT
 			{
 				Left = (int)Left,
@@ -168,7 +169,7 @@ namespace Happy_Reader.View
 				Right = (int)Left + (int)Width,
 				Bottom = (int)Top + (int)Height
 			};
-            _currentGame.GameHookSettings.SaveOutputRectangle(outputWindowLocation);
+            _userGame.GameHookSettings.SaveOutputRectangle(outputWindowLocation);
 		}
 
 		private void OnMouseover(object sender, MouseEventArgs e)
