@@ -11,17 +11,19 @@ namespace Happy_Reader.View
 {
 	public partial class OutputWindow
 	{
-		private readonly Action _initialiseWindowForGame;
+		private readonly Action<int> _initialiseWindowForGame;
 		private readonly GridLength _settingsColumnLength;
 		private readonly ToolTip _mouseoverTip;
 		private OutputWindowViewModel _viewModel;
 		private bool _loaded;
 		private bool _isResizing;
 		private Point _startPosition;
-		
-		public bool FullScreenOn { get; set; }
+		private Database.UserGame _currentGame;
 
-		public OutputWindow(Action initialiseOutputWindowForGame)
+        public bool InitialisedWindowLocation { get; set; }
+        public bool FullScreenOn { get; set; }
+
+        public OutputWindow(Action<int> initialiseOutputWindowForGame)
 		{
 			InitializeComponent();
 			_initialiseWindowForGame = initialiseOutputWindowForGame;
@@ -44,12 +46,12 @@ namespace Happy_Reader.View
 			}
 		}
 
-		public bool InitialisedWindowLocation { get; set; }
 
-		public void AddTranslation(Translation translation)
-		{
-			if (!InitialisedWindowLocation) _initialiseWindowForGame?.Invoke();
-			if (!_loaded) OutputWindow_OnLoaded(null, null);
+        public void AddTranslation(Translation translation, int processId)
+        {
+            _currentGame = StaticMethods.MainWindow.ViewModel.RunningGames.FirstOrDefault(g => g.Process?.Id == processId);
+            if (!InitialisedWindowLocation) _initialiseWindowForGame?.Invoke(processId);
+            if (!_loaded) OutputWindow_OnLoaded(null, null);
 			var anyEnabled = _viewModel.OriginalOn || _viewModel.RomajiOn || _viewModel.TranslationOn;
 			if (!IsVisible && !translation.IsError && anyEnabled) Show();
 			_viewModel.AddTranslation(translation);
@@ -158,7 +160,7 @@ namespace Happy_Reader.View
 
 		private void SizeOrLocationChanged(object sender, EventArgs e)
 		{
-			if (!InitialisedWindowLocation || StaticMethods.MainWindow.ViewModel.UserGame == null) return;
+			if (!InitialisedWindowLocation || _currentGame == null) return;
 			var outputWindowLocation = new NativeMethods.RECT
 			{
 				Left = (int)Left,
@@ -166,7 +168,7 @@ namespace Happy_Reader.View
 				Right = (int)Left + (int)Width,
 				Bottom = (int)Top + (int)Height
 			};
-			StaticMethods.MainWindow.ViewModel.UserGame.GameHookSettings.SaveOutputRectangle(outputWindowLocation);
+            _currentGame.GameHookSettings.SaveOutputRectangle(outputWindowLocation);
 		}
 
 		private void OnMouseover(object sender, MouseEventArgs e)

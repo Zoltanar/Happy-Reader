@@ -39,7 +39,7 @@ namespace Happy_Reader.ViewModel
 			get => HookManager?.MergeByHookCode ?? false;
 			set
 			{
-				if (_mainViewModel?.UserGame != null) _mainViewModel.UserGame.GameHookSettings.MergeByHookCode = value;
+				foreach(var game in _mainViewModel.RunningGames) game.GameHookSettings.MergeByHookCode = value;
 				if (HookManager != null) HookManager.MergeByHookCode = value;
 				OnPropertyChanged();
 			}
@@ -59,7 +59,7 @@ namespace Happy_Reader.ViewModel
 
         public Selector Selector { get; set; }
 
-		public IthViewModel(MainWindowViewModel mainViewModel, Action initializeUserGameAction)
+		public IthViewModel(MainWindowViewModel mainViewModel, Action<int> initializeUserGameAction)
 		{
 			_mainViewModel = mainViewModel;
 			InitializeUserGameAction = initializeUserGameAction;
@@ -79,13 +79,15 @@ namespace Happy_Reader.ViewModel
 		public override void SaveHookCode(TextThread thread)
 		{
 			if (thread is not HookTextThread hookTextThread) return;
-			_mainViewModel.UserGame?.GameHookSettings.SaveHookCode(hookTextThread.HookCode, true);
+			var game = _mainViewModel.RunningGames.FirstOrDefault(g => g.Process?.Id == hookTextThread.ProcessId);
+            game?.GameHookSettings.SaveHookCode(hookTextThread.HookCode, true);
 		}
 
-		public override void AddGameThread(GameTextThread gameTextThread)
-		{
-			if (_mainViewModel.UserGame == null) return;
-			gameTextThread.GameId = _mainViewModel.UserGame.Id;
+		public override void AddGameThread(GameTextThread gameTextThread, int processId)
+        {
+			var game = _mainViewModel.RunningGames.FirstOrDefault(g => g.Process?.Id == processId);
+            if (game == null) return;
+			gameTextThread.GameId = game.Id;
 			StaticMethods.Data.GameThreads.UpsertLater(new GameThread(gameTextThread));
 		}
 

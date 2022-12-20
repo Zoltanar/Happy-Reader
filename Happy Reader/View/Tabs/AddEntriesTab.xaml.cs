@@ -97,7 +97,7 @@ namespace Happy_Reader.View.Tabs
                 item.Role = Entry.DefaultNameRole;
             }
 			item.Entry.UserId = StaticMethods.MainWindow.ViewModel.User.Id;
-			var game = StaticMethods.MainWindow.ViewModel.UserGame;
+			var game = StaticMethods.MainWindow.ViewModel.RunningGames.LastOrDefault();
 			if (game?.VNID.HasValue ?? false) item.Entry.SetGameId(game.VNID, false);
 			else if (game != null) item.Entry.SetGameId((int)game.Id, true);
 		}

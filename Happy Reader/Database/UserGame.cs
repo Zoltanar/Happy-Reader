@@ -58,7 +58,8 @@ namespace Happy_Reader.Database
 			VNID = vn?.VNID;
 			VN = vn;
 			if (VN != null) VN.IsOwned = FileExists ? OwnedStatus.CurrentlyOwned : OwnedStatus.PastOwned;
-		}
+            EntryGame = new EntryGame(VNID ?? (int)Id, !VNID.HasValue, false);
+        }
 
 		public UserGame()
 		{
@@ -258,6 +259,7 @@ namespace Happy_Reader.Database
 			GameHookSettings.OutputRectangle = GameHookSettings.GetOutputRectangle(outputWindow);
 			LaunchModeOverride = (LaunchOverrideMode)Convert.ToInt32(reader["LaunchModeOverride"]);
 			Loaded = true;
+			EntryGame = new EntryGame(VNID ?? (int)Id, !VNID.HasValue, false);
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -265,6 +267,7 @@ namespace Happy_Reader.Database
 		public bool ReadyToUpsert { get; set; }
 
 		[NotNull] public GameHookSettings GameHookSettings { get; }
+		public EntryGame EntryGame { get; private set; }
 
 		public bool IconImageExists(out string iconPath)
 		{
@@ -357,10 +360,12 @@ namespace Happy_Reader.Database
 			StaticMethods.Data.UserGames.Upsert(this, true);
 			VN = vnid == null ? null : LocalDatabase.VisualNovels[vnid.Value];
 			if (VN != null) VN.IsOwned = FileExists ? OwnedStatus.CurrentlyOwned : OwnedStatus.PastOwned;
-			OnPropertyChanged(nameof(DisplayName));
+            EntryGame = new EntryGame(VNID ?? (int)Id, !VNID.HasValue, false);
+            OnPropertyChanged(nameof(DisplayName));
 			OnPropertyChanged(nameof(Image));
-			OnPropertyChanged(nameof(VN));
-			return VN != null;
+            OnPropertyChanged(nameof(VN));
+            OnPropertyChanged(nameof(EntryGame));
+            return VN != null;
 		}
 
 		public void ChangeFilePath(string newFilePath)
@@ -388,7 +393,7 @@ namespace Happy_Reader.Database
 		{
 			Process = process;
 			Process.EnableRaisingEvents = true;
-			Process.Exited += hookedProcessOnExited;
+			Process.Exited += (s,e) => hookedProcessOnExited(this,e);
 			GameHookSettings.InitialiseWindow(process);
 		}
 
