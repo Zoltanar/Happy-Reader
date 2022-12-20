@@ -132,10 +132,14 @@ namespace Happy_Reader.TranslationEngine
 			{
 				sb.Clear();
 				sb.Append(singleEntry.Output);
-			}
+                result.SetStage(5);
+                result[5] = sb.ToString();
+            }
 			else if (sb.ToString().All(c => _allSeparators.Contains(c)))
-			{
-			}
+            {
+                result.SetStage(5);
+                result[5] = sb.ToString();
+            }
 			else TranslateStageFive(sb, result);
 			TranslateStageSix(sb, usefulEntriesWithProxies, result);
 			TranslateStageSeven(sb, result);
