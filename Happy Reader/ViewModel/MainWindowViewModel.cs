@@ -184,7 +184,7 @@ namespace Happy_Reader.ViewModel
                 Logger.ToDebug($"[{nameof(MainWindowViewModel)}] Starting exit procedures...");
                 //we save user game to variable to be used in try block, because HookedProcessOnExited will set the property to null
                 var userGame = UserGame;
-                if (userGame?.GameHookSettings.IsHooked ?? false) HookedProcessOnExited(sender, args);
+                if (userGame?.GameHookSettings.IsHooked ?? false) HookedProcessOnExited(userGame, args);
                 IthViewModel.Dispose();
                 try
                 {
