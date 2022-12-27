@@ -12,22 +12,23 @@
 - **show if translation was cached or not and give option to re-fetch (in progress) **
 - list entries used per stage.
 #### Text Hooking
-- let user name threads and delete saved
+- let user name threads
 - VnrHook: handle maximum threads either change limit or reset ability
 - look at global hooks for changing ITHVNR settings via global hotkeys [GlobalMouseKeyHook](https://github.com/gmamaladze/globalmousekeyhook)
 #### Output Window
 - alternate colors between blocks
 #### User Games
 - see details should change to correct user game tab when multiple user games for one vn
-- allow keeping time played for multiple games/allow process monitor to keep running always/make process monitor only have one instance
+- allow process monitor to keep running always/make process monitor only have one instance- 
+- Option to stop monitor
 ##### Entries
 - Implement priority
 - Change Series-specific to dropdown (none,title,series, producer?)
+- Add text search
 ##### DatabaseDumpReader
 - Parallelise?
 - Run RSync while processing database dump, after downloading files
 #### Other
-- Option to stop monitor
 - **Add screenshots to basic guide** (In progress, text hooking done)
 - Producer Tab: charts for popularity
 - Database: Sort By and show english release date

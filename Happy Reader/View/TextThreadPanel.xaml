@@ -13,7 +13,7 @@
 				<RowDefinition Height="*"/>
 			</Grid.RowDefinitions>
 			<TextBlock Grid.Row="0" Text="{Binding DisplayName}" Margin="5,2,434,0"/>
-			<CheckBox Grid.Row="0" Content="Display" Margin="0,0,366,0" IsChecked="{Binding IsDisplay, Mode=TwoWay}" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="63" Checked="DisplayToggled" Unchecked="DisplayToggled"/>
+			<CheckBox Grid.Row="0" Content="Display" Margin="0,0,366,0" IsChecked="{Binding IsDisplay, Mode=TwoWay}" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="63"/>
 			<CheckBox Grid.Row="0" Content="Posting" Margin="0,0,298,0" IsChecked="{Binding IsPosting, Mode=TwoWay}" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="63" IsEnabled="{Binding IsSystem, Converter={StaticResource BooleanInverter}}"/>
 			<CheckBox Grid.Row="0" Content="Paused" Margin="0,0,230,0" IsChecked="{Binding IsPaused, Mode=TwoWay}" VerticalContentAlignment="Center" HorizontalAlignment="Right" Width="63" IsEnabled="{Binding IsSystem, Converter={StaticResource BooleanInverter}}"/>
 			<Button Grid.Row="0" Content="Stop/Hide" Margin="0,0,103,0" HorizontalAlignment="Right" Click="StopHideThread" IsEnabled="{Binding IsSystem, Converter={StaticResource BooleanInverter}}"/>
@@ -27,7 +27,7 @@
 					</Style>
 				</ComboBox.ItemContainerStyle>
 			</ComboBox>
-			<TextBox Grid.Row="1" x:Name="MainTextBox" Text="{Binding Text, Mode=OneWay}" Margin="5" IsReadOnly="True" TextWrapping="Wrap" 
+			<TextBox Grid.Row="1" x:Name="MainTextBox" Text="{Binding Text, Mode=OneWay}" Margin="5" IsReadOnly="True" TextWrapping="Wrap" Visibility="{Binding IsDisplay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=C}"
 			         VerticalScrollBarVisibility="Auto" TextChanged="MainTextBox_OnTextChanged" Background="Transparent" MouseMove="OnMouseover"  MouseLeave="OnMouseLeave" MaxHeight="300"/>
 		</Grid>
 	</Border>

@@ -37,18 +37,11 @@ namespace Happy_Reader.View
 			if (ViewModel.IsDisplay) MainTextBox.ScrollToEnd();
 		}
 		
-		private void DisplayToggled(object sender, RoutedEventArgs e)
-		{
-			MainTextBox.Visibility = ViewModel.IsDisplay ? Visibility.Visible : Visibility.Collapsed;
-			if (ViewModel.IsDisplay) ViewModel.OnPropertyChanged(nameof(ViewModel.Text));
-		}
-
 		private void StopHideThread(object sender, RoutedEventArgs e)
 		{
 			ViewModel.IsDisplay = false;
 			ViewModel.IsPosting = false;
 			ViewModel.IsPaused = true;
-			DisplayToggled(sender, e);
 		}
 
 		private void SaveHookCode(object sender, RoutedEventArgs e) => _ithViewModel.SaveHookCode(ViewModel);

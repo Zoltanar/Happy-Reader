@@ -77,6 +77,7 @@
 			<Button Margin="2" Content="Toggle Post Others" Command="{Binding TogglePostOthersCommand}"/>
 			<Button Margin="2" Content="Toggle Pause Others"      Command="{Binding TogglePauseOthersCommand}" />
 			<Button Margin="2" Content="Clear Others"      Command="{Binding ClearOtherThreadsCommand}"/>
+			<Button Margin="2" Content="Stop/Hide Others" Command="{Binding StopHideOthersCommand}"/>
 			<ToggleButton Margin="2" Name="DeleteSavedThreadsButton" Click="DeleteSavedThreads" ToolTip="Deletes saved options for text threads previously encountered." Content="Delete Saved Threads" Style="{StaticResource GeneralToggleStyle}"/>
 			<ToggleButton Margin="2" Content="Mute on Minimise" ToolTip="Automatically mute game when minimised, and unmute when restored" Style="{StaticResource GeneralToggleStyle}" IsChecked="{Binding MuteOnMinimise}" />
 		</UniformGrid>
