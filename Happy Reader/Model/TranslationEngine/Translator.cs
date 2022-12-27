@@ -20,7 +20,7 @@ namespace Happy_Reader.TranslationEngine
 		private static readonly Regex Stage4P1InputRegex = new(@"\[\[([^];]+?)]]", RegexOptions.Compiled);
 		private static readonly Regex Stage4P1OutputRegex = new(@"^.*?\[\[([^];]+)]].*?$", RegexOptions.Compiled);
 		private static readonly Regex RemoveNewLineRegex = new(@"[\r\n]", RegexOptions.Compiled);
-		public static readonly Regex LatinOnlyRegex = new(@"^[a-zA-Z0-9:+|\-[\]\/\\\r\n .!?,;@()_$^""]+$", RegexOptions.Compiled);
+		public static readonly Regex LatinOnlyRegex = new(@"^[a-zA-Z0-9:+|\-[\]\/\\\r\n\s.!?,;@()_$^""]+$", RegexOptions.Compiled);
 		private readonly HappyReaderDatabase _data;
 		private readonly TranslatorSettings _settings;
 		private User _lastUser;

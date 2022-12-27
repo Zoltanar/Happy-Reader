@@ -43,7 +43,7 @@ namespace Happy_Reader
 			var originalSb = new StringBuilder(original);
 			Translator.Instance.TranslateStageOne(originalSb, stageOneResult);
 			Original = originalSb.ToString();
-			var romajiSb1 = new StringBuilder(original);
+			var romajiSb1 = new StringBuilder(Original);
 			Translator.Instance.GetRomajiFiltered(romajiSb1, stageOneResult);
 			Romaji = romajiSb1.ToString();
 			_entriesUsedStageOne.AddRange(stageOneResult.EntriesUsed.SelectMany(i => i));
