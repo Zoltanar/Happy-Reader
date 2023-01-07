@@ -181,7 +181,7 @@ namespace Happy_Reader.ViewModel
             {
                 if (_finalizing) return;
                 var exitWatch = Stopwatch.StartNew();
-                Logger.ToDebug($"[{nameof(MainWindowViewModel)}] Starting exit procedures...");
+                Logger.ToFile($"[{nameof(MainWindowViewModel)}] Starting exit procedures...");
                 //we save user game to variable to be used in try block, because HookedProcessOnExited will set the property to null
                 var userGame = UserGame;
                 if (userGame?.GameHookSettings.IsHooked ?? false) HookedProcessOnExited(userGame, args);
@@ -199,13 +199,14 @@ namespace Happy_Reader.ViewModel
                     Logger.ToFile(ex);
                 }
                 _finalizing = true;
-                Logger.ToDebug($"[{nameof(MainWindowViewModel)}] Completed exit procedures, took {exitWatch.Elapsed}");
+                Logger.ToFile($"[{nameof(MainWindowViewModel)}] Completed exit procedures, took {exitWatch.Elapsed}");
             }
         }
 
         public async Task Initialize(Stopwatch watch, bool initialiseEntries, bool logVerbose)
         {
             StaticHelpers.Logger.LogVerbose = logVerbose;
+            StaticHelpers.Logger.ToFile("Starting application...");
             Directory.CreateDirectory(StaticMethods.UserGameIconsFolder);
             await Task.Run(() =>
             {

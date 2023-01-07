@@ -178,13 +178,13 @@ namespace Happy_Reader.View
 
         public void ShowLogNotification([NotNull] Log message)
         {
-            StaticHelpers.Logger.ToDebug($"Notification - {message.Kind} - {message}");
+            StaticHelpers.Logger.ToFile($"Notification - {message.Kind} - {message}");
             NotificationWindow.Launch(message);
         }
 
         public void ShowNotification(object sender, [NotNull] string message, string title, bool showInWindow)
         {
-            StaticHelpers.Logger.ToDebug($"Notification - {title} - {message}");
+            StaticHelpers.Logger.ToFile($"Notification - {title} - {message}");
             NotificationWindow.Launch(title, message, showInWindow);
         }
         
@@ -288,7 +288,7 @@ namespace Happy_Reader.View
 
         private void AddTabItem(HeaderedContentControl tabItem, BindingBase headerBinding, bool select)
         {
-            var background = StaticMethods.GetTabHeaderBackgroundAndSaveTab(tabItem.Content, null);
+            var background = StaticMethods.GetTabHeaderBackgroundAndSaveTab(tabItem.Content, SavedData.Tabs);
             tabItem.Tag = tabItem.DataContext;
             tabItem.HorizontalAlignment = HorizontalAlignment.Stretch;
             tabItem.VerticalAlignment = VerticalAlignment.Stretch;
@@ -303,7 +303,12 @@ namespace Happy_Reader.View
 
         private void MainWindow_OnClosing(object sender, CancelEventArgs e)
         {
-            if (_finalized) return;
+            if (_finalized)
+            {
+                ViewModel?.ExitProcedures(this, null);
+                SaveTabsToFile();
+                return;
+            }
             e.Cancel = true;
             Hide();
         }
@@ -314,8 +319,6 @@ namespace Happy_Reader.View
             _finalizing = true;
             Hide();
             _trayIcon.Visible = false;
-            ViewModel.ExitProcedures(this, null);
-            SaveTabsToFile();
             _finalized = true;
             Close();
         }

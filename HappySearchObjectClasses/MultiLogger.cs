@@ -27,7 +27,7 @@ namespace Happy_Apps_Core
 					timePassedString = $" ({ts,7})";
 				}
 				_previousLogTime = dt;
-				var timeString = $"[{dt,-12:hh:mm:ss:fff}{timePassedString}] ";
+				var timeString = $"[{dt,-12:HH:mm:ss:fff}{timePassedString}] ";
 				return timeString;
 			}
 		}
