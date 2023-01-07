@@ -62,6 +62,7 @@ namespace Happy_Reader.View.Tabs
 
 		public void LoadTranslationPlugins(IEnumerable<ITranslator> translators)
 		{
+			bool anyAdded = false;
 			foreach (var translator in translators)
 			{
 				if (translator.Properties.Count == 0) continue;
@@ -70,6 +71,12 @@ namespace Happy_Reader.View.Tabs
 				var header = $"{translator.SourceName} ({translator.Version})";
 				var groupBox = new GroupBox { Header = header, Content = settingsPanel };
 				PluginSettingsPanel.Children.Add(groupBox);
+				anyAdded = true;
+			}
+			if (!anyAdded)
+			{
+				var label = new Label() { Content = "No translators found." };
+				PluginSettingsPanel.Children.Add(label);
 			}
 		}
 
@@ -86,7 +93,6 @@ namespace Happy_Reader.View.Tabs
 			grid.Children.Add(valueControl);
 			return grid;
 		}
-
 
 		private FrameworkElement CreateControlForType(Action<string, object> action, string header, Type type, object value)
 		{
@@ -147,7 +153,6 @@ namespace Happy_Reader.View.Tabs
 			var regex = new System.Text.RegularExpressions.Regex("[^0-9]+");
 			e.Handled = regex.IsMatch(e.Text);
 		}
-
 
 		private void OnDecimalVoteToggle(object sender, RoutedEventArgs e)
 		{

@@ -15,9 +15,17 @@
 			<Setter Property="Foreground" Value="White"/>
 			<Setter Property="BorderThickness" Value="1"/>
 			<Setter Property="Margin" Value="5"/>
+			<Setter Property="Background" Value="DimGray"/>
+		</Style>
+		<Style TargetType="TabItem">
+			<Setter Property="BorderThickness" Value="1"/>
+			<Setter Property="Margin" Value="0"/>
+			<Setter Property="Background" Value="LightGray"/>
+		</Style>
+		<Style TargetType="StackPanel">
+			<Setter Property="Background" Value="DimGray"/>
 		</Style>
 	</UserControl.Resources>
-	<ScrollViewer VerticalScrollBarVisibility="Auto">
 	<Grid Background="DimGray">
 		<Grid.Style>
 			<Style TargetType="Grid">
@@ -35,7 +43,8 @@
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
-		<GroupBox Header="Core Settings" Grid.Row="0" DataContext="{Binding CoreSettings}">
+		<TabControl TabStripPlacement="Top">
+			<TabItem Header="Core Settings" DataContext="{Binding CoreSettings}">
 			<StackPanel>
 				<view:LabeledTextBox LabelWidth="120" Label="UserID:" Text="{Binding UserID}"/>
 				<view:LabeledTextBox LabelWidth="120" Label="Username:" Text="{Binding Username}"/>
@@ -71,9 +80,9 @@
 					</StackPanel>
 				</Grid>
 			</StackPanel>
-		</GroupBox>
-		<GroupBox Grid.Row="1" Header="Interface Settings" DataContext="{Binding GuiSettings}">
-			<StackPanel>
+		</TabItem>
+			<TabItem Header="Interface Settings" DataContext="{Binding GuiSettings}">
+			<StackPanel Background="DimGray">
 				<CheckBox Content="Show Content Tags" IsChecked="{Binding ContentTags}"/>
 				<CheckBox Content="Show Sexual Tags" IsChecked="{Binding SexualTags}"/>
 				<CheckBox Content="Show Technical Tags" IsChecked="{Binding TechnicalTags}"/>
@@ -125,9 +134,9 @@
 						</UniformGrid>
 					</GroupBox>
 				</StackPanel>
-		</GroupBox>
-		<GroupBox Header="Translation Settings" Grid.Row="2" DataContext="{Binding TranslatorSettings}">
-				<StackPanel x:Name="PluginSettingsPanel">
+			</TabItem>
+			<TabItem Header="Translation Settings" DataContext="{Binding TranslatorSettings}">
+				<StackPanel>
 					<CheckBox Content="Capture Clipboard" IsChecked="{Binding CaptureClipboard}" ToolTip="Capture text in clipboard and post it in Output Window"/>
 					<CheckBox Content="Copy Input to Clipboard" 
 					          IsChecked="{Binding DataContext.IthVnrSettings.ClipboardFlag, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
@@ -180,7 +189,13 @@
 				<CheckBox Content="Show Tags on Mouse-over Dictionary" IsChecked="{Binding ShowTagsOnMouseover}" ToolTip="Include tag information in mouse-over tool tip."/>
 				<CheckBox Content="Show Separator in Output" IsChecked="{Binding UseSeparator}" ToolTip="Include a separator in between text in output window."/>
 			</StackPanel>
-		</GroupBox>
-		</Grid>
-	</ScrollViewer>
+			</TabItem>
+			<TabItem Header="Translators">
+				<ScrollViewer VerticalScrollBarVisibility="Auto">
+				<StackPanel x:Name="PluginSettingsPanel">
+				</StackPanel>
+				</ScrollViewer>
+			</TabItem>
+		</TabControl>
+	</Grid>
 </UserControl>

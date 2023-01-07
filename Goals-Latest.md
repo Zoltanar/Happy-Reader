@@ -5,11 +5,11 @@
 - option to do this automatically: remove translations from cache if not used recently or originally cached too long ago.
 - apply translate stage 4 to pre-romaji
 - allow multiple translators at the same time
-- Romaji: Create own romaji engine using JMDict (missing deinflections).
+- Romaji: Create own romaji engine using JMDict **(missing deinflections)**.
 #### Filters
 - set default filter (different from permanent filter)
 #### Test Tab
-- **show if translation was cached or not and give option to re-fetch (in progress) **
+- **~~show if translation was cached or not~~ and give option to re-fetch (in progress)**
 - list entries used per stage.
 #### Text Hooking
 - let user name threads
