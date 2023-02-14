@@ -148,6 +148,7 @@
     <Compile Include="Database\Log.cs" />
     <Compile Include="Model\ImportUserGame.cs" />
     <Compile Include="Model\JMDict.cs" />
+    <Compile Include="Model\TranslationEngine\Deinflection.cs" />
     <Compile Include="Model\TranslationEngine\Proxies.cs" />
     <Compile Include="Model\TranslationEngine\Romaji.cs" />
     <Compile Include="Model\VnFilters\CustomFilter.cs" />
