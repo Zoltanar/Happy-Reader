@@ -147,7 +147,13 @@
 				           Background="{Binding DatabaseViewModel.VndbConnectionBackground, Mode=OneWay}" 
 				           Text="{Binding DatabaseViewModel.VndbConnectionStatus, Mode=OneWay}" 
 				           TextAlignment="Center" TextWrapping="Wrap"
-				           ToolTip="VNDB API Connection Status"/>
+				           ToolTip="VNDB API Connection Status">
+				<TextBlock.ContextMenu>
+					<ContextMenu>
+						<MenuItem IsCheckable="True" IsChecked="{Binding SettingsViewModel.GuiSettings.DisplayApiLogTab}" Click="OpenApiLogTab" Header="Display API Log Tab"/>
+					</ContextMenu>
+				</TextBlock.ContextMenu>
+			</TextBlock>
 			<Button Grid.Column="2" Content="❌" Background="Gray" Foreground="White" Click="CloseTabsClick" ToolTip="Close all Tabs"/>
 			<Label Grid.Column="3" Foreground="Black" Content="{Binding DisplayUser}" Padding="5,0,25,0" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"/>
 			<tiles:UserGameTile Grid.Column="4" Padding="5,0" Margin="0" 

@@ -383,5 +383,12 @@ namespace Happy_Reader.View
             ApiStatusColumn.Width = new GridLength(show.Value ? 62 : 82);
             CloseTabButtonColumn.Width = new GridLength(show.Value ? 20 : 0);
         }
+
+        private void OpenApiLogTab(object sender, RoutedEventArgs e)
+        {
+            var menuItem = (System.Windows.Controls.MenuItem)sender;
+            if (menuItem.IsChecked) SelectTab(typeof(ApiLogViewModel));
+            else SelectTab(typeof(UserGamesViewModel));
+        }
     }
 }
