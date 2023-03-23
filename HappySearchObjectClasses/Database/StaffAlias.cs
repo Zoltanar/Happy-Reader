@@ -52,8 +52,8 @@ namespace Happy_Apps_Core.Database
 		{
 			StaffID = Convert.ToInt32(GetPart(parts, "id").Substring(1));
 			AliasID = Convert.ToInt32(GetPart(parts, "aid"));
-			Name = GetPart(parts, "name");
-			Original = GetPart(parts, "original");
+			Name = GetPart(parts, "latin");
+			Original = GetPart(parts, "name");
 		}
 
 		public void SetDumpHeaders(string[] parts)

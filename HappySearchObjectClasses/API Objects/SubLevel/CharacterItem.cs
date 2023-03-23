@@ -110,8 +110,8 @@ namespace Happy_Apps_Core
 		public void LoadFromStringParts(string[] parts)
 		{
 			ID = Convert.ToInt32(GetPart(parts, "id").Substring(1));
-			Name = GetPart(parts, "name");
-			Original = GetPart(parts, "original");
+			Name = GetPart(parts, "latin");
+			Original = GetPart(parts, "name");
 			Aliases = GetPart(parts, "alias");
 			var imageId = GetPart(parts, "image");
 			ImageId = imageId == "\\N" ? null : imageId;
