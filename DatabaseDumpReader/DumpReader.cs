@@ -258,10 +258,9 @@ namespace DatabaseDumpReader
             });
         }
 
-        private void Load<T>(Action<T, SQLiteTransaction> addToList, string filePath, bool useHeaderFile = true) where T : IDumpItem, new()
+        private void Load<T>(Action<T, SQLiteTransaction> addToList, string filePath, bool useHeaderFile = true) where T : DumpItem, new()
         {
             StaticHelpers.Logger.ToFile($"Loading for {typeof(T).Name}...");
-            var lines = File.ReadAllLines(Path.Combine(DumpFolder, filePath));
 #if DEBUG
             try
             {
@@ -271,7 +270,8 @@ namespace DatabaseDumpReader
                     : string.Empty).Split('\t'));
                 WrapInTransaction(trans =>
                 {
-                    foreach (var line in lines)
+                    using var file = new StreamReader(File.Open(Path.Combine(DumpFolder, filePath), FileMode.Open));
+                    while (file.ReadLine() is string line)
                     {
                         Debug.Assert(line != null, nameof(line) + " != null");
                         var parts = line.Split('\t');
