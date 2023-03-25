@@ -7,7 +7,7 @@ using Happy_Apps_Core.DataAccess;
 
 namespace Happy_Apps_Core.Database
 {
-	public sealed class CharacterVN : IDataItem<(int, int)>, IDataListItem<int>, IDumpItem
+	public sealed class CharacterVN : DumpItem, IDataItem<(int, int)>, IDataListItem<int>
 	{
 		public int CharacterId { get; set; }
 		public int RId { get; set; }
@@ -17,18 +17,8 @@ namespace Happy_Apps_Core.Database
 		public int VNId { get; set; }
 
 		public override string ToString() => $"[CID: {CharacterId}, VNID: {VNId}]";
-
-		public static Dictionary<string, int> Headers = new();
-
-		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
-
-		public void SetDumpHeaders(string[] parts)
-		{
-			int colIndex = 0;
-			Headers = parts.ToDictionary(c => c, _ => colIndex++);
-		}
-
-		public void LoadFromStringParts(string[] parts)
+		
+		public override void LoadFromStringParts(string[] parts)
 		{
 			CharacterId = Convert.ToInt32(GetPart(parts, "id").Substring(1));
 			VNId = Convert.ToInt32(GetPart(parts, "vid").Substring(1));

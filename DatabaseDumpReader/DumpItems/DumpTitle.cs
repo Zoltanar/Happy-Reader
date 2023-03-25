@@ -6,9 +6,9 @@ using Happy_Apps_Core.Database;
 
 namespace DatabaseDumpReader.DumpItems
 {
-	public class DumpTitle : IDumpItem
+	public class DumpTitle : DumpItem
 	{
-		public void LoadFromStringParts(string[] parts)
+		public override void LoadFromStringParts(string[] parts)
 		{
 			VNId = Convert.ToInt32(GetPart(parts, "id").Substring(1));
 			Lang = GetPart(parts, "lang");
@@ -17,16 +17,6 @@ namespace DatabaseDumpReader.DumpItems
 			Latin = GetPart(parts, "latin");
 			if (Latin == "\\N") Latin = null;
 			Official = GetPart(parts, "official") == "t";
-		}
-
-		public static Dictionary<string, int> Headers = new Dictionary<string, int>();
-
-		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
-
-		public void SetDumpHeaders(string[] parts)
-		{
-			int colIndex = 0;
-			Headers = parts.ToDictionary(c => c, _ => colIndex++);
 		}
 		
 		public int VNId { get; set; }

@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Linq;
 using Happy_Apps_Core.DataAccess;
 
 namespace Happy_Apps_Core.Database
 {
-	public class VnStaff : IDataItem<(int, int, string)>, IDumpItem
+	public class VnStaff : DumpItem, IDataItem<(int, int, string)>
 	{
 		public int VNID { get; set; }
 		public int AliasID { get; set; }
@@ -17,7 +15,6 @@ namespace Happy_Apps_Core.Database
 
 		public string KeyField => "(VNID,AliasID, Role)";
 		public (int, int, string) Key => (VNID, AliasID, Role);
-		public static Dictionary<string, int> Headers { get; set; }
 
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
 		{
@@ -49,7 +46,7 @@ namespace Happy_Apps_Core.Database
 			}
 		}
 
-		public void LoadFromStringParts(string[] parts)
+		public override void LoadFromStringParts(string[] parts)
 		{
 			VNID = Convert.ToInt32(GetPart(parts, "id").Substring(1));
 			AliasID = Convert.ToInt32(GetPart(parts, "aid"));
@@ -57,15 +54,7 @@ namespace Happy_Apps_Core.Database
             Note = GetPart(parts, "note");
             EID = GetPart(parts, "eid");
 		}
-
-		public void SetDumpHeaders(string[] parts)
-		{
-			int colIndex = 0;
-			Headers = parts.ToDictionary(c => c, _ => colIndex++);
-		}
-
-		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
-
+		
 		public string Detail
 		{
 			get

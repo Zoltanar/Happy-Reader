@@ -1,23 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using Happy_Apps_Core.Database;
 
 namespace DatabaseDumpReader.DumpItems
 {
-	public class VnTag : IDumpItem
+	public class VnTag : DumpItem
 	{
-		public static Dictionary<string, int> Headers = new();
-
-		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
-
-		public void SetDumpHeaders(string[] parts)
-		{
-			int colIndex = 0;
-			Headers = parts.ToDictionary(c => c, _ => colIndex++);
-		}
-
-		public int TagId { get; set; }
+        public int TagId { get; set; }
 
 		public int VnId { get; set; }
 
@@ -27,7 +15,7 @@ namespace DatabaseDumpReader.DumpItems
 
 		public bool Ignore { get; set; }
 
-		public void LoadFromStringParts(string[] parts)
+		public override void LoadFromStringParts(string[] parts)
 		{
 			TagId = Convert.ToInt32(GetPart(parts, "tag").Substring(1));
 			VnId = Convert.ToInt32(GetPart(parts, "vid").Substring(1));

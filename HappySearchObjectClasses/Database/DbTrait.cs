@@ -10,7 +10,7 @@ namespace Happy_Apps_Core.Database
 	/// <summary>
 	/// Key is (CharacterItemId, TraitId)
 	/// </summary>
-	public sealed class DbTrait : IDataItem<(int, int)>, IDataListItem<int>, IDumpItem
+	public sealed class DbTrait : DumpItem, IDataItem<(int, int)>, IDataListItem<int>
 	{
 		// ReSharper disable once InconsistentNaming
 		public int CharacterItem_Id { get; set; }
@@ -53,21 +53,11 @@ namespace Happy_Apps_Core.Database
 		}
 		#endregion
 
-		public void LoadFromStringParts(string[] parts)
+		public override void LoadFromStringParts(string[] parts)
 		{
 			CharacterItem_Id = Convert.ToInt32(GetPart(parts, "id").Substring(1));
 			TraitId = Convert.ToInt32(GetPart(parts, "tid").Substring(1));
 			Spoiler = Convert.ToInt32(GetPart(parts, "spoil"));
 		}
-
-		public static Dictionary<string, int> Headers = new();
-
-		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
-
-		public void SetDumpHeaders(string[] parts)
-		{
-			int colIndex = 0;
-			Headers = parts.ToDictionary(c => c, _ => colIndex++);
-		}
-	}
+    }
 }

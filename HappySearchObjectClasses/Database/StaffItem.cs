@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Linq;
 using Happy_Apps_Core.DataAccess;
 
 namespace Happy_Apps_Core.Database
 {
-	public class StaffItem : IDataItem<int>, IDumpItem
+	public class StaffItem : DumpItem, IDataItem<int>
 	{
 		public int ID { get; set; }
 		public int AliasID { get; set; }
@@ -17,7 +15,6 @@ namespace Happy_Apps_Core.Database
 
 		public string KeyField => nameof(ID);
 		public int Key => ID;
-		public static Dictionary<string, int> Headers { get; set; }
 
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
 		{
@@ -51,7 +48,7 @@ namespace Happy_Apps_Core.Database
 			}
 		}
 
-		public void LoadFromStringParts(string[] parts)
+		public override void LoadFromStringParts(string[] parts)
 		{
 			ID = Convert.ToInt32(GetPart(parts, "id").Substring(1));
 			AliasID = Convert.ToInt32(GetPart(parts, "aid"));
@@ -59,13 +56,5 @@ namespace Happy_Apps_Core.Database
 			Language = GetPart(parts, "lang");
 			Description = GetPart(parts, "desc");
 		}
-
-		public void SetDumpHeaders(string[] parts)
-		{
-			int colIndex = 0;
-			Headers = parts.ToDictionary(c => c, _ => colIndex++);
-		}
-
-		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
 	}
 }

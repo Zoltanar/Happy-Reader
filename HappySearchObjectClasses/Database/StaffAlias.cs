@@ -7,7 +7,7 @@ using Happy_Apps_Core.DataAccess;
 
 namespace Happy_Apps_Core.Database
 {
-	public class StaffAlias : IDataItem<int>, IDumpItem
+	public class StaffAlias : DumpItem,  IDataItem<int>
 	{
 		public int StaffID { get; set; }
 		public int AliasID { get; set; }
@@ -16,7 +16,6 @@ namespace Happy_Apps_Core.Database
 
 		public string KeyField => nameof(AliasID);
 		public int Key => AliasID;
-		public static Dictionary<string, int> Headers { get; set; }
 
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
 		{
@@ -48,22 +47,14 @@ namespace Happy_Apps_Core.Database
 			}
 		}
 
-		public void LoadFromStringParts(string[] parts)
+		public override void LoadFromStringParts(string[] parts)
 		{
 			StaffID = Convert.ToInt32(GetPart(parts, "id").Substring(1));
 			AliasID = Convert.ToInt32(GetPart(parts, "aid"));
 			Name = GetPart(parts, "latin");
 			Original = GetPart(parts, "name");
 		}
-
-		public void SetDumpHeaders(string[] parts)
-		{
-			int colIndex = 0;
-			Headers = parts.ToDictionary(c => c, _ => colIndex++);
-		}
-
-		public string GetPart(string[] parts, string columnName) => parts[Headers[columnName]];
-
+		
 		public override string ToString()
 		{
 			var original = string.IsNullOrWhiteSpace(Original) ? "" : $" ({Original})";

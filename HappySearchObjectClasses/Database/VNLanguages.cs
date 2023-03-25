@@ -56,22 +56,11 @@ namespace Happy_Apps_Core.Database
 		}
 	}
 
-	public class LangRelease : IDumpItem
+	public class LangRelease : DumpItem
 	{
-		private static Dictionary<string, int> _headers = new();
-
 		private bool? _hasFullDate;
 		private string _releaseDateString;
-
-		public string GetPart(string[] parts, string columnName) => parts[_headers[columnName]];
-
-		public void SetDumpHeaders(string[] parts)
-		{
-			int colIndex = 0;
-			_headers = parts.ToDictionary(c => c, _ => colIndex++);
-		}
-
-		public void LoadFromStringParts(string[] parts)
+		public override void LoadFromStringParts(string[] parts)
 		{
 			ReleaseId = Convert.ToInt32(GetPart(parts, "id").Substring(1));
 			Lang = GetPart(parts, "lang");
