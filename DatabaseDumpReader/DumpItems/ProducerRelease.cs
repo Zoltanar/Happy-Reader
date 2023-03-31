@@ -1,61 +1,53 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using Happy_Apps_Core.Database;
 
-namespace DatabaseDumpReader.DumpItems
+namespace DatabaseDumpReader.DumpItems;
+
+/// <summary>
+/// File: releases
+/// </summary>
+public class Release : DumpItem
 {
-	/// <summary>
-	/// File: releases
-	/// </summary>
-	public class Release : DumpItem
-	{
-		public int ReleaseId { get; set; }
-		public string Released { get; set; }
-		public string Website { get; set; }
-		public List<LangRelease> Languages { get; set; }
-		public List<int> Producers { get; set; }
+    public int ReleaseId { get; set; }
+    public string Released { get; set; }
+    public string Website { get; set; }
+    public List<LangRelease> Languages { get; set; }
+    public List<int> Producers { get; set; }
 
-		public override void LoadFromStringParts(string[] parts)
-		{
-			ReleaseId = Convert.ToInt32(GetPart(parts, "id").Substring(1));
-			Released = GetPart(parts, "released");
-			Website = GetPart(parts, "website");
-		}
-	}
+    public override void LoadFromStringParts(string[] parts)
+    {
+        ReleaseId = GetInteger(parts, "id", 1);
+        Released = GetPart(parts, "released");
+        Website = GetPart(parts, "website");
+    }
+}
 
-	public class ProducerRelease : DumpItem
-	{
-		public bool Developer { get; set; }
+public class ProducerRelease : DumpItem
+{
+    public bool Developer { get; set; }
+    //public bool Publisher { get; set; }
+    public int ProducerId { get; set; }
+    public int ReleaseId { get; set; }
 
-		public bool Publisher { get; set; }
+    public override void LoadFromStringParts(string[] parts)
+    {
+        ReleaseId = GetInteger(parts, "id", 1);
+        ProducerId = GetInteger(parts, "pid", 1);
+        Developer = GetBoolean(parts, "developer");
+        //Publisher = GetBoolean(parts, "publisher");
+    }
+}
 
-		public int ProducerId { get; set; }
+public class VnRelease : DumpItem
+{
+    public override void LoadFromStringParts(string[] parts)
+    {
+        ReleaseId = GetInteger(parts, "id", 1);
+        VnId = GetInteger(parts, "vid", 1);
+        ReleaseType = GetPart(parts, "rtype");
+    }
 
-		public int ReleaseId { get; set; }
-
-		public override void LoadFromStringParts(string[] parts)
-		{
-			ReleaseId = Convert.ToInt32(GetPart(parts, "id").Substring(1));
-			ProducerId = Convert.ToInt32(GetPart(parts, "pid").Substring(1));
-			Developer = GetPart(parts, "developer") == "t";
-			Publisher = GetPart(parts, "publisher") == "t";
-		}
-	}
-
-	public class VnRelease : DumpItem
-	{
-        public override void LoadFromStringParts(string[] parts)
-		{
-			ReleaseId = Convert.ToInt32(GetPart(parts, "id").Substring(1));
-			VnId = Convert.ToInt32(GetPart(parts, "vid").Substring(1));
-			ReleaseType = GetPart(parts, "rtype");
-		}
-
-		public int VnId { get; set; }
-
-		public int ReleaseId { get; set; }
-
-		public string ReleaseType { get; set; }
-	}
+    public int VnId { get; set; }
+    public int ReleaseId { get; set; }
+    public string ReleaseType { get; set; }
 }

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using Happy_Apps_Core.Database;
+﻿using Happy_Apps_Core.Database;
 
 namespace DatabaseDumpReader.DumpItems
 {
@@ -10,13 +6,11 @@ namespace DatabaseDumpReader.DumpItems
 	{
 		public override void LoadFromStringParts(string[] parts)
 		{
-			VNId = Convert.ToInt32(GetPart(parts, "id").Substring(1));
+			VNId = GetInteger(parts, "id",1);
 			Lang = GetPart(parts, "lang");
-			Title = GetPart(parts, "title");
-			if (Title == "\\N") Title = null;
-			Latin = GetPart(parts, "latin");
-			if (Latin == "\\N") Latin = null;
-			Official = GetPart(parts, "official") == "t";
+			Title = GetPartOrNull(parts, "title");
+			Latin = GetPartOrNull(parts, "latin");
+			Official = GetBoolean(parts, "official");
 		}
 		
 		public int VNId { get; set; }
