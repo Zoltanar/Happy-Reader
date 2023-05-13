@@ -409,7 +409,7 @@ namespace Happy_Reader.ViewModel
         {
             try
             {
-                var userGame = RunningGames.FirstOrDefault(g=>g.Process?.Id == e.TextThread.ProcessId);
+                var userGame = RunningGames.FirstOrDefault(g=> e.FromClipboard || g.Process?.Id == e.TextThread.ProcessId);
                 var outputWindow = userGame?.OutputWindow;
                 if (TranslatePaused) return false;
                 if (userGame == null || outputWindow == null) return false;
