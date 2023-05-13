@@ -114,7 +114,7 @@
     <Compile Include="ApiQuery.cs" />
     <Compile Include="CoreSettings.cs" />
     <Compile Include="Database\DatabaseTableBuilder.cs" />
-    <Compile Include="Database\IDumpItem.cs" />
+    <Compile Include="Database\DumpItem.cs" />
     <Compile Include="Database\LengthFilterEnum.cs" />
     <Compile Include="Database\ListedProducer.cs" />
     <Compile Include="Database\DbTag.cs" />

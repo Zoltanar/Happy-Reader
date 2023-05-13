@@ -352,7 +352,7 @@ public class ListedVN : DumpItem, INotifyPropertyChanged, IDataItem<int>
             var length = GetPartOrNull(parts, "length");
             LengthTime = length == null ? null : (LengthFilterEnum)Convert.ToInt32(length);
             ImageId = GetPartOrNull(parts, "image");
-            Description = GetPart(parts, "desc");
+            Description = GetPart(parts, "description");
             //Popularity = Convert.ToDouble(reader["Popularity"]);
             //Languages = Convert.ToString(reader["Languages"]);
             //DateFullyUpdated = DateTime.UtcNow; ;

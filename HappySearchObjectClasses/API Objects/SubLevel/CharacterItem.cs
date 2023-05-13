@@ -105,7 +105,7 @@ public class CharacterItem : DumpItem, IDataItem<int>, ICloneable, INotifyProper
         Original = firstIsNull ? null : GetPart(parts, "name");
         Aliases = GetPart(parts, "alias");
         ImageId = GetPartOrNull(parts, "image");
-        Description = GetPart(parts, "desc");
+        Description = GetPart(parts, "description");
         Gender = GetPart(parts, "gender");
     }
 

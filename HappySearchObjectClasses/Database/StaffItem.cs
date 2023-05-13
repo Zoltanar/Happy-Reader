@@ -54,6 +54,6 @@ public class StaffItem : DumpItem, IDataItem<int>
         AliasID = GetInteger(parts, "aid");
         Gender = GetPart(parts, "gender");
         Language = GetPart(parts, "lang");
-        Description = GetPart(parts, "desc");
+        Description = GetPart(parts, "description");
     }
 }
