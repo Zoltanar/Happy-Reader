@@ -20,6 +20,9 @@ namespace DatabaseDumpReader
         public VisualNovelDatabase Database { get; }
         public SuggestionScorer SuggestionScorer { get; }
         public Dictionary<int, Release> Releases { get; } = new();
+        /// <summary>
+        /// Key is release id.
+        /// </summary>
         public Dictionary<int, List<LangRelease>> LangReleases { get; } = new();
         public Dictionary<int, List<int>> ProducerReleases { get; } = new();
         public Dictionary<int, List<Release>> VnReleases { get; } = new();
@@ -31,6 +34,7 @@ namespace DatabaseDumpReader
         public Dictionary<int, UserVN.LabelKind> UserLabels { get; } = new();
         public Dictionary<int, UserVn> UserVns { get; } = new();
         public Dictionary<int, List<DumpTitle>> VnTitles { get; } = new();
+        private Dictionary<int, List<LengthVote>> VnLengths { get; } = new();
         public List<VnTag> VnTags { get; } = new();
         public Dictionary<int, List<DumpVote>> Votes { get; private set; }
 
@@ -78,6 +82,11 @@ namespace DatabaseDumpReader
                 if (!VnTitles.ContainsKey(i.VNId)) VnTitles[i.VNId] = new List<DumpTitle>();
                 VnTitles[i.VNId].Add(i);
             }, "db\\vn_titles");
+            Load<LengthVote>((i, _) =>
+            {
+                if (!VnLengths.ContainsKey(i.VNId)) VnLengths[i.VNId] = new List<LengthVote>();
+                if(i.ReleaseIds.Any()) VnLengths[i.VNId].Add(i);
+            }, "db\\vn_length_votes");
             Load<ListedVN>((i, t) =>
             {
                 ResolveOtherForVn(i);
@@ -324,6 +333,7 @@ namespace DatabaseDumpReader
                 if (votes.Count > 0) vn.Rating = votes.Average(v => v.Vote);
             }
 
+            if ((vn.LengthTime?.Equals(LengthFilterEnum.NA) ?? true) && VnLengths.TryGetValue(vn.VNID, out var lengths)) ResolveLength(vn, lengths);
             ResolveRelease();
             ResolveTitle();
             ResolveRelations();
@@ -382,11 +392,35 @@ namespace DatabaseDumpReader
                     vn.Title = string.IsNullOrWhiteSpace(chosen.Latin) ? chosen.Title : chosen.Latin;
                     vn.KanjiTitle = string.IsNullOrWhiteSpace(chosen.Latin) ? null : chosen.Title;
                 }
-                else
-                {
-                    vn.Title = "(No title found)";
-                }
+                else vn.Title = "(No title found)";
             }
+        }
+
+        private void ResolveLength(ListedVN vn, List<LengthVote> lengthVotes)
+        {
+            var completeReleaseLengths = new List<int>();
+            var partialReleaseLengths = new List<int>();
+            foreach (var lengthVote in lengthVotes)
+            {
+                var complete = false;
+                foreach (var release in lengthVote.ReleaseIds)
+                {
+                    if(!LangReleases.TryGetValue(release, out var langReleases)) continue;
+                    if (langReleases.Any(r => !r.Partial)) complete = true;
+                }
+                (complete ? completeReleaseLengths : partialReleaseLengths).Add(lengthVote.Length);
+            }
+            var lengths = completeReleaseLengths.Any() ? completeReleaseLengths : partialReleaseLengths;
+            if (!lengths.Any()) return;
+            var lengthHours = lengths.Average() / 60d;
+            vn.LengthTime = lengthHours switch
+            {
+                < 2 => LengthFilterEnum.UnderTwoHours,
+                < 10 => LengthFilterEnum.TwoToTenHours,
+                < 30 => LengthFilterEnum.TenToThirtyHours,
+                < 50 => LengthFilterEnum.ThirtyToFiftyHours,
+                _ => LengthFilterEnum.OverFiftyHours
+            };
         }
 
         private static string StringToDateString(string released)
