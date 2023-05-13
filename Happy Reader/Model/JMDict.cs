@@ -153,21 +153,32 @@ namespace Happy_Reader
                 index++;
             }
             if (list.Count == 0) return SearchKanji(term);
-            if (UseDeinflections)
-            {
-                var verbs = _dictionaryTerms.Where(d => d.Deinflect && term.StartsWith(d.Text[0].ToString()));
-                foreach (var verb in verbs.GroupBy(v => v.Expression).Select(g => g.First()))
-                {
-                    foreach (var verbDeinflection in _deinflectionEngine.GetDeinflections(verb))
-                    {
-                        if (term.StartsWith(verbDeinflection.Text)) list.Add(verbDeinflection);
-                    }
-                }
-            }
+            if (UseDeinflections) FindDeinflectionsForText(term, list);
             var results = list.OrderByDescending(t => t.Text.Length).ThenByDescending(t => t.Score).ToList();
             return results;
         }
-        
+
+        /// <summary>
+        /// Find deinflections for given text and add any found to term list.
+        /// </summary>
+        private void FindDeinflectionsForText(string text, ICollection<ITerm> termList)
+        {
+            //given a term, get all verbs that start with the same character
+            var verbs = _dictionaryTerms.Where(d => d.Deinflect && text.StartsWith(d.Text[0].ToString()));
+            //get the first verb for each expression
+            foreach (var verb in verbs.GroupBy(v => v.Expression).Select(g => g.First()))
+            {
+                //get deinflections for verb
+                var deinflections = _deinflectionEngine.GetDeinflections(verb);
+                foreach (var verbDeinflection in deinflections)
+                {
+                    if (!text.StartsWith(verbDeinflection.Text)) continue;
+                    verbDeinflection.DictionaryTerm = verb;
+                    termList.Add(verbDeinflection);
+                }
+            }
+        }
+
         public bool SearchOuter(string text, out string result)
         {
             result = null;

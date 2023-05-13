@@ -140,7 +140,7 @@ namespace Happy_Apps_Core.Database
 )");
 		}
 
-		private static void CreateTableDetails(SQLiteConnection connection)
+		public static void CreateTableDetails(SQLiteConnection connection)
 		{
 			ExecuteSql(connection, @"CREATE TABLE `tabledetails` (
 	`Key`	TEXT NOT NULL,

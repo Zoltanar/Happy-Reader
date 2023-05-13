@@ -10,7 +10,6 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using Happy_Apps_Core;
 using Happy_Reader.Database;
-using System.Linq.Expressions;
 using System.Management;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -34,9 +33,10 @@ namespace Happy_Reader
 	public static class StaticMethods
 	{
 		public delegate void NotificationEventHandler(object sender, string message, string title, bool showInWindow);
-		
-		public static readonly string ReaderDatabaseFile = Path.Combine(StaticHelpers.StoredDataFolder, "Happy-Reader.sqlite");
-		public static readonly string ProxiesJson = Path.Combine(StaticHelpers.ProgramDataFolder, "Default Files\\proxies.json");
+
+        public static readonly string ReaderDatabaseFile = Path.Combine(StaticHelpers.StoredDataFolder, "Happy-Reader.sqlite");
+        public static readonly string DeinflectionsDatabaseFile = Path.Combine(StaticHelpers.StoredDataFolder, "Happy-Reader-Deinflections.sqlite");
+        public static readonly string ProxiesJson = Path.Combine(StaticHelpers.ProgramDataFolder, "Default Files\\proxies.json");
 		public static readonly string SavedDataJson = Path.Combine(StaticHelpers.StoredDataFolder, "HR_SavedData.json");
 		public static readonly string AllFiltersJson = Path.Combine(StaticHelpers.StoredDataFolder, "HR_Filters.json");
 		public static readonly string UserGameIconsFolder = Path.Combine(StaticHelpers.StoredDataFolder, "Usergame_Icons\\");
