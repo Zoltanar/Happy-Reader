@@ -308,7 +308,7 @@ namespace Happy_Reader.Database
                 Connection.Close();
             }
         }
-
+        
         public void DeleteGameThreadsForGame(long userGameId)
         {
             var sql = $"DELETE FROM {nameof(GameThread)}s WHERE GameId = @GameId";

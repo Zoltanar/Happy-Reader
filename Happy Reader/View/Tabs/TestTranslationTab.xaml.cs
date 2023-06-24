@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using Happy_Apps_Core.Translation;
 using Happy_Reader.Database;
 using Happy_Reader.ViewModel;
 using JetBrains.Annotations;
@@ -59,16 +60,16 @@ namespace Happy_Reader.View.Tabs
 			_viewModel = (TranslationTester)DataContext;
 		}
 
-		private void ClickDeleteButton(object sender, RoutedEventArgs e)
-		{
-			var button = (Button)sender;
-			var item = (DisplayEntry)button.DataContext;
-			if (item.Id == 0) return;
-			if (item.DeletePrimed) _viewModel.DeleteEntry(item);
-			else item.PrimeDeletion(button);
-		}
-		
-		private void OnMouseover(object sender, MouseEventArgs e)
+        private void ClickDeleteButton(object sender, RoutedEventArgs e)
+        {
+            var button = (Button)sender;
+            var item = (DisplayEntry)button.DataContext;
+            if (item.Id == 0) return;
+            if (item.DeletePrimed) _viewModel.DeleteEntry(item);
+            else item.PrimeDeletion(button);
+        }
+
+        private void OnMouseover(object sender, MouseEventArgs e)
 		{
 			if (!StaticMethods.MainWindow.ViewModel.SettingsViewModel.TranslatorSettings.MouseoverDictionary) return;
 			var mousePoint = Mouse.GetPosition(OriginalTextBox);
@@ -82,5 +83,11 @@ namespace Happy_Reader.View.Tabs
 		{
 			if (_mouseoverTip?.IsOpen ?? false) _mouseoverTip.IsOpen = false;
 		}
-	}
+
+        private void DataGrid_OnCellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+        {
+            if(e.Row.DataContext is not CachedTranslation { Source: CachedTranslation.UserEnteredSource} translation) return;
+            StaticMethods.Data.Translations.Upsert(translation, true);
+        }
+    }
 }

@@ -1,12 +1,16 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
+using System.Runtime.CompilerServices;
 using Happy_Apps_Core.DataAccess;
 
 namespace Happy_Apps_Core.Translation
 {
-	public class CachedTranslation : IDataItem<string>
-	{
+	public class CachedTranslation : IDataItem<string>, INotifyPropertyChanged
+    {
+        public const string UserEnteredSource = "User-entered";
+        private string _output;
 		public CachedTranslation(string input, string output, string source, int? gameId, bool isUserGame)
 		{
 			Input = input;
@@ -25,8 +29,23 @@ namespace Happy_Apps_Core.Translation
 		}
 
 		public string Input { get; private set; }
-		public string Output { get; private set; }
-		/// <summary>
+
+        public string Output
+        {
+            get => _output;
+            set
+            {
+				if(_output == value) return;
+				CreatedAt = DateTime.UtcNow;
+				Timestamp = DateTime.UtcNow;
+                Count = 0;
+                Source = UserEnteredSource;
+				_output	= value;
+                OnPropertyChanged(null);
+            }
+        }
+
+        /// <summary>
 		/// Timestamp of creation
 		/// </summary>
 		public DateTime CreatedAt { get; private set; }
@@ -82,5 +101,12 @@ namespace Happy_Apps_Core.Translation
 			Count++;
 			Timestamp = DateTime.UtcNow;
 		}
-	}
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
 }

@@ -48,7 +48,7 @@ namespace Happy_Reader.ViewModel
         public string Stage5 { get; set; }
         public string Stage6 { get; set; }
         public string Stage7 { get; set; }
-        public PausableUpdateList<CachedTranslation> TranslationsUsed { get; set; } = new();
+        public PausableUpdateList<CachedTranslation> TranslationsUsed { get; set; } = new(i => StaticMethods.Data.Translations.Remove(i, true));
         public EntryGame EntryGame { get; set; } = EntryGame.None;
         public PausableUpdateList<DisplayEntry> EntriesUsed { get; } = new();
 

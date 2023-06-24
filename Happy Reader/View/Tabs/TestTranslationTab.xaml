@@ -55,11 +55,11 @@
 		<TextBox Text="{Binding Stage2}" Grid.Row="0" Grid.Column="2" />
 		<!--<TextBox Text="{Binding Stage3}" Grid.Row="0" Grid.Column="3" />-->
 		<Grid Grid.Row="0" Grid.Column="3">
-			<DataGrid ItemsSource="{Binding TranslationsUsed}" AutoGenerateColumns="False">
+			<DataGrid ItemsSource="{Binding TranslationsUsed}" AutoGenerateColumns="False" CanUserDeleteRows="True" CellEditEnding="DataGrid_OnCellEditEnding" >
 				<DataGrid.Columns>
 					<DataGridTextColumn Header="Count" Binding="{Binding Count, Mode=OneWay}" />
 					<DataGridTextColumn Header="Input" Binding="{Binding Input, Mode=OneWay}" />
-					<DataGridTextColumn Header="Output" Binding="{Binding Output, Mode=OneWay}" />
+					<DataGridTextColumn Header="Output" Binding="{Binding Output, Mode=TwoWay}" />
 					<DataGridTextColumn Header="Created" Binding="{Binding CreatedAt, Mode=OneWay}" />
 					<DataGridTextColumn Header="Source" Binding="{Binding Source, Mode=OneWay}" />
 				</DataGrid.Columns>

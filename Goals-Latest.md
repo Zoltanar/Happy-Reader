@@ -9,7 +9,6 @@
 #### Filters
 - set default filter (different from permanent filter)
 #### Test Tab
-- **~~show if translation was cached or not~~ and give option to re-fetch (in progress)**
 - list entries used per stage.
 #### Text Hooking
 - let user name threads

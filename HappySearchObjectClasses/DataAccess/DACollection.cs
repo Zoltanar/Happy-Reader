@@ -97,9 +97,10 @@ namespace Happy_Apps_Core.DataAccess
 			if (openAndCloseConnection) Conn.Open();
 			try
 			{
-				var sql = $@"Delete from {typeof(TValue).Name}s where {item.KeyField} = {item.Key}";
+				var sql = $@"Delete from {typeof(TValue).Name}s where {item.KeyField} = @Key";
 				using var command = Conn.CreateCommand();
 				command.CommandText = sql;
+				command.AddParameter("@Key",item.Key);
 				var rowsAffected = command.ExecuteNonQuery();
 				result = rowsAffected != 0;
 				if (!result) { }
