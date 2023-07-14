@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.SQLite;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Happy_Apps_Core.DataAccess
 {
@@ -96,11 +97,10 @@ namespace Happy_Apps_Core.DataAccess
 			}
 			if (openAndCloseConnection) Conn.Open();
 			try
-			{
-				var sql = $@"Delete from {typeof(TValue).Name}s where {item.KeyField} = @Key";
+            {
 				using var command = Conn.CreateCommand();
-				command.CommandText = sql;
-				command.AddParameter("@Key",item.Key);
+				command.CommandText = $@"Delete from {typeof(TValue).Name}s ";
+                PopulateKeyClause(command, item);
 				var rowsAffected = command.ExecuteNonQuery();
 				result = rowsAffected != 0;
 				if (!result) { }
@@ -111,8 +111,22 @@ namespace Happy_Apps_Core.DataAccess
 			}
 			return result;
 		}
-		
-		public void Add(TValue item, bool openNewConnection, bool insertOnly = false, SQLiteTransaction transaction = null)
+
+        private void PopulateKeyClause(DbCommand command, TValue item)
+        {
+            if (item.Key is ITuple tuple)
+            {
+                var parameters = string.Join(",", Enumerable.Range(0, tuple.Length).Select(i => $"@Key{i:0}"));
+                command.CommandText += $"where {item.KeyField} = ({parameters});";
+                for (int i = 0; i < tuple.Length; i++) command.AddParameter($"@Key{i:0}", tuple[i]);
+                return;
+            }
+
+            command.CommandText += $"where {item.KeyField} = @Key;";
+			command.AddParameter("@Key", item.Key);
+        }
+
+        public void Add(TValue item, bool openNewConnection, bool insertOnly = false, SQLiteTransaction transaction = null)
 		=> Upsert(item, openNewConnection, insertOnly, transaction);
 
 		/// <summary>
