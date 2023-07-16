@@ -35,6 +35,7 @@ namespace DatabaseDumpReader
 				if (!File.Exists(settingsPath)) throw new FileNotFoundException("Settings File not found.", settingsPath);
 				var dumpFolder = DumpFolder;
 				StaticHelpers.CSettings = SettingsJsonFile.Load<SettingsViewModel>(settingsPath).CoreSettings;
+                StaticHelpers.Logger.LogDatabase = false;
 				result = Run(dumpFolder, StaticHelpers.CSettings.UserID, out downloadWatch, out runWatch);
 				if (result != ExitCode.Error)
 				{

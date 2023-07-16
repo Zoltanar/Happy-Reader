@@ -14,7 +14,9 @@ namespace Happy_Apps_Core
 		
 		public bool LogVerbose { get; set; }
 
-		private static string TimeString
+        public bool LogDatabase { get; set; } = true;
+
+        private static string TimeString
 		{
 			get
 			{
@@ -32,7 +34,7 @@ namespace Happy_Apps_Core
 			}
 		}
 		
-		public MultiLogger(string logFolder)
+        public MultiLogger(string logFolder)
 		{
 			Directory.CreateDirectory(logFolder);
 			_logFolder = logFolder;

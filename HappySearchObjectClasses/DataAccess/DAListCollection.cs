@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Data.SQLite;
 using System.Linq;
 
@@ -11,14 +10,14 @@ namespace Happy_Apps_Core.DataAccess
 	public class DAListCollection<TListKey, TItemKey, TItem> : IEnumerable<TItem> where TItem : IDataItem<TItemKey>, IDataListItem<TListKey>, new()
 	{
 		private readonly IDictionary<TListKey, Dictionary<TItemKey, TItem>> _items = new Dictionary<TListKey, Dictionary<TItemKey, TItem>>();
-		private DbConnection Conn { get; }
+		private SQLiteConnection Conn { get; }
 
 		private IEnumerable<TItem> List => _items.Values.SelectMany(i => i.Values);
 		IEnumerator<TItem> IEnumerable<TItem>.GetEnumerator() => List.GetEnumerator();
 		IEnumerator IEnumerable.GetEnumerator() => List.GetEnumerator();
 		public int Count => _items.Count;
 
-		public DAListCollection(DbConnection connection) => Conn = connection;
+		public DAListCollection(SQLiteConnection connection) => Conn = connection;
 
 		public void Load(bool openAndCloseConnection)
 		{
@@ -27,7 +26,13 @@ namespace Happy_Apps_Core.DataAccess
 				StaticHelpers.Logger.ToDebug($"Loading {nameof(DACollection<TItemKey, TItem>)} after already loaded");
 				_items.Clear();
 			}
-			if (openAndCloseConnection) Conn.Open();
+
+            if (openAndCloseConnection)
+            {
+                Conn.Open();
+                Conn.Trace += StaticHelpers.LogDatabaseTrace;
+
+            }
 			try
 			{
 				var sql = $@"Select * from {typeof(TItem).Name}s";
@@ -44,13 +49,21 @@ namespace Happy_Apps_Core.DataAccess
 			}
 			finally
 			{
-				if (openAndCloseConnection) Conn.Close();
+                if (openAndCloseConnection)
+                {
+                    Conn.Close();
+                    Conn.Trace -= StaticHelpers.LogDatabaseTrace;
+                }
 			}
 		}
 
 		public void Upsert(TItem item, bool openNewConnection, bool insertOnly = false, SQLiteTransaction transaction = null)
 		{
-			if (openNewConnection) Conn.Open();
+            if (openNewConnection)
+            {
+                Conn.Open();
+                Conn.Trace += StaticHelpers.LogDatabaseTrace;
+            }
 			try
 			{
 				using var command = item.UpsertCommand(Conn, insertOnly);
@@ -66,7 +79,11 @@ namespace Happy_Apps_Core.DataAccess
 			}
 			finally
 			{
-				if (openNewConnection) Conn.Close();
+                if (openNewConnection)
+                {
+                    Conn.Close();
+                    Conn.Trace -= StaticHelpers.LogDatabaseTrace;
+                }
 			}
 		}
 
@@ -77,7 +94,12 @@ namespace Happy_Apps_Core.DataAccess
 			{
 				throw new InvalidOperationException("Key not found");
 			}
-			if (openAndCloseConnection) Conn.Open();
+
+            if (openAndCloseConnection)
+            {
+                Conn.Open();
+                Conn.Trace += StaticHelpers.LogDatabaseTrace;
+            }
 			try
 			{
 				var sql = $@"Delete from {typeof(TItem).Name}s where {item.KeyField} = {item.Key}";
@@ -89,7 +111,11 @@ namespace Happy_Apps_Core.DataAccess
 			}
 			finally
 			{
-				if (openAndCloseConnection) Conn.Close();
+                if (openAndCloseConnection)
+                {
+                    Conn.Close();
+                    Conn.Trace -= StaticHelpers.LogDatabaseTrace;
+                }
 			}
 			return result;
 		}

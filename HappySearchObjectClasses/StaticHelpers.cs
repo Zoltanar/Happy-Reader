@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Common;
+using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -440,5 +441,19 @@ namespace Happy_Apps_Core
             var processes = Process.GetProcessesByName(name);
 			return processes.Length > 1;
 		}
-	}
+
+        public static void LogDatabaseTrace(object sender, TraceEventArgs e)
+        {
+            if (!Logger.LogDatabase) return;
+            var connection = (SQLiteConnection)sender;
+            Logger.ToFile($"[{connection.DataSource}] Executing statement: {e.Statement}");
+        }
+
+        public static void LogDatabaseUpdate(object sender, UpdateEventArgs e)
+        {
+            if (!Logger.LogDatabase) return;
+            var connection = (SQLiteConnection)sender;
+            Logger.ToFile($"[{connection.DataSource}] Update: {e.Database} - {e.Event} - {e.Table} - {e.RowId}");
+        }
+    }
 }

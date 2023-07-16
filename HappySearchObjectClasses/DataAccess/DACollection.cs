@@ -14,7 +14,7 @@ namespace Happy_Apps_Core.DataAccess
 		private readonly IDictionary<TKey, TValue> _items = new Dictionary<TKey, TValue>();
 		private readonly Dictionary<TKey, TValue> _itemsToUpsertLater = new();
 
-		private DbConnection Conn { get; }
+		private SQLiteConnection Conn { get; }
 
 		private long _highestKey;
 
@@ -36,7 +36,7 @@ namespace Happy_Apps_Core.DataAccess
 		IEnumerator IEnumerable.GetEnumerator() => List.GetEnumerator();
 		public int Count => _items.Count;
 
-		public DACollection(DbConnection connection) => Conn = connection;
+		public DACollection(SQLiteConnection connection) => Conn = connection;
 
 		public void Load(bool openAndCloseConnection)
 		{
@@ -46,7 +46,12 @@ namespace Happy_Apps_Core.DataAccess
 				_items.Clear();
 				_itemsToUpsertLater.Clear();
 			}
-			if (openAndCloseConnection) Conn.Open();
+
+            if (openAndCloseConnection)
+            {
+                Conn.Open();
+                Conn.Trace += StaticHelpers.LogDatabaseTrace;
+            }
 			try
 			{
 				var sql = $@"Select * from {typeof(TValue).Name}s";
@@ -64,13 +69,21 @@ namespace Happy_Apps_Core.DataAccess
 			}
 			finally
 			{
-				if (openAndCloseConnection) Conn.Close();
+                if (openAndCloseConnection)
+                {
+                    Conn.Close();
+                    Conn.Trace -= StaticHelpers.LogDatabaseTrace;
+                }
 			}
 		}
 
 		public int Upsert(TValue item, bool openNewConnection, bool insertOnly = false, DbTransaction transaction = null)
 		{
-			if (openNewConnection) Conn.Open();
+            if (openNewConnection)
+            {
+                Conn.Open();
+                Conn.Trace += StaticHelpers.LogDatabaseTrace;
+            }
 			try
 			{
 				using var command = item.UpsertCommand(Conn, insertOnly);
@@ -84,7 +97,11 @@ namespace Happy_Apps_Core.DataAccess
 			}
 			finally
 			{
-				if (openNewConnection) Conn.Close();
+                if (openNewConnection)
+                {
+                    Conn.Close();
+                    Conn.Trace -= StaticHelpers.LogDatabaseTrace;
+                }
 			}
 		}
 
@@ -95,7 +112,12 @@ namespace Happy_Apps_Core.DataAccess
 			{
 				throw new InvalidOperationException("Key not found");
 			}
-			if (openAndCloseConnection) Conn.Open();
+
+            if (openAndCloseConnection)
+            {
+                Conn.Open();
+                Conn.Trace += StaticHelpers.LogDatabaseTrace;
+            }
 			try
             {
 				using var command = Conn.CreateCommand();
@@ -103,11 +125,15 @@ namespace Happy_Apps_Core.DataAccess
                 PopulateKeyClause(command, item);
 				var rowsAffected = command.ExecuteNonQuery();
 				result = rowsAffected != 0;
-				if (!result) { }
+				if (!result || rowsAffected > 1) { }
 			}
 			finally
 			{
-				if (openAndCloseConnection) Conn.Close();
+                if (openAndCloseConnection)
+                {
+                    Conn.Close();
+                    Conn.Trace -= StaticHelpers.LogDatabaseTrace;
+                }
 			}
 			return result;
 		}
@@ -121,7 +147,6 @@ namespace Happy_Apps_Core.DataAccess
                 for (int i = 0; i < tuple.Length; i++) command.AddParameter($"@Key{i:0}", tuple[i]);
                 return;
             }
-
             command.CommandText += $"where {item.KeyField} = @Key;";
 			command.AddParameter("@Key", item.Key);
         }
@@ -147,7 +172,8 @@ namespace Happy_Apps_Core.DataAccess
 				? _items.Values.Where(i => ((IReadyToUpsert) i).ReadyToUpsert).ToArray() : Array.Empty<TValue>();
 			if (_itemsToUpsertLater.Count == 0 && otherItemsToUpsert.Length == 0) return 0;
 			Conn.Open();
-			DbTransaction transaction = null;
+            Conn.Trace += StaticHelpers.LogDatabaseTrace;
+            DbTransaction transaction = null;
 			int rowsAffected = 0;
 			try
 			{
@@ -172,8 +198,9 @@ namespace Happy_Apps_Core.DataAccess
 					((IReadyToUpsert)item).ReadyToUpsert = false;
 				}
 				Conn.Close();
+                Conn.Trace -= StaticHelpers.LogDatabaseTrace;
 
-			}
+            }
 		}
 
 		public void UpsertLater(TValue item)

@@ -378,7 +378,7 @@ public class ListedVN : DumpItem, INotifyPropertyChanged, IDataItem<int>
         string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO ListedVNs" +
                      "(VNID,Title,KanjiTitle,ReleaseDateString,ProducerID,Image,ImageNSFW,Description,LengthTime,Popularity," +
                      "Rating,VoteCount,Relations,Screens,Anime,Aliases,Languages,ReleaseDate,ReleaseLink, NewSinceUpdate,TagScore,TraitScore) VALUES " +
-                     "(@VNID,@Title,@KanjiTitle,@ReleaseDateString,@ProducerId,@Image,@ImageNSFW,@Description,@LengthTime,@Popularity," +
+                     "(@VNID,@Title,@KanjiTitle,@ReleaseDateString,@ProducerID,@Image,@ImageNSFW,@Description,@LengthTime,@Popularity," +
                      "@Rating,@VoteCount,@Relations,@Screens,@Anime,@Aliases,@Languages,@ReleaseDate,@ReleaseLink,@NewSinceUpdate,@TagScore,@TraitScore)";
         var command = connection.CreateCommand();
         command.CommandText = sql;

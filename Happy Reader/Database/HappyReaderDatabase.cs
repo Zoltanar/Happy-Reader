@@ -30,6 +30,7 @@ namespace Happy_Reader.Database
         public HappyReaderDatabase(string dbFile, bool loadAllTables)
         {
             Connection = new SQLiteConnection($@"Data Source={dbFile}");
+            Connection.Update += StaticHelpers.LogDatabaseUpdate;
             Translations = new DACollection<string, CachedTranslation>(Connection);
             Logs = new DACollection<long, Log>(Connection);
             GameThreads = new DACollection<(long, string), GameThread>(Connection);
@@ -46,6 +47,7 @@ namespace Happy_Reader.Database
             try
             {
                 Connection.Open();
+                Connection.Trace += StaticHelpers.LogDatabaseTrace;
                 var command = Connection.CreateCommand();
                 command.CommandText = $"SELECT name FROM sqlite_master WHERE type='table' AND name='{UpdateTableName}';";
                 var responseObject = command.ExecuteScalar();
@@ -72,6 +74,7 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
+                Connection.Trace -= StaticHelpers.LogDatabaseTrace;
             }
         }
 
@@ -103,6 +106,7 @@ namespace Happy_Reader.Database
         private void LoadAllTables()
         {
             Connection.Open();
+            Connection.Trace += StaticHelpers.LogDatabaseTrace;
             try
             {
                 Translations.Load(false);
@@ -119,12 +123,14 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
+                Connection.Trace -= StaticHelpers.LogDatabaseTrace;
             }
         }
 
         private void CreateDatabase()
         {
             Connection.Open();
+            Connection.Trace += StaticHelpers.LogDatabaseTrace;
             try
             {
                 DatabaseTableBuilder.ExecuteSql(Connection, $@"CREATE TABLE `{UpdateTableName}` (
@@ -209,6 +215,7 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
+                Connection.Trace -= StaticHelpers.LogDatabaseTrace;
             }
         }
 
@@ -266,6 +273,7 @@ namespace Happy_Reader.Database
         {
             var sql = $"DELETE FROM {nameof(CachedTranslation)}s WHERE Timestamp < @Timestamp";
             Connection.Open();
+            Connection.Trace += StaticHelpers.LogDatabaseTrace;
             try
             {
                 var cmd = Connection.CreateCommand();
@@ -283,6 +291,7 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
+                Connection.Trace -= StaticHelpers.LogDatabaseTrace;
             }
         }
 
@@ -290,6 +299,7 @@ namespace Happy_Reader.Database
         {
             var sql = $"DELETE FROM {nameof(CachedTranslation)}s";
             Connection.Open();
+            Connection.Trace += StaticHelpers.LogDatabaseTrace;
             try
             {
                 var cmd = Connection.CreateCommand();
@@ -306,6 +316,7 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
+                Connection.Trace -= StaticHelpers.LogDatabaseTrace;
             }
         }
         
@@ -313,6 +324,7 @@ namespace Happy_Reader.Database
         {
             var sql = $"DELETE FROM {nameof(GameThread)}s WHERE GameId = @GameId";
             Connection.Open();
+            Connection.Trace += StaticHelpers.LogDatabaseTrace;
             try
             {
                 var cmd = Connection.CreateCommand();
@@ -330,6 +342,7 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
+                Connection.Trace -= StaticHelpers.LogDatabaseTrace;
             }
         }
 
@@ -337,6 +350,7 @@ namespace Happy_Reader.Database
         {
             var sql = $"DELETE FROM {nameof(GameThread)}s";
             Connection.Open();
+            Connection.Trace += StaticHelpers.LogDatabaseTrace;
             try
             {
                 var cmd = Connection.CreateCommand();
@@ -353,10 +367,10 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
+                Connection.Trace -= StaticHelpers.LogDatabaseTrace;
             }
         }
-
-
+        
         /// <summary>
         /// Upserts entries into database, inserting Ids as required, opens own connection and transaction.
         /// </summary>
@@ -364,6 +378,7 @@ namespace Happy_Reader.Database
         {
             if (entries.Count == 0) return;
             Connection.Open();
+            Connection.Trace += StaticHelpers.LogDatabaseTrace;
             DbTransaction transaction = null;
             try
             {
@@ -384,6 +399,7 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
+                Connection.Trace -= StaticHelpers.LogDatabaseTrace;
             }
         }
 
