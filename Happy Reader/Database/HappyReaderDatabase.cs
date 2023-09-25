@@ -274,6 +274,8 @@ namespace Happy_Reader.Database
             var sql = $"DELETE FROM {nameof(CachedTranslation)}s WHERE Timestamp < @Timestamp";
             Connection.Open();
             Connection.Trace += StaticHelpers.LogDatabaseTrace;
+            //remove update logging for this procedure, otherwise every row deleted logs a line.
+            Connection.Update -= StaticHelpers.LogDatabaseUpdate;
             try
             {
                 var cmd = Connection.CreateCommand();
@@ -292,6 +294,7 @@ namespace Happy_Reader.Database
             {
                 Connection.Close();
                 Connection.Trace -= StaticHelpers.LogDatabaseTrace;
+                Connection.Update += StaticHelpers.LogDatabaseUpdate;
             }
         }
 

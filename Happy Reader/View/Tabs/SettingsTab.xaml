@@ -137,6 +137,7 @@
 			</TabItem>
 			<TabItem Header="Translation Settings" DataContext="{Binding TranslatorSettings}">
 				<StackPanel>
+					<CheckBox Content="Auto Remove Old Translations" IsChecked="{Binding AutoRemoveOldTranslations}" ToolTip="On startup, remove all cached translations older than two months from database."/>
 					<CheckBox Content="Capture Clipboard" IsChecked="{Binding CaptureClipboard}" ToolTip="Capture text in clipboard and post it in Output Window"/>
 					<CheckBox Content="Copy Input to Clipboard" 
 					          IsChecked="{Binding DataContext.IthVnrSettings.ClipboardFlag, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"

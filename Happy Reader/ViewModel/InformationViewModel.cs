@@ -46,7 +46,9 @@ namespace Happy_Reader.ViewModel
             VnDatabaseSize = $"VN Database Size: {GetFileSizeStringForDb(vnData.Connection)}";
             VnImagesSize = $"VNDB Images Size: {GetFileSizeStringForFolder(StaticMethods.Settings.CoreSettings.ImageFolderPath)}";
             SetLogsSize();
-            SetUserDatabaseData(userGameData);
+            //DeleteCachedTranslations calls SetUserDatabaseData
+            if (StaticMethods.Settings.TranslatorSettings.AutoRemoveOldTranslations) DeletedCachedTranslations(false);
+            else SetUserDatabaseData(userGameData);
             SetTimeSpentData(userGameData);
             OnPropertyChanged(null);
         }

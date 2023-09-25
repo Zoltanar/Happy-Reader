@@ -216,24 +216,7 @@ namespace Happy_Reader.ViewModel
             await DatabaseViewModel.Initialize();
             await ProducersViewModel.Initialize();
             await CharactersViewModel.Initialize();
-            if (initialiseEntries)
-            {
-                StatusText = "Loading Translation Plugins...";
-                SettingsViewModel.TranslatorSettings.LoadTranslationPlugins(TranslationPluginsFolder);
-                StaticMethods.MainWindow.SettingsTab.LoadTranslationPlugins(SettingsViewModel.TranslatorSettings.Translators);
-                StatusText = "Initialising Translator...";
-                Translator.Instance.Initialise(logVerbose);
-                StatusText = "Populating Proxies...";
-                StaticMethods.Data.PopulateProxies((ex) =>
-                {
-                    //it's ok to fail here, proxies can be added via the UI anyway.
-                    Logger.ToFile(ex);
-                    NotificationEvent(this, ex.Message, "Populate Proxies failed", true);
-                });
-                StatusText = "Loading Entries...";
-                EntriesViewModel.SetEntryGames();
-                EntriesViewModel.SetEntries();
-            }
+            if (initialiseEntries) InitialiseEntries(logVerbose);
             await UserGamesViewModel.Initialize();
             InformationViewModel.Initialise(LocalDatabase, StaticMethods.Data);
             LoadLogs();
@@ -244,6 +227,25 @@ namespace Happy_Reader.ViewModel
             _loadingComplete = true;
             StatusText = "Loading complete.";
             NotificationEvent(this, $"Took {watch.Elapsed.ToSeconds()}.", "Loading Complete", true);
+        }
+
+        private void InitialiseEntries(bool logVerbose)
+        {
+            StatusText = "Loading Translation Plugins...";
+            SettingsViewModel.TranslatorSettings.LoadTranslationPlugins(TranslationPluginsFolder);
+            StaticMethods.MainWindow.SettingsTab.LoadTranslationPlugins(SettingsViewModel.TranslatorSettings.Translators);
+            StatusText = "Initialising Translator...";
+            Translator.Instance.Initialise(logVerbose);
+            StatusText = "Populating Proxies...";
+            StaticMethods.Data.PopulateProxies((ex) =>
+            {
+                //it's ok to fail here, proxies can be added via the UI anyway.
+                Logger.ToFile(ex);
+                NotificationEvent(this, ex.Message, "Populate Proxies failed", true);
+            });
+            StatusText = "Loading Entries...";
+            EntriesViewModel.SetEntryGames();
+            EntriesViewModel.SetEntries();
         }
 
         private bool GlobalMouseClick(MouseEventExtArgs args)

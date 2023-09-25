@@ -37,7 +37,8 @@ namespace Happy_Reader
 		private bool _outputOriginal;
 		private bool _outputRomaji;
 		private bool _outputTranslation = true;
-		private bool _muteOnMinimise = false;
+        private bool _muteOnMinimise = false;
+        private bool _autoRemoveOldTranslations = false;
         private VerticalAlignment _outputVerticalAlignment = VerticalAlignment.Top;
 		private TextAlignment _outputHorizontalAlignment = TextAlignment.Center;
 
@@ -376,6 +377,17 @@ namespace Happy_Reader
             {
                 if (_muteOnMinimise == value) return;
                 _muteOnMinimise = value;
+                if (Loaded) Save();
+            }
+        }
+
+        public bool AutoRemoveOldTranslations
+        {
+            get => _autoRemoveOldTranslations;
+            set
+            {
+                if (_autoRemoveOldTranslations == value) return;
+                _autoRemoveOldTranslations = value;
                 if (Loaded) Save();
             }
         }
