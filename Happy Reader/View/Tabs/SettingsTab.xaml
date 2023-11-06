@@ -46,11 +46,12 @@
 		<TabControl TabStripPlacement="Top">
 			<TabItem Header="Core Settings" DataContext="{Binding CoreSettings}">
 			<StackPanel>
-				<view:LabeledTextBox LabelWidth="120" Label="UserID:" Text="{Binding UserID}"/>
-				<view:LabeledTextBox LabelWidth="120" Label="Username:" Text="{Binding Username}"/>
-				<Grid>
+				<view:LabeledTextBox LabelWidth="150" Label="UserID:" Text="{Binding UserID}"/>
+				<view:LabeledTextBox LabelWidth="150" Label="Username:" Text="{Binding Username}"/>
+				<view:LabeledTextBox LabelWidth="150" Label="Secondary Title Language:" Text="{Binding SecondaryTitleLanguage}" ToolTip="Secondary language (2 letter form) to sort titles by release date in that language"/>
+					<Grid>
 					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="120"/>
+						<ColumnDefinition Width="150"/>
 						<ColumnDefinition/>
 					</Grid.ColumnDefinitions>
 					<Label Grid.Column="0" Content="Password:"/>

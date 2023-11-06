@@ -84,12 +84,17 @@ namespace Happy_Reader.View.Tabs
 			if (ViewModel != null) await ViewModel.SortByMyScore();
 		}
 
-		private async void SortByRelease(object sender, RoutedEventArgs e)
-		{
-			if (ViewModel != null) await ViewModel.SortByReleaseDate();
-		}
+        private async void SortByRelease(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel != null) await ViewModel.SortByReleaseDate(true);
+        }
 
-		private async void SortByRating(object sender, RoutedEventArgs e)
+        private async void SortByReleaseSecondary(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel != null) await ViewModel.SortByReleaseDate(false);
+        }
+
+        private async void SortByRating(object sender, RoutedEventArgs e)
 		{
 			if (ViewModel != null) await ViewModel.SortByRating();
 		}

@@ -54,6 +54,7 @@
 		<TextBox Margin="65,0,321,0" TextWrapping="Wrap" VerticalContentAlignment="Center" PreviewKeyUp="SearchByText" Height="30" VerticalAlignment="Stretch" Grid.Row="1"/>
 		<ComboBox HorizontalAlignment="Right" Margin="0,0,125,0" Width="191" Grid.Row="1" SelectedIndex="0" VerticalContentAlignment="Center">
 			<ComboBoxItem Content="Sort by Release Date" Selected="SortByRelease"/>
+			<ComboBoxItem Content="Sort by Release Date (Secondary)" Selected="SortByReleaseSecondary"/>
 			<ComboBoxItem Content="Sort by ID" Selected="SortByID"/>
 			<ComboBoxItem Content="Sort by Suggestion Score" Selected="SortByRecommended"/>
 			<ComboBoxItem Content="Sort by My Score" Selected="SortByMyScore"/>

@@ -22,6 +22,7 @@
 		<view:OwnedStatusToTextConverter x:Key="OwnedStatusToTextConverter" />
 		<view:DateToWeightConverter x:Key="DateToWeightConverter" />
 		<view:DateToBrushConverter x:Key="DateToBrushConverter" />
+		<view:VnToReleaseDateStringConverter x:Key="VnToReleaseDateStringConverter" />
 		<converters:UserVnToBackgroundConverter x:Key="UserVnToBackgroundConverter" />
 		<converters:RunningStatusToBrushConverter x:Key="RunningStatusToBrushConverter" />
 		<converters:GameDisplayNameConverter x:Key="GameDisplayNameConverter" />

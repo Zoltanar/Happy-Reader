@@ -363,7 +363,14 @@ namespace Happy_Reader
 			}
 			return exists;
 		}
-	}
+
+        public static void GetDateFromVisualNovel(ListedVN vn, out DateTime releaseDate, out string releaseDateString)
+        {
+            var secondary = MainWindow.ViewModel.DatabaseViewModel.OrderingType == TitleOrderingType.SecondaryDate;
+            releaseDate = secondary ? vn.ReleaseDateSecondary : vn.ReleaseDate;
+            releaseDateString = secondary ? releaseDate.ToString("yyyy-MM-dd") : vn.ReleaseDateString;
+        }
+    }
 
 	public class FiltersData : SettingsJsonFile
 	{

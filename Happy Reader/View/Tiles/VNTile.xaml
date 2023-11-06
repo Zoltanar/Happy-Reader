@@ -31,9 +31,9 @@
 				</TextBlock>
 			</Label>
 			<Label Margin="0,0,10,31" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="82" HorizontalContentAlignment="Right" 
-			       Foreground="{Binding Path=ReleaseDate, Converter={StaticResource DateToBrushConverter}, NotifyOnSourceUpdated=True, Mode=OneWay}" Padding="0">
+			       Foreground="{Binding Path=., Converter={StaticResource DateToBrushConverter}, NotifyOnSourceUpdated=True, Mode=OneWay}" Padding="0">
 				<Border BorderBrush="{Binding NewSinceUpdate, Converter={StaticResource NewlyAddedBorderBrushConverter}}" BorderThickness="1">
-					<TextBlock Text="{Binding ReleaseDateString}" FontWeight="{Binding ReleaseDate, Converter={StaticResource DateToWeightConverter}}"/>
+					<TextBlock Text="{Binding ., Converter={StaticResource VnToReleaseDateStringConverter}}" FontWeight="{Binding ., Converter={StaticResource DateToWeightConverter}}"/>
 				</Border>
 				</Label>
 			<Label Content="{Binding UserVN, Converter={StaticResource UserRelatedStatusConverter}}" 

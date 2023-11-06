@@ -175,6 +175,7 @@
     <Compile Include="ViewModel\NamedFunction.cs" />
     <Compile Include="ViewModel\ProducersTabViewModel.cs" />
     <Compile Include="ViewModel\SettingsViewModel.cs" />
+    <Compile Include="ViewModel\TitleOrderingType.cs" />
     <Compile Include="ViewModel\UserGamesViewModel.cs" />
     <Compile Include="View\ColorSelector.xaml.cs">
       <DependentUpon>ColorSelector.xaml</DependentUpon>

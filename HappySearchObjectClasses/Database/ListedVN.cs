@@ -123,7 +123,8 @@ public class ListedVN : DumpItem, INotifyPropertyChanged, IDataItem<int>
 
     public UserVN UserVN => StaticHelpers.LocalDatabase.UserVisualNovels[(StaticHelpers.CSettings.UserID, VNID)];
 
-    public DateTime ReleaseDate { get; set; }
+    public DateTime ReleaseDate { get; private set; }
+    public DateTime ReleaseDateSecondary { get; private set; }
 
     public IEnumerable<DbTag> Tags => StaticHelpers.LocalDatabase.Tags[VNID];
 
@@ -434,6 +435,7 @@ public class ListedVN : DumpItem, INotifyPropertyChanged, IDataItem<int>
             ReleaseLink = Convert.ToString(reader["ReleaseLink"]);
             Suggestion = new SuggestionScoreObject(StaticHelpers.GetNullableDouble(reader["TagScore"]), StaticHelpers.GetNullableDouble(reader["TraitScore"]));
             NewSinceUpdate = Convert.ToInt32(reader["NewSinceUpdate"]) == 1;
+            ReleaseDateSecondary = GetLatestDate(LanguagesObject.All);
         }
         catch (Exception ex)
         {
@@ -441,6 +443,22 @@ public class ListedVN : DumpItem, INotifyPropertyChanged, IDataItem<int>
             throw;
         }
     }
+
+    private DateTime GetLatestDate(IEnumerable<LangRelease> languages)
+    {
+        var alreadyReleased = languages.OrderBy(release=> release.ReleaseDate)
+            .LastOrDefault(release => release.ReleaseDate <= DateTime.UtcNow && release.Lang == StaticHelpers.CSettings.SecondaryTitleLanguage);
+        if (alreadyReleased != null)
+        {
+            return alreadyReleased.ReleaseDate;
+        }
+        return languages.OrderBy(release => release.ReleaseDate)
+            .FirstOrDefault(release => release.Lang == StaticHelpers.CSettings.SecondaryTitleLanguage)?
+            .ReleaseDate ?? DateTime.MaxValue;
+
+
+    }
+
     #endregion
 }
 

@@ -12,11 +12,12 @@ namespace Happy_Apps_Core
 		private bool _clearOldDumpsAndBackups = true;
 		private string _imageFolderPath = Path.Combine(StaticHelpers.StoredDataFolder, "vndb-img\\");
 		private ImageSyncMode _imageSync = ImageSyncMode.None;
+        private string _secondaryTitleLanguage = "en";
 
-		/// <summary>
-		/// Username of user.
-		/// </summary>
-		public string Username
+        /// <summary>
+        /// Username of user.
+        /// </summary>
+        public string Username
 		{
 			get => _username;
 			set
@@ -95,10 +96,21 @@ namespace Happy_Apps_Core
 				_imageSync = value;
 				if (Loaded) Save();
 			}
-		}
+        }
 
-		//todo make editable
-		public List<int> AlertTagIDs { get; set;  } = new();
+        public string SecondaryTitleLanguage
+        {
+            get => _secondaryTitleLanguage;
+            set
+            {
+                if (_secondaryTitleLanguage == value) return;
+                _secondaryTitleLanguage = value;
+                if (Loaded) Save();
+            }
+        }
+
+        //todo make editable
+        public List<int> AlertTagIDs { get; set;  } = new();
 
 		//todo make editable
 		public List<int> AlertTraitIDs { get; set; } = new();

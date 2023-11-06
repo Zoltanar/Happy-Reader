@@ -51,7 +51,7 @@
 					<TextBox x:Name="VisualNovelNameBox" Text="{Binding VisualNovel.Title, Mode=OneWay}" Foreground="Black" Padding="5,0,0,0" />
 					<TextBox x:Name="ProducerBox" Text="{Binding VisualNovel.Producer.Name, Mode=OneWay}" Foreground="Black" Padding="5,0,0,0" />
 					<Border Padding="5,0,0,0" BorderBrush="{Binding NewSinceUpdate, Converter={StaticResource NewlyAddedBorderBrushConverter}}" BorderThickness="1">
-						<TextBox x:Name="VisualNovelReleaseBox" Text="{Binding VisualNovel.ReleaseDateString, Mode=OneWay}" Foreground="{Binding VisualNovel.ReleaseDate, Converter={StaticResource DateToBrushConverter}}"/>
+						<TextBox x:Name="VisualNovelReleaseBox" Text="{Binding VisualNovel, Converter={StaticResource VnToReleaseDateStringConverter}, Mode=OneWay}" Foreground="{Binding VisualNovel, Converter={StaticResource DateToBrushConverter}}"/>
 					</Border>
 					</StackPanel>
 			</Grid>

@@ -17,7 +17,10 @@ namespace Happy_Reader.ViewModel
     public class InformationViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
-        private DateTime OldTranslationsTime = DateTime.UtcNow.AddMonths(-2);
+        /// <summary>
+        /// Currently hard coded to 2 months.
+        /// </summary>
+        private readonly DateTime _oldTranslationsTime = DateTime.UtcNow.AddMonths(-2);
 
         public string About { get; } = $"{StaticHelpers.ClientName} {StaticHelpers.ClientVersion}";
         public string DatabaseDate { get; private set; }
@@ -137,7 +140,7 @@ namespace Happy_Reader.ViewModel
         {
             UserDatabaseSize = $"User Database Size: {GetFileSizeStringForDb(userGameData.Connection)}";
             var cachedTranslations = userGameData.Translations.Count();
-            var cachedTranslationsOld = userGameData.Translations.Count(t => t.Timestamp < OldTranslationsTime);
+            var cachedTranslationsOld = userGameData.Translations.Count(t => t.Timestamp < _oldTranslationsTime);
             TranslationsData = $"Cached Translations: {cachedTranslations}, 2+ Months Old: {cachedTranslationsOld}";
             var mostUsedTranslation = userGameData.Translations.OrderByDescending(t => t.Count).FirstOrDefault();
             if (mostUsedTranslation != null) TranslationsData += $", Most Used: {mostUsedTranslation.Input}>{mostUsedTranslation.Output} ({mostUsedTranslation.Count} times)";
@@ -218,7 +221,7 @@ namespace Happy_Reader.ViewModel
         public void DeletedCachedTranslations(bool deleteAll)
         {
             if (deleteAll) UserDatabase.DeleteAllCachedTranslations();
-            else UserDatabase.DeleteCachedTranslationsOlderThan(OldTranslationsTime);
+            else UserDatabase.DeleteCachedTranslationsOlderThan(_oldTranslationsTime);
             SetUserDatabaseData(UserDatabase);
             OnPropertyChanged(null);
         }

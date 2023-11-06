@@ -25,7 +25,6 @@ namespace Happy_Reader.ViewModel
 		private const int PageSize = 50;
 		private int _currentPage;
 		private bool _finalPage;
-		private bool _orderingByRating;
 		private string _replyText;
 		private Brush _replyColor;
 		private Brush _vndbConnectionBackground;
@@ -105,9 +104,10 @@ namespace Happy_Reader.ViewModel
 					StaticHelpers.LocalDatabase);
 				return _suggestionScorer;
 			}
-		}
+        }
+        public TitleOrderingType OrderingType { get; private set; }
 
-		protected DatabaseViewModelBase(MainWindowViewModel mainWindowViewModel)
+        protected DatabaseViewModelBase(MainWindowViewModel mainWindowViewModel)
 		{
 			_ordering = items => items.OrderByDescending(i => GetVisualNovel(i)?.ReleaseDate ?? DateTime.MaxValue);
 			MainViewModel = mainWindowViewModel;
@@ -190,10 +190,14 @@ namespace Happy_Reader.ViewModel
 			{
 				var items = DbFunction.SelectAndInvoke(StaticHelpers.LocalDatabase, this);
 				OnPropertyChanged(nameof(SelectedFunctionIndex));
-				if (_orderingByRating && StaticMethods.Settings.GuiSettings.ExcludeLowVotesForRatingSort)
+				if (OrderingType == TitleOrderingType.Rating && StaticMethods.Settings.GuiSettings.ExcludeLowVotesForRatingSort)
 				{
 					items = items.Where(i => !((GetVisualNovel(i)?.VoteCount ?? 0) < GuiSettings.VotesRequiredForRatingSort));
 				}
+				else if (OrderingType == TitleOrderingType.SecondaryDate)
+                {
+                    items = items.Where(i => GetVisualNovel(i).ReleaseDateSecondary != DateTime.MaxValue);
+                }
 				var filteredResults = items.Intersect(FiltersViewModel.PermanentFilter.GetAllResults(StaticHelpers.LocalDatabase, GetAll, GetAllWithKeyIn));
 				AllResults = _ordering(filteredResults).ToArray();
 				var firstPage = AllResults.Take(PageSize).ToArray();
@@ -330,9 +334,9 @@ namespace Happy_Reader.ViewModel
 
 		public void ShowSuggested()
 		{
-			_ordering = lvn => lvn.OrderByDescending(i => GetSuggestion(i));
-			_orderingByRating = false;
-			var cf = new CustomFilter("Suggested");
+			_ordering = lvn => lvn.OrderByDescending(i => GetSuggestion(i)); 
+            OrderingType = TitleOrderingType.Normal;
+            var cf = new CustomFilter("Suggested");
 			cf.AndFilters.Add(new GeneralFilter(GeneralFilterType.SuggestionScore, ">0"));
 			SelectedFilter = cf;
 		}
@@ -340,57 +344,61 @@ namespace Happy_Reader.ViewModel
 		public async Task SortBySuggestion()
 		{
 			_ordering = items => items.OrderByDescending(i => GetSuggestion(i));
-			_orderingByRating = false;
-			await RefreshTiles();
+            OrderingType = TitleOrderingType.Normal;
+            await RefreshTiles();
 		}
 
 		public async Task SortByRating()
 		{
 			_ordering = items => items.OrderByDescending(i => GetVisualNovel(i)?.Rating ?? 0d).ThenByDescending(i => GetVisualNovel(i)?.ReleaseDate ?? DateTime.MinValue);
-			_orderingByRating = true;
-			await RefreshTiles();
+            OrderingType = TitleOrderingType.Rating;
+            await RefreshTiles();
 		}
 		
 		public async Task SortByMyScore()
 		{
 			_ordering = items => items.OrderByDescending(i => GetVisualNovel(i)?.UserVN?.Vote ?? 0);
-			_orderingByRating = false;
-			await RefreshTiles();
+            OrderingType = TitleOrderingType.Normal;
+            await RefreshTiles();
 		}
 
-		public async Task SortByReleaseDate()
+		public async Task SortByReleaseDate(bool primary)
 		{
-			_ordering = items => items.OrderByDescending(i => GetVisualNovel(i).ReleaseDate);
-			_orderingByRating = false;
+			_ordering = items => items.OrderByDescending(i =>
+            {
+                var vn = GetVisualNovel(i);
+                    return primary ? vn.ReleaseDate : vn.ReleaseDateSecondary;
+            });
+            OrderingType = primary ? TitleOrderingType.Normal : TitleOrderingType.SecondaryDate;
 			await RefreshTiles();
 		}
 
 		public async Task SortByName()
 		{
 			_ordering = items => items.OrderBy(i => GetName(i)).ThenByDescending(i => GetVisualNovel(i).ReleaseDate);
-			_orderingByRating = false;
-			await RefreshTiles();
+            OrderingType = TitleOrderingType.Normal;
+            await RefreshTiles();
 		}
 
 		public async Task SortByUserAdded()
 		{
 			_ordering = items => items.OrderByDescending(i => GetVisualNovel(i)?.UserVN?.Added);
-			_orderingByRating = true;
-			await RefreshTiles();
+            OrderingType = TitleOrderingType.Normal;
+            await RefreshTiles();
 		}
 		
 		public async Task SortByUserModified()
 		{
 			_ordering = items => items.OrderByDescending(i => GetVisualNovel(i)?.UserVN?.LastModified);
-			_orderingByRating = true;
-			await RefreshTiles();
+            OrderingType = TitleOrderingType.Normal;
+            await RefreshTiles();
 		}
 
 		public async Task SortByID()
 		{
 			_ordering = items => items.OrderByDescending(i => i.Key);
-			_orderingByRating = false;
-			await RefreshTiles();
+            OrderingType = TitleOrderingType.Normal;
+            await RefreshTiles();
 		}
 
 		public void ShowAll()
@@ -437,5 +445,5 @@ namespace Happy_Reader.ViewModel
 			if (vn == null) return Array.Empty<int>();
 			return vn.GetAllRelations()?.Select(i => i.ID).Concat(new [] {vn.VNID}).Distinct().ToArray() ?? Array.Empty<int>();
 		}
-	}
+    }
 }
