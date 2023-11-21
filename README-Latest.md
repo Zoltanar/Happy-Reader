@@ -6,7 +6,7 @@ Supported by [JetBrains](https://www.jetbrains.com/?from=HappyReaderByZoltanar)
 
 Before reporting issues or requesting features, please see [Goals](https://github.com/Zoltanar/Happy-Reader/blob/master/Goals.md)
 
-# Basic Guide (v2.5.0)
+# Basic Guide (Latest Committed)
 
 - Launch Happy Reader.exe  
 - (To close the application, you must right click the icon in the Windows tray section, next to the time)

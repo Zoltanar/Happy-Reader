@@ -6,20 +6,30 @@ Supported by [JetBrains](https://www.jetbrains.com/?from=HappyReaderByZoltanar)
 
 Before reporting issues or requesting features, please see [Goals](https://github.com/Zoltanar/Happy-Reader/blob/master/Goals.md)
 
-# Basic Guide (v2.5.0)
+# Basic Guide (v2.6.0)
 
 - Launch Happy Reader.exe  
 - (To close the application, you must right click the icon in the Windows tray section, next to the time)
-- Click `Settings` Tab, on the left
+![Guide 1](GuideImages/Guide-100.png)
+- Click on the settings Icon ⚙️ in the bottom left
+![Guide 2](GuideImages/Guide-200.png)
 - Change Translator to use and enter/modify settings as needed.
+![Guide 3](GuideImages/Guide-300.png)
 - Enter path to Locale Emulator if required (LEProc.exe)
-- Switch to `Games` tab
+![Guide 4](GuideImages/Guide-400.png)
+- Go to `Games` tab on the left
 - Drag executable to area in `Games` tab, or click `Add New` to select executable
-- Double-click or 'right-click > See Details' on Game to open Game Settings
+![Guide 5](GuideImages/Guide-500.png)
+- A Game tab will open, you can access this later via double-click or 'right-click > See Details' on game in Games tab
+- If this is a game found on VNDB, Happy Reader will try to find a match, if it fails or is incorrect, you can change this by changing the `VNID` value to that of the correct visual novel, you must press `Enter` to save your change
+![Guide 6](GuideImages/Guide-600.png)
+- You can search for the VN in the Visual Novels tab, the ID can be found in the top right corner of VN tiles
+![Guide 7](GuideImages/Guide-700.png)
 - Change `Hook Mode` as necessary (usually `VnrHook`)
 - Enter /H Hook Code if available
+![Guide 8](GuideImages/Guide-800.png)
 - Back on `Games` Tab, launch Game by clicking `Off` button, or right-click and choose specific launch mode
-- The game must be launched from Happy Reader itself at least once
+- The game must be launched from Happy Reader itself at least once, before it can be automatically found when started outside Happy Reader
 - If you get an 'Access Denied' error, you may need to run Happy Reader as Administrator.
 - In launched game, progress to dialog section
 - It is highly advised that you change the text speed in game to the maximum, to prevent text being broken up or repeated
@@ -29,12 +39,20 @@ Before reporting issues or requesting features, please see [Goals](https://githu
   - example: `:s おはよう！` to search for `おはよう！` in each text thread, in the encodings that each thread is set to
   - example: `:sa おはよう！` to search for `おはよう！` in each text thread, in all 3 encodings possible (Unicode, UTF-8, Shift-JIS) (can take longer)
   - Results will appear in Console thread at the top
-  - If :sa is used and text is is a different encoding to the one selected in text thread panel, you can change the encoding with the drop-down on the right
+  - If \:sa is used and text is is a different encoding to the one selected in text thread panel, you can change the encoding with the drop-down on the right or use the following command to change the encoding of all panels
+  ![Guide 9](GuideImages/Guide-900.png)
+- use the command `:e <encoding>` to switch the encoding of all text thread panels to the desired one.
+  - example: `:e Unicode` to switch all panels to Unicode
+  - example: `:e Shift-JIS` to switch all panels to Shift-JIS
+  - example: `:e UTF-8` to switch all panels to UTF-8
 - On the relevant text thread panel, check the `Posting` checkbox, to allow text to appear in Output Window.
+- ![Guide 10](GuideImages/Guide-1000.png)
 - Advance in game to next dialog
 - A window should pop up on top of the Game Window
+![Guide 11](GuideImages/Guide-1100.png)
   - If it does not, it may have appeared out of screen, click `Reset Output Window` in Text Hooking tab to reset it to a visible location
-  - If it still does not appear, click `Show Output Window` in Text Hooking tab.
+  - If it still does not appear, click `Show Output Window` in Text Hooking tab.  
+![Guide 12](GuideImages/Guide-1200.png)
 - Window should contain captured text (by default, romaji and Translation is shown)
 - Change location, size, and settings of Output Window to your preference
   - Output Window stays on top and will re-appear if closed when new text is captured

@@ -15,5 +15,5 @@ using System.Runtime.InteropServices;
 [assembly: Guid("7a6bcb6f-0f0e-4b6b-bdef-29760583601a")]
 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.5.0.0")]
-[assembly: AssemblyFileVersion("2.5.0.0")]
+[assembly: AssemblyVersion(Happy_Apps_Core.StaticHelpers.ClientVersion)]
+[assembly: AssemblyFileVersion(Happy_Apps_Core.StaticHelpers.ClientVersion)]
