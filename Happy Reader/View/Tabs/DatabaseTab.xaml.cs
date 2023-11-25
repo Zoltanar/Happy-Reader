@@ -61,6 +61,7 @@ namespace Happy_Reader.View.Tabs
 			if (_loaded) return;
 			if (DesignerProperties.GetIsInDesignMode(this)) return;
 			ViewModel = (DatabaseViewModelBase)DataContext;
+            ViewModel.ScrollToTop = ScrollToTop;
 			_loaded = true;
 		}
 
@@ -184,5 +185,12 @@ namespace Happy_Reader.View.Tabs
 			if (vn == null) return;
 			StaticMethods.MainWindow.OpenVNPanel(vn, switchToTab);
 		}
+
+        private void ScrollToTop()
+        {
+            var firstItem = VisualNovelItems.Items[0];
+			if(firstItem == null) return;
+            VisualNovelItems.ScrollIntoView(firstItem);
+        }
 	}
 }

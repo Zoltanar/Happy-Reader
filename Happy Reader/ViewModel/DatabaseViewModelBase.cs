@@ -106,6 +106,7 @@ namespace Happy_Reader.ViewModel
 			}
         }
         public TitleOrderingType OrderingType { get; private set; }
+        public Action ScrollToTop { get; set; }
 
         protected DatabaseViewModelBase(MainWindowViewModel mainWindowViewModel)
 		{
@@ -210,8 +211,8 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged(nameof(CSettings));
 				OnPropertyChanged(nameof(Tiles));
 				OnPropertyChanged(nameof(AllResults));
-
-			});
+                ScrollToTop?.Invoke();
+            });
 			watch.Stop();
 			SetReplyText($"Loaded results in {watch.Elapsed.ToSeconds()}.", VndbConnection.MessageSeverity.Normal);
 
