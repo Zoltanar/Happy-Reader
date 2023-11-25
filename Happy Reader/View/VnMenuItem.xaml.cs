@@ -197,7 +197,7 @@ namespace Happy_Reader.View
 				filter.SaveOrGroup();
 			}
 			StaticMethods.MainWindow.SelectTab(typeof(VNTabViewModel));
-			StaticMethods.MainWindow.ViewModel.DatabaseViewModel.SelectedFilter = filter;
+			StaticMethods.MainWindow.ViewModel.DatabaseViewModel.ActiveFilter = filter;
 		}
 
 		private async void ChangeLabel(object sender, RoutedEventArgs e)

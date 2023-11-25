@@ -22,7 +22,7 @@ namespace Happy_Reader.View.Tabs
 
         private void ListboxPreviewMouseUp(object sender, MouseButtonEventArgs e)
         {
-			if (e.LeftButton != MouseButtonState.Released) return;
+			if (e.LeftButton != MouseButtonState.Released || !_loaded) return;
 			AddPageIfAtEnd();
         }
 
@@ -41,7 +41,7 @@ namespace Happy_Reader.View.Tabs
             var viewHeight = scrollViewer.ViewportHeight;
 			//if the (starting) position of the scrollbar plus the length of the scrollbar exceed or equal the total scroll height,
 			//then we are at the end and want to add a new page.
-            if (position + viewHeight >= maxHeight) ViewModel.AddPage();
+            if (maxHeight>0 && position + viewHeight >= maxHeight) ViewModel.AddPage();
         }
 
 

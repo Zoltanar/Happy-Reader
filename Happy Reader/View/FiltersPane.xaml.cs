@@ -211,5 +211,30 @@ namespace Happy_Reader.View
         {
             await ViewModel.ApplyCurrentFilter();
         }
+
+        private void PreviewDeleteFilter(object sender, CanExecuteRoutedEventArgs e)
+        {
+            var grid = (DataGrid)sender;
+            if (e.Command != DataGrid.DeleteCommand) return;
+            if(grid.SelectedItems.Count == 0) return;
+            var message = "Are you sure you wish to delete ";
+            if (grid.SelectedItems.Count > 1) message += $"{grid.SelectedItems.Count} filters?";
+            else message += $"filter '{((CustomFilter)grid.SelectedItems[0]).Name}' ?";
+            if (MessageBox.Show(message,StaticHelpers.ClientName, MessageBoxButton.YesNo) != MessageBoxResult.Yes) e.Handled = true;
+        }
+
+        private void Row_DoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var row = (DataGridRow)sender;
+            if (row is not { DataContext: CustomFilter filter }) return;
+            ViewModel.SelectFilter(filter);
+        }
+
+        private void RowSelected(object sender, SelectedCellsChangedEventArgs e)
+        {
+            if (e.AddedCells.Count != 1) return;
+            var filter = (CustomFilter)e.AddedCells[0].Item;
+            ViewModel.CustomFilter = filter;
+        }
     }
 }

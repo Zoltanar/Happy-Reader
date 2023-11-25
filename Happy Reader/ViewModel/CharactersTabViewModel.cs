@@ -32,7 +32,8 @@ namespace Happy_Reader.ViewModel
 			MainViewModel.StatusText = "Loading Characters...";
 			OnPropertyChanged(nameof(ProducerList));
 			LocalDatabase.SetCharactersAttachedVisualNovels();
-			await RefreshTiles();
+            SelectedFilterIndex = 0;
+            //await RefreshTiles();
 		}
 
 		protected override Func<IDataItem<int>, double?> GetSuggestion { get; } = i => ((CharacterItem)i).TraitScore;
@@ -42,7 +43,7 @@ namespace Happy_Reader.ViewModel
 			var vn = LocalDatabase.VisualNovels[visualNovel.VNId];
 			var cf = new CustomFilter($"VN: {TruncateString15(vn.Title)}");
 			cf.AndFilters.Add(new GeneralFilter(GeneralFilterType.VNID, vn.VNID));
-			SelectedFilter = cf;
+			ActiveFilter = cf;
 		}
 
 		public void ShowForSeiyuuWithAlias(int aliasId)
@@ -50,14 +51,14 @@ namespace Happy_Reader.ViewModel
 			var staff = LocalDatabase.StaffAliases[aliasId];
 			var cf = new CustomFilter($"Seiyuu: {staff}");
 			cf.AndFilters.Add(new GeneralFilter(GeneralFilterType.Seiyuu, aliasId));
-			SelectedFilter = cf;
+			ActiveFilter = cf;
 		}
 
 		public void ShowWithTrait(DumpFiles.WrittenTrait trait)
 		{
 			var cf = new CustomFilter($"Trait: {trait}");
 			cf.AndFilters.Add(new GeneralFilter(GeneralFilterType.Traits, trait.ID));
-			SelectedFilter = cf;
+			ActiveFilter = cf;
 		}
 	}
 }

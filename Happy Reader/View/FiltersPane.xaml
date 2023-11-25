@@ -7,96 +7,128 @@
              mc:Ignorable="d" 
              d:DesignHeight="500" d:DesignWidth="400" d:DataContext="{d:DesignInstance viewModel:FiltersViewModel}">
 	<Grid>
-		<Grid.RowDefinitions>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
-		</Grid.RowDefinitions>
-		<GroupBox Grid.Row="0" Header="Custom Filter" Margin="5,10,5,5">
-			<Grid>
-				<Grid.RowDefinitions>
-					<RowDefinition Height="Auto"/>
-					<RowDefinition Height="Auto"/>
-					<RowDefinition Height="Auto"/>
-					<RowDefinition Height="*"/>
-					<RowDefinition Height="Auto"/>
-					<RowDefinition Height="*"/>
-					<RowDefinition Height="Auto"/>
-					<RowDefinition Height="Auto"/>
-				</Grid.RowDefinitions>
-				<Label Grid.Row="1" Content="Name" HorizontalAlignment="Left" Padding="0" Margin="0,5" VerticalContentAlignment="Center" Height="21"/>
-				<TextBox Grid.Row="1"  Margin="37,5,82,5" Text="{Binding CustomFilter.Name}" VerticalContentAlignment="Center" Height="21" />
-				<Button Grid.Row="1"  Content="Save" HorizontalAlignment="Right" Margin="0,5,48,5" Command="{Binding SaveCustomFilterCommand}" VerticalContentAlignment="Center" Height="21"/>
-				<Button Grid.Row="1"  Content="Delete" HorizontalAlignment="Right" Margin="0,5,5,5" Click="DeleteCustomFilter" VerticalContentAlignment="Center" Height="21"/>
-				<TextBlock Grid.Row="2">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="Auto"/>
+		<ColumnDefinition Width="*"/>
+		</Grid.ColumnDefinitions>
+		<DataGrid ItemsSource="{Binding Filters}" IsReadOnly="True"
+		          CanUserAddRows="False" CanUserDeleteRows="True"
+		          AutoGenerateColumns="False" CommandManager.PreviewCanExecute="PreviewDeleteFilter" SelectedCellsChanged="RowSelected">
+			<DataGrid.Columns>
+				<DataGridTextColumn Header="Name" Binding="{Binding Name}"/>
+			</DataGrid.Columns>
+			<DataGrid.Resources>
+				<Style TargetType="DataGridRow">
+					<EventSetter Event="MouseDoubleClick" Handler="Row_DoubleClick"/>
+				</Style>
+			</DataGrid.Resources>
+		</DataGrid>
+		<Grid Grid.Column="1">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+			</Grid.RowDefinitions>
+			<GroupBox Grid.Row="0" Header="Custom Filter" Margin="5,10,5,5">
+				<Grid>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="*"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="*"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+					</Grid.RowDefinitions>
+					<Label Grid.Row="1" Content="Name" HorizontalAlignment="Left" Padding="0" Margin="0,5" VerticalContentAlignment="Center" Height="21"/>
+					<TextBox Grid.Row="1"  Margin="37,5,82,5" Text="{Binding CustomFilterCopy.Name}" VerticalContentAlignment="Center" Height="21" />
+					<Button Grid.Row="1"  Content="Save" HorizontalAlignment="Right" Margin="0,5,48,5" Command="{Binding SaveCustomFilterCommand}" VerticalContentAlignment="Center" Height="21"/>
+					<Button Grid.Row="1"  Content="Delete" HorizontalAlignment="Right" Margin="0,5,5,5" Click="DeleteCustomFilter" VerticalContentAlignment="Center" Height="21"/>
+					<TextBlock Grid.Row="2">
 					<Run>AND Group</Run>
 					<LineBreak/>
 					<Run>(All of these are required)</Run>
-				</TextBlock>
-				<ListBox ItemsSource="{Binding CustomFilter.AndFilters}" Grid.Row="3" KeyUp="FilterKeyUp" MinHeight="23"/>
-				<TextBlock Grid.Row="4">
+					</TextBlock>
+					<ListBox ItemsSource="{Binding CustomFilterCopy.AndFilters}" Grid.Row="3" KeyUp="FilterKeyUp" MinHeight="23">
+					<ListBox.ItemContainerStyle>
+						<Style TargetType="ListBoxItem">
+							<Setter Property="HorizontalContentAlignment" Value="Left" />
+							<Setter Property="VerticalContentAlignment" Value="Top" />
+						</Style>
+					</ListBox.ItemContainerStyle>
+					</ListBox>
+					<TextBlock Grid.Row="4">
 					<Run>OR Group</Run>
 					<LineBreak/>
 					<Run>(One of these is required)</Run>
-				</TextBlock>
-				<ListBox ItemsSource="{Binding CustomFilter.OrFilters}" Grid.Row="5" KeyUp="FilterKeyUp" MinHeight="23"/>
-				<Button Content="Save OR Group" Grid.Row="6" Click="SaveOrGroup" Margin="5"/>
-				<Button Content="Apply Filter" Grid.Row="7" Click="ApplyFilterClick" Margin="5"/>
-			</Grid>
-		</GroupBox>
-		<GroupBox Grid.Row="1" Header="Add Filter" Margin="5">
-			<Grid>
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="118*"/>
-					<ColumnDefinition Width="125*"/>
-				</Grid.ColumnDefinitions>
-				<!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
-				<ComboBox ItemsSource="{Binding FilterTypes}" SelectedIndex="{Binding SelectedFilterIndex, Mode=TwoWay}" SelectedValue="{Binding NewFilter.Type}" 
+					</TextBlock>
+					<ListBox ItemsSource="{Binding CustomFilterCopy.OrFilters}" Grid.Row="5" KeyUp="FilterKeyUp" MinHeight="23">
+					<ListBox.ItemContainerStyle>
+						<Style TargetType="ListBoxItem">
+							<Setter Property="HorizontalContentAlignment" Value="Left" />
+							<Setter Property="VerticalContentAlignment" Value="Top" />
+						</Style>
+					</ListBox.ItemContainerStyle>
+						</ListBox>
+					<Button Content="Save OR Group" Grid.Row="6" Click="SaveOrGroup" Margin="5"/>
+					<Button Content="Apply Filter" Grid.Row="7" Click="ApplyFilterClick" Margin="5"/>
+				</Grid>
+			</GroupBox>
+			<GroupBox Grid.Row="1" Header="Add Filter" Margin="5">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="118*"/>
+						<ColumnDefinition Width="125*"/>
+					</Grid.ColumnDefinitions>
+					<!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+					<ComboBox ItemsSource="{Binding FilterTypes}" SelectedIndex="{Binding SelectedFilterIndex, Mode=TwoWay}" SelectedValue="{Binding NewFilter.Type}" 
 				          SelectedValuePath="Tag" VerticalAlignment="Top" Grid.ColumnSpan="3"
 				          SelectionChanged="FilterTypeChanged">
-					<ComboBox.ItemContainerStyle>
-						<Style TargetType="{x:Type ComboBoxItem}">
-							<Setter Property="HorizontalContentAlignment" Value="Left"/>
-							<Setter Property="VerticalContentAlignment" Value="Center"/>
-						</Style>
-					</ComboBox.ItemContainerStyle>
-				</ComboBox>
-				<CheckBox Grid.Column="0" Content="OR Group" VerticalAlignment="Top" Margin="5,27,5,0" IsChecked="{Binding NewFilterOrGroup}" Grid.ColumnSpan="2" />
-				<CheckBox Grid.Column="1" Content="Exclude"  VerticalAlignment="Top" Margin="5,27,5,0" IsChecked="{Binding NewFilter.Exclude}" />
-				<Grid x:Name="FilterValuesGrid" Grid.ColumnSpan="2" Grid.Column="0" Margin="0,47,0,25" MaxHeight="200"/>
-				<Button Grid.Column="0" Content="Add To Custom Filter"    VerticalAlignment="Bottom" Margin="5,0" Command="{Binding AddToCustomFilterCommand}"/>
-				<Button Grid.Column="1" Content="Add To Permanent Filter" VerticalAlignment="Bottom" Margin="5,0" Command="{Binding AddToPermanentFilterCommand}"/>
-			</Grid>
-		</GroupBox>
-		<GroupBox Grid.Row="2" Header="Permanent Filter" Margin="5,5,5,10" x:Name="PermanentFilterGroupBox">
-			<Grid>
-				<Grid.RowDefinitions>
-					<RowDefinition Height="Auto"/>
-					<RowDefinition Height="*"/>
-					<RowDefinition Height="Auto"/>
-					<RowDefinition Height="*"/>
-					<RowDefinition Height="Auto"/>
-				</Grid.RowDefinitions>
-				<Label Grid.Row="0" Content="AND Group (All of these are required)"/>
-				<ListBox Grid.Row="1" KeyUp="FilterKeyUp" ItemsSource="{Binding PermanentFilter.AndFilters}"  MinHeight="23">
-					<ListBox.ItemContainerStyle>
-						<Style TargetType="ListBoxItem">
-							<Setter Property="HorizontalContentAlignment" Value="Left" />
-							<Setter Property="VerticalContentAlignment" Value="Top" />
-						</Style>
-					</ListBox.ItemContainerStyle>
-				</ListBox>
-				<Label   Grid.Row="2" Content="OR Group (One of these is required)"/>
-				<ListBox Grid.Row="3" KeyUp="FilterKeyUp" ItemsSource="{Binding PermanentFilter.OrFilters}" MinHeight="23">
-					<ListBox.ItemContainerStyle>
-						<Style TargetType="ListBoxItem">
-							<Setter Property="HorizontalContentAlignment" Value="Left" />
-							<Setter Property="VerticalContentAlignment" Value="Top" />
-						</Style>
-					</ListBox.ItemContainerStyle>
-				</ListBox>
-				<Button Content="Save OR Group" Grid.Row="4" Click="SaveOrGroup" Margin="5"/>
-			</Grid>
-		</GroupBox>
+						<ComboBox.ItemContainerStyle>
+							<Style TargetType="{x:Type ComboBoxItem}">
+								<Setter Property="HorizontalContentAlignment" Value="Left"/>
+								<Setter Property="VerticalContentAlignment" Value="Center"/>
+							</Style>
+						</ComboBox.ItemContainerStyle>
+					</ComboBox>
+					<CheckBox Grid.Column="0" Content="OR Group" VerticalAlignment="Top" Margin="5,27,5,0" IsChecked="{Binding NewFilterOrGroup}" Grid.ColumnSpan="2" />
+					<CheckBox Grid.Column="1" Content="Exclude"  VerticalAlignment="Top" Margin="5,27,5,0" IsChecked="{Binding NewFilter.Exclude}" />
+					<Grid x:Name="FilterValuesGrid" Grid.ColumnSpan="2" Grid.Column="0" Margin="0,47,0,25" MaxHeight="200"/>
+					<Button Grid.Column="0" Content="Add To Custom Filter"    VerticalAlignment="Bottom" Margin="5,0" Command="{Binding AddToCustomFilterCommand}"/>
+					<Button Grid.Column="1" Content="Add To Permanent Filter" VerticalAlignment="Bottom" Margin="5,0" Command="{Binding AddToPermanentFilterCommand}"/>
+				</Grid>
+			</GroupBox>
+			<GroupBox Grid.Row="2" Header="Permanent Filter" Margin="5,5,5,10" x:Name="PermanentFilterGroupBox">
+				<Grid>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="*"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="*"/>
+						<RowDefinition Height="Auto"/>
+					</Grid.RowDefinitions>
+					<Label Grid.Row="0" Content="AND Group (All of these are required)"/>
+					<ListBox Grid.Row="1" KeyUp="FilterKeyUp" ItemsSource="{Binding PermanentFilter.AndFilters}"  MinHeight="23">
+						<ListBox.ItemContainerStyle>
+							<Style TargetType="ListBoxItem">
+								<Setter Property="HorizontalContentAlignment" Value="Left" />
+								<Setter Property="VerticalContentAlignment" Value="Top" />
+							</Style>
+						</ListBox.ItemContainerStyle>
+					</ListBox>
+					<Label   Grid.Row="2" Content="OR Group (One of these is required)"/>
+					<ListBox Grid.Row="3" KeyUp="FilterKeyUp" ItemsSource="{Binding PermanentFilter.OrFilters}" MinHeight="23">
+						<ListBox.ItemContainerStyle>
+							<Style TargetType="ListBoxItem">
+								<Setter Property="HorizontalContentAlignment" Value="Left" />
+								<Setter Property="VerticalContentAlignment" Value="Top" />
+							</Style>
+						</ListBox.ItemContainerStyle>
+					</ListBox>
+					<Button Content="Save OR Group" Grid.Row="4" Click="SaveOrGroup" Margin="5"/>
+				</Grid>
+			</GroupBox>
+		</Grid>
 	</Grid>
 </UserControl>

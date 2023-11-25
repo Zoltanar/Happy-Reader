@@ -24,13 +24,16 @@ namespace Happy_Reader.ViewModel
 
 		private const int PageSize = 50;
 		private int _currentPage;
-		private bool _finalPage;
+		private bool _finalPage = true;
 		private string _replyText;
 		private Brush _replyColor;
 		private Brush _vndbConnectionBackground;
 		private Brush _vndbConnectionForeground;
 		private string _vndbConnectionStatus;
-		protected readonly MainWindowViewModel MainViewModel;
+        private SuggestionScorer _suggestionScorer;
+        private int _selectedFilterIndex = -1;
+        private CustomFilter _activeFilter;
+        protected readonly MainWindowViewModel MainViewModel;
 		public abstract Func<VisualNovelDatabase, IEnumerable<IDataItem<int>>> GetAll { get; }
 		public abstract IEnumerable<IDataItem<int>> GetAllWithKeyIn(VisualNovelDatabase db, int[] keys);
 		protected abstract Func<IDataItem<int>, ListedVN> GetVisualNovel { get; }
@@ -41,23 +44,37 @@ namespace Happy_Reader.ViewModel
 		private Func<IEnumerable<IDataItem<int>>, IEnumerable<IDataItem<int>>> _ordering;
 		public abstract FiltersViewModel FiltersViewModel { get; }
 		public PausableUpdateList<UserControl> Tiles { get; set; } = new();
-		private SuggestionScorer _suggestionScorer;
 
-		public ObservableCollection<NamedFunction> History { get; } = new();
+        public ObservableCollection<NamedFunction> History { get; } = new();
 		public CoreSettings CSettings => StaticHelpers.CSettings;
 
 		public ListedProducer[] ProducerList => StaticHelpers.LocalDatabase?.Producers?.ToArray();
 		public bool BackEnabled => History.ToList().FindIndex(i => i.Selected) > 0;
 		public int SelectedFunctionIndex => History.ToList().FindIndex(i => i.Selected);
 
-		public CustomFilter SelectedFilter
+        public int SelectedFilterIndex
+        {
+            get => _selectedFilterIndex;
+            set
+            {
+                if (_selectedFilterIndex == value) return;
+                _selectedFilterIndex = value;
+                OnPropertyChanged();
+                if (FiltersViewModel.Filters.Count > value)
+                {
+                    ActiveFilter = FiltersViewModel.Filters[value];
+                }
+            }
+        }
+
+        public CustomFilter ActiveFilter
 		{
-			get => FiltersViewModel.CustomFilter;
 			set
 			{
-				if (FiltersViewModel.CustomFilter == value) return;
-				FiltersViewModel.CustomFilter = value;
-				Task.Run(() => ChangeFilter(FiltersViewModel.CustomFilter));
+				if (_activeFilter == value) return;
+                _activeFilter = value;
+				Task.Run(() => ChangeFilter(_activeFilter));
+				OnPropertyChanged();
 			}
 		}
 
@@ -254,7 +271,7 @@ namespace Happy_Reader.ViewModel
 		{
 			var cf = new CustomFilter($"Text: {text}");
 			cf.AndFilters.Add(new GeneralFilter(GeneralFilterType.Name,text));
-			SelectedFilter = cf;
+			ActiveFilter = cf;
 		}
 
 		public void ShowTagged(DumpFiles.WrittenTag tag)
@@ -262,7 +279,7 @@ namespace Happy_Reader.ViewModel
 			var watch = Stopwatch.StartNew();
 			var cf = new CustomFilter($"Tag: {tag.Name}");
 			cf.AndFilters.Add(new GeneralFilter(GeneralFilterType.Tags, tag.ID));
-			SelectedFilter = cf;
+            ActiveFilter = cf;
 			StaticHelpers.Logger.ToDebug($@"{nameof(ShowTagged)}: {watch.ElapsedMilliseconds}ms");
 		}
 
@@ -289,7 +306,7 @@ namespace Happy_Reader.ViewModel
 				SetReplyText($"No titles related to {item}.", VndbConnection.MessageSeverity.Warning);
 				return;
 			}
-			SelectedFilter = cf;
+            ActiveFilter = cf;
 		}
 
 		public void ShowForProducer(string producerName)
@@ -306,14 +323,14 @@ namespace Happy_Reader.ViewModel
 				SetReplyText($"No producers found for name {producerName}.", VndbConnection.MessageSeverity.Warning);
 				return;
 			}
-			SelectedFilter = cf;
+            ActiveFilter = cf;
 		}
 
 		public void ShowForProducer(ListedProducer producer)
 		{
 			var cf = new CustomFilter($"Producer: {producer.Name}");
 			cf.AndFilters.Add(new GeneralFilter(GeneralFilterType.Producer, producer.ID));
-			SelectedFilter = cf;
+            ActiveFilter = cf;
 		}
 
 		public void ShowForCharacter(CharacterItem character)
@@ -330,7 +347,7 @@ namespace Happy_Reader.ViewModel
 				SetReplyText($"No titles found for character {character.Name}.", VndbConnection.MessageSeverity.Warning);
 				return;
 			}
-			SelectedFilter = cf;
+            ActiveFilter = cf;
 		}
 
 		public void ShowSuggested()
@@ -339,7 +356,7 @@ namespace Happy_Reader.ViewModel
             OrderingType = TitleOrderingType.Normal;
             var cf = new CustomFilter("Suggested");
 			cf.AndFilters.Add(new GeneralFilter(GeneralFilterType.SuggestionScore, ">0"));
-			SelectedFilter = cf;
+            ActiveFilter = cf;
 		}
 
 		public async Task SortBySuggestion()
@@ -404,7 +421,7 @@ namespace Happy_Reader.ViewModel
 
 		public void ShowAll()
 		{
-			SelectedFilter = new CustomFilter("All");
+            ActiveFilter = new CustomFilter("All");
 		}
 
 		public async Task BrowseHistory(NamedFunction function)
@@ -421,7 +438,7 @@ namespace Happy_Reader.ViewModel
 			var cf = new CustomFilter(searchHeader);
 			foreach(var id in allAliasIds) cf.OrFilters.Add(new GeneralFilter(GeneralFilterType.Staff, id));
 			cf.SaveOrGroup();
-			SelectedFilter = cf;
+            ActiveFilter = cf;
 		}
 
 		public void ShowForStaffWithAlias(int aliasId)
@@ -429,7 +446,7 @@ namespace Happy_Reader.ViewModel
 			var staff = StaticHelpers.LocalDatabase.StaffAliases[aliasId];
 			var cf = new CustomFilter($"Staff: {staff}");
 			cf.AndFilters.Add(new GeneralFilter(GeneralFilterType.Staff, aliasId));
-			SelectedFilter = cf;
+            ActiveFilter = cf;
 		}
 
 		public void ShowForSeiyuu(VnSeiyuu seiyuu)
@@ -437,7 +454,7 @@ namespace Happy_Reader.ViewModel
 			var staff = StaticHelpers.LocalDatabase.StaffAliases[seiyuu.AliasID];
 			var cf = new CustomFilter($"Seiyuu: {staff}");
 			cf.AndFilters.Add(new GeneralFilter(GeneralFilterType.Seiyuu, seiyuu.AliasID));
-			SelectedFilter = cf;
+            ActiveFilter = cf;
 		}
 
 		private int[] GetRelatedTitles(IDataItem<int> item)

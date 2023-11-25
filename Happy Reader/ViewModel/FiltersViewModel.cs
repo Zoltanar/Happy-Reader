@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -12,20 +13,34 @@ using Newtonsoft.Json;
 
 namespace Happy_Reader.ViewModel
 {
+	/// <summary>
+	/// Class to modify a custom filter.
+	/// </summary>
 	public class FiltersViewModel : INotifyPropertyChanged
 	{
 		public event PropertyChangedEventHandler PropertyChanged;
-		private CustomFilter _customFilter;
-		private int _selectedFilterIndex;
+        private CustomFilter _customFilter;
+        private CustomFilter _customFilterCopy;
+        private int _selectedFilterIndex;
 		private readonly DatabaseViewModelBase _databaseViewModel;
 		public ObservableCollection<CustomFilter> Filters { get; }
 		public CustomFilter PermanentFilter { get; }
-		public CustomFilter CustomFilter
+        public CustomFilter CustomFilter
+        {
+            get => _customFilter;
+            set
+            {
+                _customFilter = value ?? new CustomFilter();
+                CustomFilterCopy = _customFilter.GetCopy();
+                OnPropertyChanged();
+            }
+        }
+        public CustomFilter CustomFilterCopy
 		{
-			get => _customFilter;
+			get => _customFilterCopy;
 			set
 			{
-				_customFilter = value == null ? new CustomFilter() : value.GetCopy();
+                _customFilterCopy = value;
 				OnPropertyChanged();
 			}
 		}
@@ -53,35 +68,42 @@ namespace Happy_Reader.ViewModel
 		{
 			_databaseViewModel = databaseViewModel;
 			Filters = customFilters;
+            Filters.CollectionChanged += FiltersCollectionChanged;
 			PermanentFilter = permanentFilter;
 			SelectedFilterIndex = 0;
-			CustomFilter = Filters.FirstOrDefault();
+			//CustomFilter = Filters.FirstOrDefault();
 			AddToCustomFilterCommand = new CommandHandler(AddToCustomFilter, true);
 			AddToPermanentFilterCommand = new CommandHandler(AddToPermanentFilter, true);
 			SaveCustomFilterCommand = new CommandHandler(SaveCustomFilter, true);
 		}
-		
-		public void SaveCustomFilter()
+
+        private void FiltersCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action != NotifyCollectionChangedAction.Remove) return;
+			SaveToFile(false);
+        }
+
+        public void SaveCustomFilter()
 		{
 			try
 			{
-				if (string.IsNullOrWhiteSpace(CustomFilter.Name))
+				if (string.IsNullOrWhiteSpace(CustomFilterCopy.Name))
 				{
 					SaveFilterError = "Please enter a name.";
 					return;
 				}
 				SaveFilterError = "";
-				var existingFilter = Filters.FirstOrDefault(x => x.Name == CustomFilter.Name);
+				var existingFilter = Filters.FirstOrDefault(x => x.Name == CustomFilterCopy.Name);
 				if (existingFilter != null)
 				{
 					var result = MessageBox.Show($"Overwrite existing filter: {existingFilter.Name}?", "Happy Reader", MessageBoxButton.OKCancel);
 					if (result == MessageBoxResult.Cancel) return;
-					existingFilter.Overwrite(CustomFilter);
+					existingFilter.Overwrite(CustomFilterCopy);
 				}
 				else
 				{
-					Filters.Add(CustomFilter);
-					CustomFilter = new CustomFilter();
+					Filters.Add(CustomFilterCopy);
+                    CustomFilterCopy = new CustomFilter();
 				}
 				SaveToFile(false);
 				SaveFilterError = "Filter saved.";
@@ -98,7 +120,7 @@ namespace Happy_Reader.ViewModel
 			{
 				var result = MessageBox.Show($"Delete existing filter: {CustomFilter.Name}?", "Happy Reader", MessageBoxButton.OKCancel);
 				if (result == MessageBoxResult.Cancel) return;
-				var indexOfFilter = Filters.IndexOf(CustomFilter.OriginalFilter);
+				var indexOfFilter = Filters.IndexOf(CustomFilter);
 				if (indexOfFilter == -1)
 				{
 					SaveFilterError = "Failed to find filter in collection.";
@@ -127,9 +149,9 @@ namespace Happy_Reader.ViewModel
 		public void AddToCustomFilter()
 		{
 			OnPropertyChanged(nameof(NewFilter));
-			if (NewFilterOrGroup) CustomFilter.OrFilters.Add(NewFilter.GetCopy());
-			else CustomFilter.AndFilters.Add(NewFilter.GetCopy());
-			OnPropertyChanged(nameof(CustomFilter));
+			if (NewFilterOrGroup) CustomFilterCopy.OrFilters.Add(NewFilter.GetCopy());
+			else CustomFilterCopy.AndFilters.Add(NewFilter.GetCopy());
+			OnPropertyChanged(nameof(CustomFilterCopy));
 		}
 		
 		public void SaveToFile(bool isPermanent)
@@ -141,7 +163,7 @@ namespace Happy_Reader.ViewModel
 		
 		public void SaveOrGroup(bool isPermanent)
 		{
-			var filter = isPermanent ? PermanentFilter : CustomFilter;
+			var filter = isPermanent ? PermanentFilter : CustomFilterCopy;
 			filter.SaveOrGroup();
 			if (isPermanent) SaveToFile(true);
 		}
@@ -154,7 +176,12 @@ namespace Happy_Reader.ViewModel
 
 		public async Task ApplyCurrentFilter()
 		{
-			await _databaseViewModel.ChangeFilter(CustomFilter);
+			await _databaseViewModel.ChangeFilter(CustomFilterCopy);
 		}
-	}
+
+        public void SelectFilter(CustomFilter filter)
+        {
+            _databaseViewModel.SelectedFilterIndex = Filters.IndexOf(filter);
+        }
+    }
 }

@@ -35,7 +35,8 @@ namespace Happy_Reader.ViewModel
 					: new VndbConnection.LoginCredentials(StaticHelpers.ClientName, StaticHelpers.ClientVersion), false);
 			});
 			MainViewModel.StatusText = "Loading VN List...";
-			await RefreshTiles();
+            SelectedFilterIndex = 0;
+            //await RefreshTiles();
 		}
 
 		public override FiltersViewModel FiltersViewModel { get; }
