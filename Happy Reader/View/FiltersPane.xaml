@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
+             xmlns:dd="urn:gong-wpf-dragdrop"
              mc:Ignorable="d" 
              d:DesignHeight="500" d:DesignWidth="400" d:DataContext="{d:DesignInstance viewModel:FiltersViewModel}">
 	<Grid>
@@ -11,11 +12,11 @@
 			<ColumnDefinition Width="Auto"/>
 		<ColumnDefinition Width="*"/>
 		</Grid.ColumnDefinitions>
-		<DataGrid ItemsSource="{Binding Filters}" IsReadOnly="True"
-		          CanUserAddRows="False" CanUserDeleteRows="True"
+		<DataGrid ItemsSource="{Binding Filters}" IsReadOnly="False"
+		          CanUserAddRows="False" CanUserDeleteRows="True" dd:DragDrop.IsDragSource="True" dd:DragDrop.IsDropTarget="True"
 		          AutoGenerateColumns="False" CommandManager.PreviewCanExecute="PreviewDeleteFilter" SelectedCellsChanged="RowSelected">
 			<DataGrid.Columns>
-				<DataGridTextColumn Header="Name" Binding="{Binding Name}"/>
+				<DataGridTextColumn Header="Name" Binding="{Binding Name}" IsReadOnly="True"/>
 			</DataGrid.Columns>
 			<DataGrid.Resources>
 				<Style TargetType="DataGridRow">
@@ -42,9 +43,8 @@
 						<RowDefinition Height="Auto"/>
 					</Grid.RowDefinitions>
 					<Label Grid.Row="1" Content="Name" HorizontalAlignment="Left" Padding="0" Margin="0,5" VerticalContentAlignment="Center" Height="21"/>
-					<TextBox Grid.Row="1"  Margin="37,5,82,5" Text="{Binding CustomFilterCopy.Name}" VerticalContentAlignment="Center" Height="21" />
-					<Button Grid.Row="1"  Content="Save" HorizontalAlignment="Right" Margin="0,5,48,5" Command="{Binding SaveCustomFilterCommand}" VerticalContentAlignment="Center" Height="21"/>
-					<Button Grid.Row="1"  Content="Delete" HorizontalAlignment="Right" Margin="0,5,5,5" Click="DeleteCustomFilter" VerticalContentAlignment="Center" Height="21"/>
+					<TextBox Grid.Row="1"  Margin="37,5,36,5" Text="{Binding CustomFilterCopy.Name}" VerticalContentAlignment="Center" Height="21" />
+					<Button Grid.Row="1"  Content="Save" HorizontalAlignment="Right" Margin="0,5,5,5" Command="{Binding SaveCustomFilterCommand}" VerticalContentAlignment="Center" Height="21"/>
 					<TextBlock Grid.Row="2">
 					<Run>AND Group</Run>
 					<LineBreak/>

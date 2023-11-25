@@ -28,8 +28,8 @@ namespace Happy_Reader.View
         private void CreateLangReleaseFilter()
         {
             _languageDockPanel = new DockPanel();
-            var mtlCheckBox = CreateLangReleaseCheckBox("MTL", "Machine Translation", nameof(LangRelease.Mtl));
-            var partialCheckBox = CreateLangReleaseCheckBox("Partial", "Partial Release", nameof(LangRelease.Partial));
+            CreateLangReleaseCheckBox("MTL", "Machine Translation", nameof(LangRelease.Mtl));
+            CreateLangReleaseCheckBox("Partial", "Partial Release", nameof(LangRelease.Partial));
             var languageTextBox = new TextBox();
             languageTextBox.SourceUpdated += UpdateLangReleaseFilter;
             var languageBinding = new Binding(nameof(LangRelease.Lang));
@@ -40,16 +40,15 @@ namespace Happy_Reader.View
             languageTextBox.DataContext = _langRelease;
         }
 
-        private CheckBox CreateLangReleaseCheckBox(string content, string tooltip, string property)
+        private void CreateLangReleaseCheckBox(string content, string tooltip, string property)
         {
-            var checkBox = new CheckBox() { Content = content, ToolTip = tooltip };
+            var checkBox = new CheckBox { Content = content, ToolTip = tooltip };
             checkBox.Checked += UpdateLangReleaseFilter;
             checkBox.Unchecked += UpdateLangReleaseFilter;
-            checkBox.SetBinding(CheckBox.IsCheckedProperty, property);
+            checkBox.SetBinding(ToggleButton.IsCheckedProperty, property);
             _languageDockPanel.Children.Add(checkBox);
             DockPanel.SetDock(checkBox, Dock.Left);
             checkBox.DataContext = _langRelease;
-            return checkBox;
         }
 
         private void FilterKeyUp(object sender, KeyEventArgs e)
@@ -71,12 +70,7 @@ namespace Happy_Reader.View
             var isPermanent = parent == PermanentFilterGroupBox;
             ViewModel.SaveOrGroup(isPermanent);
         }
-
-        private void DeleteCustomFilter(object sender, RoutedEventArgs e)
-        {
-            ViewModel.DeleteCustomFilter();
-        }
-
+        
         private void FilterTypeChanged(object sender, SelectionChangedEventArgs e)
         {
             if (ViewModel.SelectedFilterIndex < 0) return;

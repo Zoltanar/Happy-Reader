@@ -60,7 +60,7 @@ namespace Happy_Reader.ViewModel
                 if (_selectedFilterIndex == value) return;
                 _selectedFilterIndex = value;
                 OnPropertyChanged();
-                if (FiltersViewModel.Filters.Count > value)
+                if (value != -1 && FiltersViewModel.Filters.Count > value)
                 {
                     ActiveFilter = FiltersViewModel.Filters[value];
                 }

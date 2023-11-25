@@ -76,10 +76,10 @@ namespace Happy_Reader.ViewModel
 			AddToPermanentFilterCommand = new CommandHandler(AddToPermanentFilter, true);
 			SaveCustomFilterCommand = new CommandHandler(SaveCustomFilter, true);
 		}
-
+		
         private void FiltersCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            if (e.Action != NotifyCollectionChangedAction.Remove) return;
+            if (e.Action == NotifyCollectionChangedAction.Reset) return;
 			SaveToFile(false);
         }
 
@@ -93,19 +93,19 @@ namespace Happy_Reader.ViewModel
 					return;
 				}
 				SaveFilterError = "";
-				var existingFilter = Filters.FirstOrDefault(x => x.Name == CustomFilterCopy.Name);
-				if (existingFilter != null)
+				var existingFilterIndex = Filters.FindIndex(x => x.Name == CustomFilterCopy.Name);
+				if (existingFilterIndex > -1)
 				{
-					var result = MessageBox.Show($"Overwrite existing filter: {existingFilter.Name}?", "Happy Reader", MessageBoxButton.OKCancel);
+					var result = MessageBox.Show($"Overwrite existing filter: {CustomFilterCopy.Name}?", "Happy Reader", MessageBoxButton.OKCancel);
 					if (result == MessageBoxResult.Cancel) return;
-					existingFilter.Overwrite(CustomFilterCopy);
-				}
+                    var priorSelectedIndex = _databaseViewModel.SelectedFilterIndex;
+                    Filters[existingFilterIndex] = CustomFilterCopy.GetCopy();
+                    _databaseViewModel.SelectedFilterIndex = priorSelectedIndex;
+                }
 				else
 				{
-					Filters.Add(CustomFilterCopy);
-                    CustomFilterCopy = new CustomFilter();
+					Filters.Add(CustomFilterCopy.GetCopy());
 				}
-				SaveToFile(false);
 				SaveFilterError = "Filter saved.";
 			}
 			finally
@@ -113,32 +113,7 @@ namespace Happy_Reader.ViewModel
 				OnPropertyChanged(null);
 			}
 		}
-
-		public void DeleteCustomFilter()
-		{
-			try
-			{
-				var result = MessageBox.Show($"Delete existing filter: {CustomFilter.Name}?", "Happy Reader", MessageBoxButton.OKCancel);
-				if (result == MessageBoxResult.Cancel) return;
-				var indexOfFilter = Filters.IndexOf(CustomFilter);
-				if (indexOfFilter == -1)
-				{
-					SaveFilterError = "Failed to find filter in collection.";
-					return;
-				}
-				Filters.RemoveAt(indexOfFilter);
-				CustomFilter = Filters.Count == 1
-					? new CustomFilter()
-					: indexOfFilter > 0 ? Filters[indexOfFilter - 1] : Filters[indexOfFilter + 1];
-				SaveToFile(false);
-				SaveFilterError = "Filter removed.";
-			}
-			finally
-			{
-				OnPropertyChanged(null);
-			}
-		}
-
+		
 		public void AddToPermanentFilter()
 		{
 			if (NewFilterOrGroup) PermanentFilter.OrFilters.Add(NewFilter.GetCopy());

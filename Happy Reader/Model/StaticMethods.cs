@@ -370,6 +370,17 @@ namespace Happy_Reader
             releaseDate = secondary ? vn.ReleaseDateSecondary : vn.ReleaseDate;
             releaseDateString = secondary ? releaseDate.ToString("yyyy-MM-dd") : vn.ReleaseDateString;
         }
+
+        public static int FindIndex<T>(this ObservableCollection<T> source, Func<T, bool> predicate)
+        {
+            var index = -1;
+            foreach (var item in source)
+            {
+                index++;
+				if (predicate(item)) return index;
+            }
+            return -1;
+        }
     }
 
 	public class FiltersData : SettingsJsonFile
