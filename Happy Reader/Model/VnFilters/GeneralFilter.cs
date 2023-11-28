@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using Happy_Apps_Core;
 using Happy_Apps_Core.DataAccess;
 using Happy_Apps_Core.Database;
+using Happy_Reader.Model.VnFilters;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 
@@ -50,9 +51,14 @@ namespace Happy_Reader
             set
             {
                 _stringValue = value;
+                if (Type is GeneralFilterType.ReleaseMonth)
+                {
+                    ReleaseMonthFilter.TryParse(value, out var releaseMonth);
+                    Value =  releaseMonth;
+                }
                 if (int.TryParse(value, out int intValue)) Value = intValue;
-                if (bool.TryParse(value, out bool boolValue)) Value = boolValue;
-                if (Type is GeneralFilterType.OriginalLanguage or GeneralFilterType.Language) _langRelease = GetLangRelease();
+                else if (bool.TryParse(value, out bool boolValue)) Value = boolValue;
+                else if (Type is GeneralFilterType.OriginalLanguage or GeneralFilterType.Language) _langRelease = GetLangRelease();
             }
         }
 
@@ -60,8 +66,11 @@ namespace Happy_Reader
         public int IntValue { get; set; }
 
         [JsonIgnore]
+        public ReleaseMonthFilter ReleaseMonthValue { get; set; }
+
+        [JsonIgnore]
         public object Value
-        {         
+        {
             set
             {
                 if (value != null && value.GetType().IsEnum)
@@ -105,6 +114,10 @@ namespace Happy_Reader
                     case null:
                         IntValue = 0;
                         _stringValue = null;
+                        break;
+                    case ReleaseMonthFilter releaseMonthValue:
+                        ReleaseMonthValue = releaseMonthValue;
+                        _stringValue = releaseMonthValue.ToString();
                         break;
                     default:
                         IntValue = 0;
@@ -174,6 +187,8 @@ namespace Happy_Reader
                     return i => (GetVisualNovel(i, out var vn) && vn.UserVN != null) != Exclude;
                 case GeneralFilterType.ReleaseDate:
                     return i => (GetVisualNovel(i, out var vn) && DateFunctionFromString(vn.ReleaseDate)) != Exclude;
+                case GeneralFilterType.ReleaseMonth:
+                    return i => (GetVisualNovel(i, out var vn) && ReleaseMonthValue.IsInReleaseMonth(vn.ReleaseDate)) != Exclude;
                 case GeneralFilterType.HasAnime:
                     return i => (GetVisualNovel(i, out var vn) && vn.HasAnime) != Exclude;
                 case GeneralFilterType.SuggestionScore:
@@ -389,6 +404,7 @@ namespace Happy_Reader
                 case GeneralFilterType.CharacterGender:
                 case GeneralFilterType.Name:
                 case GeneralFilterType.VNID:
+                case GeneralFilterType.ReleaseMonth:
                     return $"{result} {StringValue}";
                 case GeneralFilterType.Length:
                     return $"{result} - {(StringValue == null ? "None" : ((LengthFilterEnum)IntValue).GetDescription())}";
@@ -449,7 +465,7 @@ namespace Happy_Reader
             {
                 return _langRelease = JsonConvert.DeserializeObject<LangRelease>(_stringValue) ?? new LangRelease();
             }
-            catch(JsonReaderException)
+            catch (JsonReaderException)
             {
                 var langRelease = new LangRelease
                 {
@@ -522,5 +538,8 @@ namespace Happy_Reader
         VNID = 27,
         [Description("Newly Added"), TypeConverter(typeof(bool))]
         NewlyAdded = 28,
+        [Description("Release Month"), TypeConverter(typeof(ReleaseMonthFilter))]
+        ReleaseMonth = 29,
+
     }
 }

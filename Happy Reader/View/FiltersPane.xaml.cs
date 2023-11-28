@@ -6,6 +6,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
+using Happy_Reader.Model.VnFilters;
 using Happy_Reader.ViewModel;
 
 namespace Happy_Reader.View
@@ -17,12 +18,15 @@ namespace Happy_Reader.View
         private FiltersViewModel ViewModel => (FiltersViewModel)DataContext;
         private AutoCompleteBox _traitOrTagControl;
         private DockPanel _languageDockPanel;
-        private LangRelease _langRelease = new LangRelease();
+        private Grid _releaseMonthGrid;
+        private readonly LangRelease _langRelease = new();
+        private readonly ReleaseMonthFilter _releaseMonth = new();
 
         public FiltersPane()
         {
             InitializeComponent();
             CreateLangReleaseFilter();
+            CreateReleaseMonthGrid();
         }
 
         private void CreateLangReleaseFilter()
@@ -38,6 +42,34 @@ namespace Happy_Reader.View
             _languageDockPanel.Children.Add(languageTextBox);
             DockPanel.SetDock(languageTextBox, Dock.Right);
             languageTextBox.DataContext = _langRelease;
+        }
+
+        private void CreateReleaseMonthGrid()
+        {
+            var grid = new Grid { DataContext = _releaseMonth };
+            var relativeCheckBox = new CheckBox() { Content = "Relative", DataContext = _releaseMonth };
+            relativeCheckBox.SetBinding(ToggleButton.IsCheckedProperty, new Binding(nameof(ReleaseMonthFilter.Relative)) { NotifyOnSourceUpdated = true });
+            relativeCheckBox.Checked += UpdateReleaseMonthFilter;
+            relativeCheckBox.Unchecked += UpdateReleaseMonthFilter;
+            relativeCheckBox.SourceUpdated += UpdateReleaseMonthFilter;
+            var yearTextBox = new LabeledTextBox { Label = "Year", DataContext = _releaseMonth };
+            yearTextBox.SetBinding(LabeledTextBox.TextProperty,
+                new Binding(nameof(ReleaseMonthFilter.Year)) { NotifyOnSourceUpdated = true });
+            yearTextBox.SourceUpdated += UpdateReleaseMonthFilter;
+            var monthTextBox = new LabeledTextBox { Label = "Month", DataContext = _releaseMonth };
+            monthTextBox.SetBinding(LabeledTextBox.TextProperty,
+                new Binding(nameof(ReleaseMonthFilter.Month)) { NotifyOnSourceUpdated = true });
+            monthTextBox.SourceUpdated += UpdateReleaseMonthFilter;
+            grid.ColumnDefinitions.Add(new ColumnDefinition());
+            grid.ColumnDefinitions.Add(new ColumnDefinition());
+            grid.ColumnDefinitions.Add(new ColumnDefinition());
+            grid.Children.Add(relativeCheckBox);
+            Grid.SetColumn(relativeCheckBox, 0);
+            grid.Children.Add(yearTextBox);
+            Grid.SetColumn(yearTextBox, 1);
+            grid.Children.Add(monthTextBox);
+            Grid.SetColumn(monthTextBox, 2);
+            _releaseMonthGrid = grid;
         }
 
         private void CreateLangReleaseCheckBox(string content, string tooltip, string property)
@@ -70,7 +102,7 @@ namespace Happy_Reader.View
             var isPermanent = parent == PermanentFilterGroupBox;
             ViewModel.SaveOrGroup(isPermanent);
         }
-        
+
         private void FilterTypeChanged(object sender, SelectionChangedEventArgs e)
         {
             if (ViewModel.SelectedFilterIndex < 0) return;
@@ -138,7 +170,7 @@ namespace Happy_Reader.View
                 else if (type == typeof(LangRelease))
                 {
                     control = _languageDockPanel;
-                    bindingProperty = DockPanel.DataContextProperty;
+                    bindingProperty = DataContextProperty;
                 }
                 else if (type == typeof(ListedProducer))
                 {
@@ -152,16 +184,27 @@ namespace Happy_Reader.View
                     control = _traitOrTagControl;
                     bindingProperty = AutoCompleteBox.SelectedItemProperty;
                 }
+                else if (type == typeof(ReleaseMonthFilter))
+                {
+                    control = _releaseMonthGrid;
+                    bindingProperty = DataContextProperty;
+                }
                 else control = new TextBlock(new System.Windows.Documents.Run(type.ToString()));
             }
             if (bindingProperty != null) control.SetBinding(bindingProperty, valueBinding);
             FilterValuesGrid.Children.Add(control);
         }
 
-        private void UpdateLangReleaseFilter(object sender, RoutedEventArgs e) 
+        private void UpdateLangReleaseFilter(object sender, RoutedEventArgs e)
         {
             if (ViewModel == null) return;
             ViewModel.NewFilter.Value = _langRelease;
+        }
+
+        private void UpdateReleaseMonthFilter(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel == null) return;
+            ViewModel.NewFilter.Value = _releaseMonth;
         }
 
         private void RootControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -210,11 +253,11 @@ namespace Happy_Reader.View
         {
             var grid = (DataGrid)sender;
             if (e.Command != DataGrid.DeleteCommand) return;
-            if(grid.SelectedItems.Count == 0) return;
+            if (grid.SelectedItems.Count == 0) return;
             var message = "Are you sure you wish to delete ";
             if (grid.SelectedItems.Count > 1) message += $"{grid.SelectedItems.Count} filters?";
             else message += $"filter '{((CustomFilter)grid.SelectedItems[0]).Name}' ?";
-            if (MessageBox.Show(message,StaticHelpers.ClientName, MessageBoxButton.YesNo) != MessageBoxResult.Yes) e.Handled = true;
+            if (MessageBox.Show(message, StaticHelpers.ClientName, MessageBoxButton.YesNo) != MessageBoxResult.Yes) e.Handled = true;
         }
 
         private void Row_DoubleClick(object sender, MouseButtonEventArgs e)

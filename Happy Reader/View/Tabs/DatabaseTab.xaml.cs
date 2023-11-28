@@ -188,6 +188,7 @@ namespace Happy_Reader.View.Tabs
 
         private void ScrollToTop()
         {
+            if (VisualNovelItems.Items.Count == 0) return;
             var firstItem = VisualNovelItems.Items[0];
 			if(firstItem == null) return;
             VisualNovelItems.ScrollIntoView(firstItem);
