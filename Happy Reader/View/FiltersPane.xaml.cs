@@ -13,20 +13,17 @@ namespace Happy_Reader.View
 {
     public partial class FiltersPane : UserControl
     {
-
         // ReSharper disable once NotAccessedField.Local
         private FiltersViewModel ViewModel => (FiltersViewModel)DataContext;
         private AutoCompleteBox _traitOrTagControl;
         private DockPanel _languageDockPanel;
-        private Grid _releaseMonthGrid;
+        private readonly ReleaseFilterPanel _releaseMonthGrid = new();
         private readonly LangRelease _langRelease = new();
-        private readonly ReleaseMonthFilter _releaseMonth = new();
 
         public FiltersPane()
         {
             InitializeComponent();
             CreateLangReleaseFilter();
-            CreateReleaseMonthGrid();
         }
 
         private void CreateLangReleaseFilter()
@@ -42,34 +39,6 @@ namespace Happy_Reader.View
             _languageDockPanel.Children.Add(languageTextBox);
             DockPanel.SetDock(languageTextBox, Dock.Right);
             languageTextBox.DataContext = _langRelease;
-        }
-
-        private void CreateReleaseMonthGrid()
-        {
-            var grid = new Grid { DataContext = _releaseMonth };
-            var relativeCheckBox = new CheckBox() { Content = "Relative", DataContext = _releaseMonth };
-            relativeCheckBox.SetBinding(ToggleButton.IsCheckedProperty, new Binding(nameof(ReleaseMonthFilter.Relative)) { NotifyOnSourceUpdated = true });
-            relativeCheckBox.Checked += UpdateReleaseMonthFilter;
-            relativeCheckBox.Unchecked += UpdateReleaseMonthFilter;
-            relativeCheckBox.SourceUpdated += UpdateReleaseMonthFilter;
-            var yearTextBox = new LabeledTextBox { Label = "Year", DataContext = _releaseMonth };
-            yearTextBox.SetBinding(LabeledTextBox.TextProperty,
-                new Binding(nameof(ReleaseMonthFilter.Year)) { NotifyOnSourceUpdated = true });
-            yearTextBox.SourceUpdated += UpdateReleaseMonthFilter;
-            var monthTextBox = new LabeledTextBox { Label = "Month", DataContext = _releaseMonth };
-            monthTextBox.SetBinding(LabeledTextBox.TextProperty,
-                new Binding(nameof(ReleaseMonthFilter.Month)) { NotifyOnSourceUpdated = true });
-            monthTextBox.SourceUpdated += UpdateReleaseMonthFilter;
-            grid.ColumnDefinitions.Add(new ColumnDefinition());
-            grid.ColumnDefinitions.Add(new ColumnDefinition());
-            grid.ColumnDefinitions.Add(new ColumnDefinition());
-            grid.Children.Add(relativeCheckBox);
-            Grid.SetColumn(relativeCheckBox, 0);
-            grid.Children.Add(yearTextBox);
-            Grid.SetColumn(yearTextBox, 1);
-            grid.Children.Add(monthTextBox);
-            Grid.SetColumn(monthTextBox, 2);
-            _releaseMonthGrid = grid;
         }
 
         private void CreateLangReleaseCheckBox(string content, string tooltip, string property)
@@ -123,74 +92,71 @@ namespace Happy_Reader.View
                 };
                 bindingProperty = Selector.SelectedValueProperty;
             }
-            else
+            else if (type == typeof(bool)) control = new TextBlock(new System.Windows.Documents.Run("Use Exclude check box"));
+            else if (type == typeof(string))
             {
-                if (type == typeof(bool)) control = new TextBlock(new System.Windows.Documents.Run("Use Exclude check box"));
-                else if (type == typeof(string))
-                {
-                    control = new TextBox();
-                    bindingProperty = TextBox.TextProperty;
-                }
-                else if (type == typeof(int))
-                {
-                    control = new TextBox();
-                    bindingProperty = TextBox.TextProperty;
-                    control.PreviewTextInput += NumberValidationTextBox;
-                }
-                else if (type == typeof(DumpFiles.WrittenTag))
-                {
-                    _traitOrTagControl = new AutoCompleteBox() { ItemFilter = DumpfileFilter, ItemsSource = DumpFiles.GetAllTags() };
-                    control = _traitOrTagControl;
-                    bindingProperty = AutoCompleteBox.SelectedItemProperty;
-                }
-                else if (type == typeof(DumpFiles.WrittenTrait))
-                {
-                    _traitOrTagControl = new AutoCompleteBox()
-                    {
-                        ItemFilter = DumpfileFilter,
-                        HorizontalAlignment = HorizontalAlignment.Stretch,
-                        Margin = new Thickness(130 + 5, 2, 2, 2),
-                    };
-                    var traitRootItems = StaticMethods.GetEnumValues(typeof(DumpFiles.RootTrait));
-                    traitRootItems[0].Content = "Any";
-                    traitRootItems[0].Tag = (DumpFiles.RootTrait)(-1);
-                    var rootControl = new ComboBox
-                    {
-                        ItemsSource = traitRootItems,
-                        SelectedValuePath = nameof(Tag),
-                        HorizontalAlignment = HorizontalAlignment.Left,
-                        Width = 130
-                    };
-                    rootControl.SelectionChanged += RootControl_SelectionChanged;
-                    rootControl.SelectedIndex = 0;
-                    FilterValuesGrid.Children.Add(rootControl);
-                    control = _traitOrTagControl;
-                    bindingProperty = AutoCompleteBox.SelectedItemProperty;
-                }
-                else if (type == typeof(LangRelease))
-                {
-                    control = _languageDockPanel;
-                    bindingProperty = DataContextProperty;
-                }
-                else if (type == typeof(ListedProducer))
-                {
-                    _traitOrTagControl = new AutoCompleteBox() { ItemFilter = ProducerBoxFilter, ItemsSource = StaticHelpers.LocalDatabase.Producers };
-                    control = _traitOrTagControl;
-                    bindingProperty = AutoCompleteBox.SelectedItemProperty;
-                }
-                else if (type == typeof(StaffItem) || type == typeof(VnSeiyuu))
-                {
-                    _traitOrTagControl = new AutoCompleteBox { ItemFilter = StaffItemFilter, ItemsSource = StaticHelpers.LocalDatabase.StaffAliases };
-                    control = _traitOrTagControl;
-                    bindingProperty = AutoCompleteBox.SelectedItemProperty;
-                }
-                else if (type == typeof(ReleaseMonthFilter))
-                {
-                    control = _releaseMonthGrid;
-                    bindingProperty = DataContextProperty;
-                }
-                else control = new TextBlock(new System.Windows.Documents.Run(type.ToString()));
+                control = new TextBox();
+                bindingProperty = TextBox.TextProperty;
             }
+            else if (type == typeof(int))
+            {
+                control = new TextBox();
+                bindingProperty = TextBox.TextProperty;
+                control.PreviewTextInput += NumberValidationTextBox;
+            }
+            else if (type == typeof(DumpFiles.WrittenTag))
+            {
+                _traitOrTagControl = new AutoCompleteBox() { ItemFilter = DumpfileFilter, ItemsSource = DumpFiles.GetAllTags() };
+                control = _traitOrTagControl;
+                bindingProperty = AutoCompleteBox.SelectedItemProperty;
+            }
+            else if (type == typeof(DumpFiles.WrittenTrait))
+            {
+                _traitOrTagControl = new AutoCompleteBox()
+                {
+                    ItemFilter = DumpfileFilter,
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    Margin = new Thickness(130 + 5, 2, 2, 2),
+                };
+                var traitRootItems = StaticMethods.GetEnumValues(typeof(DumpFiles.RootTrait));
+                traitRootItems[0].Content = "Any";
+                traitRootItems[0].Tag = (DumpFiles.RootTrait)(-1);
+                var rootControl = new ComboBox
+                {
+                    ItemsSource = traitRootItems,
+                    SelectedValuePath = nameof(Tag),
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    Width = 130
+                };
+                rootControl.SelectionChanged += RootControl_SelectionChanged;
+                rootControl.SelectedIndex = 0;
+                FilterValuesGrid.Children.Add(rootControl);
+                control = _traitOrTagControl;
+                bindingProperty = AutoCompleteBox.SelectedItemProperty;
+            }
+            else if (type == typeof(LangRelease))
+            {
+                control = _languageDockPanel;
+                bindingProperty = DataContextProperty;
+            }
+            else if (type == typeof(ListedProducer))
+            {
+                _traitOrTagControl = new AutoCompleteBox() { ItemFilter = ProducerBoxFilter, ItemsSource = StaticHelpers.LocalDatabase.Producers };
+                control = _traitOrTagControl;
+                bindingProperty = AutoCompleteBox.SelectedItemProperty;
+            }
+            else if (type == typeof(StaffItem) || type == typeof(VnSeiyuu))
+            {
+                _traitOrTagControl = new AutoCompleteBox { ItemFilter = StaffItemFilter, ItemsSource = StaticHelpers.LocalDatabase.StaffAliases };
+                control = _traitOrTagControl;
+                bindingProperty = AutoCompleteBox.SelectedItemProperty;
+            }
+            else if (type == typeof(ReleaseMonthFilter))
+            {
+                control = _releaseMonthGrid;
+                _releaseMonthGrid.ViewModel = ViewModel.NewFilter;
+            }
+            else control = new TextBlock(new System.Windows.Documents.Run(type.ToString()));
             if (bindingProperty != null) control.SetBinding(bindingProperty, valueBinding);
             FilterValuesGrid.Children.Add(control);
         }
@@ -199,12 +165,6 @@ namespace Happy_Reader.View
         {
             if (ViewModel == null) return;
             ViewModel.NewFilter.Value = _langRelease;
-        }
-
-        private void UpdateReleaseMonthFilter(object sender, RoutedEventArgs e)
-        {
-            if (ViewModel == null) return;
-            ViewModel.NewFilter.Value = _releaseMonth;
         }
 
         private void RootControl_SelectionChanged(object sender, SelectionChangedEventArgs e)

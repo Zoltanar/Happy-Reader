@@ -33,7 +33,6 @@ namespace Happy_Reader.ViewModel
 			OnPropertyChanged(nameof(ProducerList));
 			LocalDatabase.SetCharactersAttachedVisualNovels();
             SelectedFilterIndex = 0;
-            //await RefreshTiles();
 		}
 
 		protected override Func<IDataItem<int>, double?> GetSuggestion { get; } = i => ((CharacterItem)i).TraitScore;

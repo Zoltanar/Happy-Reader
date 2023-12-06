@@ -208,6 +208,9 @@
     </Compile>
     <Compile Include="View\RadioButtonCheckedConverter.cs" />
     <Compile Include="Model\SavedData.cs" />
+    <Compile Include="View\ReleaseFilterPanel.xaml.cs">
+      <DependentUpon>ReleaseFilterPanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\Tabs\AddEntriesTab.xaml.cs">
       <DependentUpon>AddEntriesTab.xaml</DependentUpon>
     </Compile>
@@ -317,6 +320,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\MergeGameControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\ReleaseFilterPanel.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
