@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using Happy_Apps_Core;
 using Happy_Apps_Core.DataAccess;
 using Happy_Apps_Core.Database;
-using Happy_Reader.Model.VnFilters;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 

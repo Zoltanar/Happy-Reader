@@ -6,7 +6,6 @@ using System.Windows.Data;
 using System.Windows.Input;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
-using Happy_Reader.Model.VnFilters;
 using Happy_Reader.ViewModel;
 
 namespace Happy_Reader.View

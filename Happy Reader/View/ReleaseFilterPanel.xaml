@@ -4,9 +4,29 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Happy_Reader.View"
+             xmlns:happyReader="clr-namespace:Happy_Reader"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid x:Name="MainGrid">
-            
-    </Grid>
+             d:DataContext="{d:DesignInstance happyReader:ReleaseMonthFilter}">
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="Auto"/>
+			<ColumnDefinition/>
+			<ColumnDefinition/>
+			<ColumnDefinition/>
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition/>
+			<RowDefinition/>
+			<RowDefinition/>
+		</Grid.RowDefinitions>
+		<CheckBox Grid.Row="0" Grid.Column="0" Content="Relative" IsChecked="{Binding Relative, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True, UpdateSourceTrigger=PropertyChanged}" SourceUpdated="UpdateReleaseMonthFilter" TargetUpdated="UpdateReleaseMonthFilter" VerticalContentAlignment="Center"/>
+		<local:LabeledTextBox Grid.Row="0" Grid.Column="1" Label="Year" LabelWidth="35" Text="{Binding Year, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True, UpdateSourceTrigger=PropertyChanged}" SourceUpdated="UpdateReleaseMonthFilter" TargetUpdated="UpdateReleaseMonthFilter"/>
+		<local:LabeledTextBox Grid.Row="0" Grid.Column="2" Label="Month" LabelWidth="50" Text="{Binding Month, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" SourceUpdated="UpdateReleaseMonthFilter" TargetUpdated="UpdateReleaseMonthFilter"/>
+		<local:LabeledTextBox Grid.Row="0" Grid.Column="3" Label="Day" LabelWidth="50" Text="{Binding Day, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" SourceUpdated="UpdateReleaseMonthFilter" TargetUpdated="UpdateReleaseMonthFilter"/>
+		<CheckBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4" Content="Between" IsChecked="{Binding Between}" HorizontalAlignment="Center"/>
+		<CheckBox Grid.Row="2" Grid.Column="0" IsEnabled="{Binding Between}" Content="Relative" IsChecked="{Binding ToRelative, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True, UpdateSourceTrigger=PropertyChanged}" SourceUpdated="UpdateReleaseMonthFilter" TargetUpdated="UpdateReleaseMonthFilter" VerticalContentAlignment="Center"/>
+		<local:LabeledTextBox Grid.Row="2" Grid.Column="1" IsEnabled="{Binding Between}" Label="Year" LabelWidth="35" Text="{Binding ToYear, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True, UpdateSourceTrigger=PropertyChanged}" SourceUpdated="UpdateReleaseMonthFilter" TargetUpdated="UpdateReleaseMonthFilter"/>
+		<local:LabeledTextBox Grid.Row="2" Grid.Column="2" IsEnabled="{Binding Between}" Label="Month" LabelWidth="50" Text="{Binding ToMonth, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" SourceUpdated="UpdateReleaseMonthFilter" TargetUpdated="UpdateReleaseMonthFilter"/>
+		<local:LabeledTextBox Grid.Row="2" Grid.Column="3" IsEnabled="{Binding Between}" Label="Day" LabelWidth="50" Text="{Binding ToDay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" SourceUpdated="UpdateReleaseMonthFilter" TargetUpdated="UpdateReleaseMonthFilter"/>
+	</Grid>
 </UserControl>
