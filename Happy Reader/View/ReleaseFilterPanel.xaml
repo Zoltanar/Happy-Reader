@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:Happy_Reader.View"
              xmlns:happyReader="clr-namespace:Happy_Reader"
              mc:Ignorable="d" 
-             d:DataContext="{d:DesignInstance happyReader:ReleaseMonthFilter}">
+             d:DataContext="{d:DesignInstance happyReader:ReleaseDateFilter}">
 	<Grid>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="Auto"/>

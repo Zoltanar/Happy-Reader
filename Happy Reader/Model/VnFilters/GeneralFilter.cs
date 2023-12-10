@@ -20,7 +20,6 @@ namespace Happy_Reader
         private string _stringValue = "";
         private LangRelease _langRelease;
         [CanBeNull] private Func<double, bool> _doubleFunc;
-        [CanBeNull] private Func<DateTime, bool> _dateTimeFunc;
 
         [JsonIgnore]
         public GeneralFilterType Type
@@ -50,9 +49,9 @@ namespace Happy_Reader
             set
             {
                 _stringValue = value;
-                if (Type is GeneralFilterType.ReleaseMonth)
+                if (Type is GeneralFilterType.ReleaseDate)
                 {
-                    ReleaseMonthFilter.TryParse(value, out var releaseMonth);
+                    ReleaseDateFilter.TryParse(value, out var releaseMonth);
                     Value =  releaseMonth;
                 }
                 if (int.TryParse(value, out int intValue)) Value = intValue;
@@ -65,7 +64,7 @@ namespace Happy_Reader
         public int IntValue { get; set; }
 
         [JsonIgnore]
-        public ReleaseMonthFilter ReleaseMonthValue { get; set; }
+        public ReleaseDateFilter ReleaseDateValue { get; set; }
 
         [JsonIgnore]
         public object Value
@@ -114,8 +113,8 @@ namespace Happy_Reader
                         IntValue = 0;
                         _stringValue = null;
                         break;
-                    case ReleaseMonthFilter releaseMonthValue:
-                        ReleaseMonthValue = releaseMonthValue;
+                    case ReleaseDateFilter releaseMonthValue:
+                        ReleaseDateValue = releaseMonthValue;
                         _stringValue = releaseMonthValue.ToString();
                         break;
                     default:
@@ -185,9 +184,7 @@ namespace Happy_Reader
                 case GeneralFilterType.UserVN:
                     return i => (GetVisualNovel(i, out var vn) && vn.UserVN != null) != Exclude;
                 case GeneralFilterType.ReleaseDate:
-                    return i => (GetVisualNovel(i, out var vn) && DateFunctionFromString(vn.ReleaseDate)) != Exclude;
-                case GeneralFilterType.ReleaseMonth:
-                    return i => (GetVisualNovel(i, out var vn) && ReleaseMonthValue.IsInReleaseMonth(vn.ReleaseDate)) != Exclude;
+                    return i => (GetVisualNovel(i, out var vn) && ReleaseDateValue.IsInReleaseMonth(vn.ReleaseDate)) != Exclude;
                 case GeneralFilterType.HasAnime:
                     return i => (GetVisualNovel(i, out var vn) && vn.HasAnime) != Exclude;
                 case GeneralFilterType.SuggestionScore:
@@ -294,46 +291,7 @@ namespace Happy_Reader
             //can't seem to catch exception thrown here when casting.
             return i => func(i);
         }
-
-        private bool DateFunctionFromString(DateTime dtValue)
-        {
-            if (_dateTimeFunc != null) return _dateTimeFunc(dtValue);
-            if (StringValue.StartsWith(">="))
-            {
-                var compareValue = DateTime.ParseExact(StringValue.Substring(2).Trim(), "yyyyMMdd", CultureInfo.CurrentCulture);
-                _dateTimeFunc = i => i >= compareValue;
-            }
-            else if (StringValue.StartsWith("<="))
-            {
-                var compareValue = DateTime.ParseExact(StringValue.Substring(2).Trim(), "yyyyMMdd", CultureInfo.CurrentCulture);
-                _dateTimeFunc = i => i <= compareValue;
-            }
-            else if (StringValue.StartsWith(">"))
-            {
-                var compareValue = DateTime.ParseExact(StringValue.Substring(1).Trim(), "yyyyMMdd", CultureInfo.CurrentCulture);
-                _dateTimeFunc = i => i > compareValue;
-            }
-            else if (StringValue.StartsWith("<"))
-            {
-                var compareValue = DateTime.ParseExact(StringValue.Substring(1).Trim(), "yyyyMMdd", CultureInfo.CurrentCulture);
-                _dateTimeFunc = i => i < compareValue;
-            }
-            else if (StringValue.StartsWith("="))
-            {
-                var compareValue = DateTime.ParseExact(StringValue.Substring(1).Trim(), "yyyyMMdd", CultureInfo.CurrentCulture);
-                // ReSharper disable once CompareOfFloatsByEqualityOperator
-                _dateTimeFunc = i => i == compareValue;
-            }
-            else if (char.IsDigit(StringValue[0]))
-            {
-                var compareValue = DateTime.ParseExact(StringValue.Trim(), "yyyyMMdd", CultureInfo.CurrentCulture);
-                // ReSharper disable once CompareOfFloatsByEqualityOperator
-                _dateTimeFunc = i => i == compareValue;
-            }
-            else throw new InvalidOperationException($"Invalid double function filter: {StringValue}");
-            return _dateTimeFunc(dtValue);
-        }
-
+        
         private bool DoubleFunctionFromString(double iValue)
         {
             if (_doubleFunc != null) return _doubleFunc(iValue);
@@ -398,12 +356,11 @@ namespace Happy_Reader
                 case GeneralFilterType.NewlyAdded:
                     return result;
                 case GeneralFilterType.SuggestionScore:
-                case GeneralFilterType.ReleaseDate:
                 case GeneralFilterType.CharacterTraitScore:
                 case GeneralFilterType.CharacterGender:
                 case GeneralFilterType.Name:
                 case GeneralFilterType.VNID:
-                case GeneralFilterType.ReleaseMonth:
+                case GeneralFilterType.ReleaseDate:
                     return $"{result} {StringValue}";
                 case GeneralFilterType.Length:
                     return $"{result} - {(StringValue == null ? "None" : ((LengthFilterEnum)IntValue).GetDescription())}";
@@ -511,8 +468,6 @@ namespace Happy_Reader
         GameOwned = 13,
         [Description("Is User-related"), TypeConverter(typeof(bool))]
         UserVN = 14,
-        [Description("Release Date"), TypeConverter(typeof(string))]
-        ReleaseDate = 15,
         [Description("Has Anime"), TypeConverter(typeof(bool))]
         HasAnime = 17,
         [Description("VN Suggestion Score"), TypeConverter(typeof(string))]
@@ -537,8 +492,8 @@ namespace Happy_Reader
         VNID = 27,
         [Description("Newly Added"), TypeConverter(typeof(bool))]
         NewlyAdded = 28,
-        [Description("Release Month"), TypeConverter(typeof(ReleaseMonthFilter))]
-        ReleaseMonth = 29,
+        [Description("Release Date"), TypeConverter(typeof(ReleaseDateFilter))]
+        ReleaseDate = 29,
 
     }
 }

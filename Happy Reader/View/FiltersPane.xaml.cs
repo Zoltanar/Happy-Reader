@@ -150,7 +150,7 @@ namespace Happy_Reader.View
                 control = _traitOrTagControl;
                 bindingProperty = AutoCompleteBox.SelectedItemProperty;
             }
-            else if (type == typeof(ReleaseMonthFilter))
+            else if (type == typeof(ReleaseDateFilter))
             {
                 control = _releaseMonthGrid;
                 _releaseMonthGrid.ViewModel = ViewModel.NewFilter;

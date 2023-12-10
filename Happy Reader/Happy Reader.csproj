@@ -165,7 +165,7 @@
     <Compile Include="Model\VnFilters\GeneralFilter.cs" />
     <Compile Include="Model\VnFilters\IFilter.cs" />
     <Compile Include="Model\VnFilters\GeneralMultiFilter.cs" />
-    <Compile Include="Model\VnFilters\ReleaseMonthFilter.cs" />
+    <Compile Include="Model\VnFilters\ReleaseDateFilter.cs" />
     <Compile Include="Model\VolumeMixer.cs" />
     <Compile Include="MouseEventExtArgs.cs" />
     <Compile Include="ViewModel\CharactersTabViewModel.cs" />

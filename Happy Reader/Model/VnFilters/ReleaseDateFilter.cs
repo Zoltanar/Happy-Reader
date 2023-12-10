@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace Happy_Reader;
 
-public class ReleaseMonthFilter
+public class ReleaseDateFilter
 {
     private static readonly Regex ParseRegex = new(@"(?<relative>(|Relative:))(?<year>Y-?\d{1,4})(?<month>M-?\d{1,2})?(?<day>D-?\d{1,2})?(?<between>;(?<torelative>(|Relative:))(?<toyear>Y-?\d{1,4})(?<tomonth>M-?\d{1,2})?(?<today>D-?\d{1,2})?)?");
 
@@ -62,13 +62,13 @@ public class ReleaseMonthFilter
         return result;
     }
 
-    public static bool TryParse(string value, out ReleaseMonthFilter releaseMonthFilter)
+    public static bool TryParse(string value, out ReleaseDateFilter releaseDateFilter)
     {
-        releaseMonthFilter = default;
+        releaseDateFilter = default;
         if (string.IsNullOrEmpty(value)) return false;
         var match = ParseRegex.Match(value);
         if (!match.Success) return false;
-        releaseMonthFilter = new ReleaseMonthFilter
+        releaseDateFilter = new ReleaseDateFilter
         {
             Relative = match.Groups["relative"].Value != string.Empty,
             Year = int.Parse(match.Groups["year"].Value.Substring(1)),
@@ -76,11 +76,11 @@ public class ReleaseMonthFilter
             Day = match.Groups["day"].Success ? int.Parse(match.Groups["day"].Value.Substring(1)) : null
         };
         if (!match.Groups["between"].Success) return true;
-        releaseMonthFilter.Between = true;
-        releaseMonthFilter.ToRelative = match.Groups["torelative"].Value != string.Empty;
-        releaseMonthFilter.ToYear = int.Parse(match.Groups["toyear"].Value.Substring(1));
-        releaseMonthFilter.ToMonth = match.Groups["tomonth"].Success ? int.Parse(match.Groups["tomonth"].Value.Substring(1)) : null;
-        releaseMonthFilter.ToDay = match.Groups["today"].Success ? int.Parse(match.Groups["today"].Value.Substring(1)) : null;
+        releaseDateFilter.Between = true;
+        releaseDateFilter.ToRelative = match.Groups["torelative"].Value != string.Empty;
+        releaseDateFilter.ToYear = int.Parse(match.Groups["toyear"].Value.Substring(1));
+        releaseDateFilter.ToMonth = match.Groups["tomonth"].Success ? int.Parse(match.Groups["tomonth"].Value.Substring(1)) : null;
+        releaseDateFilter.ToDay = match.Groups["today"].Success ? int.Parse(match.Groups["today"].Value.Substring(1)) : null;
         return true;
     }
 }
