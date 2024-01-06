@@ -7,7 +7,7 @@
         xmlns:view="clr-namespace:Happy_Reader.View"
         mc:Ignorable="d"
         Title="Happy Reader Output" Height="216" Width="800" 
-        ShowInTaskbar="False" WindowStyle="None" AllowsTransparency="True"  
+        ShowInTaskbar="False" ShowActivated="False" WindowStyle="None" AllowsTransparency="True"  
         Topmost="True" 
         Loaded="OutputWindow_OnLoaded"
         ResizeMode="CanResizeWithGrip"

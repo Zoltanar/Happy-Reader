@@ -43,7 +43,7 @@ namespace Happy_Reader
             var loadingTerms = ReadJMDictFiles(Path.Combine(directory.FullName, "jmdict_english"), "term_bank_*json");
             var kanjiTerms = ReadKanjiDicFiles(Path.Combine(directory.FullName, "kanjidic_english"), "kanji_bank_*json");
             if (UseDeinflections) deinflections = _deinflectionEngine.ReadFile(Path.Combine(directory.FullName, "deinflect.json"));
-            StaticHelpers.Logger.ToFile("Finished reading files for JMDict and KanjiDic.");
+            StaticHelpers.Logger.ToFile("Finished reading files for JMDict, KanjiDic, Deinflections.");
             _kanjiTerms = kanjiTerms.OrderBy(t => t.Character, StringComparer.Ordinal).ToDictionary(k => k.Character);
             _dictionaryTerms = loadingTerms.OrderBy(t => t.Expression, StringComparer.Ordinal).ToArray();
             if (UseDeinflections) _deinflectionEngine.CreateReasons(deinflections, _dictionaryTerms);

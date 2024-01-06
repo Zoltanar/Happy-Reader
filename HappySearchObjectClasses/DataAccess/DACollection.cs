@@ -172,7 +172,8 @@ namespace Happy_Apps_Core.DataAccess
 				? _items.Values.Where(i => ((IReadyToUpsert) i).ReadyToUpsert).ToArray() : Array.Empty<TValue>();
 			if (_itemsToUpsertLater.Count == 0 && otherItemsToUpsert.Length == 0) return 0;
 			Conn.Open();
-            Conn.Trace += StaticHelpers.LogDatabaseTrace;
+            var databaseLogging = StaticHelpers.Logger.LogDatabase;
+            StaticHelpers.Logger.LogDatabase = false;
             DbTransaction transaction = null;
 			int rowsAffected = 0;
 			try
@@ -198,7 +199,7 @@ namespace Happy_Apps_Core.DataAccess
 					((IReadyToUpsert)item).ReadyToUpsert = false;
 				}
 				Conn.Close();
-                Conn.Trace -= StaticHelpers.LogDatabaseTrace;
+                StaticHelpers.Logger.LogDatabase = databaseLogging;
 
             }
 		}
