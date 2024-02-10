@@ -19,6 +19,7 @@
 - see details should change to correct user game tab when multiple user games for one vn
 - allow process monitor to keep running always/make process monitor only have one instance- 
 - Option to stop monitor
+- When no user games have been added, tab should say 'Drag executable here to add it'
 ##### Entries
 - Implement priority
 - Change Series-specific to dropdown (none,title,series, producer?)

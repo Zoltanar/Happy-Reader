@@ -44,7 +44,7 @@ namespace Happy_Reader.TranslationEngine
 			foreach (var entry in usefulEntries)
 			{
 				if (entry.Regex) LogReplaceRegex(sb, entry, result);
-				else LogReplace(sb, entry, result);
+				else LogReplace(sb, entry, result, false);
 			}
 		}
 
@@ -53,7 +53,7 @@ namespace Happy_Reader.TranslationEngine
 			foreach (var entry in OrderEntries(_entries.Where(x => x.Type == EntryType.PostRomaji)))
 			{
 				if (entry.Regex) LogReplaceRegex(sb, entry, result);
-				else LogReplace(sb, entry, result);
+				else LogReplace(sb, entry, result, false);
 			}
 		}
 

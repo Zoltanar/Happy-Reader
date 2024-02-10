@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Happy_Reader.Database;
 
 namespace Happy_Reader
@@ -8,7 +9,8 @@ namespace Happy_Reader
 		public string Role { get; set; }
 		public string MainRole { get; set; }
 		public Entry Entry { get; set; }
-		public string FullRoleString => $"[[{MainRole}#{Id}]]";
+        public int RepeatCount { get; set; } = 1;
+		public string FullRoleString => string.Join("",Enumerable.Repeat($"[[{MainRole}#{Id}]]",RepeatCount));
 		public int Id { get; set; }
 		public List<Entry> ProxyMods { get; set; } = new List<Entry>();
 

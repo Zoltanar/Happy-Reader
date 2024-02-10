@@ -245,7 +245,7 @@ namespace Happy_Reader.TranslationEngine
 			foreach (var entry in OrderEntries(_entries.Where(i => i.Type == EntryType.Game)))
 			{
 				if (entry.Regex) LogReplaceRegex(sb, entry, result);
-				else LogReplace(sb, entry, result);
+				else LogReplace(sb, entry, result, false);
 			}
 			StaticHelpers.Logger.Verbose($"Stage 1: {sb}");
 			//Stage One is also used for Translation.Original which does not require setting result to array.
@@ -261,7 +261,7 @@ namespace Happy_Reader.TranslationEngine
 			foreach (var entry in OrderEntries(_entries.Where(i => i.Type == EntryType.Input)))
 			{
 				if (entry.Regex) LogReplaceRegex(sb, entry, result);
-				else LogReplace(sb, entry, result);
+				else LogReplace(sb, entry, result, false);
 			}
 			StaticHelpers.Logger.Verbose($"Stage 2: {sb}");
 			result[2] = sb.ToString();
@@ -276,7 +276,7 @@ namespace Happy_Reader.TranslationEngine
 			foreach (var entry in OrderEntries(_entries.Where(i => i.Type == EntryType.Yomi)))
 			{
 				if (entry.Regex) LogReplaceRegex(sb, entry, result);
-				else LogReplace(sb, entry, result);
+				else LogReplace(sb, entry, result, false);
 			}
 			StaticHelpers.Logger.Verbose($"Stage 3: {sb}");
 			result[3] = sb.ToString();
@@ -306,7 +306,7 @@ namespace Happy_Reader.TranslationEngine
 			foreach (var entry in OrderEntries(_entries.Where(i => i.Type == EntryType.Output)))
 			{
 				if (entry.Regex) LogReplaceRegex(sb, entry.Input, entry.Output, result, entry);
-				else LogReplace(sb, entry.Input, entry.Output, result, entry);
+				else LogReplace(sb, entry.Input, entry.Output, result, entry, false);
 			}
 			StaticHelpers.Logger.Verbose($"Stage 7: {sb}");
 			result[7] = sb.ToString();
@@ -383,19 +383,19 @@ namespace Happy_Reader.TranslationEngine
 			foreach (var entry in entriesToAdd) entries.Add(entry);
 		}
 
-		/// <summary>
-		/// Removes entries from the list, when there are other entries that contain their input.
-		/// </summary>
-		/// <param name="entries">List of entries, will be modified</param>
-		/// <example>
-		/// 2 entries: おかあーさん,かあーさん
-		/// Input string: おかあーさんはどこですか？
-		/// We don't need to keep the second entry because it's included in the first.
-		/// In a different example:
-		/// Input string: おかあーさんとか、かあーさんとか
-		/// We don't remove the second entry because it stands on its own.
-		/// </example>
-		private static void RemoveSubEntries(ICollection<Entry> entries)
+        /// <summary>
+        /// Removes entries from the list, when there are other entries that contain their input.
+        /// </summary>
+        /// <param name="entries">List of entries, will be modified</param>
+        /// <example>
+        /// 2 entries: おかあーさん,かあーさん
+        /// Input string: おかあーさんはどこですか？
+        /// We don't need to keep the second entry because it's included in the first.
+        /// In a different example:
+        /// Input string: おかあーさんとか、かあーさんとか
+        /// We don't remove the second entry because it stands on its own.
+        /// </example>
+        private static void RemoveSubEntries(ICollection<Entry> entries)
 		{
 			foreach (var entry in entries.ToList())
 			{
@@ -410,12 +410,17 @@ namespace Happy_Reader.TranslationEngine
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private void LogReplace(StringBuilder sb, string input, string output, TranslationResults result, Entry entry)
+		private void LogReplace(StringBuilder sb, string input, string output, TranslationResults result, Entry entry, bool caseInsensitive)
 		{
 			if (_logVerbose || (result != null && result.SaveData && entry != null))
 			{
 				var sbOriginal = sb.ToString();
-				sb.Replace(input, output);
+                if (caseInsensitive)
+                {
+                    sb.Clear();
+                    sb.Append(Regex.Replace(sbOriginal, Regex.Escape(input), output, RegexOptions.IgnoreCase));
+                }
+				else sb.Replace(input, output);
 				var sbReplaced = sb.ToString();
 				if (sbOriginal == sbReplaced) return;
 				if (_logVerbose) StaticHelpers.Logger.Verbose($"Replace happened - Id {entry?.Id.ToString() ?? "N/A"}: '{input}' > '{output}'");
@@ -425,9 +430,9 @@ namespace Happy_Reader.TranslationEngine
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private void LogReplace(StringBuilder sb, Entry entry, TranslationResults result)
+		private void LogReplace(StringBuilder sb, Entry entry, TranslationResults result, bool caseInsensitive)
 		{
-			LogReplace(sb, entry.Input, entry.Output, result, entry);
+			LogReplace(sb, entry.Input, entry.Output, result, entry, caseInsensitive);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -518,7 +523,6 @@ namespace Happy_Reader.TranslationEngine
 		/// <summary>
 		/// Tries to get a translation from cache, if not, tries to use selected translator and saves result to cache if successful.
 		/// </summary>
-		/// <param name="text"></param>
 		private void MachineTranslate(StringBuilder text, TranslationResults result)
 		{
 			if (TryGetWithoutApi(_useAnyCached ? null : SelectedTranslator.SourceName, text, false, result, out var input)) return;

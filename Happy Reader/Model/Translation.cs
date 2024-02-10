@@ -62,12 +62,17 @@ namespace Happy_Reader
 			IsCharacterOnly = false;
 		}
 
-		public IEnumerable<Entry> GetEntriesUsed()
-		{
-			return _partResults.Where(pr => pr.EntriesUsed != null)
-				.SelectMany(pr => pr.EntriesUsed.SelectMany(eu => eu))
-				.Concat(_entriesUsedStageOne).Distinct();
-		}
+        public IEnumerable<Entry> GetEntriesUsed()
+        {
+            return _partResults.Where(pr => pr.EntriesUsed != null)
+                .SelectMany(pr => pr.EntriesUsed.SelectMany(eu => eu))
+                .Concat(_entriesUsedStageOne).Distinct();
+        }
+        public IEnumerable<ProxiesWithCount> GetProxiesUsed()
+        {
+            return _partResults
+                .SelectMany(pr => pr.ProxiesUsed);
+        }
 
         public IEnumerable<CachedTranslation> GetMachineTranslationsUsed()
         {
