@@ -204,6 +204,7 @@
     <EmbeddedResource Include="Database\Updates\Update2.sql" />
     <EmbeddedResource Include="Database\Updates\Update3.sql" />
     <EmbeddedResource Include="Database\Updates\Update4.sql" />
+    <EmbeddedResource Include="Database\Updates\Update5.sql" />
     <Content Include="Program Data\Flags\af.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

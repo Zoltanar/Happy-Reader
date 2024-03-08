@@ -35,6 +35,8 @@ namespace Happy_Apps_Core.Database
 	""Added""	DATETIME,
 	""Labels""	TEXT,
 	""LastModified""	DATETIME,
+	""Started""	DATETIME,
+	""Finished""	DATETIME,
 	PRIMARY KEY(""UserID"",""VNID"")
 )");
 

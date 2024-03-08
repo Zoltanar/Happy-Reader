@@ -30,6 +30,12 @@ public abstract class DumpItem
 
     protected int GetInteger(string[] parts, string columnName, int skipCharacters = 0) => Convert.ToInt32(parts[Headers[columnName]].Substring(skipCharacters));
 
+    protected DateTime? GetNullableDateTime(string[] parts, string columnName)
+    {
+        var part = GetPart(parts, columnName);
+        return part == NullValue ? null : Convert.ToDateTime(part);
+    }
+
     /// <summary>
     /// If data is null, returns zero.
     /// </summary>

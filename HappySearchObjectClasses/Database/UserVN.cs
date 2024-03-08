@@ -30,8 +30,12 @@ namespace Happy_Apps_Core.Database
 		public DateTime? VoteAdded { get; set; }
 
 		public HashSet<LabelKind> Labels { get; set; }
-		
-		[NotMapped]
+
+        public DateTime? Started { get; set; }
+
+        public DateTime? Finished { get; set; }
+
+        [NotMapped]
 		public LabelKind PriorityLabel => Labels.FirstOrDefault(i => !_labelsToExcludeFromPriority.Contains(i));
 
 		public enum LabelKind
@@ -60,8 +64,8 @@ namespace Happy_Apps_Core.Database
 
 		DbCommand IDataItem<(int, int)>.UpsertCommand(DbConnection connection, bool insertOnly)
 		{
-			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO UserVNs (VNID,UserId,ULNote,Vote,VoteAdded, Added, Labels, LastModified) " +
-									 "VALUES (@vnid,@userid,@ulnote,@vote,@voteadded, @added, @labels, @LastModified)";
+			string sql = $"INSERT {(insertOnly ? string.Empty : "OR REPLACE ")}INTO UserVNs (VNID,UserId,ULNote,Vote,VoteAdded, Added, Labels, LastModified, Started, Finished) " +
+									 "VALUES (@vnid,@userid,@ulnote,@vote,@voteadded, @added, @labels, @LastModified, @Started, @Finished)";
 			var command = connection.CreateCommand();
 			command.CommandText = sql;
 			command.AddParameter("@vnid", VNID);
@@ -72,7 +76,9 @@ namespace Happy_Apps_Core.Database
 			command.AddParameter("@added", Added);
 			command.AddParameter("@LastModified", LastModified);
 			command.AddParameter("@labels", string.Join(",", Labels.Cast<int>()));
-			return command;
+            command.AddParameter("@Started", Started);
+            command.AddParameter("@Finished", Finished);
+            return command;
 		}
 
 		void IDataItem<(int, int)>.LoadFromReader(System.Data.IDataRecord reader)
@@ -88,7 +94,9 @@ namespace Happy_Apps_Core.Database
 				Added = StaticHelpers.GetNullableDate(reader["Added"]);
 				LastModified = StaticHelpers.GetNullableDate(reader["LastModified"]);
 				Labels = Convert.ToString(reader["Labels"]).Split(',').Select(i => (LabelKind)int.Parse(i)).ToHashSet();
-			}
+                Started = StaticHelpers.GetNullableDate(reader["Started"]);
+                Finished = StaticHelpers.GetNullableDate(reader["Finished"]);
+            }
 			catch (Exception ex)
 			{
 				StaticHelpers.Logger.ToFile(ex);

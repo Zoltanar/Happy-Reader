@@ -204,7 +204,9 @@ namespace DatabaseDumpReader
                 ULNote = dumpUserVn.Notes,
                 Added = dumpUserVn.Added,
                 LastModified = dumpUserVn.LastModified,
-                Labels = labels
+                Labels = labels,
+                Started = dumpUserVn.Started,
+                Finished = dumpUserVn.Finished
             };
             if (Votes.ContainsKey(vn.VNID))
             {
