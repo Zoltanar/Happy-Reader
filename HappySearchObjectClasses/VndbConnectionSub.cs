@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Happy_Apps_Core.API_Objects;
+using Newtonsoft.Json;
 
 namespace Happy_Apps_Core
 {
@@ -42,21 +43,23 @@ namespace Happy_Apps_Core
 			Unknown
 		}
 
-		public readonly struct LoginCredentials
+		public class LoginCredentials
 		{
 			public string ClientName { get; }
 			public string ClientVersion { get; }
 			private string Username { get; }
-			private char[] Password { get; }
-			public bool HasCredentials => !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(new string(Password));
+            private char[] Password { get; }
+            public string ApiToken { get; }
+            public bool HasCredentials => !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(new string(Password));
 			public string CredentialsString => HasCredentials ? $",\"username\":\"{Username}\",\"password\":\"{new string(Password)}\"" : string.Empty;
+            public AuthInfo AuthInfo { get; set; }
 
-			public LoginCredentials(string clientName, string clientVersion, string username = null, char[] password = null)
+            public LoginCredentials(string clientName, string clientVersion, string username = null, char[] password = null, string apiToken = null)
 			{
 				ClientName = clientName;
 				ClientVersion = clientVersion;
 				Username = username;
-				Password = password;
+                ApiToken = apiToken;
 			}
 		}
 
@@ -69,25 +72,31 @@ namespace Happy_Apps_Core
 			/// If response is of type 'error', holds ErrorResponse
 			/// </summary>
 			public readonly ErrorResponse Error;
-			/// <summary>
-			/// Response in JSON format
-			/// </summary>
-			public readonly string JsonPayload;
-			/// <summary>
-			/// Type of response
-			/// </summary>
-			public readonly ResponseType Type;
+            /// <summary>
+            /// Response in JSON format
+            /// </summary>
+            public readonly string JsonPayload;
+            /// <summary>
+            /// Response in plain text
+            /// </summary>
+            public readonly string Message;
+            /// <summary>
+            /// Type of response
+            /// </summary>
+            public readonly ResponseType Type;
 
-			/// <summary>
-			/// Constructor for Response
-			/// </summary>
-			/// <param name="type">Type of response</param>
-			/// <param name="jsonPayload">Response in JSON format</param>
-			public Response(ResponseType type, string jsonPayload)
+            /// <summary>
+            /// Constructor for Response
+            /// </summary>
+            /// <param name="type">Type of response</param>
+            /// <param name="jsonPayload">Response in JSON format</param>
+            /// <param name="message">Response in plain text</param>
+            public Response(ResponseType type, string jsonPayload, string message = null)
 			{
 				Type = type;
 				JsonPayload = jsonPayload;
-				if (type == ResponseType.Error) Error = JsonConvert.DeserializeObject<ErrorResponse>(jsonPayload);
+				if (type == ResponseType.Error && jsonPayload != null) Error = JsonConvert.DeserializeObject<ErrorResponse>(jsonPayload);
+				if(message != null) Message = message;
 			}
 		}
 	}

@@ -13,6 +13,7 @@ namespace Happy_Apps_Core
 		private string _imageFolderPath = Path.Combine(StaticHelpers.StoredDataFolder, "vndb-img\\");
 		private ImageSyncMode _imageSync = ImageSyncMode.None;
         private string _secondaryTitleLanguage = "en";
+        private string _apiToken;
 
         /// <summary>
         /// Username of user.
@@ -40,12 +41,26 @@ namespace Happy_Apps_Core
 				_userID = value;
 				if (Loaded) Save();
 			}
-		}
+        }
 
-		/// <summary>
-		/// Date of last time that tag/trait dump files were downloaded.
-		/// </summary>
-		public DateTime DumpfileDate
+        /// <summary>
+        /// API Token for VNDB User
+        /// </summary>
+        public string ApiToken
+        {
+            get => _apiToken;
+            set
+            {
+                if (_apiToken == value) return;
+                _apiToken = value;
+                if (Loaded) Save();
+            }
+        }
+
+        /// <summary>
+        /// Date of last time that tag/trait dump files were downloaded.
+        /// </summary>
+        public DateTime DumpfileDate
 		{
 			get => _dumpfileDate;
 			set

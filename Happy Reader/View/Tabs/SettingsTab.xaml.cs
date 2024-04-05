@@ -36,8 +36,8 @@ namespace Happy_Reader.View.Tabs
 		{
 			var password = LoadPassword();
 			var response = Conn.Login(password != null
-				? new VndbConnection.LoginCredentials(ClientName, ClientVersion, CSettings.Username, password)
-				: new VndbConnection.LoginCredentials(ClientName, ClientVersion), false);
+				? new VndbConnection.LoginCredentials(ClientName, ClientVersion, CSettings.Username, password, CSettings.ApiToken)
+				: new VndbConnection.LoginCredentials(ClientName, ClientVersion, null, null, CSettings.ApiToken), false);
 			LoginResponseBlock.Text = response;
 		}
 

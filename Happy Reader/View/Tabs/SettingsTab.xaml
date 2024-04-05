@@ -48,89 +48,90 @@
 				<StackPanel>
 					<view:LabeledTextBox LabelWidth="150" Label="Secondary Title Language:" Text="{Binding SecondaryTitleLanguage}" ToolTip="Secondary language (2 letter form) to sort titles by release date in that language"/>
 					<view:LabeledTextBox LabelWidth="150" Label="UserID:" Text="{Binding UserID}"/>
-				<view:LabeledTextBox LabelWidth="150" Label="Username:" Text="{Binding Username}"/>
+					<view:LabeledTextBox LabelWidth="150" Label="Username:" Text="{Binding Username}"/>
 					<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="150"/>
-						<ColumnDefinition/>
-					</Grid.ColumnDefinitions>
-					<Label Grid.Column="0" Content="Password:"/>
-					<PasswordBox Grid.Column="1" Margin="5,0" KeyUp="PasswordChanged" />
-				</Grid>
-				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="120"/>
-						<ColumnDefinition/>
-					</Grid.ColumnDefinitions>
-					<Button Grid.Column="0" Content="Log In" Click="LogInWithDetails"/>
-					<TextBlock Grid.Column="1" Margin="5,0" x:Name="LoginResponseBlock" />
-				</Grid>
-				<CheckBox Content="Clear past data dumps and DB backups when updating" IsChecked="{Binding ClearOldDumpsAndBackups}"/>
-				<view:LabeledTextBox Label="VNDB Image Path:" LabelWidth="120" Text="{Binding ImageFolderPath}"/>
-				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="Auto"/>
-						<ColumnDefinition/>
-					</Grid.ColumnDefinitions>
-					<Label Content="Image Sync" Width="120"/>
-					<StackPanel Grid.Column="1" Orientation="Horizontal">
-						<CheckBox Content="Characters" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncCharacters"/>
-						<CheckBox Content="Covers" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncCovers"/>
-						<CheckBox Content="Screenshots" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncScreenshots"/>
-						<CheckBox Content="Screenshot Thumbnails" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncScreenshotThumbnails"/>
-					</StackPanel>
-				</Grid>
-			</StackPanel>
-		</TabItem>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="150"/>
+							<ColumnDefinition/>
+						</Grid.ColumnDefinitions>
+						<Label Grid.Column="0" Content="Password:"/>
+						<PasswordBox Grid.Column="1" Margin="5,0" KeyUp="PasswordChanged" />
+					</Grid>
+					<view:LabeledTextBox LabelWidth="150" Label="API Token:" Text="{Binding ApiToken}"/>
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="120"/>
+							<ColumnDefinition/>
+						</Grid.ColumnDefinitions>
+						<Button Grid.Column="0" Content="Log In" Click="LogInWithDetails"/>
+						<TextBlock Grid.Column="1" Margin="5,0" x:Name="LoginResponseBlock" />
+					</Grid>
+					<CheckBox Content="Clear past data dumps and DB backups when updating" IsChecked="{Binding ClearOldDumpsAndBackups}"/>
+					<view:LabeledTextBox Label="VNDB Image Path:" LabelWidth="120" Text="{Binding ImageFolderPath}"/>
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="Auto"/>
+							<ColumnDefinition/>
+						</Grid.ColumnDefinitions>
+						<Label Content="Image Sync" Width="120"/>
+						<StackPanel Grid.Column="1" Orientation="Horizontal">
+							<CheckBox Content="Characters" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncCharacters"/>
+							<CheckBox Content="Covers" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncCovers"/>
+							<CheckBox Content="Screenshots" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncScreenshots"/>
+							<CheckBox Content="Screenshot Thumbnails" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncScreenshotThumbnails"/>
+						</StackPanel>
+					</Grid>
+				</StackPanel>
+			</TabItem>
 			<TabItem Header="Interface Settings" DataContext="{Binding GuiSettings}">
-			<StackPanel Background="DimGray">
-				<CheckBox Content="Show Content Tags" IsChecked="{Binding ContentTags}"/>
-				<CheckBox Content="Show Sexual Tags" IsChecked="{Binding SexualTags}"/>
-				<CheckBox Content="Show Technical Tags" IsChecked="{Binding TechnicalTags}"/>
-				<CheckBox Content="Use Decimal Vote Scores (1-10) instead of 10-100" IsChecked="{Binding UseDecimalVoteScores}" Click="OnDecimalVoteToggle"/>
-				<CheckBox Content="Exclude Titles with under 10 votes when sorting by rating" IsChecked="{Binding ExcludeLowVotesForRatingSort}"/>
-				<CheckBox Content="Show NSFW Images" IsChecked="{Binding NSFWImages}" Click="OnNsfwToggle"/>
-				<CheckBox Content="Hook Global Mouse Events" IsChecked="{Binding HookGlobalMouse}" ToolTip="If enabled, text in output window should not be combined when a mouse click happens in between text lines, useful when clicking through text rapidly.This feature can result in some slow performance when enabled."/>
-				<view:LabeledTextBox LabelWidth="120" Label="Locale Emulator Path:" Text="{Binding LocaleEmulatorPath}" ToolTip="Path to locale emulator executable (LEProc.exe)"/>
-				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="Auto"/>
-						<ColumnDefinition/>
-					</Grid.ColumnDefinitions>
-					<Grid.RowDefinitions>
-						<RowDefinition/>
-						<RowDefinition/>
-					</Grid.RowDefinitions>
-					<Label Grid.Row="0" Grid.Column="0" Content="Culture:" Width="120"/>
-					<ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Cultures}" SelectedItem="{Binding CultureInfo}" Margin="5,0">
-						<ComboBox.ItemContainerStyle>
-							<Style TargetType="{x:Type ComboBoxItem}">
-								<Setter Property="HorizontalContentAlignment" Value="Left"/>
-								<Setter Property="VerticalContentAlignment" Value="Center"/>
-							</Style>
-						</ComboBox.ItemContainerStyle>
-					</ComboBox>
-					<Label Grid.Row="1" Grid.Column="0" Content="Launch Mode:" Width="120"/>
-					<ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding LaunchModes}" SelectedValuePath="Tag" SelectedValue="{Binding LaunchMode}" Margin="5,0">
-						<ComboBox.ItemContainerStyle>
-							<Style TargetType="{x:Type ComboBoxItem}">
-								<Setter Property="HorizontalContentAlignment" Value="Left"/>
-								<Setter Property="VerticalContentAlignment" Value="Center"/>
-							</Style>
-						</ComboBox.ItemContainerStyle>
-					</ComboBox>
+				<StackPanel Background="DimGray">
+					<CheckBox Content="Show Content Tags" IsChecked="{Binding ContentTags}"/>
+					<CheckBox Content="Show Sexual Tags" IsChecked="{Binding SexualTags}"/>
+					<CheckBox Content="Show Technical Tags" IsChecked="{Binding TechnicalTags}"/>
+					<CheckBox Content="Use Decimal Vote Scores (1-10) instead of 10-100" IsChecked="{Binding UseDecimalVoteScores}" Click="OnDecimalVoteToggle"/>
+					<CheckBox Content="Exclude Titles with under 10 votes when sorting by rating" IsChecked="{Binding ExcludeLowVotesForRatingSort}"/>
+					<CheckBox Content="Show NSFW Images" IsChecked="{Binding NSFWImages}" Click="OnNsfwToggle"/>
+					<CheckBox Content="Hook Global Mouse Events" IsChecked="{Binding HookGlobalMouse}" ToolTip="If enabled, text in output window should not be combined when a mouse click happens in between text lines, useful when clicking through text rapidly.This feature can result in some slow performance when enabled."/>
+					<view:LabeledTextBox LabelWidth="120" Label="Locale Emulator Path:" Text="{Binding LocaleEmulatorPath}" ToolTip="Path to locale emulator executable (LEProc.exe)"/>
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="Auto"/>
+							<ColumnDefinition/>
+						</Grid.ColumnDefinitions>
+						<Grid.RowDefinitions>
+							<RowDefinition/>
+							<RowDefinition/>
+						</Grid.RowDefinitions>
+						<Label Grid.Row="0" Grid.Column="0" Content="Culture:" Width="120"/>
+						<ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Cultures}" SelectedItem="{Binding CultureInfo}" Margin="5,0">
+							<ComboBox.ItemContainerStyle>
+								<Style TargetType="{x:Type ComboBoxItem}">
+									<Setter Property="HorizontalContentAlignment" Value="Left"/>
+									<Setter Property="VerticalContentAlignment" Value="Center"/>
+								</Style>
+							</ComboBox.ItemContainerStyle>
+						</ComboBox>
+						<Label Grid.Row="1" Grid.Column="0" Content="Launch Mode:" Width="120"/>
+						<ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding LaunchModes}" SelectedValuePath="Tag" SelectedValue="{Binding LaunchMode}" Margin="5,0">
+							<ComboBox.ItemContainerStyle>
+								<Style TargetType="{x:Type ComboBoxItem}">
+									<Setter Property="HorizontalContentAlignment" Value="Left"/>
+									<Setter Property="VerticalContentAlignment" Value="Center"/>
+								</Style>
+							</ComboBox.ItemContainerStyle>
+						</ComboBox>
 					</Grid>
 					<GroupBox Header="System Tabs">
 						<UniformGrid Columns="2">
-						<CheckBox Content="User Games" IsChecked="{Binding DisplayGamesTab}"/>
-						<CheckBox Content="Text Hooking" IsChecked="{Binding DisplayHookTab}"/>
-						<CheckBox Content="Entries" IsChecked="{Binding DisplayEntriesTab}"/>
-						<CheckBox Content="Test" IsChecked="{Binding DisplayTestTab}"/>
-						<CheckBox Content="Visual Novels" IsChecked="{Binding DisplayDatabaseTab}"/>
-						<CheckBox Content="Characters" IsChecked="{Binding DisplayCharactersTab}"/>
-						<CheckBox Content="Producers" IsChecked="{Binding DisplayProducersTab}"/>
-						<CheckBox Content="Information" IsChecked="{Binding DisplayInformationTab}"/>
-						<CheckBox Content="API Log" IsChecked="{Binding DisplayApiLogTab}"/>
+							<CheckBox Content="User Games" IsChecked="{Binding DisplayGamesTab}"/>
+							<CheckBox Content="Text Hooking" IsChecked="{Binding DisplayHookTab}"/>
+							<CheckBox Content="Entries" IsChecked="{Binding DisplayEntriesTab}"/>
+							<CheckBox Content="Test" IsChecked="{Binding DisplayTestTab}"/>
+							<CheckBox Content="Visual Novels" IsChecked="{Binding DisplayDatabaseTab}"/>
+							<CheckBox Content="Characters" IsChecked="{Binding DisplayCharactersTab}"/>
+							<CheckBox Content="Producers" IsChecked="{Binding DisplayProducersTab}"/>
+							<CheckBox Content="Information" IsChecked="{Binding DisplayInformationTab}"/>
+							<CheckBox Content="API Log" IsChecked="{Binding DisplayApiLogTab}"/>
 							<CheckBox Content="Other Logs" IsChecked="{Binding DisplayOtherLogsTab}"/>
 						</UniformGrid>
 					</GroupBox>
@@ -144,58 +145,58 @@
 					          IsChecked="{Binding DataContext.IthVnrSettings.ClipboardFlag, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
 					          ToolTip="Copy hooked text to clipboard, for use in other programs."/>
 					<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="160"/>
-						<ColumnDefinition/>
-						<ColumnDefinition Width="53"/>
-					</Grid.ColumnDefinitions>
-					<Label Grid.Column="0" Content="Max Input Capture Size:"/>
-					<Slider Grid.Column="1" Name="MaxInputSizeSlider" Value="{Binding MaxOutputSize, Mode=OneWay}" Minimum="0" Maximum="1000" Foreground="White" IsSnapToTickEnabled="True" Thumb.DragCompleted="SetMaxInputSize"/>
-					<TextBox Grid.Column="2" Text="{Binding ElementName=MaxInputSizeSlider, Path=Value}" Foreground="White" Style="{StaticResource NoBorderTextBox}"/>
-				</Grid>
-				<Grid Margin="0,0,6,0">
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="*"/>
-						<ColumnDefinition Width="Auto"/>
-					</Grid.ColumnDefinitions>
-					<Grid.RowDefinitions>
-						<RowDefinition/>
-						<RowDefinition/>
-						<RowDefinition/>
-					</Grid.RowDefinitions>
-					<view:LabeledTextBox Grid.Row="0" Grid.Column="0" LabelWidth="120" Label="Original Text Font:" Text="{Binding OriginalTextFont}"/>
-					<view:ColorSelector Grid.Row="0" Grid.Column="1"  x:Name="OriginalColorSelector"  Text="{Binding OriginalColorString}" />
-					<view:LabeledTextBox Grid.Row="1" Grid.Column="0" LabelWidth="120" Label="Romaji Text Font:" Text="{Binding RomajiTextFont}"/>
-					<view:ColorSelector Grid.Row="1" Grid.Column="1"  x:Name="RomajiColorSelector"  Text="{Binding RomajiColorString}" />
-					<view:LabeledTextBox Grid.Row="2" Grid.Column="0" LabelWidth="120" Label="Translated Text Font:" Text="{Binding TranslatedTextFont}"/>
-					<view:ColorSelector Grid.Row="2" Grid.Column="1"  x:Name="TranslatedColorSelector"  Text="{Binding TranslatedColorString}" />
-				</Grid>
-				<view:LabeledTextBox LabelWidth="120" Label="Font Size:" Text="{Binding FontSize}"/>
-				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="Auto"/>
-						<ColumnDefinition Width="*"/>
-					</Grid.ColumnDefinitions>
-					<Grid.RowDefinitions>
-						<RowDefinition/>
-						<RowDefinition/>
-					</Grid.RowDefinitions>
-					<Label Grid.Column="0" Grid.Row="0" Content="Romaji" Width="120"/>
-					<ComboBox Grid.Column="1" Grid.Row="0" ItemsSource="{Binding RomajiTranslators}" SelectedValue="{Binding SelectedRomajiTranslator}" Margin="5,0"/>
-					<Label Grid.Column="0" Grid.Row="1" Content="Translator" Width="120"/>
-					<ComboBox Grid.Column="1" Grid.Row="1" ItemsSource="{Binding Translators}" DisplayMemberPath="SourceName" SelectedValue="{Binding SelectedTranslator}" Margin="5,0"/>
-				</Grid>
-				<view:LabeledTextBox LabelWidth="140" Label="Offline Dictionary Folder" Text="{Binding OfflineDictionaryFolder}"
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="160"/>
+							<ColumnDefinition/>
+							<ColumnDefinition Width="53"/>
+						</Grid.ColumnDefinitions>
+						<Label Grid.Column="0" Content="Max Input Capture Size:"/>
+						<Slider Grid.Column="1" Name="MaxInputSizeSlider" Value="{Binding MaxOutputSize, Mode=OneWay}" Minimum="0" Maximum="1000" Foreground="White" IsSnapToTickEnabled="True" Thumb.DragCompleted="SetMaxInputSize"/>
+						<TextBox Grid.Column="2" Text="{Binding ElementName=MaxInputSizeSlider, Path=Value}" Foreground="White" Style="{StaticResource NoBorderTextBox}"/>
+					</Grid>
+					<Grid Margin="0,0,6,0">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="*"/>
+							<ColumnDefinition Width="Auto"/>
+						</Grid.ColumnDefinitions>
+						<Grid.RowDefinitions>
+							<RowDefinition/>
+							<RowDefinition/>
+							<RowDefinition/>
+						</Grid.RowDefinitions>
+						<view:LabeledTextBox Grid.Row="0" Grid.Column="0" LabelWidth="120" Label="Original Text Font:" Text="{Binding OriginalTextFont}"/>
+						<view:ColorSelector Grid.Row="0" Grid.Column="1"  x:Name="OriginalColorSelector"  Text="{Binding OriginalColorString}" />
+						<view:LabeledTextBox Grid.Row="1" Grid.Column="0" LabelWidth="120" Label="Romaji Text Font:" Text="{Binding RomajiTextFont}"/>
+						<view:ColorSelector Grid.Row="1" Grid.Column="1"  x:Name="RomajiColorSelector"  Text="{Binding RomajiColorString}" />
+						<view:LabeledTextBox Grid.Row="2" Grid.Column="0" LabelWidth="120" Label="Translated Text Font:" Text="{Binding TranslatedTextFont}"/>
+						<view:ColorSelector Grid.Row="2" Grid.Column="1"  x:Name="TranslatedColorSelector"  Text="{Binding TranslatedColorString}" />
+					</Grid>
+					<view:LabeledTextBox LabelWidth="120" Label="Font Size:" Text="{Binding FontSize}"/>
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="Auto"/>
+							<ColumnDefinition Width="*"/>
+						</Grid.ColumnDefinitions>
+						<Grid.RowDefinitions>
+							<RowDefinition/>
+							<RowDefinition/>
+						</Grid.RowDefinitions>
+						<Label Grid.Column="0" Grid.Row="0" Content="Romaji" Width="120"/>
+						<ComboBox Grid.Column="1" Grid.Row="0" ItemsSource="{Binding RomajiTranslators}" SelectedValue="{Binding SelectedRomajiTranslator}" Margin="5,0"/>
+						<Label Grid.Column="0" Grid.Row="1" Content="Translator" Width="120"/>
+						<ComboBox Grid.Column="1" Grid.Row="1" ItemsSource="{Binding Translators}" DisplayMemberPath="SourceName" SelectedValue="{Binding SelectedTranslator}" Margin="5,0"/>
+					</Grid>
+					<view:LabeledTextBox LabelWidth="140" Label="Offline Dictionary Folder" Text="{Binding OfflineDictionaryFolder}"
 				                     ToolTip="Path to folder with json-formatted JMDict (folder: jmdict_english) and Kanjidic (folder: kanjidic_english) files."/>
-				<CheckBox Content="Dictionary on Mouse-over" IsChecked="{Binding MouseoverDictionary}" ToolTip="Show information about Japanese text when placing mouse over it in certain places." />
-				<CheckBox Content="Show Tags on Mouse-over Dictionary" IsChecked="{Binding ShowTagsOnMouseover}" ToolTip="Include tag information in mouse-over tool tip."/>
-				<CheckBox Content="Show Separator in Output" IsChecked="{Binding UseSeparator}" ToolTip="Include a separator in between text in output window."/>
-			</StackPanel>
+					<CheckBox Content="Dictionary on Mouse-over" IsChecked="{Binding MouseoverDictionary}" ToolTip="Show information about Japanese text when placing mouse over it in certain places." />
+					<CheckBox Content="Show Tags on Mouse-over Dictionary" IsChecked="{Binding ShowTagsOnMouseover}" ToolTip="Include tag information in mouse-over tool tip."/>
+					<CheckBox Content="Show Separator in Output" IsChecked="{Binding UseSeparator}" ToolTip="Include a separator in between text in output window."/>
+				</StackPanel>
 			</TabItem>
 			<TabItem Header="Translators">
 				<ScrollViewer VerticalScrollBarVisibility="Auto">
-				<StackPanel x:Name="PluginSettingsPanel">
-				</StackPanel>
+					<StackPanel x:Name="PluginSettingsPanel">
+					</StackPanel>
 				</ScrollViewer>
 			</TabItem>
 		</TabControl>

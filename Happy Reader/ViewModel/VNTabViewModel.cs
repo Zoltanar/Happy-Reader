@@ -31,8 +31,8 @@ namespace Happy_Reader.ViewModel
 				StaticHelpers.Conn = new VndbConnection(SetReplyText, MainViewModel.VndbAdvancedAction, AskForNonSsl, ChangeConnectionStatus);
 				var password = StaticHelpers.LoadPassword();
 				StaticHelpers.Conn.Login(password != null
-					? new VndbConnection.LoginCredentials(StaticHelpers.ClientName, StaticHelpers.ClientVersion, CSettings.Username, password)
-					: new VndbConnection.LoginCredentials(StaticHelpers.ClientName, StaticHelpers.ClientVersion), false);
+					? new VndbConnection.LoginCredentials(StaticHelpers.ClientName, StaticHelpers.ClientVersion, CSettings.Username, password, CSettings.ApiToken)
+					: new VndbConnection.LoginCredentials(StaticHelpers.ClientName, StaticHelpers.ClientVersion, null, null, CSettings.ApiToken), false);
 			});
 			MainViewModel.StatusText = "Loading VN List...";
             SelectedFilterIndex = 0;

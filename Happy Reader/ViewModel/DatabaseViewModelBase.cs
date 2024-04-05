@@ -141,7 +141,7 @@ namespace Happy_Reader.ViewModel
 		{
 			Dispatcher.CurrentDispatcher.Invoke(() =>
 			{
-				if (status != VndbConnection.APIStatus.Ready) VndbConnectionStatus = $@"{status} ({StaticHelpers.Conn.ActiveQuery.ActionName})";
+				if (status != VndbConnection.APIStatus.Ready) VndbConnectionStatus = $@"{status} ({StaticHelpers.Conn.ActiveQuery?.ActionName})";
 				switch (status)
 				{
 					case VndbConnection.APIStatus.Ready:
@@ -152,13 +152,13 @@ namespace Happy_Reader.ViewModel
 						VndbConnectionBackground = Theme.VndbConnectionReadyBackground;
 						break;
 					case VndbConnection.APIStatus.Busy:
-						StaticHelpers.Logger.Verbose($"{StaticHelpers.Conn.ActiveQuery.ActionName} Started");
+						StaticHelpers.Logger.Verbose($"{StaticHelpers.Conn.ActiveQuery?.ActionName} Started");
 						VndbConnectionForeground = Theme.VndbConnectionBusyForeground;
 						VndbConnectionBackground = Theme.VndbConnectionBusyBackground;
 						break;
 					case VndbConnection.APIStatus.Throttled:
-						StaticHelpers.Logger.Verbose($"{StaticHelpers.Conn.ActiveQuery.ActionName} Throttled");
-						VndbConnectionStatus = $@"{status} ({StaticHelpers.Conn.ActiveQuery.ActionName})";
+						StaticHelpers.Logger.Verbose($"{StaticHelpers.Conn.ActiveQuery?.ActionName} Throttled");
+						VndbConnectionStatus = $@"{status} ({StaticHelpers.Conn.ActiveQuery?.ActionName})";
 						VndbConnectionForeground = Theme.VndbConnectionThrottledForeground;
 						VndbConnectionBackground = Theme.VndbConnectionThrottledBackground;
 						break;

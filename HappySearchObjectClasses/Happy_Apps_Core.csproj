@@ -109,10 +109,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="API Objects\AuthInfo.cs" />
     <Compile Include="API Objects\SubLevel\AnimeItem.cs" />
     <Compile Include="API Objects\SubLevel\CharacterItem.cs" />
     <Compile Include="API Objects\SubLevel\RelationsItem.cs" />
     <Compile Include="API Objects\SubLevel\ScreenItem.cs" />
+    <Compile Include="API Objects\UList.cs" />
     <Compile Include="DataAccess\DACollection.cs" />
     <Compile Include="DataAccess\DAListCollection.cs" />
     <Compile Include="DataAccess\IDataItem.cs" />
