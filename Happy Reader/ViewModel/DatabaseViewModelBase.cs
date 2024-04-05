@@ -141,31 +141,33 @@ namespace Happy_Reader.ViewModel
 		{
 			Dispatcher.CurrentDispatcher.Invoke(() =>
 			{
-				if (status != VndbConnection.APIStatus.Ready) VndbConnectionStatus = $@"{status} ({StaticHelpers.Conn.ActiveQuery?.ActionName})";
+				if (status != VndbConnection.APIStatus.Ready) VndbConnectionStatus = $@"{status} ({StaticHelpers.Conn.ActiveQuery.ActionName})";
 				switch (status)
 				{
 					case VndbConnection.APIStatus.Ready:
-						StaticHelpers.Logger.Verbose($"{StaticHelpers.Conn.ActiveQuery?.ActionName} Ended");
-						if (StaticHelpers.Conn.ActiveQuery != null) StaticHelpers.Conn.ActiveQuery.Completed = true;
+                        if (StaticHelpers.Conn.ActiveQuery != null)
+                        {
+                            StaticHelpers.Logger.Verbose($"{StaticHelpers.Conn.ActiveQuery.ActionName} Ended");
+                            StaticHelpers.Conn.ActiveQuery.Completed = true;
+                        }
 						VndbConnectionStatus = status.ToString();
 						VndbConnectionForeground = Theme.VndbConnectionReadyForeground;
 						VndbConnectionBackground = Theme.VndbConnectionReadyBackground;
 						break;
 					case VndbConnection.APIStatus.Busy:
-						StaticHelpers.Logger.Verbose($"{StaticHelpers.Conn.ActiveQuery?.ActionName} Started");
+						StaticHelpers.Logger.Verbose($"{StaticHelpers.Conn.ActiveQuery.ActionName} Started");
 						VndbConnectionForeground = Theme.VndbConnectionBusyForeground;
 						VndbConnectionBackground = Theme.VndbConnectionBusyBackground;
 						break;
 					case VndbConnection.APIStatus.Throttled:
-						StaticHelpers.Logger.Verbose($"{StaticHelpers.Conn.ActiveQuery?.ActionName} Throttled");
-						VndbConnectionStatus = $@"{status} ({StaticHelpers.Conn.ActiveQuery?.ActionName})";
+						StaticHelpers.Logger.Verbose($"{StaticHelpers.Conn.ActiveQuery.ActionName} Throttled");
+						VndbConnectionStatus = $@"{status} ({StaticHelpers.Conn.ActiveQuery.ActionName})";
 						VndbConnectionForeground = Theme.VndbConnectionThrottledForeground;
 						VndbConnectionBackground = Theme.VndbConnectionThrottledBackground;
 						break;
 					case VndbConnection.APIStatus.Error:
 						VndbConnectionForeground = Theme.VndbConnectionErrorForeground;
 						VndbConnectionBackground = Theme.VndbConnectionErrorBackground;
-						StaticHelpers.Conn.Close();
 						break;
 					case VndbConnection.APIStatus.Closed:
                         VndbConnectionForeground = Theme.VndbConnectionClosedForeground;

@@ -92,27 +92,26 @@ namespace Happy_Apps_Core
         /// <returns>Returns whether it was successful.</returns>
         public async Task<bool> ChangeVote(ListedVN vn, int? vote)
         {
-            if (_status != APIStatus.Ready) return false;
-            _changeStatusAction?.Invoke(APIStatus.Busy);
-            bool remove = !vote.HasValue;
-            _changeStatusAction?.Invoke(APIStatus.Busy);
-            var userVn = vn.UserVN ?? new UserVN { UserId = CSettings.UserID, VNID = vn.VNID, Labels = new HashSet<UserVN.LabelKind>()};
-            var postItem = new UListPatch
+            return await WrapQuery(async () =>
             {
-                Vote = vote
-            };
-            var itemJson = postItem.GetAsJson(true);
-            //use DELETE if removing vote and vote is the only label on item, else, item will remain in list without label.
-            var method = remove && userVn.Labels.Count == 1 ? "DELETE" : "PATCH";
-            var response = await KanaQuery($"/ulist/v{vn.VNID}", itemJson, method, null);
-            if (!response.success) return false;
-            userVn.Vote = vote;
-            if (remove) userVn.Labels.Remove(UserVN.LabelKind.Voted);
-            else userVn.Labels.Add(UserVN.LabelKind.Voted);
-            userVn.VoteAdded = remove ? null : DateTime.UtcNow;
-            if (userVn.Labels.Any() || !string.IsNullOrWhiteSpace(userVn.ULNote)) LocalDatabase.UserVisualNovels.Upsert(userVn, true);
-            else LocalDatabase.UserVisualNovels.Remove(userVn, true);
-            return true;
+                _changeStatusAction?.Invoke(APIStatus.Busy);
+                bool remove = !vote.HasValue;
+                _changeStatusAction?.Invoke(APIStatus.Busy);
+                var userVn = vn.UserVN ?? new UserVN
+                    { UserId = CSettings.UserID, VNID = vn.VNID, Labels = new HashSet<UserVN.LabelKind>() };
+                //use DELETE if removing vote and vote is the only label on item, else, item will remain in list without label.
+                var method = remove && userVn.Labels.Count == 1 ? "DELETE" : "PATCH";
+                var response = await KanaQuery($"/ulist/v{vn.VNID}", $"{{\"vote\":{(vote.HasValue ? vote.Value : "null")}}}", method, null);
+                if (!response.success) return false;
+                userVn.Vote = vote;
+                if (remove) userVn.Labels.Remove(UserVN.LabelKind.Voted);
+                else userVn.Labels.Add(UserVN.LabelKind.Voted);
+                userVn.VoteAdded = remove ? null : DateTime.UtcNow;
+                if (userVn.Labels.Any() || !string.IsNullOrWhiteSpace(userVn.ULNote))
+                    LocalDatabase.UserVisualNovels.Upsert(userVn, true);
+                else LocalDatabase.UserVisualNovels.Remove(userVn, true);
+                return true;
+            });
         }
 
         /// <summary>
@@ -127,8 +126,10 @@ namespace Happy_Apps_Core
             {
                 _changeStatusAction?.Invoke(APIStatus.Busy);
                 var userVn = vn.UserVN ?? new UserVN { UserId = CSettings.UserID, VNID = vn.VNID, Added = DateTime.UtcNow };
-                var queryString = $"set ulist {vn.VNID} {{\"labels\":[{string.Join(",", labels.Cast<int>())}]}}";
-                if (!await TryQuery(queryString, Resources.cvns_query_error)) return false;
+                var jsonObject = $"{{\"labels\":{(labels.Any() ? $"[{string.Join(",", labels.Where(l=> l != UserVN.LabelKind.Voted).Cast<int>())}]" : "null")}}}";
+                var method = labels.Any() ? "PATCH" : "DELETE";
+                var result = await KanaQuery($"/ulist/v{vn.VNID}", jsonObject, method, null);
+                if (!result.success) return false;
                 userVn.Labels = labels.ToHashSet();
                 userVn.LastModified = DateTime.UtcNow;
                 if (userVn.Labels.Any() || !string.IsNullOrWhiteSpace(userVn.ULNote)) LocalDatabase.UserVisualNovels.Upsert(userVn, true);
@@ -195,24 +196,6 @@ namespace Happy_Apps_Core
         /// </summary>
         public void SendQuery(string text) => Query(text);
 
-        /// <summary>
-        /// Close connection with VNDB API
-        /// </summary>
-        public void Close()
-        {
-            try
-            {
-                if (_tcpClient.Connected) _tcpClient.GetStream().Close();
-                _tcpClient.Close();
-            }
-            catch (ObjectDisposedException e)
-            {
-                Logger.ToFile("Failed to close connection.");
-                Logger.ToFile(e.Message);
-                Logger.ToFile(e.StackTrace);
-            }
-            _status = APIStatus.Closed;
-        }
         #endregion
 
         /// <summary>
@@ -344,7 +327,6 @@ namespace Happy_Apps_Core
         /// <returns>If connection was ready</returns>
         private bool StartQuery(string featureName)
         {
-            if (CSettings.UserID < 1) return false;
             if (ActiveQuery != null && !ActiveQuery.Completed)
             {
                 _textAction($"Wait until {ActiveQuery.ActionName} is done.", MessageSeverity.Error);
@@ -392,7 +374,6 @@ namespace Happy_Apps_Core
 
         private async Task<(bool success, object returnObject)> KanaQuery(string uri, string jsonObject, string method, Type typeOfReturnObject)
         {
-            if (_status == APIStatus.Error) return (false,null);
             var url = $"https://{VndbHost}{uri}";
             LogKanaQueryRequest(url, jsonObject);
             var request = WebRequest.Create(url);
