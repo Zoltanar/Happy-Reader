@@ -68,18 +68,19 @@ namespace Happy_Apps_Core
 		{
 			if (_status != APIStatus.Closed) Close();
 			_logIn = LogInStatus.No;
-			Open(printCertificates);
-			string loginBuffer = $"login {{\"protocol\":1,\"client\":\"{loginCredentials.ClientName}\",\"clientver\":\"{loginCredentials.ClientVersion}\"{loginCredentials.CredentialsString}}}";
-			Query(loginBuffer);
-			if (_lastResponse.Type == ResponseType.Ok)
-			{
-				_logIn = loginCredentials.HasCredentials ? LogInStatus.YesWithPassword : LogInStatus.Yes;
-				_status = APIStatus.Ready;
-			}
-			_loginCredentials = loginCredentials;
-			_changeStatusAction?.Invoke(_status);
-
-			return $"{(_logIn == LogInStatus.No ? "Failed to log in." : "Log in successful.")} {_lastResponse.JsonPayload}";
+            if (Open(printCertificates))
+            {
+                string loginBuffer = $"login {{\"protocol\":1,\"client\":\"{loginCredentials.ClientName}\",\"clientver\":\"{loginCredentials.ClientVersion}\"{loginCredentials.CredentialsString}}}";
+                Query(loginBuffer);
+                if (_lastResponse.Type == ResponseType.Ok)
+                {
+                    _logIn = loginCredentials.HasCredentials ? LogInStatus.YesWithPassword : LogInStatus.Yes;
+                    _status = APIStatus.Ready;
+                }
+                _loginCredentials = loginCredentials;
+                _changeStatusAction?.Invoke(_status);
+            }
+			return $"{(_logIn == LogInStatus.No ? "Failed to log in." : "Log in successful.")} {_lastResponse?.JsonPayload}";
 		}
 
 		/// <summary>
@@ -210,7 +211,7 @@ namespace Happy_Apps_Core
 		/// <summary>
 		/// Open stream with VNDB API.
 		/// </summary>
-		private void Open(bool printCertificates)
+		private bool Open(bool printCertificates)
 		{
 			Logger.ToFile($"Attempting to open connection to {VndbHost}:{VndbPortTls}");
 			var attempts = 0;
@@ -228,12 +229,12 @@ namespace Happy_Apps_Core
 					Logger.ToFile("SSL Stream received...");
 					sslStream.AuthenticateAsClient(VndbHost, certs, SslProtocols.Tls12, true);
 					Logger.ToFile("SSL Stream authenticated...");
-					if (!CheckRemoteCertificate(printCertificates, sslStream.RemoteCertificate)) return;
+					if (!CheckRemoteCertificate(printCertificates, sslStream.RemoteCertificate)) return false;
 					_stream = sslStream;
 					Logger.ToFile($"Connected after {attempts} attempts.");
-					break;
-				}
-				catch (SocketException e)
+                    return _stream.CanRead;
+                }
+				catch (Exception e) when (e is SocketException or IOException)
 				{
 					Logger.ToFile(e);
 					Thread.Sleep(1000);
@@ -244,10 +245,10 @@ namespace Happy_Apps_Core
 					break;
 				}
 			}
-			if (_stream != null && _stream.CanRead) return;
 			Logger.ToFile($"Failed to connect after {attempts} attempts.");
 			_status = APIStatus.Error;
-			AskForNonSsl();
+			return AskForNonSsl();
+
 		}
 
 		private bool CheckRemoteCertificate(bool printCertificates, X509Certificate remoteCertificate)
@@ -279,9 +280,9 @@ namespace Happy_Apps_Core
 		private static string GetDetails(X509Certificate cert)
 			=> $"{cert.Subject}\t{cert.Issuer}\t{cert.GetFormat()}\t{cert.GetEffectiveDateString()}\t{cert.GetExpirationDateString()}";
 
-		private void AskForNonSsl()
+		private bool AskForNonSsl()
 		{
-			if (!_askForNonSslAction()) return;
+			if (!_askForNonSslAction()) return false;
 			Logger.ToFile($"Attempting to open connection to {VndbHost}:{VndbPort} without SSL");
 			_status = APIStatus.Closed;
 			var complete = false;
@@ -299,16 +300,17 @@ namespace Happy_Apps_Core
 					Logger.ToFile("Stream received...");
 					Logger.ToFile($"Connected after {attempts} attempts.");
 					complete = true;
-				}
-				catch (IOException e)
+                    return _stream.CanRead;
+                }
+				catch (Exception e ) when (e is IOException or SocketException)
 				{
 					Logger.ToFile(e);
 				}
 			}
-			if (_stream != null && _stream.CanRead) return;
 			Logger.ToFile($"Failed to connect after {attempts} attempts.");
 			_status = APIStatus.Error;
-		}
+            return false;
+        }
 
 		private async Task<T> WrapQuery<T>(Func<Task<T>> task, T failValue = default, [CallerMemberName] string caller = null)
 		{

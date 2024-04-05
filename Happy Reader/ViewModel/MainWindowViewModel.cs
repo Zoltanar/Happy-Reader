@@ -420,8 +420,9 @@ namespace Happy_Reader.ViewModel
                 if (userGame.Process == null ||
                     StaticMethods.DispatchIfRequired(() => outputWindow.ViewModel?.IsClipboardCopy(e) ?? false)) return false;
                 TestViewModel.OriginalText = e.Text;
-                var translation = Translator.Instance.Translate(User, userGame.EntryGame, e.Text, false, userGame?.GameHookSettings.RemoveRepetition ?? false);
-                if (string.IsNullOrWhiteSpace(translation?.Output)) return false;
+                var translation = Translator.Instance.Translate(User, userGame.EntryGame, e.Text, false, userGame.GameHookSettings.RemoveRepetition);
+                //re-check process here as it may have closed during translation
+                if (string.IsNullOrWhiteSpace(translation?.Output) || userGame.Process == null) return false;
                 StaticMethods.DispatchIfRequired(() => outputWindow.AddTranslation(translation,userGame.Process.Id), new TimeSpan(0, 0, 5));
             }
             catch (Exception ex)

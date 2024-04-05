@@ -59,6 +59,7 @@ namespace Happy_Reader.Database
 			VN = vn;
 			if (VN != null) VN.IsOwned = FileExists ? OwnedStatus.CurrentlyOwned : OwnedStatus.PastOwned;
             EntryGame = new EntryGame(VNID ?? (int)Id, !VNID.HasValue, false);
+            Loaded = true;
         }
 
 		public UserGame()
