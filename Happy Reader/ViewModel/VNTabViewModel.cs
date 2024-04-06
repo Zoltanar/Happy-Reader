@@ -28,11 +28,8 @@ namespace Happy_Reader.ViewModel
 			MainViewModel.StatusText = "Opening VNDB Connection...";
 			await Task.Run(() =>
 			{
-				StaticHelpers.Conn = new VndbConnection(SetReplyText, MainViewModel.VndbAdvancedAction, AskForNonSsl, ChangeConnectionStatus);
-				var password = StaticHelpers.LoadPassword();
-				StaticHelpers.Conn.Login(password != null
-					? new VndbConnection.LoginCredentials(StaticHelpers.ClientName, StaticHelpers.ClientVersion, CSettings.Username, password, CSettings.ApiToken)
-					: new VndbConnection.LoginCredentials(StaticHelpers.ClientName, StaticHelpers.ClientVersion, null, null, CSettings.ApiToken), false);
+				StaticHelpers.Conn = new VndbConnection(SetReplyText, ChangeConnectionStatus);
+				StaticHelpers.Conn.Login(CSettings.ApiToken);
 			});
 			MainViewModel.StatusText = "Loading VN List...";
             SelectedFilterIndex = 0;
@@ -44,13 +41,6 @@ namespace Happy_Reader.ViewModel
 		public VNTabViewModel(MainWindowViewModel mainWindowViewModel) : base(mainWindowViewModel)
 		{
 			FiltersViewModel = new(StaticMethods.AllFilters.VnFilters, StaticMethods.AllFilters.VnPermanentFilter, this);
-		}
-		
-		private static bool AskForNonSsl()
-		{
-			var messageResult = System.Windows.Forms.MessageBox.Show(@"Connection to VNDB failed, do you wish to try without SSL?",
-				@"Connection Failed", System.Windows.Forms.MessageBoxButtons.YesNo);
-			return messageResult == System.Windows.Forms.DialogResult.Yes;
 		}
 	}
 }

@@ -131,7 +131,6 @@
 							<CheckBox Content="Characters" IsChecked="{Binding DisplayCharactersTab}"/>
 							<CheckBox Content="Producers" IsChecked="{Binding DisplayProducersTab}"/>
 							<CheckBox Content="Information" IsChecked="{Binding DisplayInformationTab}"/>
-							<CheckBox Content="API Log" IsChecked="{Binding DisplayApiLogTab}"/>
 							<CheckBox Content="Other Logs" IsChecked="{Binding DisplayOtherLogsTab}"/>
 						</UniformGrid>
 					</GroupBox>

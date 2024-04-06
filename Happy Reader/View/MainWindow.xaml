@@ -112,10 +112,6 @@
 			         Visibility="{Binding SettingsViewModel.GuiSettings.DisplayInformationTab, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=C}">
 				<tabs:InfoTab DataContext="{Binding InformationViewModel}"/>
 			</TabItem>
-			<TabItem Header="API Log" Style="{StaticResource SystemTab}" 
-			         Visibility="{Binding SettingsViewModel.GuiSettings.DisplayApiLogTab, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=C}">
-				<tabs:ApiLogTab DataContext="{Binding ApiLogViewModel}"/>
-			</TabItem>
 			<TabItem Header="Logs" Style="{StaticResource SystemTab}" 
 			         Visibility="{Binding SettingsViewModel.GuiSettings.DisplayOtherLogsTab, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=C}">
 				<DataGrid ItemsSource="{Binding LogsList}" AutoGenerateColumns="False" CanUserAddRows="False" >
@@ -148,11 +144,6 @@
 				           Text="{Binding DatabaseViewModel.VndbConnectionStatus, Mode=OneWay}" 
 				           TextAlignment="Center" TextWrapping="Wrap"
 				           ToolTip="VNDB API Connection Status">
-				<TextBlock.ContextMenu>
-					<ContextMenu>
-						<MenuItem IsCheckable="True" IsChecked="{Binding SettingsViewModel.GuiSettings.DisplayApiLogTab}" Click="OpenApiLogTab" Header="Display API Log Tab"/>
-					</ContextMenu>
-				</TextBlock.ContextMenu>
 			</TextBlock>
 			<Button Grid.Column="2" Content="❌" Background="Gray" Foreground="White" Click="CloseTabsClick" ToolTip="Close all Tabs"/>
 			<Label Grid.Column="3" Foreground="Black" Content="{Binding DisplayUser}" Padding="5,0,25,0" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"/>

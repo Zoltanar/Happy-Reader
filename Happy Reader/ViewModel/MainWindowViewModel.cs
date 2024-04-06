@@ -17,7 +17,6 @@ using Happy_Reader.Database;
 using Happy_Reader.TranslationEngine;
 using JetBrains.Annotations;
 using Happy_Reader.View;
-using Happy_Reader.View.Tabs;
 using Happy_Reader.View.Tiles;
 using IthVnrSharpLib;
 using static Happy_Apps_Core.StaticHelpers;
@@ -31,8 +30,6 @@ namespace Happy_Reader.ViewModel
 
         public event PropertyChangedEventHandler PropertyChanged;
         public readonly StaticMethods.NotificationEventHandler NotificationEvent;
-        private readonly RecentStringList _vndbQueriesList = new(50);
-        private readonly RecentStringList _vndbResponsesList = new(50);
         private static MultiLogger Logger => StaticHelpers.Logger;
 
         public readonly OutputWindow OutputWindowGen;
@@ -68,7 +65,6 @@ namespace Happy_Reader.ViewModel
         [NotNull] public IthViewModel IthViewModel { get; }
         [NotNull] public SettingsViewModel SettingsViewModel { get; }
         [NotNull] public InformationViewModel InformationViewModel { get; }
-        [NotNull] public ApiLogViewModel ApiLogViewModel { get; }
         [NotNull] public List<UserGame> RunningGames { get; } = new();
         private OutputWindowViewModel OutputWindowViewModelGen => (OutputWindowViewModel)OutputWindowGen.DataContext;
 
@@ -141,11 +137,6 @@ namespace Happy_Reader.ViewModel
             SettingsViewModel.TranslatorSettings.CaptureClipboardChanged = CaptureClipboardSettingChanged;
             StaticMethods.AllFilters = Happy_Apps_Core.SettingsJsonFile.Load<FiltersData>(StaticMethods.AllFiltersJson, StaticMethods.SerialiserSettings);
             InformationViewModel = new InformationViewModel();
-            ApiLogViewModel = new ApiLogViewModel
-            {
-                VndbQueries = _vndbQueriesList.Items,
-                VndbResponses = _vndbResponsesList.Items
-            };
             Translator.Instance = new Translator(StaticMethods.Data, SettingsViewModel.TranslatorSettings);
             UserGamesViewModel = new UserGamesViewModel(this);
             EntriesViewModel = new EntriesTabViewModel();
@@ -431,13 +422,6 @@ namespace Happy_Reader.ViewModel
                 return false;
             }
             return true;
-        }
-
-        public void VndbAdvancedAction(string text, bool isQuery)
-        {
-            if (!SettingsViewModel.GuiSettings.AdvancedMode) return;
-            Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
-            Application.Current.Dispatcher.Invoke(() => (isQuery ? _vndbQueriesList : _vndbResponsesList).AddWithId(text));
         }
 
         public void HookUserGame(UserGame userGame, Process process, bool? overrideUseLocaleEmulator, bool doNotHook)

@@ -34,7 +34,6 @@ namespace Happy_Apps_Core
 		public static readonly string ProgramDataFolder = Path.Combine(Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName, "Program Data\\");
 		public static readonly string DefaultTraitsJson = Path.Combine(ProgramDataFolder, "Default Files\\traits.json");
 		public static readonly string DefaultTagsJson = Path.Combine(ProgramDataFolder, "Default Files\\tags.json");
-		public static readonly string CertificatesFolder = Path.Combine(ProgramDataFolder, "Certificates");
 		public static readonly string TranslationPluginsFolder = Path.Combine(ProgramDataFolder, "Translation Plugins");
 		public static readonly string AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Happy Reader");
 		public static readonly string StoredDataFolder = Path.Combine(AppDataFolder, "Stored Data");
@@ -284,24 +283,7 @@ namespace Happy_Apps_Core
 			key.Close();
 			Logger.ToFile("Saved Login Password");
 		}
-
-		/// <summary>
-		/// Load user's VNDB login credentials from Windows Registry
-		/// </summary>
-		public static char[] LoadPassword()
-		{
-			//get key data
-			var key = Registry.CurrentUser.OpenSubKey(PasswordRegistryKey);
-			if (key == null) return null;
-			var password = key.GetValue(PasswordRegistryCipherValueName) as byte[];
-			var entropy = key.GetValue(PasswordRegistryEntropyValueName) as byte[];
-			key.Close();
-			if (password == null || entropy == null) return null;
-			byte[] passwordBytes = ProtectedData.Unprotect(password, entropy, DataProtectionScope.CurrentUser);
-			Logger.ToFile("Loaded Login Password");
-			return Encoding.UTF8.GetChars(passwordBytes);
-		}
-
+		
 		public static void AddParameter(this DbCommand command, string parameterName, object value)
 		{
 			var parameter = command.CreateParameter();
@@ -435,7 +417,7 @@ namespace Happy_Apps_Core
 
 		public static bool IsAlreadyRunningInstance()
 		{
-			var runningAssembly = Assembly.GetEntryAssembly();
+			var runningAssembly = Assembly.GetEntryAssembly()!;
 			var file = runningAssembly.Location;
 			var name = Path.GetFileNameWithoutExtension(file);
             var processes = Process.GetProcessesByName(name);

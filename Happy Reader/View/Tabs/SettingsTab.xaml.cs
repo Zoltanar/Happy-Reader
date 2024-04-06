@@ -33,11 +33,8 @@ namespace Happy_Reader.View.Tabs
 		}
 
 		private void LogInWithDetails(object sender, RoutedEventArgs e)
-		{
-			var password = LoadPassword();
-			var response = Conn.Login(password != null
-				? new VndbConnection.LoginCredentials(ClientName, ClientVersion, CSettings.Username, password, CSettings.ApiToken)
-				: new VndbConnection.LoginCredentials(ClientName, ClientVersion, null, null, CSettings.ApiToken), false);
+        {
+            var response = Conn.Login(CSettings.ApiToken);
 			LoginResponseBlock.Text = response;
 		}
 

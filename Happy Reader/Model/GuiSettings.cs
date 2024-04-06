@@ -29,7 +29,6 @@ namespace Happy_Reader
         private bool _displayCharactersTab = true;
         private bool _displayProducersTab = true;
         private bool _displayInformationTab = true;
-        private bool _displayApiLogTab = true;
         private bool _displayOtherLogsTab = true;
         private string _localeEmulatorPath;
 		private string _culture;
@@ -341,17 +340,6 @@ namespace Happy_Reader
             {
                 if (_displayInformationTab == value) return;
                 _displayInformationTab = value;
-                if (Loaded) Save();
-                OnPropertyChanged();
-            }
-        }
-        public bool DisplayApiLogTab
-        {
-            get => _displayApiLogTab;
-            set
-            {
-                if (_displayApiLogTab == value) return;
-                _displayApiLogTab = value;
                 if (Loaded) Save();
                 OnPropertyChanged();
             }
