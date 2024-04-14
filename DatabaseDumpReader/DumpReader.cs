@@ -38,18 +38,21 @@ namespace DatabaseDumpReader
         public List<VnTag> VnTags { get; } = new();
         public Dictionary<int, List<DumpVote>> Votes { get; private set; }
 
-        public DumpReader(string dumpFolder, string dbFilePath, int userId)
+        public DumpReader(string dumpFolder, string currentDatabaseFilePath, int userId, out string inProgressDbFile)
         {
             if (!Directory.Exists(dumpFolder)) throw new IOException($"Dump folder does not exist: '{dumpFolder}'");
-            var dbFile = new FileInfo(dbFilePath);
-            if (!dbFile.Exists) throw new IOException($"Original database does not exist: '{dbFile}'");
-            var dbDirectory = Path.GetDirectoryName(dbFile.FullName) ?? throw new ArgumentNullException(nameof(Path.GetDirectoryName));
-            var backupPath = Path.Combine(dbDirectory, $"{Path.GetFileNameWithoutExtension(dbFile.FullName)}-DRB{DateTime.Now:yyyyMMdd-HHmmss}{dbFile.Extension}");
+            var currentDbFile = new FileInfo(currentDatabaseFilePath);
+            if (!currentDbFile.Exists) throw new IOException($"Original database does not exist: '{currentDbFile}'");
+            //UIP = update in progress
+            inProgressDbFile = GetDatabaseFile(currentDbFile, "-UIP");
+            File.Copy(currentDatabaseFilePath, inProgressDbFile);
+            //DRB = dump reader backup
+            var backupPath = GetDatabaseFile(currentDbFile, "-DRB");
             StaticHelpers.Logger.ToFile($"Backing up database to {backupPath}");
-            File.Copy(dbFile.FullName, backupPath);
+            File.Copy(currentDbFile.FullName, backupPath);
             UserId = userId;
             DumpFolder = dumpFolder;
-            OutputFilePath = dbFile.FullName;
+            OutputFilePath = inProgressDbFile;
             Database = new VisualNovelDatabase(OutputFilePath, false);
             StaticHelpers.LocalDatabase = Database;
             Database.DeleteForDump();
@@ -60,6 +63,11 @@ namespace DatabaseDumpReader
                 Database);
         }
 
+        private string GetDatabaseFile(FileInfo currentDatabaseFile, string suffix)
+        {
+            var dbDirectory = Path.GetDirectoryName(currentDatabaseFile.FullName) ?? throw new ArgumentNullException(nameof(Path.GetDirectoryName));
+            return Path.Combine(dbDirectory, $"{Path.GetFileNameWithoutExtension(currentDatabaseFile.FullName)}{suffix}{DateTime.Now:yyyyMMdd-HHmmss}{currentDatabaseFile.Extension}");
+        }
         public void Run(DateTime dumpDate, int[] previousVnIds, int[] previousCharacterIds)
         {
             StaticHelpers.Logger.ToFile("Starting Dump Reader...");

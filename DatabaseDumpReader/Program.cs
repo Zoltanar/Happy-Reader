@@ -165,12 +165,34 @@ namespace DatabaseDumpReader
 			Debug.Assert(dumpFileInfo.NewFileDate != null, nameof(dumpFileInfo.NewFileDate) + " != null");
 			StaticHelpers.Logger.ToFile(oldDateString, $"Getting update to: {dumpFileInfo.NewFileDate.Value.ToShortDateString()}.");
 			runWatch = Stopwatch.StartNew();
-			var processor = new DumpReader(dumpFileInfo.LatestDumpFolder, StaticHelpers.DatabaseFile, userId);
+			var processor = new DumpReader(dumpFileInfo.LatestDumpFolder, StaticHelpers.DatabaseFile, userId, out var inProgressFile);
 			processor.Run(dumpFileInfo.NewFileDate.Value, previousVnIds, previousCharacterIds);
 			var result = dumpFileInfo.UpToDate ? ExitCode.ReloadLatest : ExitCode.Update;
+            if (result is ExitCode.ReloadLatest or ExitCode.Update)
+            {
+				Console.WriteLine("Update successful, ensure Happy Reader is closed and enter 'y' to replace database file with updated or 'n' to abandon (y/n):");
+                var line = Console.ReadLine()!;
+                while (true)
+                {
+                    if (line.Equals("n", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine("Update abandoned.");
+                        break;
+                    }
+
+                    if (line.Equals("y", StringComparison.OrdinalIgnoreCase))
+                    {
+						File.Delete(StaticHelpers.DatabaseFile);
+                        File.Move(inProgressFile, StaticHelpers.DatabaseFile);
+                        break;
+                    }
+                    Console.WriteLine("Save update? (y/n)");
+                    line = Console.ReadLine()!;
+                }
+            }
 			runWatch.Stop();
 			RemovePastBackups(dumpFolder, dumpFileInfo);
-			return result;
+			 return result;
 		}
 
 		private static DumpFileInfo GetLatestDump(DateTime? previousUpdate, string dumpsFolder, out Stopwatch downloadWatch)
