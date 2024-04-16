@@ -24,14 +24,6 @@ namespace Happy_Reader.View.Tabs
 			ViewModel.TranslatorSettings.MaxOutputSize = (int)((Slider)e.Source).Value;
 		}
 
-		private void PasswordChanged(object sender, KeyEventArgs e)
-		{
-			if (e.Key != Key.Enter) return;
-			var pwBox = (PasswordBox)sender;
-			SavePassword(pwBox.Password.ToCharArray());
-			LoginResponseBlock.Text = "Saved new password.";
-		}
-
 		private void LogInWithDetails(object sender, RoutedEventArgs e)
         {
             var response = Conn.Login(CSettings.ApiToken);
@@ -185,5 +177,10 @@ namespace Happy_Reader.View.Tabs
 					: ViewModel.CoreSettings.SyncImages &= ~ImageSyncMode.Thumbnails;
 			}
 		}
-	}
+
+        private void UpdateVndbData(object sender, RoutedEventArgs e)
+        {
+
+        }
+    }
 }

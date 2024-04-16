@@ -293,9 +293,8 @@ namespace Happy_Reader.ViewModel
                 if (userGame != null) UserGame.LastGamesPlayed.Add(log.Timestamp, log.AssociatedId);
             }
         }
-        public void SetUser(int userid)
+        public void SetUser()
         {
-            CSettings.UserID = userid;
             var user = LocalDatabase.Users[CSettings.UserID];
             if (user == null)
             {

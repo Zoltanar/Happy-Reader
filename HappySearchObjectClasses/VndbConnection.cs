@@ -51,6 +51,8 @@ namespace Happy_Apps_Core
                 return $"Failed to get Authentication Info with API Token {_apiToken}";
             }
             _authInfo = (AuthInfo)response.returnObject;
+            CSettings.Username = _authInfo.UserName;
+            CSettings.UserID = _authInfo.IdAsInteger;
             _logIn = LogInStatus.Yes;
             return $"Authenticated as {_authInfo.UserName} (u{_authInfo.Id})";
         }

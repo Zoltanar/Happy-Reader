@@ -47,16 +47,6 @@
 			<TabItem Header="Core Settings" DataContext="{Binding CoreSettings}">
 				<StackPanel>
 					<view:LabeledTextBox LabelWidth="150" Label="Secondary Title Language:" Text="{Binding SecondaryTitleLanguage}" ToolTip="Secondary language (2 letter form) to sort titles by release date in that language"/>
-					<view:LabeledTextBox LabelWidth="150" Label="UserID:" Text="{Binding UserID}"/>
-					<view:LabeledTextBox LabelWidth="150" Label="Username:" Text="{Binding Username}"/>
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="150"/>
-							<ColumnDefinition/>
-						</Grid.ColumnDefinitions>
-						<Label Grid.Column="0" Content="Password:"/>
-						<PasswordBox Grid.Column="1" Margin="5,0" KeyUp="PasswordChanged" />
-					</Grid>
 					<view:LabeledTextBox LabelWidth="150" Label="API Token:" Text="{Binding ApiToken}"/>
 					<Grid>
 						<Grid.ColumnDefinitions>
@@ -81,6 +71,7 @@
 							<CheckBox Content="Screenshot Thumbnails" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncScreenshotThumbnails"/>
 						</StackPanel>
 					</Grid>
+					<Button Content="Update VNDB Data" Click="UpdateVndbData"/>
 				</StackPanel>
 			</TabItem>
 			<TabItem Header="Interface Settings" DataContext="{Binding GuiSettings}">

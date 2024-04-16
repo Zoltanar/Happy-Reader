@@ -24,14 +24,14 @@ namespace Happy_Reader.ViewModel
 			MainViewModel.StatusText = "Loading VN Database...";
 			await Task.Run(() => StaticHelpers.LocalDatabase = new VisualNovelDatabase(StaticHelpers.DatabaseFile, true));
 			OnPropertyChanged(nameof(ProducerList));
-			MainViewModel.SetUser(CSettings.UserID);
 			MainViewModel.StatusText = "Opening VNDB Connection...";
 			await Task.Run(() =>
 			{
 				StaticHelpers.Conn = new VndbConnection(SetReplyText, ChangeConnectionStatus);
 				StaticHelpers.Conn.Login(CSettings.ApiToken);
 			});
-			MainViewModel.StatusText = "Loading VN List...";
+            MainViewModel.SetUser();
+            MainViewModel.StatusText = "Loading VN List...";
             SelectedFilterIndex = 0;
             //await RefreshTiles();
 		}

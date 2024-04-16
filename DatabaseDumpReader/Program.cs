@@ -179,7 +179,6 @@ namespace DatabaseDumpReader
                         Console.WriteLine("Update abandoned.");
                         break;
                     }
-
                     if (line.Equals("y", StringComparison.OrdinalIgnoreCase))
                     {
 						File.Delete(StaticHelpers.DatabaseFile);

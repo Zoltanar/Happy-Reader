@@ -46,9 +46,6 @@ namespace Happy_Apps_Core
 
 		public const string ClientName = "Happy Reader";
 		public const string ClientVersion = "2.6.0";
-		private const string PasswordRegistryKey = "SOFTWARE\\" + ClientName;
-		private const string PasswordRegistryCipherValueName = "Data1";
-		private const string PasswordRegistryEntropyValueName = "Data2";
 
 		public static VisualNovelDatabase LocalDatabase;
 		public static readonly MultiLogger Logger;
@@ -262,27 +259,6 @@ namespace Happy_Apps_Core
         public static readonly Func<string, string> TruncateString30 = TruncateStringExpression(30).Compile();
 
         public static string ToSeconds(this TimeSpan time) => $"{(int)(time.TotalSeconds):N0}.{time.Milliseconds} seconds";
-
-		/// <summary>
-		/// Save user's VNDB login password to Windows Registry (encrypted).
-		/// </summary>
-		/// <param name="password">User's password</param>
-		public static void SavePassword(char[] password)
-		{
-			//prepare data
-			byte[] stringBytes = Encoding.UTF8.GetBytes(password);
-			var entropy = new byte[20];
-			using (var rng = new RNGCryptoServiceProvider()) rng.GetBytes(entropy);
-			byte[] cipherText = ProtectedData.Protect(stringBytes, entropy, DataProtectionScope.CurrentUser);
-			//store data
-			var key = Registry.CurrentUser.OpenSubKey(PasswordRegistryKey, true) ??
-								Registry.CurrentUser.CreateSubKey(PasswordRegistryKey, true);
-			if (key == null) throw new ArgumentNullException(nameof(key), $"Registry key not found/created: {PasswordRegistryKey}");
-			key.SetValue(PasswordRegistryCipherValueName, cipherText);
-			key.SetValue(PasswordRegistryEntropyValueName, entropy);
-			key.Close();
-			Logger.ToFile("Saved Login Password");
-		}
 		
 		public static void AddParameter(this DbCommand command, string parameterName, object value)
 		{
