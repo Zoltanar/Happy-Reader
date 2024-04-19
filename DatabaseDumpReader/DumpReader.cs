@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using DatabaseDumpReader.DumpItems;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
@@ -48,7 +49,7 @@ namespace DatabaseDumpReader
             File.Copy(currentDatabaseFilePath, inProgressDbFile);
             //DRB = dump reader backup
             var backupPath = GetDatabaseFile(currentDbFile, "-DRB");
-            StaticHelpers.Logger.ToFile($"Backing up database to {backupPath}");
+            Program.PrintLogLine([$"Backing up database to {backupPath}"]);
             File.Copy(currentDbFile.FullName, backupPath);
             UserId = userId;
             DumpFolder = dumpFolder;
@@ -70,9 +71,8 @@ namespace DatabaseDumpReader
         }
         public void Run(DateTime dumpDate, int[] previousVnIds, int[] previousCharacterIds)
         {
-            StaticHelpers.Logger.ToFile("Starting Dump Reader...");
-            Console.ForegroundColor = ConsoleColor.DarkYellow;
-            StaticHelpers.Logger.ToFile("Loading Tag/Trait Dump files...");
+            Program.PrintLogLine(["Starting Dump Reader..."]);
+            Program.PrintLogLine(["Loading Tag/Trait Dump files..."]);
             DumpFiles.Load();
             var votesFilePath = FindVotesFile();
             Load<ListedProducer>((i, t) => Database.Producers.Add(i, false, true, t), "db\\producers");
@@ -104,8 +104,7 @@ namespace DatabaseDumpReader
                 ResolveUserVnForVn(i, t);
             }, "db\\vn");
             Database.SaveLatestDumpUpdate(dumpDate);
-            Console.ResetColor();
-            StaticHelpers.Logger.ToFile("Completed.");
+            Program.PrintLogLine(["Completed."]);
         }
 
         private void LoadStaff()
@@ -256,7 +255,7 @@ namespace DatabaseDumpReader
                 if (i.Ignore) return;
                 VnTags.Add(i);
             }, "db\\tags_vn");
-            StaticHelpers.Logger.ToFile("Resolving Tags...");
+            Program.PrintLogLine(["Resolving Tags..."]);
             var groupedTags = VnTags.GroupBy(t => (t.TagId, t.VnId)).ToArray();
             WrapInTransaction(trans =>
             {
@@ -279,7 +278,7 @@ namespace DatabaseDumpReader
 
         private void Load<T>(Action<T, SQLiteTransaction> addToList, string filePath, bool useHeaderFile = true) where T : DumpItem, new()
         {
-            StaticHelpers.Logger.ToFile($"Loading for {typeof(T).Name}...");
+            Program.PrintLogLine([$"Loading for {typeof(T).Name}..."]);
 #if DEBUG
             try
             {
@@ -304,10 +303,8 @@ namespace DatabaseDumpReader
             catch (Exception ex)
             {
                 var fileName = Path.GetFileName(filePath);
-                Console.WriteLine($"Failed to read file {fileName}: {ex}");
-                Console.WriteLine("Continue? (Y/N)");
-                var key = Console.ReadKey();
-                if (key.Key != ConsoleKey.Y) throw;
+                var userAnswer = MessageBox.Show($"Failed to read file {fileName}: {ex}{Environment.NewLine}Continue?", $"{StaticHelpers.ClientName} - VNDB Update", MessageBoxButton.YesNo);
+                if (userAnswer != MessageBoxResult.Yes) throw;
             }
 #endif
         }

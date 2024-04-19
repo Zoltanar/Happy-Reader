@@ -288,12 +288,13 @@ namespace Happy_Apps_Core
 			return dbObject == DBNull.Value ? null : Convert.ToString(dbObject);
 		}
 
-		public static bool DownloadFile(string uri, string destinationFolderPath, string destinationFileName, out string destinationFilePath, ref bool downloaded)
+		public static bool DownloadFile(string uri, string destinationFolderPath, string destinationFileName, out string destinationFilePath, ref bool downloaded, Action<string[]> logText = null)
         {
+            logText ??= Logger.ToFile;
 			destinationFilePath = null;
 			try
 			{
-				Logger.ToFile($"Starting download of {uri}");
+                logText([$"Starting download of {uri}"]);
 				// ReSharper disable once AssignNullToNotNullAttribute
 				Directory.CreateDirectory(Path.GetDirectoryName(destinationFolderPath));
 				var request = WebRequest.Create(uri);
@@ -312,7 +313,7 @@ namespace Happy_Apps_Core
 				destinationFilePath = Path.Combine(destinationFolderPath, destinationFileName);
 				if (File.Exists(destinationFilePath)) return true;
 				using var destinationStream = File.OpenWrite(destinationFilePath);
-				Logger.ToFile($"Downloading to {destinationFilePath}");
+				logText([$"Downloading to {destinationFilePath}"]);
 				stream.CopyTo(destinationStream);
                 downloaded = true;
 				return true;
@@ -320,7 +321,7 @@ namespace Happy_Apps_Core
 			catch (Exception ex) when (ex is NotSupportedException || ex is ArgumentNullException ||
 																 ex is SecurityException || ex is UriFormatException || ex is ExternalException)
 			{
-				Logger.ToFile(ex);
+                logText([ex.ToString()]);
 				return false;
 			}
 		}
