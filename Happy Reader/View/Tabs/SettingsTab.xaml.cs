@@ -6,7 +6,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
-using DatabaseDumpReader;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Translation;
 using static Happy_Apps_Core.StaticHelpers;
@@ -18,6 +17,7 @@ namespace Happy_Reader.View.Tabs
     {
         private bool _loaded;
         private SettingsViewModel ViewModel => DataContext as SettingsViewModel ?? throw new ArgumentNullException($"Expected view model to be of type {nameof(SettingsViewModel)}");
+        private bool _updateInProgress;
 
         public SettingsTab() => InitializeComponent();
 
@@ -188,12 +188,29 @@ namespace Happy_Reader.View.Tabs
                 StaticMethods.MainWindow.ViewModel.StatusText = $"VNDB update was not started, current database was in {currentDatabaseState} state.";
                 return;
             }
-            var updated = Program.Execute(out var resultMessage);
-            if (updated is Program.ExitCode.ReloadLatest or Program.ExitCode.Update)
+            if (_updateInProgress)
             {
-                await StaticMethods.MainWindow.ViewModel.DatabaseViewModel.Initialize();
+                StaticMethods.MainWindow.ViewModel.StatusText = "VNDB update is already in progress.";
+                return;
             }
-            StaticMethods.MainWindow.ViewModel.StatusText = $"VNDB Update: {updated} - {resultMessage}";
+            try
+            {
+                _updateInProgress = true;
+                var updateResult = await Happy_Apps_Core.DumpReader.Program.Execute();
+                if (updateResult.Success)
+                {
+                    await StaticMethods.MainWindow.ViewModel.DatabaseViewModel.Initialize();
+                }
+
+                var message = updateResult.Type.ToString();
+                if(!string.IsNullOrWhiteSpace(updateResult.ErrorMessage)) message += $" {updateResult.ErrorMessage}";
+
+                StaticMethods.MainWindow.ViewModel.StatusText = $"VNDB Update: {message}";
+            }
+            finally
+            {
+                _updateInProgress = false;
+            }
         }
     }
 }

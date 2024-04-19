@@ -13,11 +13,9 @@ using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Happy_Apps_Core.Database;
-using Microsoft.Win32;
 
 namespace Happy_Apps_Core
 {
@@ -288,19 +286,21 @@ namespace Happy_Apps_Core
 			return dbObject == DBNull.Value ? null : Convert.ToString(dbObject);
 		}
 
-		public static bool DownloadFile(string uri, string destinationFolderPath, string destinationFileName, out string destinationFilePath, ref bool downloaded, Action<string[]> logText = null)
+		/// <summary>
+		/// Returns path of downloaded file if download succeeds or file already existed, else returns null.
+		/// </summary>
+		public static async Task<string> DownloadFile(string uri, string destinationFolderPath, string destinationFileName, Action<string[]> logText = null)
         {
             logText ??= Logger.ToFile;
-			destinationFilePath = null;
-			try
+            try
 			{
                 logText([$"Starting download of {uri}"]);
 				// ReSharper disable once AssignNullToNotNullAttribute
 				Directory.CreateDirectory(Path.GetDirectoryName(destinationFolderPath));
 				var request = WebRequest.Create(uri);
-				using var response = request.GetResponse();
+				using var response = await request.GetResponseAsync();
 				using var stream = response.GetResponseStream();
-				if (stream == null) return false;
+				if (stream == null) return null;
 				if (string.IsNullOrWhiteSpace(destinationFileName))
 				{
 					if (!string.IsNullOrEmpty(response.Headers["Content-Disposition"]))
@@ -310,19 +310,18 @@ namespace Happy_Apps_Core
 					}
 					else destinationFileName = Path.GetFileName(response.ResponseUri.AbsolutePath);
 				}
-				destinationFilePath = Path.Combine(destinationFolderPath, destinationFileName);
-				if (File.Exists(destinationFilePath)) return true;
+				var destinationFilePath = Path.Combine(destinationFolderPath, destinationFileName);
+				if (File.Exists(destinationFilePath)) return destinationFilePath;
 				using var destinationStream = File.OpenWrite(destinationFilePath);
 				logText([$"Downloading to {destinationFilePath}"]);
-				stream.CopyTo(destinationStream);
-                downloaded = true;
-				return true;
+				await stream.CopyToAsync(destinationStream);
+                return destinationFilePath;
 			}
 			catch (Exception ex) when (ex is NotSupportedException || ex is ArgumentNullException ||
 																 ex is SecurityException || ex is UriFormatException || ex is ExternalException)
 			{
                 logText([ex.ToString()]);
-				return false;
+				return null;
 			}
 		}
 

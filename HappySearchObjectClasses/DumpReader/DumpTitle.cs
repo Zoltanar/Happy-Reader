@@ -1,6 +1,6 @@
 ﻿using Happy_Apps_Core.Database;
 
-namespace DatabaseDumpReader.DumpItems;
+namespace Happy_Apps_Core.DumpReader;
 
 public class DumpTitle : DumpItem
 {

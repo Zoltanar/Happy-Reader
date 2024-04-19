@@ -457,10 +457,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DatabaseDumpReader\DatabaseDumpReader.csproj">
-      <Project>{98e6a96b-5454-4e21-bbc1-14007d90ade3}</Project>
-      <Name>DatabaseDumpReader</Name>
-    </ProjectReference>
     <ProjectReference Include="..\HappySearchObjectClasses\Happy_Apps_Core.csproj">
       <Project>{c5e4c647-35ba-4525-b78a-f2263a628a5a}</Project>
       <Name>Happy_Apps_Core</Name>
