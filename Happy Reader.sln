@@ -54,8 +54,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ithsys", "IthVnrSharpLib\vn
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "profile", "IthVnrSharpLib\vnr\profile\profile.vcxproj", "{D9BBDDBC-8D52-315F-9100-67227D979DB1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatabaseDumpReader", "DatabaseDumpReader\DatabaseDumpReader.csproj", "{98E6A96B-5454-4E21-BBC1-14007D90ADE3}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vnragent", "IthVnrSharpLib\embed\vnragent\vnragent.vcxproj", "{70EF9A04-3B1D-3D1B-89C4-ED9458B6BDDF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HRDeepLTranslate", "HRDeepLTranslate\HRDeepLTranslate.csproj", "{ADA8AB4D-41F1-496C-B7EB-6B7B7A0C487F}"
@@ -218,22 +216,6 @@ Global
 		{D9BBDDBC-8D52-315F-9100-67227D979DB1}.Release|x64.ActiveCfg = Release|Win32
 		{D9BBDDBC-8D52-315F-9100-67227D979DB1}.Release|x86.ActiveCfg = Release|Win32
 		{D9BBDDBC-8D52-315F-9100-67227D979DB1}.Release|x86.Build.0 = Release|Win32
-		{98E6A96B-5454-4E21-BBC1-14007D90ADE3}.Debug|64HR86ELSE.ActiveCfg = Debug|x86
-		{98E6A96B-5454-4E21-BBC1-14007D90ADE3}.Debug|64HR86ELSE.Build.0 = Debug|x86
-		{98E6A96B-5454-4E21-BBC1-14007D90ADE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{98E6A96B-5454-4E21-BBC1-14007D90ADE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{98E6A96B-5454-4E21-BBC1-14007D90ADE3}.Debug|x64.ActiveCfg = Debug|x64
-		{98E6A96B-5454-4E21-BBC1-14007D90ADE3}.Debug|x64.Build.0 = Debug|x64
-		{98E6A96B-5454-4E21-BBC1-14007D90ADE3}.Debug|x86.ActiveCfg = Debug|x86
-		{98E6A96B-5454-4E21-BBC1-14007D90ADE3}.Debug|x86.Build.0 = Debug|x86
-		{98E6A96B-5454-4E21-BBC1-14007D90ADE3}.Release|64HR86ELSE.ActiveCfg = Release|x86
-		{98E6A96B-5454-4E21-BBC1-14007D90ADE3}.Release|64HR86ELSE.Build.0 = Release|x86
-		{98E6A96B-5454-4E21-BBC1-14007D90ADE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{98E6A96B-5454-4E21-BBC1-14007D90ADE3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{98E6A96B-5454-4E21-BBC1-14007D90ADE3}.Release|x64.ActiveCfg = Release|x64
-		{98E6A96B-5454-4E21-BBC1-14007D90ADE3}.Release|x64.Build.0 = Release|x64
-		{98E6A96B-5454-4E21-BBC1-14007D90ADE3}.Release|x86.ActiveCfg = Release|x86
-		{98E6A96B-5454-4E21-BBC1-14007D90ADE3}.Release|x86.Build.0 = Release|x86
 		{70EF9A04-3B1D-3D1B-89C4-ED9458B6BDDF}.Debug|64HR86ELSE.ActiveCfg = Debug|Win32
 		{70EF9A04-3B1D-3D1B-89C4-ED9458B6BDDF}.Debug|64HR86ELSE.Build.0 = Debug|Win32
 		{70EF9A04-3B1D-3D1B-89C4-ED9458B6BDDF}.Debug|Any CPU.ActiveCfg = Debug|Win32
@@ -283,7 +265,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {2C3F6D43-6AFB-44A6-91C8-7E90A5625DE8}
 		Qt5Version = 5.15.0_msvc2019
+		SolutionGuid = {2C3F6D43-6AFB-44A6-91C8-7E90A5625DE8}
 	EndGlobalSection
 EndGlobal

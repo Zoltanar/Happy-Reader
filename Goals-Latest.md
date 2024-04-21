@@ -25,7 +25,6 @@
 - Change Series-specific to dropdown (none,title,series, producer?)
 - Add text search
 ##### DatabaseDumpReader
-- Parallelise?
 - Run RSync while processing database dump, after downloading files
 #### Other
 - **Add screenshots to basic guide** (In progress, text hooking done)

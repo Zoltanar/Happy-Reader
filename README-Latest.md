@@ -111,18 +111,16 @@ If the user wishes, they may use the VNDB integration features, such as
 - importing character names to 'Entries' list
 - match games added to titles in database  
 
-In order to use these features, the user must run the `DatabaseDumpReader.exe` application,  
+In order to use these features, the user must get VNDB data by clicking 'Update VNDB Data' in Settings,  
 which will download files with all the VNDB information (around 100MB).  
-Before you run this application, you can log in with your VNDB credentials in Happy Reader's settings tab,  
-this will ensure information about the user's labeled titles and votes is saved to the local database.  
+If you log in prior to running this update, the user's data will also be populated.
 The user can also save all VNDB images and keep it synced, by changing the Image Sync options,  
 select the corresponding image types, the Screenshots type is the largest one at around 17GB, see https://vndb.org/d14 for more information.  
 Screenshot thumbnails are used as a fallback when full-size screenshots are not found.  
-After changing the settings as preferred, close Happy Reader and then run DatabaseDumpReader, this can take a few minutes (5~10).  
-After it finishes, launch Happy Reader again and you should see VNDB data in Visual Novels and Characters sections.  
+This update can take a few minutes (5~10) but can run in the background while Happy Reader is running, the user will be asked at the end of the update to replace the local VNDB database with the new data, no user data is lost, as that is stored in a different database.  
+You should see VNDB data in 'Visual Novels' and 'Characters' sections.  
 You can filter this information by clicking `Filters` in the right, a permanent filter can be set that will always be active, and you can also create custom filters to switch through.
 
-Translation Plugins can be created by inheriting from ITranslator interface in Happy_Apps_Core and placed (along their dependencies) in Translation Plugins folder which lies beside Happy Reader.
+For developers: Translation Plugins can be created by inheriting from ITranslator interface in Happy_Apps_Core and placed (along their dependencies) in Translation Plugins folder which lies beside Happy Reader.
 
 Personal settings and VNDB data is saved to `%appdata%/Happy Reader`  
-VNDB Password is encrypted and saved to Windows Registry at `HKEY_CURRENT_USER\SOFTWARE\Happy Reader`
