@@ -45,7 +45,7 @@
 		</Grid.RowDefinitions>
 		<TabControl TabStripPlacement="Top">
 			<TabItem Header="Core Settings" DataContext="{Binding CoreSettings}">
-				<StackPanel>
+				<StackPanel x:Name="CoreSettingsPanel">
 					<view:LabeledTextBox LabelWidth="150" Label="Secondary Title Language:" Text="{Binding SecondaryTitleLanguage}" ToolTip="Secondary language (2 letter form) to sort titles by release date in that language"/>
 					<view:LabeledTextBox LabelWidth="150" Label="API Token:" Text="{Binding ApiToken}"/>
 					<Grid>
@@ -71,7 +71,8 @@
 							<CheckBox Content="Screenshot Thumbnails" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncScreenshotThumbnails"/>
 						</StackPanel>
 					</Grid>
-					<Button Content="Update VNDB Data" Click="UpdateVndbData"/>
+					<Button x:Name="UpdateVndbButton" Content="Update VNDB Data" Click="UpdateVndbData"/>
+					<ListBox x:Name="UpdateLoggingBox" Visibility="Collapsed"/>
 				</StackPanel>
 			</TabItem>
 			<TabItem Header="Interface Settings" DataContext="{Binding GuiSettings}">

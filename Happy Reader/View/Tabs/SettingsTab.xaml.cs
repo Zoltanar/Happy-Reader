@@ -18,6 +18,7 @@ namespace Happy_Reader.View.Tabs
         private bool _loaded;
         private SettingsViewModel ViewModel => DataContext as SettingsViewModel ?? throw new ArgumentNullException($"Expected view model to be of type {nameof(SettingsViewModel)}");
         private bool _updateInProgress;
+        private const string UpdateVndbText = "Update VNDB Data";
 
         public SettingsTab() => InitializeComponent();
 
@@ -179,7 +180,7 @@ namespace Happy_Reader.View.Tabs
                     : ViewModel.CoreSettings.SyncImages &= ~ImageSyncMode.Thumbnails;
             }
         }
-
+        
         private async void UpdateVndbData(object sender, RoutedEventArgs e)
         {
             var currentDatabaseState = LocalDatabase.Connection.State;
@@ -196,21 +197,34 @@ namespace Happy_Reader.View.Tabs
             try
             {
                 _updateInProgress = true;
-                var updateResult = await Happy_Apps_Core.DumpReader.Program.Execute();
+                UpdateLoggingBox.Visibility = Visibility.Visible;
+                UpdateLoggingBox.Items.Clear();
+                UpdateVndbButton.Content = $"{UpdateVndbText} (in progress)";
+                UpdateVndbButton.IsEnabled = false;
+                MultiLogger.PreviousLogTime = null;
+                var updateResult = await Happy_Apps_Core.DumpReader.Program.Execute(UpdateLoggingAction);
                 if (updateResult.Success)
                 {
                     await StaticMethods.MainWindow.ViewModel.DatabaseViewModel.Initialize();
                 }
-
                 var message = updateResult.Type.ToString();
-                if(!string.IsNullOrWhiteSpace(updateResult.ErrorMessage)) message += $" {updateResult.ErrorMessage}";
-
+                if(!string.IsNullOrWhiteSpace(updateResult.ErrorMessage)) message += $" - {updateResult.ErrorMessage}";
                 StaticMethods.MainWindow.ViewModel.StatusText = $"VNDB Update: {message}";
             }
             finally
             {
                 _updateInProgress = false;
+                UpdateVndbButton.IsEnabled = true;
+                UpdateVndbButton.Content = UpdateVndbText;
             }
+        }
+
+        private void UpdateLoggingAction(string[] texts)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                foreach (var line in texts) UpdateLoggingBox.Items.Add(MultiLogger.TimeString + line);
+            });
         }
     }
 }

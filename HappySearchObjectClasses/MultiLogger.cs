@@ -10,25 +10,25 @@ namespace Happy_Apps_Core
 	{
 		private readonly string _logFolder;
 		private readonly int _creatingProcessId;
-		private static DateTime? _previousLogTime;
+		public static DateTime? PreviousLogTime;
 		
 		public bool LogVerbose { get; set; }
 
         public bool LogDatabase { get; set; } = true;
 
-        private static string TimeString
+        public static string TimeString
 		{
 			get
 			{
 				var dt = DateTime.Now;
 				var timePassedString = string.Empty;
-				if (_previousLogTime.HasValue)
+				if (PreviousLogTime.HasValue)
 				{
-					var timePassed = dt - _previousLogTime.Value;
+					var timePassed = dt - PreviousLogTime.Value;
 					var ts = timePassed.TotalSeconds < 10 ? $"{(int)timePassed.TotalMilliseconds:D0} ms" : $"{(int)timePassed.TotalSeconds:D0} s ";
 					timePassedString = $" ({ts,7})";
 				}
-				_previousLogTime = dt;
+				PreviousLogTime = dt;
 				var timeString = $"[{dt,-12:HH:mm:ss:fff}{timePassedString}] ";
 				return timeString;
 			}

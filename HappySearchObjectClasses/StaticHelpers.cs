@@ -45,7 +45,7 @@ namespace Happy_Apps_Core
 		public const string ClientName = "Happy Reader";
 		public const string ClientVersion = "2.6.0";
 
-		public static VisualNovelDatabase LocalDatabase;
+		public static VisualNovelDatabase LocalDatabase { get; set; }
 		public static readonly MultiLogger Logger;
 		public static VndbConnection Conn;
 		private static CoreSettings _cSettings;

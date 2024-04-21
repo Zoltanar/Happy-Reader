@@ -22,8 +22,9 @@ public static class Program
     private static Stopwatch DownloadWatch;
 
 
-    public static async Task<UpdateResult> Execute()
+    public static async Task<UpdateResult> Execute(Action<string[]> loggingAction)
     {
+        PrintLogLine = loggingAction;
         UpdateResult result = new UpdateResult();
         Stopwatch syncWatch = null;
         var databaseLogging = StaticHelpers.Logger.LogDatabase;
@@ -32,11 +33,11 @@ public static class Program
         {
             StaticHelpers.Logger.LogDatabase = false;
             var dumpFolder = DumpFolder;
-            await Run(dumpFolder, StaticHelpers.CSettings.UserID, result);
+            await Task.Run(()=> Run(dumpFolder, StaticHelpers.CSettings.UserID, result));
             if (result.Type != UpdateType.Error)
             {
                 syncWatch = Stopwatch.StartNew();
-                SyncImages(StaticHelpers.CSettings.SyncImages);
+                await Task.Run(()=> SyncImages(StaticHelpers.CSettings.SyncImages));
                 syncWatch.Stop();
             }
         }
@@ -89,6 +90,7 @@ public static class Program
     {
         var url = $"{RsyncUrlBase}{folder}";
         var path = $"{StaticHelpers.CSettings.ImageFolderPath}{folder}";
+        PrintLogLine([$"RSync: Syncing images from {url} to {path}..."]);
         var success = RSync.Run(url, path, out var error);
         if (!success) PrintLogLine([$"Failed to sync images: {error}"]);
     }
@@ -229,7 +231,7 @@ public static class Program
     {
         var dbDumpPath = await StaticHelpers.DownloadFile(LatestDbDumpUrl, DumpFolder, null, PrintLogLine)
                          ?? throw new InvalidOperationException("Failed to download database dump.");
-        var voteDumpPath = await StaticHelpers.DownloadFile(LatestVoteDumpUrl, DumpFolder, null) 
+        var voteDumpPath = await StaticHelpers.DownloadFile(LatestVoteDumpUrl, DumpFolder, null, PrintLogLine) 
                            ?? throw new InvalidOperationException("Failed to download vote dump.");
         return (new FileInfo(dbDumpPath), new FileInfo(voteDumpPath));
     }
@@ -318,12 +320,11 @@ public static class Program
     {
         public UpdateType Type { get; set; }
         public string ErrorMessage { get; set; }
-        public bool Success => Type != UpdateType.Unknown && Type != UpdateType.Error;
+        public bool Success => Type != UpdateType.Unknown && Type != UpdateType.Error && Type != UpdateType.NoUpdate;
 
         public UpdateResult()
         {
             Type = UpdateType.Unknown;
-            ErrorMessage = "Initial state";
         }
     }
 

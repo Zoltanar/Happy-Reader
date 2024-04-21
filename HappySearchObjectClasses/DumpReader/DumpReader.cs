@@ -53,7 +53,6 @@ public class DumpReader
         DumpFolder = dumpFolder;
         OutputFilePath = inProgressDbFile;
         Database = new VisualNovelDatabase(OutputFilePath, false);
-        StaticHelpers.LocalDatabase = Database;
         Database.DeleteForDump();
         DumpFiles.Load();
         SuggestionScorer = new SuggestionScorer(
@@ -344,7 +343,7 @@ public class DumpReader
         ResolveRelations();
         ResolveAnime();
         ResolveScreens();
-        SuggestionScorer.SetScore(vn, false);
+        SuggestionScorer.SetScore(vn, false, Database);
 
         void ResolveScreens()
         {

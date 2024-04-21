@@ -53,7 +53,7 @@ namespace Happy_Reader.View.Tabs
 
 		private void LoadTags(ListedVN vn)
 		{
-			var groups = vn.Tags.GroupBy(x => x.Category).OrderBy(g => g.Key.ToString());
+			var groups = vn.Tags(StaticHelpers.LocalDatabase).GroupBy(x => x.Category).OrderBy(g => g.Key.ToString());
 			var allInlines = new List<Inline>();
 			foreach (var group in groups)
 			{
@@ -85,7 +85,7 @@ namespace Happy_Reader.View.Tabs
 			if (string.IsNullOrWhiteSpace(ViewModel.Description)) DescriptionRow.Height = new GridLength(0);
 			LoadAliases();
 			LoadCharacters();
-			if (ViewModel.Tags.Any()) LoadTags(ViewModel);
+			if (ViewModel.Tags(StaticHelpers.LocalDatabase).Any()) LoadTags(ViewModel);
 			LoadScreenshots();
 			StaffTab.Visibility = ViewModel.Staff.Any() ? Visibility.Visible : Visibility.Collapsed;
 			LoadRelations();

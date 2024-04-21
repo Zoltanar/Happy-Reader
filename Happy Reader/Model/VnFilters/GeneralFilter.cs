@@ -336,9 +336,9 @@ namespace Happy_Reader
             var writtenTag = DumpFiles.GetTag(IntValue);
             if (writtenTag == null || !GetVisualNovel(item, out var vn)) return Exclude;
             //todo make it better, allow handling arrays
-            if (AdditionalInt == null) return writtenTag.InCollection(vn.Tags.Select(t => t.TagId)) != Exclude;
-            var contains = writtenTag.InCollection(vn.Tags.Select(t => t.TagId), out int match);
-            return (!contains || vn.Tags.First(t => t.TagId == match).Score >= AdditionalInt.Value) != Exclude;
+            if (AdditionalInt == null) return writtenTag.InCollection(vn.Tags(StaticHelpers.LocalDatabase).Select(t => t.TagId)) != Exclude;
+            var contains = writtenTag.InCollection(vn.Tags(StaticHelpers.LocalDatabase).Select(t => t.TagId), out int match);
+            return (!contains || vn.Tags(StaticHelpers.LocalDatabase).First(t => t.TagId == match).Score >= AdditionalInt.Value) != Exclude;
         }
 
         public override string ToString()

@@ -126,7 +126,7 @@ public class ListedVN : DumpItem, INotifyPropertyChanged, IDataItem<int>
     public DateTime ReleaseDate { get; private set; }
     public DateTime ReleaseDateSecondary { get; private set; }
 
-    public IEnumerable<DbTag> Tags => StaticHelpers.LocalDatabase.Tags[VNID];
+    public IEnumerable<DbTag> Tags(VisualNovelDatabase database) => database.Tags[VNID];
 
     public string ReleaseLink { get; set; }
 
@@ -262,7 +262,7 @@ public class ListedVN : DumpItem, INotifyPropertyChanged, IDataItem<int>
                 {
                     var tag = DumpFiles.GetTag(tagId);
                     if (tag == null) continue;
-                    var found = tag.InCollection(Tags.Select(t => t.TagId));
+                    var found = tag.InCollection(Tags(StaticHelpers.LocalDatabase).Select(t => t.TagId));
                     if (found)
                     {
                         _specialFlag = true;

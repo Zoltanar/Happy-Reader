@@ -143,7 +143,7 @@ namespace DatabaseDumpReader
 		private static void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
 		{
 			if (string.IsNullOrEmpty(e.Data)) return;
-			Console.WriteLine(e.Data);
+			Debug.WriteLine(e.Data);
 		}
 	}
 }
