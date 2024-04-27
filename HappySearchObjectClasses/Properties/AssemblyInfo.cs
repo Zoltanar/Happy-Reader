@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Happy Apps Core")]
-[assembly: AssemblyCopyright("Copyright © Zoltanar 2015-2021")]
+[assembly: AssemblyCopyright("Copyright © Zoltanar 2015-2024")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

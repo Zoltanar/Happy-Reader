@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Windows;
 using Happy_Apps_Core.Database;
 using Newtonsoft.Json;
 
@@ -92,14 +91,20 @@ public class DumpReader
             if (!VnLengths.ContainsKey(i.VNId)) VnLengths[i.VNId] = new List<LengthVote>();
             if(i.ReleaseIds.Any()) VnLengths[i.VNId].Add(i);
         }, "db\\vn_length_votes");
+        var newTitleCount = 0;
         Load<ListedVN>((i, t) =>
         {
             ResolveOtherForVn(i);
             //if database was not empty and this vn wasn't in previous update
-            if (previousVnIds.Length != 0 && Array.BinarySearch(previousVnIds, i.VNID) < 0) i.NewSinceUpdate = true;
+            if (previousVnIds.Length != 0 && Array.BinarySearch(previousVnIds, i.VNID) < 0)
+            {
+                i.NewSinceUpdate = true;
+                newTitleCount++;
+            }
             Database.VisualNovels.Add(i, false, true, t);
             ResolveUserVnForVn(i, t);
         }, "db\\vn");
+        Program.PrintLogLine([$"Added {newTitleCount} new titles."]);
         Database.SaveLatestDumpUpdate(dumpDate);
         Program.PrintLogLine(["Completed."]);
     }

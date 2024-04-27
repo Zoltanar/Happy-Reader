@@ -10,7 +10,7 @@ using System.Windows;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Happy Reader")]
-[assembly: AssemblyCopyright("Copyright © Zoltanar 2015-2023")]
+[assembly: AssemblyCopyright("Copyright © Zoltanar 2015-2024")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

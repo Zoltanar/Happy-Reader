@@ -114,7 +114,7 @@
 			<Button Grid.Column="0" Content="Expand Groups" Click="ToggleExpandGroups" Margin="0,2,2,2"/>
 			<ComboBox Margin="0,2,2,2" Grid.Column="1" SelectedIndex="0" ItemsSource="{Binding UserGameGroupings}" SelectedValuePath="Tag" SelectedValue="{Binding GroupBy}" SelectionChanged="GroupingChanged" Padding="5,0" />
 			<TextBox x:Name="SearchTextBox" TextChanged="SearchTextBox_OnTextChanged" Margin="2" Grid.Column="2" TextAlignment="Left" />
-			<CheckBox Margin="2" Grid.Column="3" Content="Show Not Found" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Checked="ToggleButton_OnChecked" Unchecked="ToggleButton_OnChecked" />
+			<CheckBox Margin="2" Grid.Column="3" Content="Show Not Found" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Checked="ShowNotFound_OnChecked" Unchecked="ShowNotFound_OnChecked" IsChecked="{Binding ShowNotFound}" />
 			<Button Margin="2" Padding="5,0" Content="Random" Grid.Column="4" Click="SelectRandom" ToolTip="Select random title from filtered view (result may be in collapsed group)"/>
 			<Button Margin="2" Padding="5,0" Content="Add New" Grid.Column="5" Click="AddNewUserGame"/>
 			<TextBlock Margin="2,2,0,2" Grid.Column="6" Text="{Binding UserGameItems.Count, StringFormat={}{0} Items.}" Background="Aquamarine" TextAlignment="Center" />

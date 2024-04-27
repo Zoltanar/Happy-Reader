@@ -92,7 +92,7 @@ namespace Happy_Reader.View
                 await ViewModel.Initialize(watch, !noEntries, logVerbose);
                 //we call this here to create icons ahead of time.
                 BuildTrayPopup(sender, e);
-                UserGamesTabItem.GroupUserGames();
+                UserGamesTabItem.Initialise();
                 LoadSavedData();
             }
             finally

@@ -205,7 +205,9 @@ namespace Happy_Reader.View.Tabs
                 var updateResult = await Happy_Apps_Core.DumpReader.Program.Execute(UpdateLoggingAction);
                 if (updateResult.Success)
                 {
-                    await StaticMethods.MainWindow.ViewModel.DatabaseViewModel.Initialize();
+
+                    await StaticMethods.MainWindow.ViewModel.InitialiseViewModels(false);
+                    StaticMethods.MainWindow.UserGamesTabItem.Initialise();
                 }
                 var message = updateResult.Type.ToString();
                 if(!string.IsNullOrWhiteSpace(updateResult.ErrorMessage)) message += $" - {updateResult.ErrorMessage}";

@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -22,13 +21,16 @@ namespace Happy_Reader.View.Tabs
 {
 	public partial class UserGamesTab : UserControl
 	{
-		private readonly DispatcherTimer _scrollLabelTimer;
 		private static readonly Random Random = new();
 
-		private UserGamesViewModel ViewModel => (UserGamesViewModel)DataContext;
-		private readonly UIElement[] _normalContent;
+        private UserGamesViewModel ViewModel => (UserGamesViewModel)DataContext;
+        private readonly DispatcherTimer _scrollLabelTimer;
+        private readonly UIElement[] _normalContent;
+        private Func<object, bool> _searchFilter;
+        private Func<object, bool> _showNotFoundFilter = FilterFoundGames;
 
-		public UserGamesTab()
+
+        public UserGamesTab()
 		{
 			InitializeComponent();
 			_scrollLabelTimer = new DispatcherTimer(new TimeSpan(0, 0, 2), DispatcherPriority.ContextIdle, HideScrollLabel, Dispatcher);
@@ -82,10 +84,7 @@ namespace Happy_Reader.View.Tabs
 			}
 		}
 
-		private void GroupingChanged(object sender, SelectionChangedEventArgs e)
-		{
-			GroupUserGames();
-		}
+		private void GroupingChanged(object sender, SelectionChangedEventArgs e) => GroupUserGames();
 
 		public void GroupUserGames()
 		{
@@ -238,7 +237,7 @@ namespace Happy_Reader.View.Tabs
 		private void ShowLabelOnScrollbar(object sender, ScrollChangedEventArgs e)
 		{
 			if (ViewModel == null) return;
-			if (!(sender is ListBox list))
+			if (sender is not ListBox list)
 			{
 				ScrollLabel.Text = string.Empty;
 				ScrollBorder.Visibility = Visibility.Hidden;
@@ -301,7 +300,7 @@ namespace Happy_Reader.View.Tabs
 
 		private T GetVisualItemOfType<T>(object originalSource, object parent) where T : DependencyObject
 		{
-			if (!(originalSource is DependencyObject depObj)) return null;
+			if (originalSource is not DependencyObject depObj) return null;
 			// go up the visual hierarchy until we find the list view item the click came from  
 			// the click might have been on the grid or column headers so we need to cater for this  
 			DependencyObject current = depObj;
@@ -313,19 +312,29 @@ namespace Happy_Reader.View.Tabs
 			return null;
 		}
 
-		private void ToggleExpandGroups(object sender, RoutedEventArgs e)
+        private void ToggleExpandGroups(object sender, RoutedEventArgs e)
 		{
 			ToggleUserGameGroups(null, 0, true, true);
 		}
 
-		private async void ToggleButton_OnChecked(object sender, RoutedEventArgs e)
+		private void ShowNotFound_OnChecked(object sender, RoutedEventArgs e)
 		{
-			var tb = (ToggleButton)sender;
-			var state = tb.IsChecked ?? false;
-			await ViewModel.LoadUserGames(state);
-		}
+            _showNotFoundFilter = ViewModel.ShowNotFound ?  null : FilterFoundGames;
+            ApplyFilter();
+        }
 
-		private bool FilterUserGames(object obj)
+        private static bool FilterFoundGames(object obj) => ((UserGameTile)obj).UserGame.FileExists;
+
+        private void ApplyFilter()
+        {
+            var view = CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
+            if (_searchFilter != null && _showNotFoundFilter != null) view.Filter = obj=> _searchFilter(obj) && _showNotFoundFilter(obj);
+            else if (_searchFilter != null) view.Filter = obj => _searchFilter(obj);
+            else if (_showNotFoundFilter != null) view.Filter = obj => _showNotFoundFilter(obj);
+            else view.Filter = null;
+        }
+
+        private bool FilterUserGames(object obj)
 		{
 			if (SearchTextBox.Text.Length < 3) return true;
 			var searchTerm = SearchTextBox.Text.ToLowerInvariant();
@@ -339,10 +348,12 @@ namespace Happy_Reader.View.Tabs
 		}
 
 		private void SearchTextBox_OnTextChanged(object sender, TextChangedEventArgs e)
-		{
-			var view = CollectionViewSource.GetDefaultView(ViewModel.UserGameItems);
-			if (SearchTextBox.Text.Length < 3 && view.Filter != null) view.Filter = null;
-			else if (SearchTextBox.Text.Length >= 3) view.Filter = FilterUserGames;
+        {
+            var wasNull = _searchFilter == null;
+			if (SearchTextBox.Text.Length < 3) _searchFilter = null;
+			else if (SearchTextBox.Text.Length >= 3) _searchFilter = FilterUserGames;
+            if (wasNull && _searchFilter == null) return;
+			ApplyFilter();
 		}
 
 		private void SelectRandom(object sender, RoutedEventArgs e)
@@ -383,5 +394,11 @@ namespace Happy_Reader.View.Tabs
 				StaticMethods.MainWindow.ViewModel.UserGamesViewModel.RemoveUserGame(mergeTarget.UserGame);
 			}
 		}
-	}
+
+        public void Initialise()
+        {
+            GroupUserGames();
+            ApplyFilter();
+        }
+    }
 }

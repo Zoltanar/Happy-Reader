@@ -204,12 +204,7 @@ namespace Happy_Reader.ViewModel
                 StatusText = "Loading data from dump files...";
                 DumpFiles.Load();
             });
-            await DatabaseViewModel.Initialize();
-            await ProducersViewModel.Initialize();
-            await CharactersViewModel.Initialize();
-            if (initialiseEntries) InitialiseEntries(logVerbose);
-            await UserGamesViewModel.Initialize();
-            InformationViewModel.Initialise(LocalDatabase, StaticMethods.Data);
+            await InitialiseViewModels(initialiseEntries);
             LoadLogs();
             SetLastPlayed();
             OnPropertyChanged(nameof(TestViewModel));
@@ -218,6 +213,16 @@ namespace Happy_Reader.ViewModel
             _loadingComplete = true;
             StatusText = "Loading complete.";
             NotificationEvent(this, $"Took {watch.Elapsed.ToSeconds()}.", "Loading Complete", true);
+        }
+
+        public async Task InitialiseViewModels(bool initialiseEntries)
+        {
+            await DatabaseViewModel.Initialize();
+            await ProducersViewModel.Initialize();
+            await CharactersViewModel.Initialize();
+            if (initialiseEntries) InitialiseEntries(StaticHelpers.Logger.LogVerbose);
+            await UserGamesViewModel.Initialize();
+            InformationViewModel.Initialise(LocalDatabase, StaticMethods.Data);
         }
 
         private void InitialiseEntries(bool logVerbose)

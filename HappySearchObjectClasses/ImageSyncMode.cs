@@ -5,7 +5,6 @@ namespace Happy_Apps_Core
 {
 	/// <summary>
 	/// Determines which image folders should be synced.
-	/// todo: implement in DatabaseDumpReader.
 	/// </summary>
 	[Flags]
 	public enum ImageSyncMode
