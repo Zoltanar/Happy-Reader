@@ -32,7 +32,6 @@
 - Database: Sort By and show english release date
 - Database: History item is duplicated when going back
 - add 'update available' notice (can hide)
-- Settings: if login response is error with id 'needlogin' show user that credentials are wrong
 - Database Tab: Sort by Random
 - style scrollbars
 

@@ -89,7 +89,7 @@ public class DumpReader
         Load<LengthVote>((i, _) =>
         {
             if (!VnLengths.ContainsKey(i.VNId)) VnLengths[i.VNId] = new List<LengthVote>();
-            if(i.ReleaseIds.Any()) VnLengths[i.VNId].Add(i);
+            if (i.ReleaseIds.Any()) VnLengths[i.VNId].Add(i);
         }, "db\\vn_length_votes");
         var newTitleCount = 0;
         Load<ListedVN>((i, t) =>
@@ -281,34 +281,21 @@ public class DumpReader
     private void Load<T>(Action<T, SQLiteTransaction> addToList, string filePath, bool useHeaderFile = true) where T : DumpItem, new()
     {
         Program.PrintLogLine([$"Loading for {typeof(T).Name}..."]);
-#if DEBUG
-        try
+        new T().SetDumpHeaders((useHeaderFile
+            ? File.ReadAllLines(Path.Combine(DumpFolder, filePath + ".header")).Single()
+            : string.Empty).Split('\t'));
+        WrapInTransaction(trans =>
         {
-#endif
-            new T().SetDumpHeaders((useHeaderFile
-                ? File.ReadAllLines(Path.Combine(DumpFolder, filePath + ".header")).Single()
-                : string.Empty).Split('\t'));
-            WrapInTransaction(trans =>
+            using var file = new StreamReader(File.Open(Path.Combine(DumpFolder, filePath), FileMode.Open));
+            while (file.ReadLine() is string line)
             {
-                using var file = new StreamReader(File.Open(Path.Combine(DumpFolder, filePath), FileMode.Open));
-                while (file.ReadLine() is string line)
-                {
-                    Debug.Assert(line != null, nameof(line) + " != null");
-                    var parts = line.Split('\t');
-                    var item = new T();
-                    item.LoadFromStringParts(parts);
-                    addToList(item, trans);
-                }
-            });
-#if DEBUG
-        }
-        catch (Exception ex)
-        {
-            var fileName = Path.GetFileName(filePath);
-            var userAnswer = MessageBox.Show($"Failed to read file {fileName}: {ex}{Environment.NewLine}Continue?", $"{StaticHelpers.ClientName} - VNDB Update", MessageBoxButton.YesNo);
-            if (userAnswer != MessageBoxResult.Yes) throw;
-        }
-#endif
+                Debug.Assert(line != null, nameof(line) + " != null");
+                var parts = line.Split('\t');
+                var item = new T();
+                item.LoadFromStringParts(parts);
+                addToList(item, trans);
+            }
+        });
     }
 
     private void WrapInTransaction(Action<SQLiteTransaction> action, [CallerMemberName] string caller = null)
@@ -414,7 +401,7 @@ public class DumpReader
             var complete = false;
             foreach (var release in lengthVote.ReleaseIds)
             {
-                if(!LangReleases.TryGetValue(release, out var langReleases)) continue;
+                if (!LangReleases.TryGetValue(release, out var langReleases)) continue;
                 if (langReleases.Any(r => !r.Partial)) complete = true;
             }
             (complete ? completeReleaseLengths : partialReleaseLengths).Add(lengthVote.Length);

@@ -19,12 +19,12 @@
 - see details should change to correct user game tab when multiple user games for one vn
 - allow process monitor to keep running always/make process monitor only have one instance- 
 - Option to stop monitor
+- When no user games have been added, tab should say 'Drag executable here to add it'
 ##### Entries
 - Implement priority
 - Change Series-specific to dropdown (none,title,series, producer?)
 - Add text search
 ##### DatabaseDumpReader
-- Parallelise?
 - Run RSync while processing database dump, after downloading files
 #### Other
 - **Add screenshots to basic guide** (In progress, text hooking done)
@@ -32,7 +32,6 @@
 - Database: Sort By and show english release date
 - Database: History item is duplicated when going back
 - add 'update available' notice (can hide)
-- Settings: if login response is error with id 'needlogin' show user that credentials are wrong
 - Database Tab: Sort by Random
 - style scrollbars
 
