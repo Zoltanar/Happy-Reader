@@ -26,9 +26,10 @@
 			<Setter Property="Background" Value="DimGray"/>
 		</Style>
 	</UserControl.Resources>
-	<Grid Background="DimGray">
+	<Grid Background="DimGray" Name="OwnerGrid">
 		<Grid.Style>
 			<Style TargetType="Grid">
+				<Setter Property="Background" Value="DimGray"/>
 				<Style.Resources>
 					<Style TargetType="Control">
 						<Setter Property="Foreground" Value="White" />
@@ -43,37 +44,49 @@
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
-		<TabControl TabStripPlacement="Top">
-			<TabItem Header="Core Settings" DataContext="{Binding CoreSettings}">
-				<StackPanel x:Name="CoreSettingsPanel">
-					<view:LabeledTextBox LabelWidth="150" Label="Secondary Title Language:" Text="{Binding SecondaryTitleLanguage}" ToolTip="Secondary language (2 letter form) to sort titles by release date in that language"/>
-					<view:LabeledTextBox LabelWidth="150" Label="API Token:" Text="{Binding ApiToken}"/>
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="120"/>
-							<ColumnDefinition/>
-						</Grid.ColumnDefinitions>
-						<Button Grid.Column="0" Content="Log In" Click="LogInWithDetails"/>
-						<TextBlock Grid.Column="1" Margin="5,0" x:Name="LoginResponseBlock" />
+		<TabControl TabStripPlacement="Top" x:Name="TabControl">
+			<TabItem x:Name="CoreSettingsTabItem" Header="Core Settings" DataContext="{Binding CoreSettings}" >
+				<ScrollViewer VerticalScrollBarVisibility="Auto">
+					<Grid x:Name="CoreSettingsPanel" Background="DimGray">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto"/>
+							<RowDefinition Height="Auto"/>
+							<RowDefinition Height="Auto"/>
+							<RowDefinition Height="Auto"/>
+							<RowDefinition Height="Auto"/>
+							<RowDefinition Height="Auto"/>
+							<RowDefinition Height="Auto"/>
+							<RowDefinition Height="*"/>
+						</Grid.RowDefinitions>
+						<view:LabeledTextBox Grid.Row="0" LabelWidth="150" Label="Secondary Title Language:" Text="{Binding SecondaryTitleLanguage}" ToolTip="Secondary language (2 letter form) to sort titles by release date in that language"/>
+						<view:LabeledTextBox Grid.Row="1" LabelWidth="150" Label="API Token:" Text="{Binding ApiToken}"/>
+						<Grid Grid.Row="2">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="120"/>
+								<ColumnDefinition/>
+							</Grid.ColumnDefinitions>
+							<Button Grid.Column="0" Content="Log In" Click="LogInWithDetails"/>
+							<TextBlock Grid.Column="1" Margin="5,0" x:Name="LoginResponseBlock" />
+						</Grid>
+						<CheckBox Grid.Row="3" Content="Clear past data dumps and DB backups when updating" IsChecked="{Binding ClearOldDumpsAndBackups}"/>
+						<view:LabeledTextBox Grid.Row="4" Label="VNDB Image Path:" LabelWidth="120" Text="{Binding ImageFolderPath}"/>
+						<Grid Grid.Row="5">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition/>
+							</Grid.ColumnDefinitions>
+							<Label Content="Image Sync" Width="120"/>
+							<StackPanel Grid.Column="1" Orientation="Horizontal">
+								<CheckBox Content="Characters" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncCharacters"/>
+								<CheckBox Content="Covers" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncCovers"/>
+								<CheckBox Content="Screenshots" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncScreenshots"/>
+								<CheckBox Content="Screenshot Thumbnails" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncScreenshotThumbnails"/>
+							</StackPanel>
+						</Grid>
+						<Button Grid.Row="6" x:Name="UpdateVndbButton" Content="Update VNDB Data" Click="UpdateVndbData"/>
+						<ListBox x:Name="UpdateLoggingBox" Visibility="Collapsed" Grid.Row="7" />
 					</Grid>
-					<CheckBox Content="Clear past data dumps and DB backups when updating" IsChecked="{Binding ClearOldDumpsAndBackups}"/>
-					<view:LabeledTextBox Label="VNDB Image Path:" LabelWidth="120" Text="{Binding ImageFolderPath}"/>
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="Auto"/>
-							<ColumnDefinition/>
-						</Grid.ColumnDefinitions>
-						<Label Content="Image Sync" Width="120"/>
-						<StackPanel Grid.Column="1" Orientation="Horizontal">
-							<CheckBox Content="Characters" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncCharacters"/>
-							<CheckBox Content="Covers" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncCovers"/>
-							<CheckBox Content="Screenshots" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncScreenshots"/>
-							<CheckBox Content="Screenshot Thumbnails" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncScreenshotThumbnails"/>
-						</StackPanel>
-					</Grid>
-					<Button x:Name="UpdateVndbButton" Content="Update VNDB Data" Click="UpdateVndbData"/>
-					<ListBox x:Name="UpdateLoggingBox" Visibility="Collapsed"/>
-				</StackPanel>
+				</ScrollViewer>
 			</TabItem>
 			<TabItem Header="Interface Settings" DataContext="{Binding GuiSettings}">
 				<StackPanel Background="DimGray">

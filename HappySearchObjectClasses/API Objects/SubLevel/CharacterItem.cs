@@ -106,7 +106,7 @@ public class CharacterItem : DumpItem, IDataItem<int>, ICloneable, INotifyProper
         Aliases = GetPart(parts, "alias");
         ImageId = GetPartOrNull(parts, "image");
         Description = GetPart(parts, "description");
-        Gender = GetPart(parts, "gender");
+        Gender = GetPart(parts, "sex");
     }
 
     public CharacterItem Clone() => (CharacterItem)((ICloneable)this).Clone();

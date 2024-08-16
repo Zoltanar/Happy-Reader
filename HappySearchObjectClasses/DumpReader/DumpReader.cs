@@ -17,12 +17,10 @@ public class DumpReader
     public string OutputFilePath { get; }
     public VisualNovelDatabase Database { get; }
     public SuggestionScorer SuggestionScorer { get; }
-    public Dictionary<int, Release> Releases { get; } = new();
     /// <summary>
     /// Key is release id.
     /// </summary>
     public Dictionary<int, List<LangRelease>> LangReleases { get; } = new();
-    public Dictionary<int, List<int>> ProducerReleases { get; } = new();
     public Dictionary<int, List<Release>> VnReleases { get; } = new();
     public Dictionary<int, DumpAnime> Animes { get; } = new();
     public Dictionary<int, List<DumpVnAnime>> VnAnimes { get; } = new();
@@ -173,33 +171,44 @@ public class DumpReader
 
     private void LoadReleases()
     {
+        Dictionary<int, List<int>> producerReleases = new();
+        Dictionary<int, Release> releases = new();
         Load<ProducerRelease>((i, _) =>
-        {
-            if (!i.Developer) return;
-            if (!ProducerReleases.ContainsKey(i.ReleaseId)) ProducerReleases[i.ReleaseId] = new List<int>();
-            ProducerReleases[i.ReleaseId].Add(i.ProducerId);
-        }, "db\\releases_producers");
+            {
+                if (!i.Developer) return;
+                if (!producerReleases.ContainsKey(i.ReleaseId)) producerReleases[i.ReleaseId] = new List<int>();
+                producerReleases[i.ReleaseId].Add(i.ProducerId);
+            }, "db\\releases_producers");
         Load<LangRelease>((i, _) =>
         {
             if (!LangReleases.ContainsKey(i.ReleaseId)) LangReleases[i.ReleaseId] = new List<LangRelease>();
             LangReleases[i.ReleaseId].Add(i);
         }, "db\\releases_titles");
-        Load<Release>((i, _) => Releases[i.ReleaseId] = i, "db\\releases");
+        Load<Release>((i, _) => releases[i.ReleaseId] = i, "db\\releases");
         Load<VnRelease>((i, _) =>
         {
             if (!VnReleases.ContainsKey(i.VnId)) VnReleases[i.VnId] = new List<Release>();
-            if (!Releases.TryGetValue(i.ReleaseId, out var release)) return;
+            if (!releases.TryGetValue(i.ReleaseId, out var release)) return;
             if (i.ReleaseType == "trial")
             {
-                Releases.Remove(i.ReleaseId);
+                releases.Remove(i.ReleaseId);
                 return;
             }
             release.Languages = LangReleases[i.ReleaseId];
             foreach (var langRelease in release.Languages) langRelease.Partial = i.ReleaseType == "partial";
-            ProducerReleases.TryGetValue(i.ReleaseId, out var producerRelease);
+            producerReleases.TryGetValue(i.ReleaseId, out var producerRelease);
             release.Producers = producerRelease ?? new List<int>();
             VnReleases[i.VnId].Add(release);
         }, "db\\releases_vn");
+        Load<ReleaseImage>((i, _) =>
+        {
+            if (!releases.TryGetValue(i.ReleaseId, out var release)) return;
+            release.Images.Add(i);
+        }, "db\\releases_images");
+        //clear collections to save memory
+        producerReleases.Clear();
+        releases.Clear();
+        GC.Collect();
     }
 
     private void ResolveUserVnForVn(ListedVN vn, SQLiteTransaction transaction)
@@ -217,9 +226,9 @@ public class DumpReader
             Started = dumpUserVn.Started,
             Finished = dumpUserVn.Finished
         };
-        if (Votes.ContainsKey(vn.VNID))
+        if (Votes.TryGetValue(vn.VNID, out var dumpvVote))
         {
-            var vote = Votes[vn.VNID].FirstOrDefault(v => v.UserId == UserId);
+            var vote = dumpvVote.FirstOrDefault(v => v.UserId == UserId);
             if (vote != null)
             {
                 userVn.Vote = vote.Vote;
@@ -378,6 +387,7 @@ public class DumpReader
             vn.Languages = JsonConvert.SerializeObject(languages);
             vn.ProducerID = releases.SelectMany(r => r.Producers).FirstOrDefault(p => Database.Producers[p] != null);
             vn.ReleaseLink = firstRelease.Website;
+            ResolveVnImage(vn, releases);
         }
         void ResolveTitle()
         {
@@ -390,6 +400,33 @@ public class DumpReader
             }
             else vn.Title = "(No title found)";
         }
+    }
+
+    private void ResolveVnImage(ListedVN vn, List<Release> releases)
+    {
+        if(vn.ImageId != null ) return;
+        var image = releases.SelectMany(r => r.Images).OrderBy(image =>
+        {
+            return image.Type switch
+            {
+                "pkgfront" => 0,
+                "dig" => 1,
+                "pkgcontent" => 2,
+                "pkgmed" => 3,
+                "pkgback" => 4,
+                "pkgside" => 4,
+                _ => -1,
+            };
+        }).ThenBy(image =>
+        {
+            foreach (var language in image.Languages ?? Array.Empty<string>())
+            {
+                if (language == "en") return 0;
+                if (language == StaticHelpers.CSettings.SecondaryTitleLanguage) return 1;
+            }
+            return 2;
+        }).FirstOrDefault();
+        if (image != null) vn.ImageId = $"cv{image.Image}";
     }
 
     private void ResolveLength(ListedVN vn, List<LengthVote> lengthVotes)

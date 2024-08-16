@@ -106,7 +106,7 @@
 				<tabs:ProducersTab DataContext="{Binding ProducersViewModel}"/>
 			</TabItem>
 			<TabItem Visibility="Collapsed" Header="Settings" Style="{StaticResource SystemTab}">
-				<tabs:SettingsTab DataContext="{Binding SettingsViewModel}" x:Name="SettingsTab"/>
+				<tabs:SettingsTab DataContext="{Binding SettingsViewModel}" x:Name="SettingsTab" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Visible"/>
 			</TabItem>
 			<TabItem Header="Information" Style="{StaticResource SystemTab}" 
 			         Visibility="{Binding SettingsViewModel.GuiSettings.DisplayInformationTab, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=C}">
