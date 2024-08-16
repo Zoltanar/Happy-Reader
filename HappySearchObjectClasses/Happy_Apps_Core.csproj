@@ -150,7 +150,7 @@
     <Compile Include="DumpReader\DumpVote.cs" />
     <Compile Include="DumpReader\LengthVote.cs" />
     <Compile Include="DumpReader\ProducerRelease.cs" />
-    <Compile Include="DumpReader\Program.cs" />
+    <Compile Include="DumpReader\DumpReaderStarter.cs" />
     <Compile Include="DumpReader\UserLabel.cs" />
     <Compile Include="DumpReader\UserVn.cs" />
     <Compile Include="DumpReader\VnTag.cs" />

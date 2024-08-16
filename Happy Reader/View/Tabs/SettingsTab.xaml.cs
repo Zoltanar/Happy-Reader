@@ -202,7 +202,7 @@ namespace Happy_Reader.View.Tabs
                 UpdateVndbButton.Content = $"{UpdateVndbText} (in progress)";
                 UpdateVndbButton.IsEnabled = false;
                 MultiLogger.PreviousLogTime = null;
-                var updateResult = await Happy_Apps_Core.DumpReader.Program.Execute(UpdateLoggingAction);
+                var updateResult = await Happy_Apps_Core.DumpReader.DumpReaderStarter.Execute(UpdateLoggingAction);
                 if (updateResult.Success)
                 {
 

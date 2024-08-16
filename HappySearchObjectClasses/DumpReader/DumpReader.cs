@@ -44,7 +44,7 @@ public class DumpReader
         File.Copy(currentDatabaseFilePath, inProgressDbFile);
         //DRB = dump reader backup
         var backupPath = GetDatabaseFile(currentDbFile, "-DRB");
-        Program.PrintLogLine([$"Backing up database to {backupPath}"]);
+        DumpReaderStarter.PrintLogLine([$"Backing up database to {backupPath}"]);
         File.Copy(currentDbFile.FullName, backupPath);
         UserId = userId;
         DumpFolder = dumpFolder;
@@ -65,8 +65,8 @@ public class DumpReader
     }
     public void Run(DateTime dumpDate, int[] previousVnIds, int[] previousCharacterIds)
     {
-        Program.PrintLogLine(["Starting Dump Reader..."]);
-        Program.PrintLogLine(["Loading Tag/Trait Dump files..."]);
+        DumpReaderStarter.PrintLogLine(["Starting Dump Reader..."]);
+        DumpReaderStarter.PrintLogLine(["Loading Tag/Trait Dump files..."]);
         DumpFiles.Load();
         var votesFilePath = FindVotesFile();
         Load<ListedProducer>((i, t) => Database.Producers.Add(i, false, true, t), "db\\producers");
@@ -102,9 +102,9 @@ public class DumpReader
             Database.VisualNovels.Add(i, false, true, t);
             ResolveUserVnForVn(i, t);
         }, "db\\vn");
-        Program.PrintLogLine([$"Added {newTitleCount} new titles."]);
+        DumpReaderStarter.PrintLogLine([$"Added {newTitleCount} new titles."]);
         Database.SaveLatestDumpUpdate(dumpDate);
-        Program.PrintLogLine(["Completed."]);
+        DumpReaderStarter.PrintLogLine(["Completed."]);
     }
 
     private void LoadStaff()
@@ -266,7 +266,7 @@ public class DumpReader
             if (i.Ignore) return;
             VnTags.Add(i);
         }, "db\\tags_vn");
-        Program.PrintLogLine(["Resolving Tags..."]);
+        DumpReaderStarter.PrintLogLine(["Resolving Tags..."]);
         var groupedTags = VnTags.GroupBy(t => (t.TagId, t.VnId)).ToArray();
         WrapInTransaction(trans =>
         {
@@ -289,7 +289,7 @@ public class DumpReader
 
     private void Load<T>(Action<T, SQLiteTransaction> addToList, string filePath, bool useHeaderFile = true) where T : DumpItem, new()
     {
-        Program.PrintLogLine([$"Loading for {typeof(T).Name}..."]);
+        DumpReaderStarter.PrintLogLine([$"Loading for {typeof(T).Name}..."]);
         new T().SetDumpHeaders((useHeaderFile
             ? File.ReadAllLines(Path.Combine(DumpFolder, filePath + ".header")).Single()
             : string.Empty).Split('\t'));
