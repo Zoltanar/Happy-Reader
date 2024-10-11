@@ -380,7 +380,7 @@ namespace Happy_Reader.ViewModel
 
         private void ClipboardChanged(object sender, EventArgs e)
         {
-            if (TranslatePaused || StaticMethods.CtrlKeyIsHeld()) return;
+            if (TranslatePaused) return;
             if (UserGame?.Process == null) return;
             var cpOwner = StaticMethods.GetClipboardOwner();
             var noOwner = cpOwner == null;
@@ -410,7 +410,7 @@ namespace Happy_Reader.ViewModel
                 var outputWindow = userGame?.OutputWindow;
                 if (TranslatePaused) return false;
                 if (userGame == null || outputWindow == null) return false;
-                if (StaticMethods.CtrlKeyIsHeld()) return false;
+                if (!e.FromClipboard && StaticMethods.CtrlKeyIsHeld()) return false;
                 Logger.Verbose($"{nameof(RunTranslation)} - {e}");
                 if (userGame.Process == null ||
                     StaticMethods.DispatchIfRequired(() => outputWindow.ViewModel?.IsClipboardCopy(e) ?? false)) return false;
