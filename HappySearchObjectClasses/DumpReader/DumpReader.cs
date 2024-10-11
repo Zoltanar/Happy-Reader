@@ -32,7 +32,7 @@ public class DumpReader
     public Dictionary<int, List<DumpTitle>> VnTitles { get; } = new();
     private Dictionary<int, List<LengthVote>> VnLengths { get; } = new();
     public List<VnTag> VnTags { get; } = new();
-    public Dictionary<int, List<DumpVote>> Votes { get; private set; }
+    public Dictionary<int, List<DumpVote>> Votes { get; } = new();
 
     public DumpReader(string dumpFolder, string currentDatabaseFilePath, int userId, out string inProgressDbFile)
     {
@@ -66,17 +66,17 @@ public class DumpReader
     public void Run(DateTime dumpDate, int[] previousVnIds, int[] previousCharacterIds)
     {
         DumpReaderStarter.PrintLogLine(["Starting Dump Reader..."]);
-        DumpReaderStarter.PrintLogLine(["Loading Tag/Trait Dump files..."]);
-        DumpFiles.Load();
         var votesFilePath = FindVotesFile();
         Load<ListedProducer>((i, t) => Database.Producers.Add(i, false, true, t), "db\\producers");
         LoadReleases();
         LoadAndResolveTags();
         LoadStaff();
         LoadCharacters(previousCharacterIds);
-        var votesUngrouped = new List<DumpVote>();
-        Load<DumpVote>((i, _) => votesUngrouped.Add(i), votesFilePath, false);
-        Votes = votesUngrouped.GroupBy(vote => vote.VNId).ToDictionary(g => g.Key, g => g.ToList());
+        Load<DumpVote>((vote, _) =>
+        {
+            if (!Votes.TryGetValue(vote.VNId, out var listOfVotes)) listOfVotes = Votes[vote.VNId] = new List<DumpVote>();
+            listOfVotes.Add(vote);
+        }, votesFilePath, false);
         LoadAnimeScreensRelations();
         LoadUserVn();
         Load<DumpTitle>((i, _) =>

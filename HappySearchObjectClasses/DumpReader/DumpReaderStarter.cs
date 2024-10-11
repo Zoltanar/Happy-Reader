@@ -140,7 +140,7 @@ public static class DumpReaderStarter
         }
     }
 
-    public static async Task Run(string dumpFolder, int userId, UpdateResult result)
+    private static async Task Run(string dumpFolder, int userId, UpdateResult result)
     {
         DumpReader.GetDbStats(StaticHelpers.DatabaseFile, out var previousDumpUpdate, out var previousVnIds, out var previousCharacterIds);
         var dumpFileInfo = await GetLatestDump(previousDumpUpdate, dumpFolder);

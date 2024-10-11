@@ -209,7 +209,7 @@ namespace Happy_Reader
                 Rules = (string)list[3];
                 Score = (long)list[4];
                 Glossary = ((JArray)list[5]).ToObject<string[]>();
-                Sequence = (long)list[6];
+                //Sequence = (long)list[6];
                 TermTags = (string)list[7];
                 Deinflect = Deinflection.Rules.Any(r => ((string)list[3]).Contains(r));
             }
@@ -220,7 +220,7 @@ namespace Happy_Reader
             public string Rules { get; }
             public long Score { get; }
             public string[] Glossary { get; }
-            public long Sequence { get; }
+            //public long Sequence { get; }
             public string TermTags { get; }
             public bool Deinflect { get; }
 

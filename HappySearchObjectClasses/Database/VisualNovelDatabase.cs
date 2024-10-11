@@ -27,8 +27,8 @@ namespace Happy_Apps_Core.Database
 		public DAListCollection<int, (int, int), CharacterVN> CharacterVNs { get; }
 		public DACollection<int, User> Users { get; }
 		public DACollection<string, TableDetail> TableDetails { get; }
-		public DAListCollection<int, (int, int), DbTag> Tags { get; }
-		public DAListCollection<int, (int, int), DbTrait> Traits { get; }
+		public DAGroupCollection<int, DbTag> Tags { get; }
+		public DAGroupCollection<int, DbTrait> Traits { get; }
 		public DACollection<int, StaffItem> StaffItems { get; }
 		public DACollection<int, StaffAlias> StaffAliases { get; }
 		public DACollection<(int, int, string), VnStaff> VnStaffs { get; }
@@ -46,8 +46,8 @@ namespace Happy_Apps_Core.Database
 			TableDetails = new DACollection<string, TableDetail>(Connection);
 			CharacterVNs = new DAListCollection<int, (int, int), CharacterVN>(Connection);
 			Characters = new DACollection<int, CharacterItem>(Connection);
-			Traits = new DAListCollection<int, (int, int), DbTrait>(Connection);
-			Tags = new DAListCollection<int, (int, int), DbTag>(Connection);
+			Traits = new DAGroupCollection<int, DbTrait>(Connection);
+			Tags = new DAGroupCollection<int, DbTag>(Connection);
 			StaffItems = new DACollection<int, StaffItem>(Connection);
 			StaffAliases = new DACollection<int, StaffAlias>(Connection);
 			VnStaffs = new DACollection<(int, int, string), VnStaff>(Connection);

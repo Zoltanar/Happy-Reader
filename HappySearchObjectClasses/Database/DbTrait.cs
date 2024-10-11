@@ -8,7 +8,7 @@ namespace Happy_Apps_Core.Database;
 /// <summary>
 /// Key is (CharacterItemId, TraitId)
 /// </summary>
-public sealed class DbTrait : DumpItem, IDataItem<(int, int)>, IDataListItem<int>
+public sealed class DbTrait : DumpItem, IDataGroupItem<int>
 {
     // ReSharper disable once InconsistentNaming
     public int CharacterItem_Id { get; set; }
@@ -16,10 +16,7 @@ public sealed class DbTrait : DumpItem, IDataItem<(int, int)>, IDataListItem<int
     public int Spoiler { get; set; }
 
     #region IDataItem Implementation
-
-    public string KeyField { get; } = "(CharacterItem_Id, TraitId)";
-    public (int, int) Key => (CharacterItem_Id, TraitId);
-    public int ListKey => CharacterItem_Id;
+    public int GroupKey => CharacterItem_Id;
 
     public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
     {

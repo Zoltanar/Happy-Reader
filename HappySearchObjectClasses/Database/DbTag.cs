@@ -8,8 +8,8 @@ namespace Happy_Apps_Core.Database
 	/// <summary>
 	/// Key is (TagId, ListedVN_VNID)
 	/// </summary>
-	public sealed class DbTag : IDataItem<(int, int)>, IDataListItem<int>
-	{
+	public sealed class DbTag : IDataGroupItem<int>
+    {
 		public int TagId { get; set; }
 
 		public double Score { get; set; }
@@ -48,10 +48,9 @@ namespace Happy_Apps_Core.Database
 			var name = DumpFiles.GetTag(TagId)?.Name;
 			return name != null ? $"{name} ({Score:0.00})" : "Not Approved";
 		}
+
 		#region IDataItem Implementation
-		public string KeyField { get; } = "(TagId, ListedVN_VNID)";
-		public (int, int) Key => (TagId, VNID);
-		public int ListKey => VNID;
+		public int GroupKey => VNID;
 
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)
 		{
