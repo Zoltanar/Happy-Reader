@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -124,8 +125,8 @@ namespace Happy_Apps_Core
 		{
 			int tries = 0;
 			bool complete = false;
-			//tag dump section
-			while (!complete && tries < MaxTries)
+			Stopwatch timeTaken = Stopwatch.StartNew();
+			while (!complete && tries < MaxTries && (tries == 0 || timeTaken.Elapsed < Timeout))
 			{
 				if (File.Exists(TagsJsonGz)) continue;
 				tries++;
@@ -154,6 +155,8 @@ namespace Happy_Apps_Core
 			return true;
 		}
 
+        private static readonly TimeSpan Timeout = new TimeSpan(0, 0, 0, 30);
+
 		/// <summary>
 		/// Return true if a new file was downloaded
 		/// </summary>
@@ -161,7 +164,8 @@ namespace Happy_Apps_Core
 		{
 			int tries = 0;
 			bool complete = false;
-			while (!complete && tries < MaxTries)
+            Stopwatch timeTaken = Stopwatch.StartNew();
+            while (!complete && tries < MaxTries && (tries == 0 || timeTaken.Elapsed < Timeout))
 			{
 				if (File.Exists(TraitsJsonGz)) continue;
 				tries++;

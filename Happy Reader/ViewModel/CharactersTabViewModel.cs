@@ -27,13 +27,14 @@ namespace Happy_Reader.ViewModel
 			FiltersViewModel = new(StaticMethods.AllFilters.CharacterFilters, StaticMethods.AllFilters.CharacterPermanentFilter, this);
 		}
 
-		public override async Task Initialize()
+		public override Task Initialize()
 		{
 			MainViewModel.StatusText = "Loading Characters...";
 			OnPropertyChanged(nameof(ProducerList));
 			LocalDatabase.SetCharactersAttachedVisualNovels();
             SelectedFilterIndex = 0;
-		}
+            return Task.CompletedTask;
+        }
 
 		protected override Func<IDataItem<int>, double?> GetSuggestion { get; } = i => ((CharacterItem)i).TraitScore;
 
