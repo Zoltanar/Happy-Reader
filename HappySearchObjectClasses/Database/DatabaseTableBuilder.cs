@@ -116,6 +116,7 @@ namespace Happy_Apps_Core.Database
 	""Description""	TEXT,
 	""Image""	TEXT,
 	""TraitScore""	REAL,
+	""NewSinceUpdate""	INTEGER,
 	PRIMARY KEY(""ID"")
 );");
 		}
