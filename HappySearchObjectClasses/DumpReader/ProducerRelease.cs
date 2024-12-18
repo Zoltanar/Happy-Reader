@@ -2,7 +2,6 @@
 using System.Linq;
 using Happy_Apps_Core.Database;
 
-//Unused fields commented out to save memory
 namespace Happy_Apps_Core.DumpReader;
 
 /// <summary>
@@ -12,23 +11,20 @@ public class Release : DumpItem
 {
     public int ReleaseId { get; set; }
     public string Released { get; set; }
-    public string Website { get; set; }
     public List<LangRelease> Languages { get; set; }
     public List<int> Producers { get; set; }
-    public List<ReleaseImage> Images { get; } = new List<ReleaseImage>();
+    public List<ReleaseImage> Images { get; } = new();
 
     public override void LoadFromStringParts(string[] parts)
     {
         ReleaseId = GetInteger(parts, "id", 1);
         Released = GetPart(parts, "released");
-        Website = GetPart(parts, "website");
     }
 }
 
 public class ProducerRelease : DumpItem
 {
     public bool Developer { get; set; }
-    //public bool Publisher { get; set; }
     public int ProducerId { get; set; }
     public int ReleaseId { get; set; }
 
@@ -37,7 +33,6 @@ public class ProducerRelease : DumpItem
         ReleaseId = GetInteger(parts, "id", 1);
         ProducerId = GetInteger(parts, "pid", 1);
         Developer = GetBoolean(parts, "developer");
-        //Publisher = GetBoolean(parts, "publisher");
     }
 }
 

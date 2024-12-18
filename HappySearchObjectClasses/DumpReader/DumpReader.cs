@@ -22,6 +22,14 @@ public class DumpReader
     /// </summary>
     public Dictionary<int, List<LangRelease>> LangReleases { get; } = new();
     public Dictionary<int, List<Release>> VnReleases { get; } = new();
+    /// <summary>
+    /// Key is release id, value is first link id
+    /// </summary>
+    public Dictionary<int, int> ReleaseLinks { get; } = new();
+    /// <summary>
+    /// Key is link id, value is link
+    /// </summary>
+    public Dictionary<int, string> ExternalLinks { get; } = new();
     public Dictionary<int, DumpAnime> Animes { get; } = new();
     public Dictionary<int, List<DumpVnAnime>> VnAnimes { get; } = new();
     public Dictionary<string, DumpScreen> Images { get; } = new();
@@ -68,6 +76,7 @@ public class DumpReader
         DumpReaderStarter.PrintLogLine(["Starting Dump Reader..."]);
         var votesFilePath = FindVotesFile();
         Load<ListedProducer>((i, t) => Database.Producers.Add(i, false, true, t), "db\\producers");
+        LoadLinks();
         LoadReleases();
         LoadAndResolveTags();
         LoadStaff();
@@ -105,6 +114,30 @@ public class DumpReader
         DumpReaderStarter.PrintLogLine([$"Added {newTitleCount} new titles."]);
         Database.SaveLatestDumpUpdate(dumpDate);
         DumpReaderStarter.PrintLogLine(["Completed."]);
+    }
+
+    private void LoadLinks()
+    {
+        DumpReaderStarter.PrintLogLine(["Loading Links..."]);
+        using var externalLinksFile = new StreamReader(File.Open(Path.Combine(DumpFolder, "db\\extlinks"), FileMode.Open));
+        while (externalLinksFile.ReadLine() is string line)
+        {
+            Debug.Assert(line != null, nameof(line) + " != null");
+            var parts = line.Split('\t');
+            if (!parts[1].Equals("website")) continue;
+            ExternalLinks[int.Parse(parts[0])] = parts[2];
+        }
+        using var releaseLinksFile = new StreamReader(File.Open(Path.Combine(DumpFolder, "db\\releases_extlinks"), FileMode.Open));
+        while (releaseLinksFile.ReadLine() is string line)
+        {
+            Debug.Assert(line != null, nameof(line) + " != null");
+            var parts = line.Split('\t');
+            var releaseId = int.Parse(parts[0].Substring(1));
+            if (!ReleaseLinks.ContainsKey(releaseId)) continue;
+            var linkId = int.Parse(parts[1]);
+            if (!ExternalLinks.ContainsKey(linkId)) continue;
+            ReleaseLinks[releaseId] = linkId;
+        }
     }
 
     private void LoadStaff()
@@ -386,7 +419,7 @@ public class DumpReader
             var languages = new VNLanguages(firstRelease.Languages, otherLanguages);
             vn.Languages = JsonConvert.SerializeObject(languages);
             vn.ProducerID = releases.SelectMany(r => r.Producers).FirstOrDefault(p => Database.Producers[p] != null);
-            vn.ReleaseLink = firstRelease.Website;
+            if (ReleaseLinks.TryGetValue(firstRelease.ReleaseId, out var linkId) && ExternalLinks.TryGetValue(linkId, out var link)) vn.ReleaseLink = link;
             ResolveVnImage(vn, releases);
         }
         void ResolveTitle()
