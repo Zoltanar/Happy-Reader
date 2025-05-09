@@ -30,9 +30,10 @@ namespace Happy_Reader
 		private string _romajiTextFont;
 		private string _translatedTextFont;
         private string _offlineDictionaryFolder;
-		private string _selectedTranslatorName;
+        private string _selectedTranslatorName;
 		private string _selectedRomajiTranslator = RomajiTranslators.First();
-		private bool _settingsViewState = true;
+		private string _translationDllFilter = "HR*.dll";
+        private bool _settingsViewState = true;
 		private bool _showTagsOnMouseover;
 		private bool _outputOriginal;
 		private bool _outputRomaji;
@@ -323,7 +324,18 @@ namespace Happy_Reader
 			}
 		}
 
-		public bool ShowTagsOnMouseover
+        public string TranslationDllFilter
+        {
+            get => _translationDllFilter;
+            set
+            {
+                if (_translationDllFilter == value) return;
+                _translationDllFilter = value;
+                if (Loaded) Save();
+            }
+        }
+
+        public bool ShowTagsOnMouseover
 		{
 			get => _showTagsOnMouseover;
 			set
@@ -411,14 +423,14 @@ namespace Happy_Reader
 				_ => OutputVerticalAlignment = VerticalAlignment.Top,
 			};
 		}
-		
-		public void LoadTranslationPlugins(string folder)
+
+        public void LoadTranslationPlugins(string folder)
 		{
 			var directory = new DirectoryInfo(folder);
 			if (!directory.Exists) return;
 			Translators.Clear();
 			Translators.Add(NoTranslator);
-			foreach (var file in directory.GetFiles("*.dll", SearchOption.TopDirectoryOnly))
+			foreach (var file in directory.GetFiles(TranslationDllFilter, SearchOption.TopDirectoryOnly))
 			{
 				try
 				{

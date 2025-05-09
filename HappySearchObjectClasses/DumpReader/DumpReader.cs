@@ -133,7 +133,7 @@ public class DumpReader
             Debug.Assert(line != null, nameof(line) + " != null");
             var parts = line.Split('\t');
             var releaseId = int.Parse(parts[0].Substring(1));
-            if (!ReleaseLinks.ContainsKey(releaseId)) continue;
+            if (ReleaseLinks.ContainsKey(releaseId)) continue;
             var linkId = int.Parse(parts[1]);
             if (!ExternalLinks.ContainsKey(linkId)) continue;
             ReleaseLinks[releaseId] = linkId;

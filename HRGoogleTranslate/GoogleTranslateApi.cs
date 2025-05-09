@@ -75,7 +75,7 @@ namespace HRGoogleTranslate
 			}
 			catch (Exception ex)
 			{
-				output = $"Failed: {(ex is GoogleApiException gex ? gex.Error.Message : ex.Message)}";
+				output = $"Failed: {(ex is GoogleApiException gex ? (gex.Error?.Message ?? gex.ToString()) : ex.Message)}";
 				return false;
 			}
 		}
