@@ -159,30 +159,38 @@ namespace Happy_Reader.Database
 
 				if ((VN?.ImageNSFW ?? false) && !StaticMethods.ShowNSFWImages()) return Theme.NsfwImage;
 				if (_image != null) return _image;
-				// ReSharper disable once PossibleNullReferenceException
-				if (VN?.ImageSource == null)
-				{
-					if (!IconImageExists(out var iconPath)) return Theme.ImageNotFoundImage;
-					var imageTemp = new Bitmap(iconPath);
-					image = new Bitmap(imageTemp);
-					imageTemp.Dispose();
-				}
-				else
-				{
-					var imageTemp = new Bitmap(VN.ImageSource);
-					image = new Bitmap(imageTemp);
-					imageTemp.Dispose();
-				}
+				try
+                {
+                    // ReSharper disable once PossibleNullReferenceException
+                    if (VN?.ImageSource == null)
+                    {
+                        if (!IconImageExists(out var iconPath)) return Theme.ImageNotFoundImage;
+                        var imageTemp = new Bitmap(iconPath);
+                        image = new Bitmap(imageTemp);
+                        imageTemp.Dispose();
+                    }
+                    else
+                    {
+                        var imageTemp = new Bitmap(VN.ImageSource);
+                        image = new Bitmap(imageTemp);
+                        imageTemp.Dispose();
+                    }
 
-				using var memory = new MemoryStream();
-				image.Save(memory, ImageFormat.Bmp);
-				memory.Position = 0;
-				_image = new BitmapImage();
-				_image.BeginInit();
-				_image.StreamSource = memory;
-				_image.CacheOption = BitmapCacheOption.OnLoad;
-				_image.EndInit();
-				return _image;
+                    using var memory = new MemoryStream();
+                    image.Save(memory, ImageFormat.Bmp);
+                    memory.Position = 0;
+                    _image = new BitmapImage();
+                    _image.BeginInit();
+                    _image.StreamSource = memory;
+                    _image.CacheOption = BitmapCacheOption.OnLoad;
+                    _image.EndInit();
+                    return _image;
+                }
+				catch(Exception ex)
+				{
+					Logger.ToFile(ex);
+					return Theme.ImageNotFoundImage;
+				}
 			}
 		}
 		public OutputWindow OutputWindow;

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Happy_Apps_Core;
 using Happy_Apps_Core.Database;
 using Happy_Apps_Core.Translation;
@@ -21,8 +22,7 @@ namespace Happy_Reader.ViewModel
         /// Currently hard coded to 2 months.
         /// </summary>
         private readonly DateTime _oldTranslationsTime = DateTime.UtcNow.AddMonths(-2);
-
-        public string About { get; } = $"{StaticHelpers.ClientName} {StaticHelpers.ClientVersion}";
+        public string About { get; } = $"{StaticHelpers.ClientName} {StaticHelpers.ClientVersion} {RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant()}";
         public string DatabaseDate { get; private set; }
         public string UserDatabaseSize { get; private set; }
         public string VnDatabaseSize { get; private set; }
