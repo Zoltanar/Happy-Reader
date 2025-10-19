@@ -144,6 +144,8 @@
     <Compile Include="Database\StaffItem.cs" />
     <Compile Include="Database\VnSeiyuu.cs" />
     <Compile Include="Database\VnStaff.cs" />
+    <Compile Include="DumpReader\CharacterAlias.cs" />
+    <Compile Include="DumpReader\CharacterName.cs" />
     <Compile Include="DumpReader\DumpReader.cs" />
     <Compile Include="DumpReader\DumpRelation.cs" />
     <Compile Include="DumpReader\DumpTitle.cs" />

@@ -100,10 +100,6 @@ public class CharacterItem : DumpItem, IDataItem<int>, ICloneable, INotifyProper
     public override void LoadFromStringParts(string[] parts)
     {
         ID = GetInteger(parts, "id", 1);
-        Name = GetFirstNonNullPart(parts, "latin", "name", out var firstIsNull);
-        //only populate Original if we have both latin and name
-        Original = firstIsNull ? null : GetPart(parts, "name");
-        Aliases = GetPart(parts, "alias");
         ImageId = GetPartOrNull(parts, "image");
         Description = GetPart(parts, "description");
         Gender = GetPart(parts, "sex");

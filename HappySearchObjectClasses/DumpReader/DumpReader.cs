@@ -41,6 +41,8 @@ public class DumpReader
     private Dictionary<int, List<LengthVote>> VnLengths { get; } = new();
     public List<VnTag> VnTags { get; } = new();
     public Dictionary<int, List<DumpVote>> Votes { get; } = new();
+    public Dictionary<int, List<CharacterName>> CharacterNames { get; } = new();
+    public Dictionary<int, List<CharacterAlias>> CharacterAliases { get; } = new();
 
     public DumpReader(string dumpFolder, string currentDatabaseFilePath, int userId, out string inProgressDbFile)
     {
@@ -194,12 +196,51 @@ public class DumpReader
         {
             Database.Traits.Add(i, false, true, t);
         }, "db\\chars_traits");
+        Load<CharacterAlias>((i, t) =>
+        {
+            if (!CharacterAliases.TryGetValue(i.ID, out var listOfAliases)) listOfAliases = CharacterAliases[i.ID] = new List<CharacterAlias>();
+            listOfAliases.Add(i);
+        }, "db\\chars_alias");
+        Load<CharacterName>((i, t) =>
+        {
+            if (!CharacterNames.TryGetValue(i.ID, out var listOfNames)) listOfNames = CharacterNames[i.ID] = new List<CharacterName>();
+            listOfNames.Add(i);
+        }, "db\\chars_names");
         Load<CharacterItem>((i, t) =>
         {
             SuggestionScorer.SetScore(i, Database.Traits[i.ID].Select(trait => trait.TraitId));
             if (previousCharacterIds.Length != 0 && Array.BinarySearch(previousCharacterIds, i.ID) < 0) i.NewSinceUpdate = true;
+            LoadCharacterNameAndAliases(i);
             Database.Characters.Add(i, false, true, t);
         }, "db\\chars");
+    }
+
+    private void LoadCharacterNameAndAliases(CharacterItem character)
+    {
+        var latinName = CharacterNames[character.ID].FirstOrDefault(cn => cn.Language == "en");
+        var japaneseName = CharacterNames[character.ID].FirstOrDefault(cn => cn.Language == "ja");
+        if (latinName == null && japaneseName == null)
+        {
+            var name = CharacterNames[character.ID].First();
+            character.Name = name.Latin != null ? name.Latin : name.Name;
+            if (name.Latin != null) character.Original = name.Name;
+        }
+        else
+        {
+            character.Name = latinName != null ? latinName.Name : japaneseName.Latin != null ? japaneseName.Latin : japaneseName.Name;
+            //only populate Original if we have both latin and name
+            if (japaneseName?.Latin != null) character.Original = japaneseName.Name;
+        }
+        if (!CharacterAliases.TryGetValue(character.ID, out var aliases)) return;
+        var characterAliases = new List<string>(aliases.Count*2);
+        foreach(var alias in aliases)
+        {
+            if (alias.Spoiler) continue;
+            characterAliases.Add(alias.Name);
+            if (alias.Latin != null) characterAliases.Add(alias.Latin);
+        }
+        //only separated by \n as previous
+        character.Aliases = string.Join("\n", characterAliases);
     }
 
     private void LoadReleases()
@@ -437,7 +478,7 @@ public class DumpReader
 
     private void ResolveVnImage(ListedVN vn, List<Release> releases)
     {
-        if(vn.ImageId != null ) return;
+        if (vn.ImageId != null) return;
         var image = releases.SelectMany(r => r.Images).OrderBy(image =>
         {
             return image.Type switch
