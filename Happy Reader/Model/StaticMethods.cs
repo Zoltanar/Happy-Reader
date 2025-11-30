@@ -53,7 +53,7 @@ namespace Happy_Reader
 		{
 			get
 			{
-				if (_settings == null) throw new ArgumentNullException(nameof(_settings), $"{nameof(SettingsViewModel)} must be initialized first.");
+				if (_settings == null) throw new InvalidOperationException($"{nameof(SettingsViewModel)} must be initialized first.");
 				return _settings;
 			}
 			set

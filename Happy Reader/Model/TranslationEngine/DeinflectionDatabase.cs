@@ -3,7 +3,7 @@ using Happy_Apps_Core.Database;
 using Happy_Apps_Core;
 using System;
 using System.Collections.Generic;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
@@ -18,12 +18,12 @@ namespace Happy_Reader.Model.TranslationEngine
         private const string ReasonMapTime = @"LatestDumpUpdate";
         private const string DateFormat = @"yyyy-MM-dd";
 
-        public SQLiteConnection Connection { get; }
+        public SqliteConnection Connection { get; }
         public DACollection<string, TableDetail> TableDetails { get; }
 
         public DeinflectionDatabase(string dbFile)
         {
-            Connection = new SQLiteConnection($@"Data Source={dbFile}");
+            Connection = new SqliteConnection($@"Data Source={dbFile}");
             TableDetails = new DACollection<string, TableDetail>(Connection);
             if (!File.Exists(dbFile)) Seed();
             RunUpdates(); //table details loaded here
@@ -63,7 +63,7 @@ namespace Happy_Reader.Model.TranslationEngine
                 if (!backedUp)
                 {
                     StaticHelpers.Logger.ToFile("Backing up Happy Apps Database to run updates.");
-                    var dbFile = new FileInfo(Connection.FileName);
+                    var dbFile = new FileInfo(Connection.DataSource);
                     var backupFile = $"{dbFile.DirectoryName}\\{Path.GetFileNameWithoutExtension(dbFile.FullName)}-UB{DateTime.Now:yyyyMMdd-HHmmss}{dbFile.Extension}";
                     dbFile.CopyTo(backupFile);
                     backedUp = true;
@@ -74,23 +74,7 @@ namespace Happy_Reader.Model.TranslationEngine
                 DatabaseTableBuilder.ExecuteSql(Connection, contents);
             } while (true);
         }
-        
-        public int ExecuteSqlCommand(string query, bool openNewConnection)
-        {
-            if (openNewConnection) Connection.Open();
-            try
-            {
-                using var command = Connection.CreateCommand();
-                command.CommandText = query;
-                var result = command.ExecuteNonQuery();
-                return result;
-            }
-            finally
-            {
-                if (openNewConnection) Connection.Close();
-            }
-        }
-        
+                
         private void Seed()
         {
             Connection.Open();
@@ -160,7 +144,7 @@ namespace Happy_Reader.Model.TranslationEngine
             return list;
         }
 
-        public void SaveDeinflection(DeinflectedTerm term, SQLiteTransaction transaction)
+        public void SaveDeinflection(DeinflectedTerm term, SqliteTransaction transaction)
         {
             //we ignore if we already have an entry with matching key (expression,text) because shorter reasons come first,
             //we ignore reasons that shorten expressions to same kana.

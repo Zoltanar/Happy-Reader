@@ -1,224 +1,74 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\EntityFramework.6.4.4\build\EntityFramework.props" Condition="Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.props')" />
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{C5E4C647-35BA-4525-B78A-F2263A628A5A}</ProjectGuid>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Happy_Apps_Core</RootNamespace>
-    <AssemblyName>Happy_Apps_Core</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <LangVersion>latest</LangVersion>
+    <UseWPF>true</UseWPF>
+    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+    <Platforms>x64;x86</Platforms>
+    <RepositoryUrl>https://github.com/Zoltanar/Happy-Reader</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <AssemblyVersion>2.7.0</AssemblyVersion>
+    <FileVersion>2.7.0</FileVersion>
+    <Description>Core library for Happy Reader</Description>
+    <Copyright>Copyright © 2025</Copyright>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\x64\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\x64\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\x86\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;DONTPRINTCERTS</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>bin\x86\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.dll</HintPath>
-    </Reference>
-    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.SqlServer.dll</HintPath>
-    </Reference>
-    <Reference Include="JetBrains.Annotations, Version=2021.1.0.0, Culture=neutral, PublicKeyToken=1010a0d8d6380325, processorArchitecture=MSIL">
-      <HintPath>..\packages\JetBrains.Annotations.2021.1.0\lib\net20\JetBrains.Annotations.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="PresentationFramework" />
-    <Reference Include="System" />
-    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Buffers.4.5.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
-    </Reference>
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data.SQLite, Version=1.0.118.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
-      <HintPath>..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.118.0\lib\net46\System.Data.SQLite.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Data.SQLite.EF6, Version=1.0.118.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Data.SQLite.EF6.1.0.118.0\lib\net46\System.Data.SQLite.EF6.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Data.SQLite.Linq, Version=1.0.118.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Data.SQLite.Linq.1.0.118.0\lib\net46\System.Data.SQLite.Linq.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Security" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-    <Reference Include="Zstandard.Net, Version=1.1.7.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Zstandard.Net.1.1.7\lib\net45\Zstandard.Net.dll</HintPath>
-    </Reference>
+    <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+    <PackageReference Include="Zstandard.Net" Version="1.1.7" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="API Objects\AuthInfo.cs" />
-    <Compile Include="API Objects\SubLevel\AnimeItem.cs" />
-    <Compile Include="API Objects\SubLevel\CharacterItem.cs" />
-    <Compile Include="API Objects\SubLevel\RelationsItem.cs" />
-    <Compile Include="API Objects\SubLevel\ScreenItem.cs" />
-    <Compile Include="DataAccess\DACollection.cs" />
-    <Compile Include="DataAccess\DAListCollection.cs" />
-    <Compile Include="DataAccess\IDataItem.cs" />
-    <Compile Include="DataAccess\IDataListItem.cs" />
-    <Compile Include="DataAccess\IReadyToUpsert.cs" />
-    <Compile Include="Database\CharacterRole.cs" />
-    <Compile Include="Database\CharacterVN.cs" />
-    <Compile Include="API Objects\SubLevel\UserItem.cs" />
-    <Compile Include="API Objects\Top Level\ErrorResponse.cs" />
-    <Compile Include="API Objects\Top Level\ResultsRoot.cs" />
-    <Compile Include="ApiQuery.cs" />
-    <Compile Include="CoreSettings.cs" />
-    <Compile Include="Database\DatabaseTableBuilder.cs" />
-    <Compile Include="Database\DumpItem.cs" />
-    <Compile Include="Database\LengthFilterEnum.cs" />
-    <Compile Include="Database\ListedProducer.cs" />
-    <Compile Include="Database\DbTag.cs" />
-    <Compile Include="Database\DbTrait.cs" />
-    <Compile Include="Database\ReleaseStatusEnum.cs" />
-    <Compile Include="Database\StaffAlias.cs" />
-    <Compile Include="Database\StaffItem.cs" />
-    <Compile Include="Database\VnSeiyuu.cs" />
-    <Compile Include="Database\VnStaff.cs" />
-    <Compile Include="DumpReader\CharacterAlias.cs" />
-    <Compile Include="DumpReader\CharacterName.cs" />
-    <Compile Include="DumpReader\DumpReader.cs" />
-    <Compile Include="DumpReader\DumpRelation.cs" />
-    <Compile Include="DumpReader\DumpTitle.cs" />
-    <Compile Include="DumpReader\DumpVote.cs" />
-    <Compile Include="DumpReader\LengthVote.cs" />
-    <Compile Include="DumpReader\ProducerRelease.cs" />
-    <Compile Include="DumpReader\DumpReaderStarter.cs" />
-    <Compile Include="DumpReader\UserLabel.cs" />
-    <Compile Include="DumpReader\UserVn.cs" />
-    <Compile Include="DumpReader\VnTag.cs" />
-    <Compile Include="ImageSyncMode.cs" />
-    <Compile Include="RSync.cs" />
-    <Compile Include="SuggestionScorer.cs" />
-    <Compile Include="SuggestionScoreObject.cs" />
-    <Compile Include="Database\User.cs" />
-    <Compile Include="Database\UserListedProducer.cs" />
-    <Compile Include="Database\UserVN.cs" />
-    <Compile Include="Database\VisualNovelDatabase.cs" />
-    <Compile Include="Database\VNLanguages.cs" />
-    <Compile Include="DumpFiles.cs" />
-    <Compile Include="Database\ListedVN.cs" />
-    <Compile Include="ItemWithParents.cs" />
-    <Compile Include="MultiLogger.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="SettingsJsonFile.cs" />
-    <Compile Include="StaticHelpers.cs" />
-    <Compile Include="Translation\CachedTranslation.cs" />
-    <Compile Include="Translation\ITranslator.cs" />
-    <Compile Include="VndbConnection.cs" />
-    <Compile Include="VndbConnectionSub.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-    <None Include="packages.config" />
-    <None Include="Program Data\Certificates\isrgrootx1.pem">
+    <None Update="Program Data\Certificates\isrgrootx1.pem">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Program Data\Certificates\lets-encrypt-x1-cross-signed.pem">
+    <None Update="Program Data\Certificates\lets-encrypt-x1-cross-signed.pem">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Program Data\Certificates\lets-encrypt-x2-cross-signed.pem">
+    <None Update="Program Data\Certificates\lets-encrypt-x2-cross-signed.pem">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Program Data\Certificates\lets-encrypt-x3-cross-signed.pem">
+    <None Update="Program Data\Certificates\lets-encrypt-x3-cross-signed.pem">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Program Data\Certificates\lets-encrypt-x4-cross-signed.pem">
+    <None Update="Program Data\Certificates\lets-encrypt-x4-cross-signed.pem">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Program Data\Certificates\letsencryptauthorityx1.pem">
+    <None Update="Program Data\Certificates\letsencryptauthorityx1.pem">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Program Data\Certificates\letsencryptauthorityx2.pem">
+    <None Update="Program Data\Certificates\letsencryptauthorityx2.pem">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Program Data\Default Files\tags.json">
+    <None Update="Program Data\Default Files\tags.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Program Data\Default Files\traits.json">
+    <None Update="Program Data\Default Files\traits.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Database\Updates\Update1.sql" />
@@ -413,17 +263,4 @@
   <ItemGroup>
     <Folder Include="Program Data\Translation Plugins\" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.4.4\build\EntityFramework.props'))" />
-    <Error Condition="!Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.4.4\build\EntityFramework.targets'))" />
-    <Error Condition="!Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.118.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.118.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets'))" />
-    <Error Condition="!Exists('..\packages\Zstandard.Net.1.1.7\build\Zstandard.Net.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Zstandard.Net.1.1.7\build\Zstandard.Net.targets'))" />
-  </Target>
-  <Import Project="..\packages\EntityFramework.6.4.4\build\EntityFramework.targets" Condition="Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" />
-  <Import Project="..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.118.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets" Condition="Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.118.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" />
-  <Import Project="..\packages\Zstandard.Net.1.1.7\build\Zstandard.Net.targets" Condition="Exists('..\packages\Zstandard.Net.1.1.7\build\Zstandard.Net.targets')" />
 </Project>

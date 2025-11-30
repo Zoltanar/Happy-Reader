@@ -1,7 +1,6 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\LibNMeCab.IpaDicBin.0.10.0\build\LibNMeCab.IpaDicBin.props" Condition="Exists('..\packages\LibNMeCab.IpaDicBin.0.10.0\build\LibNMeCab.IpaDicBin.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -16,443 +15,67 @@
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-  </PropertyGroup>
-  <PropertyGroup>
-  </PropertyGroup>
-  <PropertyGroup>
-    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
-  </PropertyGroup>
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{662ACC6B-35BE-4F7A-B876-0E1764DCAED6}</ProjectGuid>
+    <UseWindowsForms>true</UseWindowsForms>
+    <UseWPF>true</UseWPF>
+    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+    <Platforms>x64;x86</Platforms>
     <OutputType>WinExe</OutputType>
     <RootNamespace>Happy_Reader</RootNamespace>
-    <AssemblyName>Happy Reader</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <WarningLevel>4</WarningLevel>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFrameworkProfile />
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
     <IsWebBootstrapper>false</IsWebBootstrapper>
+    <ApplicationIcon>Resources\logo-hr.ico</ApplicationIcon>
+    <ContentSQLiteInteropFiles>true</ContentSQLiteInteropFiles>
+    <CopySQLiteInteropFiles>false</CopySQLiteInteropFiles>
+    <CleanSQLiteInteropFiles>false</CleanSQLiteInteropFiles>
+    <CollectSQLiteInteropFiles>false</CollectSQLiteInteropFiles>
+    <AssemblyTitle>Happy Reader</AssemblyTitle>
+    <Copyright>Copyright © 2025</Copyright>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/Zoltanar/Happy-Reader</RepositoryUrl>
+    <AssemblyVersion>2.7.0</AssemblyVersion>
+    <FileVersion>2.7.0</FileVersion>
+    <Version>2.7.0</Version>
+    <Title>Happy Reader</Title>
+    <Description>WPF Front-end for browsing VNDB data, plus process hooking and translation for visual novels.</Description>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\Debug\</OutputPath>
-    <DefineConstants>DEBUG</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>true</Prefer32Bit>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>..\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>true</Prefer32Bit>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
-  <PropertyGroup>
-    <ApplicationIcon>Resources\logo-hr.ico</ApplicationIcon>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <PlatformTarget>x64</PlatformTarget>
     <OutputPath>..\Debug64\</OutputPath>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <PlatformTarget>x64</PlatformTarget>
     <OutputPath>bin\x64\Release\</OutputPath>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DotNetProjects.DataVisualization.Toolkit, Version=6.1.91.0, Culture=neutral, PublicKeyToken=79778c5f2eed289b, processorArchitecture=MSIL">
-      <HintPath>..\packages\DotNetProjects.WpfToolkit.DataVisualization.6.1.91\lib\net40\DotNetProjects.DataVisualization.Toolkit.dll</HintPath>
-    </Reference>
-    <Reference Include="DotNetProjects.Input.Toolkit, Version=6.1.91.0, Culture=neutral, PublicKeyToken=79778c5f2eed289b, processorArchitecture=MSIL">
-      <HintPath>..\packages\DotNetProjects.WpfToolkit.Input.6.1.91\lib\net40\DotNetProjects.Input.Toolkit.dll</HintPath>
-    </Reference>
-    <Reference Include="GongSolutions.WPF.DragDrop, Version=3.0.0.0, Culture=neutral, PublicKeyToken=91f1945125b7a587, processorArchitecture=MSIL">
-      <HintPath>..\packages\gong-wpf-dragdrop.3.2.1\lib\net47\GongSolutions.WPF.DragDrop.dll</HintPath>
-    </Reference>
-    <Reference Include="JetBrains.Annotations, Version=2021.1.0.0, Culture=neutral, PublicKeyToken=1010a0d8d6380325, processorArchitecture=MSIL">
-      <HintPath>..\packages\JetBrains.Annotations.2021.1.0\lib\net20\JetBrains.Annotations.dll</HintPath>
-    </Reference>
-    <Reference Include="Kawazu, Version=1.1.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Kawazu.1.1.1\lib\netstandard2.0\Kawazu.dll</HintPath>
-    </Reference>
-    <Reference Include="LibNMeCab, Version=0.10.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\LibNMeCab.0.10.2\lib\netstandard2.0\LibNMeCab.dll</HintPath>
-    </Reference>
-    <Reference Include="LibNMeCab.IpaDicBin, Version=0.10.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\LibNMeCab.IpaDicBin.0.10.0\lib\netstandard2.0\LibNMeCab.IpaDicBin.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Data.SQLite, Version=1.0.118.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
-      <HintPath>..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.118.0\lib\net46\System.Data.SQLite.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Management" />
-    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Windows.Presentation" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xaml">
-      <RequiredTargetFramework>4.0</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="WindowsBase" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    <PackageReference Include="System.Management" Version="10.0.0" />
+    <PackageReference Include="DotNetProjects.WpfToolkit.DataVisualization" Version="6.1.94" />
+    <PackageReference Include="DotNetProjects.WpfToolkit.Input" Version="6.1.94" />
+    <PackageReference Include="gong-wpf-dragdrop" Version="4.0.0" />
+    <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" />
+    <PackageReference Include="Kawazu" Version="1.1.4" />
+    <PackageReference Include="LibNMeCab" Version="0.10.2" />
+    <PackageReference Include="LibNMeCab.IpaDicBin" Version="0.10.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>
   <ItemGroup>
-    <ApplicationDefinition Include="App.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </ApplicationDefinition>
-    <Compile Include="Database\EntryGame.cs" />
-    <Compile Include="Database\EntryType.cs" />
-    <Compile Include="Database\GameHookSettings.cs" />
-    <Compile Include="Database\GameThread.cs" />
-    <Compile Include="Database\Log.cs" />
-    <Compile Include="Model\ImportUserGame.cs" />
-    <Compile Include="Model\JMDict.cs" />
-    <Compile Include="Model\TranslationEngine\DeinflectedTerm.cs" />
-    <Compile Include="Model\TranslationEngine\Deinflection.cs" />
-    <Compile Include="Model\TranslationEngine\DeinflectionDatabase.cs" />
-    <Compile Include="Model\TranslationEngine\DeinflectionReason.cs" />
-    <Compile Include="Model\TranslationEngine\Proxies.cs" />
-    <Compile Include="Model\TranslationEngine\Romaji.cs" />
-    <Compile Include="Model\VnFilters\CustomFilter.cs" />
-    <Compile Include="Model\GuiSettings.cs" />
-    <Compile Include="Model\PageLink.cs" />
-    <Compile Include="Model\TranslationResults.cs" />
-    <Compile Include="Model\TranslatorSettings.cs" />
-    <Compile Include="Model\VnFilters\GeneralFilter.cs" />
-    <Compile Include="Model\VnFilters\IFilter.cs" />
-    <Compile Include="Model\VnFilters\GeneralMultiFilter.cs" />
-    <Compile Include="Model\VnFilters\ReleaseDateFilter.cs" />
-    <Compile Include="Model\VolumeMixer.cs" />
-    <Compile Include="MouseEventExtArgs.cs" />
-    <Compile Include="ViewModel\CharactersTabViewModel.cs" />
-    <Compile Include="ViewModel\CommandHandler.cs" />
-    <Compile Include="ViewModel\DatabaseViewModelBase.cs" />
-    <Compile Include="ViewModel\DisplayEntry.cs" />
-    <Compile Include="ViewModel\DisplayLog.cs" />
-    <Compile Include="ViewModel\EntriesTabViewModel.cs" />
-    <Compile Include="ViewModel\FiltersViewModel.cs" />
-    <Compile Include="ViewModel\InformationViewModel.cs" />
-    <Compile Include="ViewModel\NamedFunction.cs" />
-    <Compile Include="ViewModel\ProducersTabViewModel.cs" />
-    <Compile Include="ViewModel\SettingsViewModel.cs" />
-    <Compile Include="ViewModel\TitleOrderingType.cs" />
-    <Compile Include="ViewModel\UserGamesViewModel.cs" />
-    <Compile Include="View\ColorSelector.xaml.cs">
-      <DependentUpon>ColorSelector.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\Converters.cs" />
-    <Compile Include="View\Converters\BooleanInverter.cs" />
-    <Compile Include="View\Converters\DateToMonthStringConverter.cs" />
-    <Compile Include="View\Converters\EntryGameConverter.cs" />
-    <Compile Include="View\Converters\ImageStringConverter.cs" />
-    <Compile Include="View\Converters\RunningStatusToBrushConverter.cs" />
-    <Compile Include="View\Converters\GameDisplayNameConverter.cs" />
-    <Compile Include="View\Converters\ScoreConverter.cs" />
-    <Compile Include="View\Converters\TitleDescriptionConverter.cs" />
-    <Compile Include="View\Converters\UserVnConverters.cs" />
-    <Compile Include="View\FiltersPane.xaml.cs">
-      <DependentUpon>FiltersPane.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\InputControl.xaml.cs">
-      <DependentUpon>InputControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\LabeledTextBox.xaml.cs">
-      <DependentUpon>LabeledTextBox.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\MergeGameControl.xaml.cs">
-      <DependentUpon>MergeGameControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\RadioButtonCheckedConverter.cs" />
-    <Compile Include="Model\SavedData.cs" />
-    <Compile Include="View\ReleaseFilterPanel.xaml.cs">
-      <DependentUpon>ReleaseFilterPanel.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\Tabs\AddEntriesTab.xaml.cs">
-      <DependentUpon>AddEntriesTab.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\Tabs\EntriesTab.xaml.cs">
-      <DependentUpon>EntriesTab.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\Tabs\InfoTab.xaml.cs">
-      <DependentUpon>InfoTab.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\Tabs\IthVnrTab.xaml.cs">
-      <DependentUpon>IthVnrTab.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Model\ClipboardManager.cs" />
-    <Compile Include="Model\EnumDescriptionConverter.cs" />
-    <Compile Include="Model\Kakasi.cs" />
-    <Compile Include="Model\PausableUpdateList.cs" />
-    <Compile Include="Model\RecentItemList.cs" />
-    <Compile Include="ViewModel\IthViewModel.cs" />
-    <Compile Include="ViewModel\TranslationTester.cs" />
-    <Compile Include="Database\Entry.cs" />
-    <Compile Include="Database\UserGame.cs" />
-    <Compile Include="Database\HappyReaderDatabase.cs" />
-    <Compile Include="ViewModel\MainWindowViewModel.cs" />
-    <Compile Include="Model\NativeMethods.cs" />
-    <Compile Include="View\AspectRatioLayoutDecorator.cs" />
-    <Compile Include="View\NotificationWindow.xaml.cs">
-      <DependentUpon>NotificationWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\OutputWindow.xaml.cs">
-      <DependentUpon>OutputWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Model\RoleProxy.cs" />
-    <Compile Include="Model\StaticMethods.cs" />
-    <Compile Include="ViewModel\OutputWindowViewModel.cs" />
-    <Compile Include="View\ProcessExplorer.xaml.cs">
-      <DependentUpon>ProcessExplorer.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\Tabs\ProducersTab.xaml.cs">
-      <DependentUpon>ProducersTab.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\Tabs\ProducerTab.xaml.cs">
-      <DependentUpon>ProducerTab.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\Tabs\SettingsTab.xaml.cs">
-      <DependentUpon>SettingsTab.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Model\StaffAndDetail.cs" />
-    <Compile Include="View\Tabs\TestTranslationTab.xaml.cs">
-      <DependentUpon>TestTranslationTab.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\UserGameGrouping.cs" />
-    <Compile Include="View\Tabs\UserGamesTab.xaml.cs">
-      <DependentUpon>UserGamesTab.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\TextThreadPanel.xaml.cs">
-      <DependentUpon>TextThreadPanel.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\Theme.cs" />
-    <Compile Include="View\Tiles\UserGameTile.xaml.cs">
-      <DependentUpon>UserGameTile.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Model\Translation.cs" />
-    <Compile Include="Model\TranslationEngine\Translator.cs" />
-    <Compile Include="View\Tabs\UserGameTab.xaml.cs">
-      <DependentUpon>UserGameTab.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\TimeSpanConverter.cs" />
-    <Compile Include="View\ImportTranslationsControl.xaml.cs">
-      <DependentUpon>ImportTranslationsControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\VirtualizingWrapPanel.cs" />
-    <Compile Include="View\Tabs\VNTab.xaml.cs">
-      <DependentUpon>VNTab.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\Tabs\DatabaseTab.xaml.cs">
-      <DependentUpon>DatabaseTab.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\Tiles\CharacterTile.xaml.cs">
-      <DependentUpon>CharacterTile.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\Tiles\VNTile.xaml.cs">
-      <DependentUpon>VNTile.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="ViewModel\VNTabViewModel.cs" />
-    <Compile Include="View\VnMenuItem.xaml.cs">
-      <DependentUpon>VnMenuItem.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="WinAPI.cs" />
-    <Compile Include="WinAPIConstants.cs" />
-    <Page Include="View\ColorSelector.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\FiltersPane.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\InputControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\LabeledTextBox.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\MergeGameControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\ReleaseFilterPanel.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\Tabs\AddEntriesTab.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\Tabs\EntriesTab.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\Tabs\InfoTab.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\Tabs\IthVnrTab.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <DesignData Include="View\SampleData\CharacterItemSampleData.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </DesignData>
-    <Page Include="View\MainWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Compile Include="App.xaml.cs">
-      <DependentUpon>App.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="View\MainWindow.xaml.cs">
-      <DependentUpon>MainWindow.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Page Include="View\NotificationWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\OutputWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\ProcessExplorer.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\Tabs\ProducersTab.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\Tabs\ProducerTab.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\Tabs\SettingsTab.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\Tabs\TestTranslationTab.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\Tabs\UserGamesTab.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\TextThreadPanel.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\Tiles\UserGameTile.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\Tabs\UserGameTab.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\Tabs\VNTab.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\Tabs\DatabaseTab.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\Tiles\CharacterTile.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="View\Tiles\VNTile.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\ImportTranslationsControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\VnMenuItem.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Properties\AssemblyInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-    </Compile>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <None Include="app.config" />
-    <None Include="Program Data\Default Files\proxies.json">
+    <None Update="Program Data\Default Files\proxies.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HappySearchObjectClasses\Happy_Apps_Core.csproj">
-      <Project>{c5e4c647-35ba-4525-b78a-f2263a628a5a}</Project>
-      <Name>Happy_Apps_Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\IthVnrSharpLib\IthVnrSharpLib\IthVnrSharpLib.csproj">
-      <Project>{46b6f714-d2a3-48aa-a89e-694bc18fc39e}</Project>
-      <Name>IthVnrSharpLib</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Kakasi.NET.Interop\KakasiNET.csproj">
-      <Project>{67f3daa6-417d-4f5d-81c4-a191b04f917b}</Project>
-      <Name>KakasiNET</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\HappySearchObjectClasses\Happy_Apps_Core.csproj" />
+    <ProjectReference Include="..\IthVnrSharpLib\IthVnrSharpLib\IthVnrSharpLib.csproj" />
+    <ProjectReference Include="..\Kakasi.NET.Interop\KakasiNET.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Database\FindDuplicateEntries.sql" />
@@ -496,29 +119,4 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <ContentSQLiteInteropFiles>true</ContentSQLiteInteropFiles>
-    <CopySQLiteInteropFiles>false</CopySQLiteInteropFiles>
-    <CleanSQLiteInteropFiles>false</CleanSQLiteInteropFiles>
-    <CollectSQLiteInteropFiles>false</CollectSQLiteInteropFiles>
-  </PropertyGroup>
-  <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
-  </PropertyGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\LibNMeCab.IpaDicBin.0.10.0\build\LibNMeCab.IpaDicBin.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\LibNMeCab.IpaDicBin.0.10.0\build\LibNMeCab.IpaDicBin.props'))" />
-    <Error Condition="!Exists('..\packages\LibNMeCab.IpaDicBin.0.10.0\build\LibNMeCab.IpaDicBin.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\LibNMeCab.IpaDicBin.0.10.0\build\LibNMeCab.IpaDicBin.targets'))" />
-    <Error Condition="!Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.118.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.118.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets'))" />
-  </Target>
-  <PropertyGroup>
-  </PropertyGroup>
-  <Import Project="..\packages\LibNMeCab.IpaDicBin.0.10.0\build\LibNMeCab.IpaDicBin.targets" Condition="Exists('..\packages\LibNMeCab.IpaDicBin.0.10.0\build\LibNMeCab.IpaDicBin.targets')" />
-  <Import Project="..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.118.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets" Condition="Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.118.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" />
 </Project>

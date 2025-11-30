@@ -1,10 +1,10 @@
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 
 namespace Happy_Apps_Core.Database
 {
 	public static class DatabaseTableBuilder
 	{
-		internal static void CreateHappyAppsTables(SQLiteConnection connection)
+		internal static void CreateHappyAppsTables(SqliteConnection connection)
 		{
 			CreateCharacterItems(connection);
 			CreateCharacterVns(connection);
@@ -18,7 +18,7 @@ namespace Happy_Apps_Core.Database
 		}
 
 
-		private static void CreateUserTables(SQLiteConnection connection)
+		private static void CreateUserTables(SqliteConnection connection)
 		{
 			ExecuteSql(connection, @"CREATE TABLE ""Users"" (
 	`Id`	INTEGER NOT NULL UNIQUE,
@@ -50,7 +50,7 @@ namespace Happy_Apps_Core.Database
 		}
 
 
-		private static void CreateStaffTables(SQLiteConnection connection)
+		private static void CreateStaffTables(SqliteConnection connection)
 		{
 			ExecuteSql(connection, @"CREATE TABLE ""StaffItems"" (
 	""ID""	INTEGER,
@@ -83,7 +83,7 @@ namespace Happy_Apps_Core.Database
 )");
 		}
 
-		private static void CreateDbTraits(SQLiteConnection connection)
+		private static void CreateDbTraits(SqliteConnection connection)
 		{
 			ExecuteSql(connection, @"CREATE TABLE ""DbTraits"" (
 	""TraitId""	INTEGER NOT NULL,
@@ -93,7 +93,7 @@ namespace Happy_Apps_Core.Database
 )");
 		}
 
-		private static void CreateCharacterVns(SQLiteConnection connection)
+		private static void CreateCharacterVns(SqliteConnection connection)
 		{
 			ExecuteSql(connection, @"CREATE TABLE ""CharacterVNs"" (
 	""CharacterId""	INTEGER,
@@ -105,7 +105,7 @@ namespace Happy_Apps_Core.Database
 )");
 		}
 
-		private static void CreateCharacterItems(SQLiteConnection connection)
+		private static void CreateCharacterItems(SqliteConnection connection)
 		{
 			ExecuteSql(connection, @"CREATE TABLE ""CharacterItems"" (
 	""ID""	INTEGER NOT NULL UNIQUE,
@@ -121,7 +121,7 @@ namespace Happy_Apps_Core.Database
 );");
 		}
 
-		private static void CreateDbTags(SQLiteConnection connection)
+		private static void CreateDbTags(SqliteConnection connection)
 		{
 			ExecuteSql(connection, @"CREATE TABLE ""DbTags"" (
 	""ListedVN_VNID""	INTEGER NOT NULL,
@@ -133,7 +133,7 @@ namespace Happy_Apps_Core.Database
 )");
 		}
 
-		private static void CreateListedProducers(SQLiteConnection connection)
+		private static void CreateListedProducers(SqliteConnection connection)
 		{
 			ExecuteSql(connection, @"CREATE TABLE ""ListedProducers"" (
 	""ProducerID""	INTEGER NOT NULL,
@@ -143,7 +143,7 @@ namespace Happy_Apps_Core.Database
 )");
 		}
 
-		public static void CreateTableDetails(SQLiteConnection connection)
+		public static void CreateTableDetails(SqliteConnection connection)
 		{
 			ExecuteSql(connection, @"CREATE TABLE `tabledetails` (
 	`Key`	TEXT NOT NULL,
@@ -152,7 +152,7 @@ namespace Happy_Apps_Core.Database
 )");
 		}
 
-		private static void CreateListedVNs(SQLiteConnection connection)
+		private static void CreateListedVNs(SqliteConnection connection)
 		{
 			ExecuteSql(connection, @"CREATE TABLE ""ListedVNs"" (
 	""VNID""	INTEGER NOT NULL UNIQUE,
@@ -181,7 +181,7 @@ namespace Happy_Apps_Core.Database
 );");
 		}
 
-		public static void ExecuteSql(SQLiteConnection connection, string sql)
+		public static void ExecuteSql(SqliteConnection connection, string sql)
 		{
 			using var command = connection.CreateCommand();
 			command.CommandText = sql;

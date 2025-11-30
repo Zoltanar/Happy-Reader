@@ -1,9 +1,11 @@
-﻿using System;
+﻿using Happy_Apps_Core.Database;
+using Microsoft.Data.Sqlite;
+using SQLitePCL;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Common;
-using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -15,7 +17,6 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Happy_Apps_Core.Database;
 
 namespace Happy_Apps_Core
 {
@@ -400,18 +401,18 @@ namespace Happy_Apps_Core
 			return processes.Length > 1;
 		}
 
-        public static void LogDatabaseTrace(object sender, TraceEventArgs e)
+        public static void LogDatabaseTrace(object sender, string statement)
         {
             if (!Logger.LogDatabase) return;
-            var connection = (SQLiteConnection)sender;
-            Logger.ToFile($"[{connection.DataSource}] Executing statement: {e.Statement}");
+            var connection = (SqliteConnection)sender;
+            Logger.ToFile($"[{connection.DataSource}] Executing statement: {statement}");
         }
 
-        public static void LogDatabaseUpdate(object sender, UpdateEventArgs e)
+        public static void LogDatabaseUpdate(object sender, int type, utf8z database, utf8z table, long rowid)
         {
             if (!Logger.LogDatabase) return;
-            var connection = (SQLiteConnection)sender;
-            Logger.ToFile($"[{connection.DataSource}] Update: {e.Database} - {e.Event} - {e.Table} - {e.RowId}");
+            var connection = (SqliteConnection)sender;
+            Logger.ToFile($"[{connection.DataSource}] Update: {database.utf8_to_string()} - {type} - {table.utf8_to_string()} - {rowid}");
         }
     }
 }

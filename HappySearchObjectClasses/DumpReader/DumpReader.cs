@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Happy_Apps_Core.Database;
+using Microsoft.Data.Sqlite;
 using Newtonsoft.Json;
 
 namespace Happy_Apps_Core.DumpReader;
@@ -285,7 +285,7 @@ public class DumpReader
         GC.Collect();
     }
 
-    private void ResolveUserVnForVn(ListedVN vn, SQLiteTransaction transaction)
+    private void ResolveUserVnForVn(ListedVN vn, SqliteTransaction transaction)
     {
         if (!UserVns.TryGetValue(vn.VNID, out var dumpUserVn)) return;
         var labels = dumpUserVn.LabelsString.Substring(1, dumpUserVn.LabelsString.Length - 2).Split(',').Select(i => UserLabels[int.Parse(i)]).ToHashSet();
@@ -361,7 +361,7 @@ public class DumpReader
         });
     }
 
-    private void Load<T>(Action<T, SQLiteTransaction> addToList, string filePath, bool useHeaderFile = true) where T : DumpItem, new()
+    private void Load<T>(Action<T, SqliteTransaction> addToList, string filePath, bool useHeaderFile = true) where T : DumpItem, new()
     {
         DumpReaderStarter.PrintLogLine([$"Loading for {typeof(T).Name}..."]);
         new T().SetDumpHeaders((useHeaderFile
@@ -381,10 +381,10 @@ public class DumpReader
         });
     }
 
-    private void WrapInTransaction(Action<SQLiteTransaction> action, [CallerMemberName] string caller = null)
+    private void WrapInTransaction(Action<SqliteTransaction> action, [CallerMemberName] string caller = null)
     {
         Database.Connection.Open();
-        SQLiteTransaction transaction = null;
+        SqliteTransaction transaction = null;
         try
         {
             transaction = Database.Connection.BeginTransaction();

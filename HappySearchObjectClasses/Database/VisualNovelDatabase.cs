@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.Data.Common;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -36,8 +36,7 @@ namespace Happy_Apps_Core.Database
 
 		public VisualNovelDatabase(string dbFile, bool loadAllTables)
 		{
-			Connection = new SQLiteConnection($@"Data Source={dbFile}");
-            Connection.Update += StaticHelpers.LogDatabaseUpdate;
+			Connection = new SqliteConnection($@"Data Source={dbFile}");
 			VisualNovels = new DACollection<int, ListedVN>(Connection);
 			UserVisualNovels = new DACollection<(int, int), UserVN>(Connection);
 			Producers = new DACollection<int, ListedProducer>(Connection);
@@ -63,7 +62,7 @@ namespace Happy_Apps_Core.Database
 			try
 			{
 				Connection.Open();
-                Connection.Trace +=StaticHelpers.LogDatabaseTrace;
+                Connection.Trace(StaticHelpers.LogDatabaseTrace);
 				TableDetails.Load(false);
 				var updateDetail = TableDetails["updates"];
 				var latestUpdate = updateDetail == null ? 0 : Convert.ToInt32(updateDetail.Value);
@@ -77,7 +76,6 @@ namespace Happy_Apps_Core.Database
 			finally
 			{
 				Connection.Close();
-				Connection.Trace -=StaticHelpers.LogDatabaseTrace;
 			}
 		}
 
@@ -94,7 +92,7 @@ namespace Happy_Apps_Core.Database
 				if (!backedUp)
 				{
 					StaticHelpers.Logger.ToFile("Backing up Happy Apps Database to run updates.");
-					var dbFile = new FileInfo(Connection.FileName);
+					var dbFile = new FileInfo(Connection.DataSource);
 					var backupFile = $"{dbFile.DirectoryName}\\{Path.GetFileNameWithoutExtension(dbFile.FullName)}-UB{DateTime.Now:yyyyMMdd-HHmmss}{dbFile.Extension}";
 					dbFile.CopyTo(backupFile);
 					backedUp = true;
@@ -109,7 +107,7 @@ namespace Happy_Apps_Core.Database
 		private void LoadAllTables()
 		{
 			Connection.Open();
-            Connection.Trace +=StaticHelpers.LogDatabaseTrace;
+            Connection.Trace(StaticHelpers.LogDatabaseTrace);
             try
 			{
 				VisualNovels.Load(false);
@@ -134,11 +132,10 @@ namespace Happy_Apps_Core.Database
 			finally
 			{
 				Connection.Close();
-                Connection.Trace -=StaticHelpers.LogDatabaseTrace;
             }
 		}
 
-		public SQLiteConnection Connection { get; }
+		public SqliteConnection Connection { get; }
 
 		public User CurrentUser { get; set; }
 
@@ -147,7 +144,7 @@ namespace Happy_Apps_Core.Database
             if (openNewConnection)
             {
                 Connection.Open();
-                Connection.Trace +=StaticHelpers.LogDatabaseTrace;
+                Connection.Trace(StaticHelpers.LogDatabaseTrace);
             }
 			try
 			{
@@ -161,7 +158,6 @@ namespace Happy_Apps_Core.Database
                 if (openNewConnection)
                 {
                     Connection.Close();
-                    Connection.Trace -=StaticHelpers.LogDatabaseTrace;
                 }
 			}
 		}
@@ -169,7 +165,7 @@ namespace Happy_Apps_Core.Database
 		public void SetCharactersAttachedVisualNovels()
 		{
 			Connection.Open();
-            Connection.Trace +=StaticHelpers.LogDatabaseTrace;
+            Connection.Trace(StaticHelpers.LogDatabaseTrace);
             try
 			{
 				using var command = Connection.CreateCommand();
@@ -193,7 +189,6 @@ order by ListedVNs.ReleaseDate desc;";
 			finally
 			{
 				Connection.Close();
-                Connection.Trace -=StaticHelpers.LogDatabaseTrace;
             }
 		}
 
@@ -204,7 +199,7 @@ order by ListedVNs.ReleaseDate desc;";
 			{
 				Monitor.Enter(Connection);
 				Connection.Open();
-                Connection.Trace +=StaticHelpers.LogDatabaseTrace;
+                Connection.Trace(StaticHelpers.LogDatabaseTrace);
             }
 			try
 			{
@@ -227,7 +222,6 @@ order by ListedVNs.ReleaseDate desc;";
 				if (newConnection)
 				{
 					Connection.Close();
-                    Connection.Trace -=StaticHelpers.LogDatabaseTrace;
                     Monitor.Exit(Connection);
 				}
 			}
@@ -240,7 +234,7 @@ order by ListedVNs.ReleaseDate desc;";
 			{
 				Monitor.Enter(Connection);
 				Connection.Open();
-                Connection.Trace +=StaticHelpers.LogDatabaseTrace;
+                Connection.Trace(StaticHelpers.LogDatabaseTrace);
             }
 			try
 			{
@@ -263,7 +257,6 @@ where VNID = @vnid;";
 				if (newConnection)
 				{
 					Connection.Close();
-                    Connection.Trace -=StaticHelpers.LogDatabaseTrace;
                     Monitor.Exit(Connection);
 				}
 			}
@@ -272,7 +265,7 @@ where VNID = @vnid;";
 		public List<int> GetCharactersWithTrait(int[] traitIDs)
 		{
 			Connection.Open();
-            Connection.Trace +=StaticHelpers.LogDatabaseTrace;
+            Connection.Trace(StaticHelpers.LogDatabaseTrace);
             try
 			{
 				using var command = Connection.CreateCommand(); 
@@ -297,13 +290,12 @@ where TraitId IN ({paramsString})";
 			finally
 			{
 				Connection.Close();
-                Connection.Trace -=StaticHelpers.LogDatabaseTrace;
             }
 		}
         public List<int> GetVnsWithTrait(int[] traitIDs)
         {
             Connection.Open();
-            Connection.Trace +=StaticHelpers.LogDatabaseTrace;
+            Connection.Trace(StaticHelpers.LogDatabaseTrace);
             try
             {
                 using var command = Connection.CreateCommand();
@@ -331,14 +323,13 @@ where TraitId IN ({paramsString})";
             finally
             {
                 Connection.Close();
-                Connection.Trace -=StaticHelpers.LogDatabaseTrace;
             }
         }
 
         public bool VnHasStaff(int vnid, int staffId)
 		{
 			Connection.Open();
-            Connection.Trace +=StaticHelpers.LogDatabaseTrace;
+            Connection.Trace(StaticHelpers.LogDatabaseTrace);
             try
 			{
 				var sql = @"select 1 from VnStaffs where VnStaffs.VNID = @VNID and VnStaffs.AID IN 
@@ -355,14 +346,13 @@ limit 1;";
 			finally
 			{
 				Connection.Close();
-                Connection.Trace -=StaticHelpers.LogDatabaseTrace;
             }
 		}
 
 		public HashSet<int> GetVnsWithStaff(int staffId)
 		{
 			Connection.Open();
-            Connection.Trace +=StaticHelpers.LogDatabaseTrace;
+            Connection.Trace(StaticHelpers.LogDatabaseTrace);
             try
 			{
 				var sql = @"select distinct VNID from VnStaffs where VnStaffs.AID IN (
@@ -382,7 +372,6 @@ select AliasID from StaffAliass join StaffItems on StaffAliass.StaffID = StaffIt
 			finally
 			{
 				Connection.Close();
-                Connection.Trace -=StaticHelpers.LogDatabaseTrace;
             }
 		}
 
@@ -390,7 +379,7 @@ select AliasID from StaffAliass join StaffItems on StaffAliass.StaffID = StaffIt
 		public HashSet<int> GetCharactersForVnWithStaff(int staffId)
 		{
 			Connection.Open();
-            Connection.Trace +=StaticHelpers.LogDatabaseTrace;
+            Connection.Trace(StaticHelpers.LogDatabaseTrace);
             try
 			{
 				var sql = @"select distinct CharacterVNs.CharacterId from CharacterVNs where CharacterVNs.VNID IN (
@@ -411,14 +400,13 @@ select AliasID from StaffAliass join StaffItems on StaffAliass.StaffID = StaffIt
 			finally
 			{
 				Connection.Close();
-                Connection.Trace -=StaticHelpers.LogDatabaseTrace;
             }
 		}
 
 		public HashSet<int> GetVnsWithSeiyuu(int staffId)
 		{
 			Connection.Open();
-            Connection.Trace +=StaticHelpers.LogDatabaseTrace;
+            Connection.Trace(StaticHelpers.LogDatabaseTrace);
             try
 			{
 				var sql = @"select distinct VNID from VnSeiyuus where VnSeiyuus.AID IN (
@@ -438,14 +426,13 @@ select AliasID from StaffAliass join StaffItems on StaffAliass.StaffID = StaffIt
 			finally
 			{
 				Connection.Close();
-                Connection.Trace -=StaticHelpers.LogDatabaseTrace;
             }
 		}
 
 		public HashSet<int> GetCharactersForSeiyuu(int staffId)
 		{
 			Connection.Open();
-            Connection.Trace +=StaticHelpers.LogDatabaseTrace;
+            Connection.Trace(StaticHelpers.LogDatabaseTrace);
             try
 			{
 				var sql = @"select distinct CID from VnSeiyuus where VnSeiyuus.AID IN (
@@ -465,14 +452,13 @@ select AliasID from StaffAliass join StaffItems on StaffAliass.StaffID = StaffIt
 			finally
 			{
 				Connection.Close();
-                Connection.Trace -=StaticHelpers.LogDatabaseTrace;
             }
 		}
 
 		private void Seed()
 		{
 			Connection.Open();
-            Connection.Trace +=StaticHelpers.LogDatabaseTrace;
+            Connection.Trace(StaticHelpers.LogDatabaseTrace);
             try
 			{
 				DatabaseTableBuilder.CreateHappyAppsTables(Connection);
@@ -489,7 +475,6 @@ select AliasID from StaffAliass join StaffItems on StaffAliass.StaffID = StaffIt
 			finally
 			{
 				Connection.Close();
-                Connection.Trace -=StaticHelpers.LogDatabaseTrace;
             }
 		}
 
@@ -567,7 +552,7 @@ select AliasID from StaffAliass join StaffItems on StaffAliass.StaffID = StaffIt
 		public void DeleteForDump()
 		{
 			Connection.Open();
-            Connection.Trace +=StaticHelpers.LogDatabaseTrace;
+            Connection.Trace(StaticHelpers.LogDatabaseTrace);
             try
 			{
 				var trans = Connection.BeginTransaction();
@@ -587,11 +572,10 @@ select AliasID from StaffAliass join StaffItems on StaffAliass.StaffID = StaffIt
 			finally
 			{
 				Connection.Close();
-                Connection.Trace -=StaticHelpers.LogDatabaseTrace;
             }
 		}
 
-		private void DeleteTable(string tableName, SQLiteTransaction trans)
+		private void DeleteTable(string tableName, SqliteTransaction trans)
 		{
 			var command = Connection.CreateCommand();
 			command.CommandText = $@"DELETE FROM {tableName}";
@@ -616,7 +600,7 @@ select AliasID from StaffAliass join StaffItems on StaffAliass.StaffID = StaffIt
 			};
 			TableDetails.Upsert(tableDetail, true);
 		}
-	}
+    }
 
 	public class TableDetail : IDataItem<string>
 	{

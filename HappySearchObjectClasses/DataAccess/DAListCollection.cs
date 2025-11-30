@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using System.Linq;
 
 namespace Happy_Apps_Core.DataAccess
@@ -10,14 +10,14 @@ namespace Happy_Apps_Core.DataAccess
     public class DAListCollection<TListKey, TItemKey, TItem> : IEnumerable<TItem> where TItem : IDataItem<TItemKey>, IDataListItem<TListKey>, new()
     {
         private readonly IDictionary<TListKey, Dictionary<TItemKey, TItem>> _items = new Dictionary<TListKey, Dictionary<TItemKey, TItem>>();
-        private SQLiteConnection Conn { get; }
+        private SqliteConnection Conn { get; }
 
         private IEnumerable<TItem> List => _items.Values.SelectMany(i => i.Values);
         IEnumerator<TItem> IEnumerable<TItem>.GetEnumerator() => List.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => List.GetEnumerator();
         public int Count => _items.Count;
 
-        public DAListCollection(SQLiteConnection connection) => Conn = connection;
+        public DAListCollection(SqliteConnection connection) => Conn = connection;
 
         public void Load(bool openAndCloseConnection)
         {
@@ -30,7 +30,7 @@ namespace Happy_Apps_Core.DataAccess
             if (openAndCloseConnection)
             {
                 Conn.Open();
-                Conn.Trace += StaticHelpers.LogDatabaseTrace;
+                Conn.Trace(StaticHelpers.LogDatabaseTrace);
 
             }
             try
@@ -52,17 +52,16 @@ namespace Happy_Apps_Core.DataAccess
                 if (openAndCloseConnection)
                 {
                     Conn.Close();
-                    Conn.Trace -= StaticHelpers.LogDatabaseTrace;
                 }
             }
         }
 
-        public void Upsert(TItem item, bool openNewConnection, bool insertOnly = false, SQLiteTransaction transaction = null)
+        public void Upsert(TItem item, bool openNewConnection, bool insertOnly = false, SqliteTransaction transaction = null)
         {
             if (openNewConnection)
             {
                 Conn.Open();
-                Conn.Trace += StaticHelpers.LogDatabaseTrace;
+                Conn.Trace(StaticHelpers.LogDatabaseTrace);
             }
             try
             {
@@ -82,7 +81,6 @@ namespace Happy_Apps_Core.DataAccess
                 if (openNewConnection)
                 {
                     Conn.Close();
-                    Conn.Trace -= StaticHelpers.LogDatabaseTrace;
                 }
             }
         }
@@ -98,7 +96,7 @@ namespace Happy_Apps_Core.DataAccess
             if (openAndCloseConnection)
             {
                 Conn.Open();
-                Conn.Trace += StaticHelpers.LogDatabaseTrace;
+                Conn.Trace(StaticHelpers.LogDatabaseTrace);
             }
             try
             {
@@ -114,13 +112,12 @@ namespace Happy_Apps_Core.DataAccess
                 if (openAndCloseConnection)
                 {
                     Conn.Close();
-                    Conn.Trace -= StaticHelpers.LogDatabaseTrace;
                 }
             }
             return result;
         }
 
-        public void Add(TItem item, bool openNewConnection, bool insertOnly = false, SQLiteTransaction transaction = null)
+        public void Add(TItem item, bool openNewConnection, bool insertOnly = false, SqliteTransaction transaction = null)
         => Upsert(item, openNewConnection, insertOnly, transaction);
 
         /// <summary>
@@ -145,14 +142,14 @@ namespace Happy_Apps_Core.DataAccess
     public class DAGroupCollection<TGroupKey, TItem> : IEnumerable<TItem> where TItem : IDataGroupItem<TGroupKey>, new()
     {
         private readonly IDictionary<TGroupKey, List<TItem>> _items = new Dictionary<TGroupKey, List<TItem>>();
-        private SQLiteConnection Conn { get; }
+        private SqliteConnection Conn { get; }
 
         private IEnumerable<TItem> List => _items.Values.SelectMany(i => i);
         IEnumerator<TItem> IEnumerable<TItem>.GetEnumerator() => List.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => List.GetEnumerator();
         public int Count => List.Count();
 
-        public DAGroupCollection(SQLiteConnection connection) => Conn = connection;
+        public DAGroupCollection(SqliteConnection connection) => Conn = connection;
 
         public void Load(bool openAndCloseConnection)
         {
@@ -165,7 +162,7 @@ namespace Happy_Apps_Core.DataAccess
             if (openAndCloseConnection)
             {
                 Conn.Open();
-                Conn.Trace += StaticHelpers.LogDatabaseTrace;
+                Conn.Trace(StaticHelpers.LogDatabaseTrace);
 
             }
             try
@@ -187,17 +184,16 @@ namespace Happy_Apps_Core.DataAccess
                 if (openAndCloseConnection)
                 {
                     Conn.Close();
-                    Conn.Trace -= StaticHelpers.LogDatabaseTrace;
                 }
             }
         }
 
-        public void Upsert(TItem item, bool openNewConnection, bool insertOnly = false, SQLiteTransaction transaction = null)
+        public void Upsert(TItem item, bool openNewConnection, bool insertOnly = false, SqliteTransaction transaction = null)
         {
             if (openNewConnection)
             {
                 Conn.Open();
-                Conn.Trace += StaticHelpers.LogDatabaseTrace;
+                Conn.Trace(StaticHelpers.LogDatabaseTrace);
             }
             try
             {
@@ -217,12 +213,11 @@ namespace Happy_Apps_Core.DataAccess
                 if (openNewConnection)
                 {
                     Conn.Close();
-                    Conn.Trace -= StaticHelpers.LogDatabaseTrace;
                 }
             }
         }
 
-        public void Add(TItem item, bool openNewConnection, bool insertOnly = false, SQLiteTransaction transaction = null)
+        public void Add(TItem item, bool openNewConnection, bool insertOnly = false, SqliteTransaction transaction = null)
         => Upsert(item, openNewConnection, insertOnly, transaction);
 
         /// <summary>

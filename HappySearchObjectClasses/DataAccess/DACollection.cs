@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -14,7 +14,7 @@ namespace Happy_Apps_Core.DataAccess
 		private readonly IDictionary<TKey, TValue> _items = new Dictionary<TKey, TValue>();
 		private readonly Dictionary<TKey, TValue> _itemsToUpsertLater = new();
 
-		private SQLiteConnection Conn { get; }
+		private SqliteConnection Conn { get; }
 
 		private long _highestKey;
 
@@ -36,7 +36,7 @@ namespace Happy_Apps_Core.DataAccess
 		IEnumerator IEnumerable.GetEnumerator() => List.GetEnumerator();
 		public int Count => _items.Count;
 
-		public DACollection(SQLiteConnection connection) => Conn = connection;
+		public DACollection(SqliteConnection connection) => Conn = connection;
 
 		public void Load(bool openAndCloseConnection)
 		{
@@ -50,7 +50,7 @@ namespace Happy_Apps_Core.DataAccess
             if (openAndCloseConnection)
             {
                 Conn.Open();
-                Conn.Trace += StaticHelpers.LogDatabaseTrace;
+                Conn.Trace(StaticHelpers.LogDatabaseTrace);
             }
 			try
 			{
@@ -72,7 +72,6 @@ namespace Happy_Apps_Core.DataAccess
                 if (openAndCloseConnection)
                 {
                     Conn.Close();
-                    Conn.Trace -= StaticHelpers.LogDatabaseTrace;
                 }
 			}
 		}
@@ -82,7 +81,8 @@ namespace Happy_Apps_Core.DataAccess
             if (openNewConnection)
             {
                 Conn.Open();
-                Conn.Trace += StaticHelpers.LogDatabaseTrace;
+                Conn.Trace(StaticHelpers.LogDatabaseTrace);
+				Conn.Update(StaticHelpers.LogDatabaseUpdate);
             }
 			try
 			{
@@ -100,7 +100,6 @@ namespace Happy_Apps_Core.DataAccess
                 if (openNewConnection)
                 {
                     Conn.Close();
-                    Conn.Trace -= StaticHelpers.LogDatabaseTrace;
                 }
 			}
 		}
@@ -116,7 +115,8 @@ namespace Happy_Apps_Core.DataAccess
             if (openAndCloseConnection)
             {
                 Conn.Open();
-                Conn.Trace += StaticHelpers.LogDatabaseTrace;
+                Conn.Trace(StaticHelpers.LogDatabaseTrace);
+                Conn.Update(StaticHelpers.LogDatabaseUpdate);
             }
 			try
             {
@@ -132,7 +132,6 @@ namespace Happy_Apps_Core.DataAccess
                 if (openAndCloseConnection)
                 {
                     Conn.Close();
-                    Conn.Trace -= StaticHelpers.LogDatabaseTrace;
                 }
 			}
 			return result;
@@ -151,7 +150,7 @@ namespace Happy_Apps_Core.DataAccess
 			command.AddParameter("@Key", item.Key);
         }
 
-        public void Add(TValue item, bool openNewConnection, bool insertOnly = false, SQLiteTransaction transaction = null)
+        public void Add(TValue item, bool openNewConnection, bool insertOnly = false, SqliteTransaction transaction = null)
 		=> Upsert(item, openNewConnection, insertOnly, transaction);
 
 		/// <summary>

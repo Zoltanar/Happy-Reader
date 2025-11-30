@@ -36,12 +36,12 @@ namespace Happy_Reader_Tests
 
 		static ProxyModTests()
 		{
-			var testTranslator = new TestTranslator();
-			var translatorSettings = new TranslatorSettings();
-			translatorSettings.Translators.Add(testTranslator);
-			translatorSettings.SelectedTranslator = testTranslator;
-			var testDatabase = StaticMethods.Data = new HappyReaderDatabase(StaticMethods.ReaderDatabaseFile, true);
-			Game = new EntryGame(-2, true, true);
+            var testTranslator = new TestTranslator();
+            var translatorSettings = new TranslatorSettings();
+            translatorSettings.Translators.Add(testTranslator);
+            translatorSettings.SelectedTranslator = testTranslator;
+            var testDatabase = StaticMethods.Data = new HappyReaderDatabase(StaticMethods.ReaderDatabaseFile, true);
+            Game = new EntryGame(-2, true, true);
 			PopulateEntries(testDatabase);
 			Translator.Instance = new Translator(testDatabase, translatorSettings);
 		}

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -20,7 +20,7 @@ namespace Happy_Reader.Database
         private readonly object _saveChangesLock = new();
         private const string UpdateTableName = @"Updates";
 
-        public SQLiteConnection Connection { get; }
+        public SqliteConnection Connection { get; }
         public DACollection<string, CachedTranslation> Translations { get; }
         public DACollection<long, Log> Logs { get; }
         public DACollection<(long, string), GameThread> GameThreads { get; }
@@ -29,8 +29,7 @@ namespace Happy_Reader.Database
 
         public HappyReaderDatabase(string dbFile, bool loadAllTables)
         {
-            Connection = new SQLiteConnection($@"Data Source={dbFile}");
-            Connection.Update += StaticHelpers.LogDatabaseUpdate;
+            Connection = new SqliteConnection($@"Data Source={dbFile}");
             Translations = new DACollection<string, CachedTranslation>(Connection);
             Logs = new DACollection<long, Log>(Connection);
             GameThreads = new DACollection<(long, string), GameThread>(Connection);
@@ -46,8 +45,8 @@ namespace Happy_Reader.Database
         {
             try
             {
-                Connection.Open();
-                Connection.Trace += StaticHelpers.LogDatabaseTrace;
+                Connection.Open(); 
+                Connection.Trace(StaticHelpers.LogDatabaseTrace);
                 var command = Connection.CreateCommand();
                 command.CommandText = $"SELECT name FROM sqlite_master WHERE type='table' AND name='{UpdateTableName}';";
                 var responseObject = command.ExecuteScalar();
@@ -74,7 +73,7 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
-                Connection.Trace -= StaticHelpers.LogDatabaseTrace;
+                Connection.Trace(null);
             }
         }
 
@@ -91,7 +90,7 @@ namespace Happy_Reader.Database
                 if (!backedUp)
                 {
                     StaticHelpers.Logger.ToFile("Backing up Happy Reader Database to run updates.");
-                    var dbFile = new FileInfo(Connection.FileName);
+                    var dbFile = new FileInfo(Connection.DataSource);
                     var backupFile = $"{dbFile.DirectoryName}\\{Path.GetFileNameWithoutExtension(dbFile.FullName)}-UB{DateTime.Now:yyyyMMdd-HHmmss}{dbFile.Extension}";
                     dbFile.CopyTo(backupFile);
                     backedUp = true;
@@ -106,7 +105,7 @@ namespace Happy_Reader.Database
         private void LoadAllTables()
         {
             Connection.Open();
-            Connection.Trace += StaticHelpers.LogDatabaseTrace;
+            Connection.Trace(StaticHelpers.LogDatabaseTrace);
             try
             {
                 Translations.Load(false);
@@ -123,14 +122,14 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
-                Connection.Trace -= StaticHelpers.LogDatabaseTrace;
+                Connection.Trace(null);
             }
         }
 
         private void CreateDatabase()
         {
             Connection.Open();
-            Connection.Trace += StaticHelpers.LogDatabaseTrace;
+            Connection.Trace(StaticHelpers.LogDatabaseTrace);
             try
             {
                 DatabaseTableBuilder.ExecuteSql(Connection, $@"CREATE TABLE `{UpdateTableName}` (
@@ -215,7 +214,7 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
-                Connection.Trace -= StaticHelpers.LogDatabaseTrace;
+                Connection.Trace(null);
             }
         }
 
@@ -271,11 +270,9 @@ namespace Happy_Reader.Database
 
         public void DeleteCachedTranslationsOlderThan(DateTime dateTime)
         {
-            var sql = $"DELETE FROM {nameof(CachedTranslation)}s WHERE Timestamp < @Timestamp";
+            const string sql = $"DELETE FROM {nameof(CachedTranslation)}s WHERE Timestamp < @Timestamp";
             Connection.Open();
-            Connection.Trace += StaticHelpers.LogDatabaseTrace;
-            //remove update logging for this procedure, otherwise every row deleted logs a line.
-            Connection.Update -= StaticHelpers.LogDatabaseUpdate;
+            Connection.Trace(StaticHelpers.LogDatabaseTrace);
             try
             {
                 var cmd = Connection.CreateCommand();
@@ -293,16 +290,14 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
-                Connection.Trace -= StaticHelpers.LogDatabaseTrace;
-                Connection.Update += StaticHelpers.LogDatabaseUpdate;
             }
         }
 
         public void DeleteAllCachedTranslations()
         {
-            var sql = $"DELETE FROM {nameof(CachedTranslation)}s";
+            const string sql = $"DELETE FROM {nameof(CachedTranslation)}s";
             Connection.Open();
-            Connection.Trace += StaticHelpers.LogDatabaseTrace;
+            Connection.Trace(StaticHelpers.LogDatabaseTrace);
             try
             {
                 var cmd = Connection.CreateCommand();
@@ -319,15 +314,15 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
-                Connection.Trace -= StaticHelpers.LogDatabaseTrace;
+                Connection.Trace(null);
             }
         }
         
         public void DeleteGameThreadsForGame(long userGameId)
         {
-            var sql = $"DELETE FROM {nameof(GameThread)}s WHERE GameId = @GameId";
+            const string sql = $"DELETE FROM {nameof(GameThread)}s WHERE GameId = @GameId";
             Connection.Open();
-            Connection.Trace += StaticHelpers.LogDatabaseTrace;
+            Connection.Trace(StaticHelpers.LogDatabaseTrace);
             try
             {
                 var cmd = Connection.CreateCommand();
@@ -345,15 +340,15 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
-                Connection.Trace -= StaticHelpers.LogDatabaseTrace;
+                Connection.Trace(null);
             }
         }
 
         public void DeleteAllGameThreads()
         {
-            var sql = $"DELETE FROM {nameof(GameThread)}s";
+            const string sql = $"DELETE FROM {nameof(GameThread)}s";
             Connection.Open();
-            Connection.Trace += StaticHelpers.LogDatabaseTrace;
+            Connection.Trace(StaticHelpers.LogDatabaseTrace);
             try
             {
                 var cmd = Connection.CreateCommand();
@@ -370,7 +365,7 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
-                Connection.Trace -= StaticHelpers.LogDatabaseTrace;
+                Connection.Trace(null);
             }
         }
         
@@ -381,7 +376,7 @@ namespace Happy_Reader.Database
         {
             if (entries.Count == 0) return;
             Connection.Open();
-            Connection.Trace += StaticHelpers.LogDatabaseTrace;
+            Connection.Trace(StaticHelpers.LogDatabaseTrace);
             DbTransaction transaction = null;
             try
             {
@@ -402,7 +397,7 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
-                Connection.Trace -= StaticHelpers.LogDatabaseTrace;
+                Connection.Trace(null);
             }
         }
 

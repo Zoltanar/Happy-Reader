@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -25,7 +25,7 @@ namespace Happy_Reader.TranslationEngine
             return _database.GetDeinflections(term);
         }
 
-        private void SaveDeinflections(Term term, SQLiteTransaction transaction)
+        private void SaveDeinflections(Term term, SqliteTransaction transaction)
         {
             if (_deinflectedTermsSet.Contains(term.Expression)) return;
             CreateDeinflections(term, transaction);
@@ -90,7 +90,7 @@ namespace Happy_Reader.TranslationEngine
             StaticHelpers.Logger.ToFile($"Created Deinflections database in {watch.Elapsed:g}");
         }
 
-        private void CreateDeinflections(Term term, SQLiteTransaction transaction)
+        private void CreateDeinflections(Term term, SqliteTransaction transaction)
         {
             var withTermRules = _deinflectionReasons.Where(d => term.Expression.EndsWith(d.KanaOut) && d.RulesOut.Contains(term.Rules)).ToList();
             var deinflections = new List<DeinflectedTerm>();
