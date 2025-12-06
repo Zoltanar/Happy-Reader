@@ -133,12 +133,11 @@ public sealed class ListedProducer : DumpItem, IComparable<ListedProducer>, ICom
 
     private bool _userDataSet;
 
-    public void SetFavoriteProducerData(VisualNovelDatabase database)
+    public void SetFavoriteProducerData(VisualNovelDatabase database, bool forceChange)
     {
-        if (_userDataSet) return;
+        if (_userDataSet && !forceChange) return;
         _userDataSet = true;
         IsFavorited = database.CurrentUser.FavoriteProducers.Contains(this);
-        if (!IsFavorited) { }
         var titleIds = Titles.Select(x => x.VNID).ToList();
         var userTitles = database.UserVisualNovels.Where(x => titleIds.Contains(x.VNID) && x.UserId == database.CurrentUser.Id).ToList();
         var userTitleVotes = userTitles.Where(x => x.Vote != null).Select(x => x.Vote).ToList();

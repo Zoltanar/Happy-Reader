@@ -72,7 +72,7 @@ namespace Happy_Reader.ViewModel
 				List<ListedProducer> results = LocalDatabase.Producers.WithKeyIn(firstPage).OrderBy(Order).ToList();
 				if (LocalDatabase.CurrentUser != null)
 				{
-					foreach (var listedProducer in results) listedProducer.SetFavoriteProducerData(LocalDatabase);
+					foreach (var listedProducer in results) listedProducer.SetFavoriteProducerData(LocalDatabase, false);
 				}
 				if (AllProducerResults.Length <= PageSize) _finalPage = true;
 				Debug.Assert(Application.Current.Dispatcher != null, "Application.Current.Dispatcher != null");
@@ -101,7 +101,7 @@ namespace Happy_Reader.ViewModel
 
 			if (LocalDatabase.CurrentUser != null)
 			{
-				foreach (var listedProducer in newProducers) listedProducer.SetFavoriteProducerData(LocalDatabase);
+				foreach (var listedProducer in newProducers) listedProducer.SetFavoriteProducerData(LocalDatabase, false);
 			}
 			ListedProducers.AddRange(newProducers);
 			OnPropertyChanged(nameof(ListedProducers));

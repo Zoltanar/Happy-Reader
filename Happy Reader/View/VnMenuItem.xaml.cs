@@ -381,7 +381,7 @@ namespace Happy_Reader.View
 				ListedProducer_Id = VN.ProducerID.Value,
 				User_Id = StaticHelpers.LocalDatabase.CurrentUser.Id
 			}, true, true);
-			VN.Producer.SetFavoriteProducerData(StaticHelpers.LocalDatabase);
+			VN.Producer.SetFavoriteProducerData(StaticHelpers.LocalDatabase, true);
 		}
 
 		private void TranslateOriginalTitle(object sender, RoutedEventArgs e)

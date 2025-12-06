@@ -18,7 +18,7 @@ namespace Happy_Apps_Core.Database
 		public int UserDropRate { get; set; }
 
 		#region IDataItem Implementation
-		public string KeyField => "(ListedProducer_Id, UserId)";
+		public string KeyField => "(ListedProducer_Id, User_Id)";
 		public (int, int) Key => (ListedProducer_Id, User_Id);
 
 		public DbCommand UpsertCommand(DbConnection connection, bool insertOnly)

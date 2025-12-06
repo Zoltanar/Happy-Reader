@@ -3,8 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
-             mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModel:ProducersTabViewModel}"
+             xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel" xmlns:view="clr-namespace:Happy_Reader.View"
+						 mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModel:ProducersTabViewModel}"
              Loaded="ProducersTab_OnLoaded" d:DesignWidth="800" d:DesignHeight="600">
 	<UserControl.Resources>
 		<Style TargetType="Button">
@@ -13,6 +13,7 @@
 			<Setter Property="Foreground" Value="White"/>
 			<Setter Property="VerticalAlignment" Value="Stretch"/>
 		</Style>
+		<ContextMenu x:Key="ProducerContextMenu" Opened="ProducerContextMenuOpened"></ContextMenu>
 	</UserControl.Resources>
 	<Grid Background="#FFC9E1F5">
 		<Grid.RowDefinitions>
@@ -31,6 +32,10 @@
 							<Setter Property="Background" Value="LightGreen"/>
 						</DataTrigger>
 					</Style.Triggers>
+					<Style.Setters>
+						<Setter Property="ContextMenu" Value="{StaticResource ProducerContextMenu}">
+						</Setter>
+					</Style.Setters>
 				</Style>
 			</DataGrid.ItemContainerStyle>
 			<DataGrid.Columns>

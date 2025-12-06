@@ -1,8 +1,9 @@
-﻿using System.ComponentModel;
+﻿using Happy_Apps_Core.Database;
+using Happy_Reader.ViewModel;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Happy_Reader.ViewModel;
 
 namespace Happy_Reader.View.Tabs
 {
@@ -41,6 +42,13 @@ namespace Happy_Reader.View.Tabs
 
 		private async void ShowAll(object sender, RoutedEventArgs e) => await _viewModel.RefreshListedProducers(true);
 
-	}
+        private void ProducerContextMenuOpened(object sender, RoutedEventArgs e)
+        {
+			var contextMenu = (ContextMenu)sender;
+			contextMenu.Items.Clear();
+			var producer = (ListedProducer)contextMenu.DataContext;
+            new ProducerMenuItem(producer).TransferItems(contextMenu);
+        }
+    }
 
 }

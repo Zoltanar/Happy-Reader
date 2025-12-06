@@ -18,7 +18,6 @@
     <UseWindowsForms>true</UseWindowsForms>
     <UseWPF>true</UseWPF>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
-    <Platforms>x64;x86</Platforms>
     <OutputType>WinExe</OutputType>
     <RootNamespace>Happy_Reader</RootNamespace>
     <IsWebBootstrapper>false</IsWebBootstrapper>
@@ -36,6 +35,7 @@
     <Version>2.7.0</Version>
     <Title>Happy Reader</Title>
     <Description>WPF Front-end for browsing VNDB data, plus process hooking and translation for visual novels.</Description>
+    <StartupObject>Happy_Reader.App</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <OutputPath>..\Debug\</OutputPath>

@@ -73,7 +73,6 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
-                Connection.Trace(null);
             }
         }
 
@@ -122,7 +121,6 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
-                Connection.Trace(null);
             }
         }
 
@@ -214,7 +212,6 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
-                Connection.Trace(null);
             }
         }
 
@@ -314,7 +311,6 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
-                Connection.Trace(null);
             }
         }
         
@@ -340,7 +336,6 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
-                Connection.Trace(null);
             }
         }
 
@@ -365,7 +360,6 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
-                Connection.Trace(null);
             }
         }
         
@@ -397,7 +391,6 @@ namespace Happy_Reader.Database
             finally
             {
                 Connection.Close();
-                Connection.Trace(null);
             }
         }
 
