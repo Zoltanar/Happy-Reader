@@ -39,7 +39,7 @@ namespace Happy_Reader.Database
 			UseLe = 2
 		}
 
-		public static readonly SortedList<DateTime, long> LastGamesPlayed = new();
+		public static readonly List<Log> LastGamesPlayed = new();
 		public static ComboBoxItem[] LaunchOverrideModes { get; } = StaticMethods.GetEnumValues(typeof(LaunchOverrideMode));
 
 		private BitmapImage _image;
@@ -202,7 +202,8 @@ namespace Happy_Reader.Database
 			[UsedImplicitly]
 			get
 			{
-				return LastGamesPlayed.ContainsValue(Id) ? LastGamesPlayed.First(x => x.Value == Id).Key : DateTime.MinValue;
+				var timeStamp = LastGamesPlayed.FirstOrDefault(x => x.AssociatedId == Id)?.Timestamp;
+				return timeStamp == default ? DateTime.MinValue : timeStamp.Value;
 			}
 		}
 		public ProcessStatus RunningStatus
@@ -312,9 +313,9 @@ namespace Happy_Reader.Database
 			Process = null;
 			var log = Log.NewTimePlayedLog(Id, timeToAdd, notify);
 			StaticMethods.Data.Logs.Add(log, true, true);
-            var indexOfGame = LastGamesPlayed.IndexOfValue(Id);
+            var indexOfGame = LastGamesPlayed.FindIndex(l=> l.AssociatedId == Id);
 			if (indexOfGame > -1) LastGamesPlayed.RemoveAt(indexOfGame);
-			LastGamesPlayed.Add(log.Timestamp,Id);
+			LastGamesPlayed.Insert(0, log);
         }
 
 		public void MergeTimePlayed(TimeSpan mergedTimePlayed)

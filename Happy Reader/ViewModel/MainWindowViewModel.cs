@@ -290,12 +290,13 @@ namespace Happy_Reader.ViewModel
 
         private void SetLastPlayed()
         {
+            //newest first, one per game
             var lastPlayed = StaticMethods.Data.Logs.Where(x => x.Kind == LogKind.TimePlayed).OrderByDescending(x => x.Timestamp).GroupBy(z => z.AssociatedId).Select(x => x.First()).ToList();
             UserGame.LastGamesPlayed.Clear();
             foreach (var log in lastPlayed)
             {
                 var userGame = StaticMethods.Data.UserGames.FirstOrDefault(x => x.Id == log.AssociatedId);
-                if (userGame != null) UserGame.LastGamesPlayed.Add(log.Timestamp, log.AssociatedId);
+                if (userGame != null) UserGame.LastGamesPlayed.Add(log);
             }
         }
         public void SetUser()

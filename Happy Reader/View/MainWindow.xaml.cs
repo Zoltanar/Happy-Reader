@@ -105,7 +105,7 @@ namespace Happy_Reader.View
         {
             while (_trayIcon.ContextMenuStrip.Items.Count > 2) _trayIcon.ContextMenuStrip.Items.RemoveAt(_trayIcon.ContextMenuStrip.Items.Count - 3);
             int? added = null;
-            foreach (var gameId in UserGame.LastGamesPlayed.Values.Reverse().Take(5))
+            foreach (var gameId in UserGame.LastGamesPlayed.Take(5).Select(l=>l.AssociatedId))
             {
                 var game = StaticMethods.Data.UserGames[gameId];
                 if (game == null) continue;
