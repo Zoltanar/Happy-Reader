@@ -90,7 +90,7 @@ namespace Happy_Reader.View.Tiles
 			}
 		}
 
-		private void ID_OnClick(object sender, RoutedEventArgs e) => Process.Start($"https://vndb.org/c{_viewModel.ID}");
+		private void ID_OnClick(object sender, RoutedEventArgs e) => StaticMethods.OpenLinkInBrowser($"https://vndb.org/c{_viewModel.ID}");
 
 		private void ShowCharactersByProducer(object sender, RoutedEventArgs e)
 		{

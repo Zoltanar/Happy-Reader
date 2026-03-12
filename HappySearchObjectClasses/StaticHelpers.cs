@@ -55,7 +55,7 @@ namespace Happy_Apps_Core
 		{
 			get
 			{
-				if (_cSettings == null) throw new ArgumentNullException(nameof(_cSettings), $"{nameof(CoreSettings)} must be initialized first.");
+				if (_cSettings == null) throw new InvalidOperationException($"{nameof(CoreSettings)} must be initialized first.");
 				return _cSettings;
 			}
 			set
@@ -263,7 +263,7 @@ namespace Happy_Apps_Core
 		{
 			var parameter = command.CreateParameter();
 			parameter.ParameterName = parameterName;
-			parameter.Value = value;
+			parameter.Value = value ?? DBNull.Value;
 			command.Parameters.Add(parameter);
 		}
 

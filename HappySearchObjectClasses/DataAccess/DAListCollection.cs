@@ -13,8 +13,8 @@ namespace Happy_Apps_Core.DataAccess
         private SqliteConnection Conn { get; }
 
         private IEnumerable<TItem> List => _items.Values.SelectMany(i => i.Values);
-        IEnumerator<TItem> IEnumerable<TItem>.GetEnumerator() => List.GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => List.GetEnumerator();
+        public IEnumerator<TItem> GetEnumerator() => List.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         public int Count => _items.Count;
 
         public DAListCollection(SqliteConnection connection) => Conn = connection;
@@ -145,8 +145,8 @@ namespace Happy_Apps_Core.DataAccess
         private SqliteConnection Conn { get; }
 
         private IEnumerable<TItem> List => _items.Values.SelectMany(i => i);
-        IEnumerator<TItem> IEnumerable<TItem>.GetEnumerator() => List.GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => List.GetEnumerator();
+        public IEnumerator<TItem> GetEnumerator() => List.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         public int Count => List.Count();
 
         public DAGroupCollection(SqliteConnection connection) => Conn = connection;

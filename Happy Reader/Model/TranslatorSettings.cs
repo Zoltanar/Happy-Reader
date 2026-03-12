@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
@@ -40,6 +41,7 @@ namespace Happy_Reader
 		private bool _outputTranslation = true;
         private bool _muteOnMinimise = false;
         private bool _autoRemoveOldTranslations = false;
+		private bool _pluginLibrariesLoaded = false;
         private VerticalAlignment _outputVerticalAlignment = VerticalAlignment.Top;
 		private TextAlignment _outputHorizontalAlignment = TextAlignment.Center;
 
@@ -430,11 +432,11 @@ namespace Happy_Reader
 			if (!directory.Exists) return;
 			Translators.Clear();
 			Translators.Add(NoTranslator);
-			foreach (var file in directory.GetFiles(TranslationDllFilter, SearchOption.TopDirectoryOnly))
+			foreach (var file in directory.GetFiles(TranslationDllFilter, SearchOption.AllDirectories))
 			{
 				try
 				{
-					LoadPlugin(Translators, file);
+					LoadPlugin(Translators, file, folder);
 				}
 				catch (Exception ex)
 				{
@@ -447,20 +449,42 @@ namespace Happy_Reader
 			OnPropertyChanged(nameof(SelectedTranslator));
 		}
 
-		private void LoadPlugin(ICollection<ITranslator> translators, FileInfo file)
+		private void LoadPlugin(ICollection<ITranslator> translators, FileInfo file, string folder)
 		{
 			var assembly = Assembly.LoadFile(file.FullName);
 			var translatorsDefined = assembly.ExportedTypes.Where(t => t.GetInterfaces().Any(i => i == typeof(ITranslator)))
 				.ToList();
 			foreach (var translatorType in translatorsDefined)
 			{
+				LoadAllLibrariesIfNeeded(folder);
 				var translator = (ITranslator)translatorType.GetConstructors().First().Invoke(new object[0]);
 				translator.LoadProperties(StaticHelpers.GetTranslatorSettings(translator.SourceName));
 				translators.Add(translator);
 			}
 		}
 
-	}
+        private void LoadAllLibrariesIfNeeded(string folder)
+        {
+			if (_pluginLibrariesLoaded) return;
+			var alc = AssemblyLoadContext.Default;
+            foreach (var library in Directory.GetFiles(folder, "*.dll", SearchOption.AllDirectories))
+			{
+				try
+				{
+					alc.LoadFromAssemblyPath(library);
+                }
+                catch (BadImageFormatException)
+                {
+                    //ignore
+                }
+                catch (FileLoadException)
+                {
+                    //ignore
+                }
+			}
+			_pluginLibrariesLoaded = true;
+        }
+    }
 
 	public class NoTranslator : ITranslator
 	{

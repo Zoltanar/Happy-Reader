@@ -32,8 +32,8 @@ namespace Happy_Apps_Core.DataAccess
 		}
 
 		private IEnumerable<TValue> List => _items.Values;
-		IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator() => List.GetEnumerator();
-		IEnumerator IEnumerable.GetEnumerator() => List.GetEnumerator();
+        public IEnumerator<TValue> GetEnumerator() => List.GetEnumerator();
+		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 		public int Count => _items.Count;
 
 		public DACollection(SqliteConnection connection) => Conn = connection;

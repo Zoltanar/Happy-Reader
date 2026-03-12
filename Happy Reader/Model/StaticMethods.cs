@@ -1,4 +1,12 @@
-﻿using System;
+﻿using Happy_Apps_Core;
+using Happy_Apps_Core.Database;
+using Happy_Reader.Database;
+using Happy_Reader.TranslationEngine;
+using Happy_Reader.View;
+using Happy_Reader.View.Tabs;
+using Happy_Reader.ViewModel;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -6,23 +14,15 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Management;
 using System.Runtime.InteropServices;
 using System.Windows;
-using Happy_Apps_Core;
-using Happy_Reader.Database;
-using System.Management;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Happy_Apps_Core.Database;
-using Happy_Reader.TranslationEngine;
-using Happy_Reader.View;
-using Happy_Reader.View.Tabs;
-using Happy_Reader.ViewModel;
-using Newtonsoft.Json;
 using FontFamily = System.Windows.Media.FontFamily;
 using StaticHelpers = Happy_Apps_Core.StaticHelpers;
 
@@ -381,6 +381,12 @@ namespace Happy_Reader
             }
             return -1;
         }
+
+		public static void OpenLinkInBrowser(string url)
+        {
+            if (!Uri.IsWellFormedUriString(url, UriKind.Absolute)) throw new InvalidOperationException($"'{url}' is not a well formed URI.");
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+		}
     }
 
 	public class FiltersData : SettingsJsonFile

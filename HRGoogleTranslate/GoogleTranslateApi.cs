@@ -172,7 +172,7 @@ namespace HRGoogleTranslate
 			if (string.IsNullOrWhiteSpace(credential)) throw new ArgumentNullException(credential, "Google Credential was empty.");
 			try
 			{
-				_client = File.Exists(credential) ? TranslationClient.Create(GoogleCredential.FromFile(credential)) : TranslationClient.CreateFromApiKey(credential, Settings.TranslationModel);
+				_client = File.Exists(credential) ? TranslationClient.Create(CredentialFactory.FromFile<GoogleCredential>(credential)) : TranslationClient.CreateFromApiKey(credential, Settings.TranslationModel);
 				Error = null;
 			}
 			catch (Exception ex)
