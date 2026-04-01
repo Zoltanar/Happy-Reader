@@ -120,4 +120,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="if '$(Platform)' == 'x86' (&#xD;&#xA;call &quot;C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvars32.bat&quot;&#xD;&#xA;editbin /largeaddressaware &quot;$(OutputPath)$(AssemblyName)$(_NativeExecutableExtension)&quot;&#xD;&#xA;)" />
+  </Target>
 </Project>

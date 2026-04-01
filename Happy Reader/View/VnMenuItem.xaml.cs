@@ -47,7 +47,7 @@ namespace Happy_Reader.View
                 ? !string.IsNullOrWhiteSpace(VN.Title) ? VN.Title : VN.KanjiTitle
                 : !string.IsNullOrWhiteSpace(VN.KanjiTitle) ? VN.KanjiTitle : VN.Title;
             var titleFixed = ExcludedSearchCharacters.Replace(title, string.Empty);
-            var link = pageLink.Link.Replace("%s", titleFixed).Replace(" ", "%20");
+            var link = pageLink.Link.Replace("%s", titleFixed);
             StaticMethods.OpenLinkInBrowser(link);
         }
 

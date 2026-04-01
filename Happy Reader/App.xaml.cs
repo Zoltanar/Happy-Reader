@@ -26,7 +26,8 @@ namespace Happy_Reader
 			_showingError = true;
 			try
 			{
-				var message = $"Press Yes to continue or No to Exit.{Environment.NewLine}{e.Exception}";
+				Happy_Apps_Core.StaticHelpers.Logger.ToFile($"Unhandled exception: {e.Exception}");
+                var message = $"Press Yes to continue or No to Exit.{Environment.NewLine}{e.Exception}";
 				var response = MessageBox.Show(message.Substring(0,Math.Min(message.Length,1000)),
 					"Unhandled Exception", MessageBoxButton.YesNo);
 				if(response == MessageBoxResult.No) Shutdown(-1);
