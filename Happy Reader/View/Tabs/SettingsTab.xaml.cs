@@ -47,8 +47,9 @@ namespace Happy_Reader.View.Tabs
             TranslatedColorSelector.TrySetColor();
             ImageSyncCharacters.IsChecked = ViewModel.CoreSettings.SyncImages.HasFlag(ImageSyncMode.Characters);
             ImageSyncCovers.IsChecked = ViewModel.CoreSettings.SyncImages.HasFlag(ImageSyncMode.Covers);
+            ImageSyncCoverThumbnails.IsChecked = ViewModel.CoreSettings.SyncImages.HasFlag(ImageSyncMode.CoverThumbnails);
             ImageSyncScreenshots.IsChecked = ViewModel.CoreSettings.SyncImages.HasFlag(ImageSyncMode.Screenshots);
-            ImageSyncScreenshotThumbnails.IsChecked = ViewModel.CoreSettings.SyncImages.HasFlag(ImageSyncMode.Thumbnails);
+            ImageSyncScreenshotThumbnails.IsChecked = ViewModel.CoreSettings.SyncImages.HasFlag(ImageSyncMode.ScreenshotThumbnails);
             _loaded = true;
         }
 
@@ -167,6 +168,12 @@ namespace Happy_Reader.View.Tabs
                     ? ViewModel.CoreSettings.SyncImages |= ImageSyncMode.Covers
                     : ViewModel.CoreSettings.SyncImages &= ~ImageSyncMode.Covers;
             }
+            if (ReferenceEquals(sender, ImageSyncCoverThumbnails))
+            {
+                ViewModel.CoreSettings.SyncImages = set
+                    ? ViewModel.CoreSettings.SyncImages |= ImageSyncMode.CoverThumbnails
+                    : ViewModel.CoreSettings.SyncImages &= ~ImageSyncMode.CoverThumbnails;
+            }
             if (ReferenceEquals(sender, ImageSyncScreenshots))
             {
                 ViewModel.CoreSettings.SyncImages = set
@@ -176,8 +183,8 @@ namespace Happy_Reader.View.Tabs
             if (ReferenceEquals(sender, ImageSyncScreenshotThumbnails))
             {
                 ViewModel.CoreSettings.SyncImages = set
-                    ? ViewModel.CoreSettings.SyncImages |= ImageSyncMode.Thumbnails
-                    : ViewModel.CoreSettings.SyncImages &= ~ImageSyncMode.Thumbnails;
+                    ? ViewModel.CoreSettings.SyncImages |= ImageSyncMode.ScreenshotThumbnails
+                    : ViewModel.CoreSettings.SyncImages &= ~ImageSyncMode.ScreenshotThumbnails;
             }
         }
         

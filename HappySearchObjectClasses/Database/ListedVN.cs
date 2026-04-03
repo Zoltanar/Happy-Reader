@@ -403,8 +403,8 @@ public class ListedVN : DumpItem, INotifyPropertyChanged, IDataItem<int>
         command.AddParameter("@ReleaseDate", ReleaseDate);
         command.AddParameter("@ReleaseLink", ReleaseLink);
         command.AddParameter("@NewSinceUpdate", NewSinceUpdate);
-        command.AddParameter("@TagScore", Suggestion?.TagScore);
-        command.AddParameter("@TraitScore", Suggestion?.TraitScore);
+        command.AddParameter("@TagScore", Suggestion?.TagScore ?? 0d);
+        command.AddParameter("@TraitScore", Suggestion?.TraitScore ?? 0d);
         return command;
     }
 

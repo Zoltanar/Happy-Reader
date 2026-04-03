@@ -113,7 +113,8 @@ public class DumpReader
             Database.VisualNovels.Add(i, false, true, t);
             ResolveUserVnForVn(i, t);
         }, "db\\vn");
-        DumpReaderStarter.PrintLogLine([$"Added {newTitleCount} new titles."]);
+        if (previousVnIds.Length != 0) DumpReaderStarter.PrintLogLine([$"Got information for all titles in database."]);
+        else DumpReaderStarter.PrintLogLine([$"Added {newTitleCount} new titles."]);
         Database.SaveLatestDumpUpdate(dumpDate);
         DumpReaderStarter.PrintLogLine(["Completed."]);
     }
@@ -232,8 +233,8 @@ public class DumpReader
             if (japaneseName?.Latin != null) character.Original = japaneseName.Name;
         }
         if (!CharacterAliases.TryGetValue(character.ID, out var aliases)) return;
-        var characterAliases = new List<string>(aliases.Count*2);
-        foreach(var alias in aliases)
+        var characterAliases = new List<string>(aliases.Count * 2);
+        foreach (var alias in aliases)
         {
             if (alias.Spoiler) continue;
             characterAliases.Add(alias.Name);

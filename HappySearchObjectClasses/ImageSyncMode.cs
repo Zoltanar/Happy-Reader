@@ -13,7 +13,8 @@ namespace Happy_Apps_Core
 		[NotMapped] Characters = 1,
 		[NotMapped] Covers = Characters << 1,
 		[NotMapped] Screenshots = Covers << 1,
-		[NotMapped] Thumbnails = Screenshots << 1,
-		All = Characters | Covers | Screenshots | Thumbnails,
+        [NotMapped] ScreenshotThumbnails = Screenshots << 1,
+        [NotMapped] CoverThumbnails = ScreenshotThumbnails << 1,
+        All = Characters | Covers | Screenshots | ScreenshotThumbnails | CoverThumbnails,
 	}
 }

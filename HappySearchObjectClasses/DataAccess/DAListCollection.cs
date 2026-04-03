@@ -1,7 +1,8 @@
-﻿using System;
+﻿using Microsoft.Data.Sqlite;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using Microsoft.Data.Sqlite;
+using System.Data.Common;
 using System.Linq;
 
 namespace Happy_Apps_Core.DataAccess
@@ -63,9 +64,10 @@ namespace Happy_Apps_Core.DataAccess
                 Conn.Open();
                 Conn.Trace(StaticHelpers.LogDatabaseTrace);
             }
+            DbCommand command = null;
             try
             {
-                using var command = item.UpsertCommand(Conn, insertOnly);
+                command = item.UpsertCommand(Conn, insertOnly);
                 command.Transaction = transaction;
                 var rowsAffected = command.ExecuteNonQuery();
                 var result = rowsAffected != 0;
@@ -76,8 +78,15 @@ namespace Happy_Apps_Core.DataAccess
                 }
                 if (!result) { }
             }
+            catch (Exception ex)
+            {
+                var parameters = command != null ? string.Join("|", command.Parameters.Cast<DbParameter>().Select(p => $"{p.ParameterName}={p.Value}")) : "null";
+                StaticHelpers.Logger.ToFile($"Error upserting item with key {item.Key} of type {typeof(TItem).Name};CommandText={command?.CommandText};Parameters={parameters};Exception:{ex}");
+                throw;
+            }
             finally
             {
+                command?.Dispose();
                 if (openNewConnection)
                 {
                     Conn.Close();

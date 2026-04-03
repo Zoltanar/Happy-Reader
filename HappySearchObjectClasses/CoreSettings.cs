@@ -11,7 +11,7 @@ namespace Happy_Apps_Core
 		private DateTime _dumpfileDate = DateTime.MinValue;
 		private bool _clearOldDumpsAndBackups = true;
 		private string _imageFolderPath = Path.Combine(StaticHelpers.StoredDataFolder, "vndb-img\\");
-		private ImageSyncMode _imageSync = ImageSyncMode.None;
+		private ImageSyncMode _imageSync = ImageSyncMode.CoverThumbnails;
         private string _secondaryTitleLanguage = "en";
         private string _apiToken;
 

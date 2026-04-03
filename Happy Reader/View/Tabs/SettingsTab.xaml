@@ -79,6 +79,7 @@
 							<StackPanel Grid.Column="1" Orientation="Horizontal">
 								<CheckBox Content="Characters" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncCharacters"/>
 								<CheckBox Content="Covers" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncCovers"/>
+								<CheckBox Content="Cover Thumbnails" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncCoverThumbnails"/>
 								<CheckBox Content="Screenshots" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncScreenshots"/>
 								<CheckBox Content="Screenshot Thumbnails" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncScreenshotThumbnails"/>
 							</StackPanel>

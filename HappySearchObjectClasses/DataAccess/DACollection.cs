@@ -56,8 +56,10 @@ namespace Happy_Apps_Core.DataAccess
 			{
 				var sql = $@"Select * from {typeof(TValue).Name}s";
 				using var command = Conn.CreateCommand();
-				command.CommandText = sql;
-				using var reader = command.ExecuteReader();
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
+                command.CommandText = sql;
+#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
+                using var reader = command.ExecuteReader();
 				while (reader.Read())
 				{
 					var item = new TValue();
@@ -84,10 +86,11 @@ namespace Happy_Apps_Core.DataAccess
                 Conn.Trace(StaticHelpers.LogDatabaseTrace);
 				Conn.Update(StaticHelpers.LogDatabaseUpdate);
             }
-			try
+			DbCommand command = null;
+            try
 			{
-				using var command = item.UpsertCommand(Conn, insertOnly);
-				command.Transaction = transaction;
+				command = item.UpsertCommand(Conn, insertOnly);
+                command.Transaction = transaction;
 				var rowsAffected = command.ExecuteNonQuery();
 				var result = rowsAffected != 0;
 				if (result) _items[item.Key] = item;
@@ -95,8 +98,15 @@ namespace Happy_Apps_Core.DataAccess
 				else if (item.Key is int intKey && intKey > HighestKey) HighestKey = intKey;
 				return rowsAffected;
 			}
-			finally
-			{
+			catch(Exception ex)
+            {
+                var parameters = command != null ? string.Join("|", command.Parameters.Cast<DbParameter>().Select(p => $"{p.ParameterName}={p.Value}")) : "null";
+                StaticHelpers.Logger.ToFile($"Error upserting item with key {item.Key} of type {typeof(TValue).Name};CommandText={command?.CommandText};Parameters={parameters};Exception:{ex}");
+                throw;
+            }
+            finally
+            {
+				command?.Dispose();
                 if (openNewConnection)
                 {
                     Conn.Close();

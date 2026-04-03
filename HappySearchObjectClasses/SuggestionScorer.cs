@@ -24,7 +24,9 @@ namespace Happy_Apps_Core
 		public readonly HashSet<int> IdTags;
 		public double MaxTagScore { get; }
 		public double MaxTraitScore { get; }
-		private readonly VisualNovelDatabase _database;
+        private bool HasTags { get; }
+        private bool HasTraits { get; }
+        private readonly VisualNovelDatabase _database;
 
 		public SuggestionScorer(
 			Dictionary<DumpFiles.WrittenTag, double> tagScores,
@@ -45,18 +47,26 @@ namespace Happy_Apps_Core
 			IdTags = Tags.SelectMany(t => t.Key.AllIDs).ToHashSet();
 			MaxTagScore = Tags.Sum(pair => pair.Value);
 			MaxTraitScore = Traits.Sum(pair => pair.Value);
-			_database = database;
+			HasTags = Tags.Count > 0;
+			HasTraits = Traits.Count > 0;
+            _database = database;
 		}
 
 		public void SetScore(ListedVN vn, bool useNewConnection, VisualNovelDatabase database)
 		{
-			var tagScore = Tags.Sum(sTag => vn.Tags(database).Where(vnTag => vnTag.Score > 0 && sTag.Key.AllIDs.Contains(vnTag.TagId)).Sum(vnTag => sTag.Value * vnTag.Score));
-			var traitScore = _database.GetTraitScoreForVn(vn.VNID, IdTraits, useNewConnection);
-			vn.Suggestion = new SuggestionScoreObject(tagScore/ MaxTagScore, traitScore / MaxTraitScore);
+
+            var tagScore =  HasTags ? Tags.Sum(sTag => vn.Tags(database).Where(vnTag => vnTag.Score > 0 && sTag.Key.AllIDs.Contains(vnTag.TagId)).Sum(vnTag => sTag.Value * vnTag.Score)) / MaxTagScore : 0d;
+			var traitScore = HasTraits ? _database.GetTraitScoreForVn(vn.VNID, IdTraits, useNewConnection) / MaxTraitScore : 0d;
+			vn.Suggestion = new SuggestionScoreObject(tagScore, traitScore);
 		}
 		
 		public void SetScore(CharacterItem character, IEnumerable<int> traitIds)
 		{
+			if (!HasTraits)
+			{
+				character.TraitScore = 0d;
+				return;
+            }
 			var score = 0d;
 			if (traitIds != null)
 			{

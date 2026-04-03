@@ -32,11 +32,11 @@ public static class DumpReaderStarter
         {
             StaticHelpers.Logger.LogDatabase = false;
             var dumpFolder = DumpFolder;
-            await Task.Run(()=> Run(dumpFolder, StaticHelpers.CSettings.UserID, result));
+            await Task.Run(() => Run(dumpFolder, StaticHelpers.CSettings.UserID, result));
             if (result.Type != UpdateType.Error)
             {
                 syncWatch = Stopwatch.StartNew();
-                await Task.Run(()=> SyncImages(StaticHelpers.CSettings.SyncImages));
+                await Task.Run(() => SyncImages(StaticHelpers.CSettings.SyncImages));
                 syncWatch.Stop();
             }
         }
@@ -75,13 +75,17 @@ public static class DumpReaderStarter
         {
             SyncImagesForFolder("cv/");
         }
+        if (syncMode.HasFlag(ImageSyncMode.CoverThumbnails))
+        {
+            SyncImagesForFolder("cv.t/");
+        }
         if (syncMode.HasFlag(ImageSyncMode.Screenshots))
         {
             SyncImagesForFolder("sf/");
         }
-        if (syncMode.HasFlag(ImageSyncMode.Thumbnails))
+        if (syncMode.HasFlag(ImageSyncMode.ScreenshotThumbnails))
         {
-            SyncImagesForFolder("st/");
+            SyncImagesForFolder("sf.t/");
         }
     }
 
@@ -167,16 +171,41 @@ public static class DumpReaderStarter
         RunWatch.Stop();
         if (result.Type is UpdateType.ReloadLatest or UpdateType.Update)
         {
-            var userAnswer = MessageBox.Show("VNDB data updated, select Yes to replace database file with updated.",
-                $"{StaticHelpers.ClientName} - VNDB Update", MessageBoxButton.YesNo);
-            if (userAnswer != MessageBoxResult.Yes)
+            if (previousVnIds.Length != 0)
             {
-                result.ErrorMessage = "VNDB update was rejected.";
-                result.Type = UpdateType.NoUpdate;
+                var userAnswer = MessageBox.Show("VNDB data updated, select Yes to replace database file with updated.",
+                    $"{StaticHelpers.ClientName} - VNDB Update", MessageBoxButton.YesNo);
+                if (userAnswer != MessageBoxResult.Yes)
+                {
+                    result.ErrorMessage = "VNDB update was rejected.";
+                    result.Type = UpdateType.NoUpdate;
+                    return;
+                }
+            }
+            bool deletedFile = false;
+            try
+            {
+                File.Delete(StaticHelpers.DatabaseFile);
+                deletedFile = true;
+            }
+            catch (Exception ex)
+            {
+                StaticHelpers.Logger.ToFile(ex);
+                PrintLogLine([$"Failed to delete old database file: {ex.Message}"]);
+            }
+            try
+            {
+                // overwrite if previous file failed to be deleted
+                File.Move(inProgressFile, StaticHelpers.DatabaseFile, !deletedFile);
+            }
+            catch (Exception ex)
+            {
+                StaticHelpers.Logger.ToFile(ex);
+                PrintLogLine([$"Failed to move updated database file in place: {ex.Message}"]);
+                result.Type = UpdateType.Error;
+                result.ErrorMessage = "Database File Error";
                 return;
             }
-            File.Delete(StaticHelpers.DatabaseFile);
-            File.Move(inProgressFile, StaticHelpers.DatabaseFile);
         }
         RemovePastBackups(dumpFolder, dumpFileInfo);
     }
@@ -226,11 +255,11 @@ public static class DumpReaderStarter
         await zip.CopyToAsync(newFileStream);
     }
 
-    private static async Task<(FileInfo DatabaseDump,FileInfo VoteDump)> DownloadLatestDumpFiles()
+    private static async Task<(FileInfo DatabaseDump, FileInfo VoteDump)> DownloadLatestDumpFiles()
     {
         var dbDumpPath = await StaticHelpers.DownloadFile(LatestDbDumpUrl, DumpFolder, null, PrintLogLine)
                          ?? throw new InvalidOperationException("Failed to download database dump.");
-        var voteDumpPath = await StaticHelpers.DownloadFile(LatestVoteDumpUrl, DumpFolder, null, PrintLogLine) 
+        var voteDumpPath = await StaticHelpers.DownloadFile(LatestVoteDumpUrl, DumpFolder, null, PrintLogLine)
                            ?? throw new InvalidOperationException("Failed to download vote dump.");
         return (new FileInfo(dbDumpPath), new FileInfo(voteDumpPath));
     }
