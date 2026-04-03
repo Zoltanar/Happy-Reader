@@ -44,7 +44,7 @@ namespace Happy_Apps_Core
 		#endregion
 
 		public const string ClientName = "Happy Reader";
-		public const string ClientVersion = "2.7.0";
+		public const string ClientVersion = "3.0.0";
 
 		public static VisualNovelDatabase LocalDatabase { get; set; }
 		public static readonly MultiLogger Logger;

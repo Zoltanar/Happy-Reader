@@ -44,17 +44,22 @@ namespace Happy_Apps_Core
             _status = ApiStatus.Closed;
             _logIn = LogInStatus.No;
             _apiToken = apiToken;
-            var response = Query("/authinfo", null, WebRequestMethods.Http.Get, typeof(AuthInfo)).Result;
-            _changeStatusAction?.Invoke(_status);
-            if (!response.success)
+            var task = WrapQuery(async () =>
             {
-                return $"Failed to get Authentication Info with API Token {_apiToken}";
-            }
-            _authInfo = (AuthInfo)response.returnObject;
-            CSettings.Username = _authInfo.UserName;
-            CSettings.UserID = _authInfo.IdAsInteger;
-            _logIn = LogInStatus.Yes;
-            return $"Authenticated as {_authInfo.UserName} (u{_authInfo.Id})";
+                var response = Query("/authinfo", null, WebRequestMethods.Http.Get, typeof(AuthInfo)).Result;
+                _changeStatusAction?.Invoke(_status);
+                if (!response.success)
+                {
+                    return $"Failed to get Authentication Info with API Token {_apiToken}";
+                }
+                _authInfo = (AuthInfo)response.returnObject;
+                CSettings.Username = _authInfo.UserName;
+                CSettings.UserID = _authInfo.IdAsInteger;
+                _logIn = LogInStatus.Yes;
+                return $"Authenticated as {_authInfo.UserName} ({_authInfo.Id})";
+            }, true);
+            var result = task.GetAwaiter().GetResult();
+            return result;
         }
 
         /// <summary>
@@ -78,10 +83,12 @@ namespace Happy_Apps_Core
                 else userVn.Labels.Add(UserVN.LabelKind.Voted);
                 userVn.VoteAdded = remove ? null : DateTime.UtcNow;
                 if (userVn.Labels.Any() || !string.IsNullOrWhiteSpace(userVn.ULNote))
+                {
                     LocalDatabase.UserVisualNovels.Upsert(userVn, true);
+                }
                 else LocalDatabase.UserVisualNovels.Remove(userVn, true);
                 return true;
-            });
+            }, false);
         }
 
         /// <summary>
@@ -105,7 +112,7 @@ namespace Happy_Apps_Core
                 if (userVn.Labels.Any() || !string.IsNullOrWhiteSpace(userVn.ULNote)) LocalDatabase.UserVisualNovels.Upsert(userVn, true);
                 else LocalDatabase.UserVisualNovels.Remove(userVn, true);
                 return true;
-            });
+            }, false);
         }
 
         public async Task<bool> ChangeVNNote(ListedVN vn, string note)
@@ -124,7 +131,7 @@ namespace Happy_Apps_Core
                 if (userVn.Labels.Any() || !string.IsNullOrWhiteSpace(userVn.ULNote)) LocalDatabase.UserVisualNovels.Upsert(userVn, true);
                 else LocalDatabase.UserVisualNovels.Remove(userVn, true);
                 return true;
-            });
+            }, false);
         }
         #endregion
 
@@ -132,9 +139,9 @@ namespace Happy_Apps_Core
         /// Sets status to busy beforehand, runs task, then updates UI with status set in <see cref="Query"/> in finally block.
         /// </summary>
         /// <remarks>Callers do not need to modify status or update UI status.</remarks>
-        private async Task<T> WrapQuery<T>(Func<Task<T>> task, [CallerMemberName] string caller = null)
+        private async Task<T> WrapQuery<T>(Func<Task<T>> task, bool isLogin, [CallerMemberName] string caller = null)
         {
-            if (!StartQuery(caller)) return default;
+            if (!StartQuery(caller, isLogin)) return default;
             try
             {
                 _status = ApiStatus.Busy;
@@ -159,9 +166,9 @@ namespace Happy_Apps_Core
         /// </summary>
         /// <param name="featureName">Name of feature calling the query</param>
         /// <returns>If connection was ready</returns>
-        private bool StartQuery(string featureName)
+        private bool StartQuery(string featureName, bool isLogin)
         {
-            if (_logIn != LogInStatus.Yes)
+            if (!isLogin && _logIn != LogInStatus.Yes)
             {
                 _textAction("Must be authenticated with API token.", MessageSeverity.Error);
                 return false;

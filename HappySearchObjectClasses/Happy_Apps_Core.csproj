@@ -7,10 +7,10 @@
     <Platforms>x64;x86</Platforms>
     <RepositoryUrl>https://github.com/Zoltanar/Happy-Reader</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>2.7.0</AssemblyVersion>
-    <FileVersion>2.7.0</FileVersion>
+    <AssemblyVersion>3.0.0</AssemblyVersion>
+    <FileVersion>3.0.0</FileVersion>
     <Description>Core library for Happy Reader</Description>
-    <Copyright>Copyright © 2025</Copyright>
+    <Copyright>Copyright © 2026</Copyright>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <OutputPath>bin\x64\Debug\</OutputPath>
