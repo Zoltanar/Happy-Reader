@@ -14,9 +14,8 @@ public class DumpReader
 {
     public int UserId { get; }
     public string DumpFolder { get; }
-    public string OutputFilePath { get; }
-    public VisualNovelDatabase Database { get; }
-    public SuggestionScorer SuggestionScorer { get; }
+    public VisualNovelDatabase Database { get; private set; }
+    public SuggestionScorer SuggestionScorer { get; private set; }
     /// <summary>
     /// Key is release id.
     /// </summary>
@@ -44,35 +43,33 @@ public class DumpReader
     public Dictionary<int, List<CharacterName>> CharacterNames { get; } = new();
     public Dictionary<int, List<CharacterAlias>> CharacterAliases { get; } = new();
 
-    public DumpReader(string dumpFolder, string currentDatabaseFilePath, int userId, out string inProgressDbFile)
+    public DumpReader(string dumpFolder, VisualNovelDatabase database, int userId, out string backupDatabaseFile)
     {
         if (!Directory.Exists(dumpFolder)) throw new IOException($"Dump folder does not exist: '{dumpFolder}'");
-        var currentDbFile = new FileInfo(currentDatabaseFilePath);
-        if (!currentDbFile.Exists) throw new IOException($"Original database does not exist: '{currentDbFile}'");
-        //UIP = update in progress
-        inProgressDbFile = GetDatabaseFile(currentDbFile, "-UIP");
-        File.Copy(currentDatabaseFilePath, inProgressDbFile);
         //DRB = dump reader backup
-        var backupPath = GetDatabaseFile(currentDbFile, "-DRB");
-        DumpReaderStarter.PrintLogLine([$"Backing up database to {backupPath}"]);
-        File.Copy(currentDbFile.FullName, backupPath);
+        backupDatabaseFile = GetDatabaseFile(database.FilePath, "-DRB");
+        DumpReaderStarter.PrintLogLine([$"Backing up database to {backupDatabaseFile}"]);
+        File.Copy(database.FilePath, backupDatabaseFile);
         UserId = userId;
         DumpFolder = dumpFolder;
-        OutputFilePath = inProgressDbFile;
-        Database = new VisualNovelDatabase(OutputFilePath, false);
+        Database = StaticHelpers.LocalDatabase;
         Database.DeleteForDump();
-        DumpFiles.Load();
         SuggestionScorer = new SuggestionScorer(
             StaticHelpers.CSettings.GetTagScoreDictionary(),
             StaticHelpers.CSettings.GetTraitScoreDictionary(),
             Database);
     }
 
-    private string GetDatabaseFile(FileInfo currentDatabaseFile, string suffix)
+    private string GetDatabaseFile(string currentDatabaseFile, string suffix)
     {
-        var dbDirectory = Path.GetDirectoryName(currentDatabaseFile.FullName) ?? throw new ArgumentNullException(nameof(Path.GetDirectoryName));
-        return Path.Combine(dbDirectory, $"{Path.GetFileNameWithoutExtension(currentDatabaseFile.FullName)}{suffix}{DateTime.Now:yyyyMMdd-HHmmss}{currentDatabaseFile.Extension}");
+        var dbDirectory = Path.GetDirectoryName(currentDatabaseFile) ?? throw new ArgumentNullException(nameof(Path.GetDirectoryName));
+        return Path.Combine(dbDirectory, $"{Path.GetFileNameWithoutExtension(currentDatabaseFile)}{suffix}{DateTime.Now:yyyyMMdd-HHmmss}.sqlite");
     }
+
+    /// <summary>
+    /// Perform an in-place update of the database with the dump files from VNDB.
+    /// A backup of the database will be created before the update, and the database will be restored to the backup if any error occurs during the update. 
+    /// </summary>
     public void Run(DateTime dumpDate, int[] previousVnIds, int[] previousCharacterIds)
     {
         DumpReaderStarter.PrintLogLine(["Starting Dump Reader..."]);
@@ -82,6 +79,7 @@ public class DumpReader
         LoadReleases();
         LoadAndResolveTags();
         LoadStaff();
+        DumpReaderStarter.PrintLogLine(["Loading Characters..."]);
         LoadCharacters(previousCharacterIds);
         Load<DumpVote>((vote, _) =>
         {
@@ -101,6 +99,7 @@ public class DumpReader
             if (i.ReleaseIds.Any()) VnLengths[i.VNId].Add(i);
         }, "db\\vn_length_votes");
         var newTitleCount = 0;
+        DumpReaderStarter.PrintLogLine(["Loading VNs..."]);
         Load<ListedVN>((i, t) =>
         {
             ResolveOtherForVn(i);
@@ -113,7 +112,7 @@ public class DumpReader
             Database.VisualNovels.Add(i, false, true, t);
             ResolveUserVnForVn(i, t);
         }, "db\\vn");
-        if (previousVnIds.Length != 0) DumpReaderStarter.PrintLogLine([$"Got information for all titles in database."]);
+        if (previousVnIds.Length == 0) DumpReaderStarter.PrintLogLine([$"Got information for all titles in database."]);
         else DumpReaderStarter.PrintLogLine([$"Added {newTitleCount} new titles."]);
         Database.SaveLatestDumpUpdate(dumpDate);
         DumpReaderStarter.PrintLogLine(["Completed."]);
@@ -121,7 +120,7 @@ public class DumpReader
 
     private void LoadLinks()
     {
-        DumpReaderStarter.PrintLogLine(["Loading Links..."]);
+        StaticHelpers.Logger.ToFile(["Loading Links..."]);
         using var externalLinksFile = new StreamReader(File.Open(Path.Combine(DumpFolder, "db\\extlinks"), FileMode.Open));
         while (externalLinksFile.ReadLine() is string line)
         {
@@ -364,7 +363,7 @@ public class DumpReader
 
     private void Load<T>(Action<T, SqliteTransaction> addToList, string filePath, bool useHeaderFile = true) where T : DumpItem, new()
     {
-        DumpReaderStarter.PrintLogLine([$"Loading for {typeof(T).Name}..."]);
+        StaticHelpers.Logger.ToFile([$"Loading for {typeof(T).Name}..."]);
         new T().SetDumpHeaders((useHeaderFile
             ? File.ReadAllLines(Path.Combine(DumpFolder, filePath + ".header")).Single()
             : string.Empty).Split('\t'));
@@ -557,19 +556,9 @@ public class DumpReader
         return filteredLanguages;
     }
 
-    public static void GetDbStats(string databaseFile, out DateTime? latestDumpUpdate, out int[] vnIds, out int[] characterIds)
+    public static void GetDbStats(VisualNovelDatabase database, out DateTime? latestDumpUpdate, out int[] vnIds, out int[] characterIds)
     {
-        if (!File.Exists(databaseFile))
-        {
-            latestDumpUpdate = null;
-            vnIds = Array.Empty<int>();
-            characterIds = Array.Empty<int>();
-            return;
-        }
-        var database = new VisualNovelDatabase(databaseFile, false);
         latestDumpUpdate = database.GetLatestDumpUpdate();
-        database.VisualNovels.Load(true);
-        database.Characters.Load(true);
         //we order this collection so we can run a binary search on it
         vnIds = database.VisualNovels.Select(v => v.VNID).OrderBy(n => n).ToArray();
         characterIds = database.Characters.Select(v => v.ID).OrderBy(n => n).ToArray();

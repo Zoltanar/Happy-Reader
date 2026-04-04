@@ -37,7 +37,7 @@ namespace Happy_Apps_Core
 		public static readonly string AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Happy Reader");
 		public static readonly string StoredDataFolder = Path.Combine(AppDataFolder, "Stored Data");
 		public static readonly string LogsFolder = Path.Combine(AppDataFolder, "Logs");
-		public static readonly string DatabaseFile = Path.Combine(StoredDataFolder, "Happy-Apps.sqlite");
+		public static string DatabaseFile { get; } = Path.Combine(StoredDataFolder, "Happy-Apps.sqlite");
 		public static readonly string AllSettingsJson = Path.Combine(StoredDataFolder, "HR_Settings.json");
 		public static readonly string IthVnrSettingsJson = Path.Combine(StoredDataFolder, "IthVnr_Settings.json");
 		public static readonly string TranslationPluginsSettingsFolder = Path.Combine(StoredDataFolder, "Translation Plugins");

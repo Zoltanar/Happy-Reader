@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -146,7 +147,7 @@ public static class DumpReaderStarter
 
     private static async Task Run(string dumpFolder, int userId, UpdateResult result)
     {
-        DumpReader.GetDbStats(StaticHelpers.DatabaseFile, out var previousDumpUpdate, out var previousVnIds, out var previousCharacterIds);
+        DumpReader.GetDbStats(StaticHelpers.LocalDatabase, out var previousDumpUpdate, out var previousVnIds, out var previousCharacterIds);
         var dumpFileInfo = await GetLatestDump(previousDumpUpdate, dumpFolder);
         var oldDateString = previousDumpUpdate.HasValue
             ? $"Current update was from: {previousDumpUpdate.Value.ToShortDateString()}."
@@ -165,47 +166,30 @@ public static class DumpReaderStarter
         Debug.Assert(dumpFileInfo.NewFileDate != null, nameof(dumpFileInfo.NewFileDate) + " != null");
         PrintLogLine([oldDateString, $"Getting update to: {dumpFileInfo.NewFileDate.Value.ToShortDateString()}."]);
         RunWatch = Stopwatch.StartNew();
-        var processor = new DumpReader(dumpFileInfo.LatestDumpFolder, StaticHelpers.DatabaseFile, userId, out var inProgressFile);
+        var processor = new DumpReader(dumpFileInfo.LatestDumpFolder, StaticHelpers.LocalDatabase, userId, out var backupDatabaseFile);
         processor.Run(dumpFileInfo.NewFileDate.Value, previousVnIds, previousCharacterIds);
         result.Type = dumpFileInfo.UpToDate ? UpdateType.ReloadLatest : UpdateType.Update;
         RunWatch.Stop();
-        if (result.Type is UpdateType.ReloadLatest or UpdateType.Update)
+        if (result.Type == UpdateType.Error)
         {
-            if (previousVnIds.Length != 0)
-            {
-                var userAnswer = MessageBox.Show("VNDB data updated, select Yes to replace database file with updated.",
-                    $"{StaticHelpers.ClientName} - VNDB Update", MessageBoxButton.YesNo);
-                if (userAnswer != MessageBoxResult.Yes)
-                {
-                    result.ErrorMessage = "VNDB update was rejected.";
-                    result.Type = UpdateType.NoUpdate;
-                    return;
-                }
-            }
-            bool deletedFile = false;
+            //update failed, try to return to backup
+            StaticHelpers.LocalDatabase.Dispose();
+            StaticHelpers.LocalDatabase = null;
             try
             {
-                File.Delete(StaticHelpers.DatabaseFile);
-                deletedFile = true;
+                File.Copy(backupDatabaseFile, StaticHelpers.DatabaseFile, true);
             }
-            catch (Exception ex)
+            catch (IOException ex)
             {
                 StaticHelpers.Logger.ToFile(ex);
-                PrintLogLine([$"Failed to delete old database file: {ex.Message}"]);
-            }
-            try
-            {
-                // overwrite if previous file failed to be deleted
-                File.Move(inProgressFile, StaticHelpers.DatabaseFile, !deletedFile);
-            }
-            catch (Exception ex)
-            {
-                StaticHelpers.Logger.ToFile(ex);
-                PrintLogLine([$"Failed to move updated database file in place: {ex.Message}"]);
+                PrintLogLine([$"Database update failed and reverting to backup failed.",
+                    $"Please close the application and rename file to {Path.GetFileName(StaticHelpers.DatabaseFile)}, overwriting existing:",
+                    backupDatabaseFile]);
                 result.Type = UpdateType.Error;
                 result.ErrorMessage = "Database File Error";
                 return;
             }
+            StaticHelpers.LocalDatabase = new Database.VisualNovelDatabase(StaticHelpers.DatabaseFile, true);
         }
         RemovePastBackups(dumpFolder, dumpFileInfo);
     }

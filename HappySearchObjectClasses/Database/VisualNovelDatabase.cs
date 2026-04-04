@@ -1,25 +1,27 @@
+using Happy_Apps_Core.DataAccess;
+using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.Data.Common;
-using Microsoft.Data.Sqlite;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using Happy_Apps_Core.DataAccess;
 
 namespace Happy_Apps_Core.Database
 {
-	public class VisualNovelDatabase
+	public class VisualNovelDatabase : IDisposable
 	{
 		private const string LatestDumpUpdateKey = @"LatestDumpUpdate";
 		private const string DateFormat = @"yyyy-MM-dd";
+        private bool isDisposed;
 
-		public DACollection<int, ListedVN> VisualNovels { get; }
+		public string FilePath { get; }
+        public DACollection<int, ListedVN> VisualNovels { get; }
 		public DACollection<int, ListedProducer> Producers { get; }
 		public DACollection<(int, int), UserVN> UserVisualNovels { get; }
 		public DACollection<(int, int), UserListedProducer> UserProducers { get; }
@@ -36,6 +38,7 @@ namespace Happy_Apps_Core.Database
 
 		public VisualNovelDatabase(string dbFile, bool loadAllTables)
 		{
+			FilePath = dbFile;
 			Connection = new SqliteConnection($@"Data Source={dbFile}");
 			VisualNovels = new DACollection<int, ListedVN>(Connection);
 			UserVisualNovels = new DACollection<(int, int), UserVN>(Connection);
@@ -600,6 +603,24 @@ select AliasID from StaffAliass join StaffItems on StaffAliass.StaffID = StaffIt
 			};
 			TableDetails.Upsert(tableDetail, true);
 		}
+
+        public void Dispose()
+        {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+        }
+
+		protected virtual void Dispose(bool disposing)
+        {
+            if (isDisposed) return;
+
+            if (disposing)
+            {
+                ((IDisposable)Connection).Dispose();
+            }
+
+            isDisposed = true;
+        }
     }
 
 	public class TableDetail : IDataItem<string>
