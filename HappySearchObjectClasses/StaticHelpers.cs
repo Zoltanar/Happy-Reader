@@ -373,7 +373,7 @@ namespace Happy_Apps_Core
 			if (!File.Exists(filePath))
 			{
 				var thumbnailPath = Path.GetFullPath($"{CSettings.ImageFolderPath}\\{folder}.t\\{id % 100:00}\\{id}.jpg");
-				if (File.Exists(filePath)) return thumbnailPath;
+				if (File.Exists(thumbnailPath)) return thumbnailPath;
             }
 			return filePath;
 		}

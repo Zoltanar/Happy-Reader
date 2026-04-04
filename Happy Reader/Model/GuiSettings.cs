@@ -15,9 +15,9 @@ namespace Happy_Reader
 		public const int VotesRequiredForRatingSort = 10; //todo make editable?
 		private bool _nsfwImages;
 		private bool _advancedMode;
-		private bool _contentTags;
+		private bool _contentTags = true;
 		private bool _sexualTags;
-		private bool _technicalTags;
+		private bool _technicalTags = true;
 		private bool _hookGlobalMouse;
 		private bool _useDecimalVoteScores = true;
 		private bool _excludeLowVotesForRatingSort = true;
