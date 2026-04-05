@@ -17,7 +17,7 @@ namespace HRDeepLTranslate
 		private const string AuthKeyPropertyName = @"Authentication Key";
 		private const string PreventDetailsPropertyName = @"Prevent Details";
 
-		public string Version => @"1.1";
+		public string Version => @"2.0";
 		public string SourceName => @"DeepL API";
 
 		private static readonly HttpClient FreeClient = new();
@@ -34,8 +34,11 @@ namespace HRDeepLTranslate
 
 		public void Initialise()
 		{
-			Error = string.IsNullOrWhiteSpace(Settings.AuthenticationKey) ? "Authentication Key is not set" : null;
-		}
+			var authenticationKeyExists = !string.IsNullOrWhiteSpace(Settings.AuthenticationKey);
+
+            Error = authenticationKeyExists ? null : "Authentication Key is not set";
+            if(authenticationKeyExists) FreeClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("DeepL-Auth-Key", Settings.AuthenticationKey);
+        }
 
 		public void LoadProperties(string filePath)
 		{
@@ -57,6 +60,7 @@ namespace HRDeepLTranslate
 					break;
 				case AuthKeyPropertyName when value is string authenticationKey:
 					Settings.AuthenticationKey = authenticationKey;
+					FreeClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("DeepL-Auth-Key",authenticationKey);
 					break;
 				case PreventDetailsPropertyName when value is bool preventDetails:
 					Settings.PreventDetails = preventDetails;
@@ -83,7 +87,7 @@ namespace HRDeepLTranslate
 			try
 			{
 				var url = FormUrl(input);
-				var success = GetPostResultAsString(FreeClient, url, out output);
+                var success = GetPostResultAsString(FreeClient, url, out output);
 				if (!success) return false;
 				success = TryDeserializeJsonResponse(output, out output);
 				if (!success) return false;
@@ -109,12 +113,12 @@ namespace HRDeepLTranslate
 
 		private string FormUrl(string input)
 		{
-			return $"{Settings.Url}&auth_key={Settings.AuthenticationKey}&text={Uri.EscapeDataString(input)}";
+			return $"{Settings.Url}&text={Uri.EscapeDataString(input)}";
 		}
 
 		private static bool GetPostResultAsString(HttpClient client, string url, out string output)
-		{
-			var task = client.PostAsync(url, null);
+        {
+            var task = client.PostAsync(url, null);
 			task.Wait(2500);
 			var result = task.Result;
 			var task2 = result.Content.ReadAsStringAsync();
