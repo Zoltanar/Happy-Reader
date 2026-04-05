@@ -24,6 +24,7 @@ namespace Happy_Reader.ViewModel
         {
             MainViewModel.StatusText = "Loading VN Database...";
             await Task.Run(() => StaticHelpers.LocalDatabase = new VisualNovelDatabase(StaticHelpers.DatabaseFile, true));
+            StaticMethods.MainWindow.SettingsTab.UpdateLastUpdateLabels();
             OnPropertyChanged(nameof(ProducerList));
             MainViewModel.StatusText = "Opening VNDB Connection...";
             StaticHelpers.Conn = new VndbConnection(SetReplyText, ChangeConnectionStatus);

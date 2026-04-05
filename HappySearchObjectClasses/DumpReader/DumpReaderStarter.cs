@@ -17,47 +17,74 @@ public static class DumpReaderStarter
     private const string LatestVoteDumpUrl = "https://dl.vndb.org/dump/vndb-votes-latest.gz";
     private const string RsyncUrlBase = @"rsync://dl.vndb.org/vndb-img/";
     private const int UpToDateDays = 1;
-    public static Action<string[]> PrintLogLine = text => StaticHelpers.Logger.ToFile(text);
+    public static Action<string[]> PrintLogLine = StaticHelpers.Logger.ToFile;
     private static Stopwatch RunWatch;
     private static Stopwatch DownloadWatch;
 
 
-    public static async Task<UpdateResult> Execute(Action<string[]> loggingAction)
+    public static async Task<UpdateResult> Execute()
     {
-        PrintLogLine = loggingAction;
         UpdateResult result = new UpdateResult();
         Stopwatch syncWatch = null;
         var databaseLogging = StaticHelpers.Logger.LogDatabase;
-
         try
         {
             StaticHelpers.Logger.LogDatabase = false;
             var dumpFolder = DumpFolder;
             await Task.Run(() => Run(dumpFolder, StaticHelpers.CSettings.UserID, result));
+            if (DownloadWatch != null && !DownloadWatch.IsRunning) PrintLogLine([$"Time for Dump Download: {DownloadWatch.Elapsed.TotalMinutes:00}:{DownloadWatch.Elapsed.Seconds:00}"]);
+            if (RunWatch != null && !RunWatch.IsRunning) PrintLogLine([$"Time for DB Update: {RunWatch.Elapsed.TotalMinutes:00}:{RunWatch.Elapsed.Seconds:00}"]);
             if (result.Type != UpdateType.Error)
             {
-                syncWatch = Stopwatch.StartNew();
-                await Task.Run(() => SyncImages(StaticHelpers.CSettings.SyncImages));
-                syncWatch.Stop();
+                await RunImageSync(false);
             }
         }
         catch (Exception ex)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            PrintLogLine([ex.ToString()]);
-            Console.ResetColor();
-            result.Type = UpdateType.Error;
-            result.ErrorMessage = ex.Message;
+            HandleException(ex, result);
         }
         finally
         {
             StaticHelpers.Logger.LogDatabase = databaseLogging;
-            if (DownloadWatch != null && !DownloadWatch.IsRunning) PrintLogLine([$"Time for Dump Download: {DownloadWatch.Elapsed.TotalMinutes:00}:{DownloadWatch.Elapsed.Seconds:00}"]);
-            if (RunWatch != null && !RunWatch.IsRunning) PrintLogLine([$"Time for DB Update: {RunWatch.Elapsed.TotalMinutes:00}:{RunWatch.Elapsed.Seconds:00}"]);
-            if (syncWatch != null && !syncWatch.IsRunning) PrintLogLine([$"Time for Image Sync: {syncWatch.Elapsed.TotalMinutes:00}:{syncWatch.Elapsed.Seconds:00}"]);
         }
         return result;
 
+    }
+
+    private static void HandleException(Exception ex, UpdateResult result)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        PrintLogLine([ex.ToString()]);
+        Console.ResetColor();
+        result.Type = UpdateType.Error;
+        result.ErrorMessage = ex.Message;
+    }
+
+    public static async Task<UpdateResult> RunImageSync(bool imageSyncOnly)
+    {
+        var syncWatch = Stopwatch.StartNew();
+        var updateResult = new UpdateResult();
+        try
+        {
+            await Task.Run(() => SyncImages(StaticHelpers.CSettings.SyncImages));
+            updateResult.Type = UpdateType.ImageSync;
+            syncWatch.Stop();
+            return updateResult;
+        }
+        catch(Exception ex)
+        {
+            if (syncWatch.IsRunning) syncWatch.Stop();
+            if (imageSyncOnly)
+            {
+                HandleException(ex, updateResult);
+                return updateResult;
+            }
+            throw;
+        }
+        finally
+        {
+            PrintLogLine([$"Time for Image Sync: {syncWatch.Elapsed.TotalMinutes:00}:{syncWatch.Elapsed.Seconds:00}"]);
+        }
     }
 
     private static void SyncImages(ImageSyncMode syncMode)
@@ -88,6 +115,7 @@ public static class DumpReaderStarter
         {
             SyncImagesForFolder("sf.t/");
         }
+        StaticHelpers.CSettings.ImageSyncDate = DateTime.UtcNow;
     }
 
     private static void SyncImagesForFolder(string folder)
@@ -347,5 +375,6 @@ public static class DumpReaderStarter
         Update = 0,
         ReloadLatest = 1,
         NoUpdate = 2,
+        ImageSync = 3
     }
 }

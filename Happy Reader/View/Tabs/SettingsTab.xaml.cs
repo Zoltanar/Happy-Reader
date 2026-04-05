@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using Happy_Apps_Core;
+using Happy_Apps_Core.DumpReader;
 using Happy_Apps_Core.Translation;
 using static Happy_Apps_Core.StaticHelpers;
 using SettingsViewModel = Happy_Reader.ViewModel.SettingsViewModel;
@@ -18,7 +19,8 @@ namespace Happy_Reader.View.Tabs
         private bool _loaded;
         private SettingsViewModel ViewModel => DataContext as SettingsViewModel ?? throw new ArgumentNullException($"Expected view model to be of type {nameof(SettingsViewModel)}");
         private bool _updateInProgress;
-        private const string UpdateVndbText = "Update VNDB Data";
+        private const string UpdateVndbText = "Update VNDB data and sync images";
+        private const string ImageSyncText = "Sync images only";
 
         public SettingsTab() => InitializeComponent();
 
@@ -51,6 +53,7 @@ namespace Happy_Reader.View.Tabs
             ImageSyncCoverThumbnails.IsChecked = ViewModel.CoreSettings.SyncImages.HasFlag(ImageSyncMode.CoverThumbnails);
             ImageSyncScreenshots.IsChecked = ViewModel.CoreSettings.SyncImages.HasFlag(ImageSyncMode.Screenshots);
             ImageSyncScreenshotThumbnails.IsChecked = ViewModel.CoreSettings.SyncImages.HasFlag(ImageSyncMode.ScreenshotThumbnails);
+            DumpReaderStarter.PrintLogLine = UpdateLoggingAction;
             _loaded = true;
         }
 
@@ -199,18 +202,13 @@ namespace Happy_Reader.View.Tabs
             }
             if (_updateInProgress)
             {
-                StaticMethods.MainWindow.ViewModel.StatusText = "VNDB update is already in progress.";
+                StaticMethods.MainWindow.ViewModel.StatusText = "An update is already in progress.";
                 return;
             }
             try
             {
-                _updateInProgress = true;
-                UpdateLoggingBox.Visibility = Visibility.Visible;
-                UpdateLoggingBox.Items.Clear();
-                UpdateVndbButton.Content = $"{UpdateVndbText} (in progress)";
-                UpdateVndbButton.IsEnabled = false;
-                MultiLogger.PreviousLogTime = null;
-                var updateResult = await Happy_Apps_Core.DumpReader.DumpReaderStarter.Execute(UpdateLoggingAction);
+                StartUpdate();
+                var updateResult = await DumpReaderStarter.Execute();
                 if (updateResult.Success)
                 {
 
@@ -223,9 +221,7 @@ namespace Happy_Reader.View.Tabs
             }
             finally
             {
-                _updateInProgress = false;
-                UpdateVndbButton.IsEnabled = true;
-                UpdateVndbButton.Content = UpdateVndbText;
+                EndUpdate();
             }
         }
 
@@ -235,6 +231,55 @@ namespace Happy_Reader.View.Tabs
             {
                 foreach (var line in texts) UpdateLoggingBox.Items.Add(line);
             });
+        }
+
+        private async void UpdateImagesOnly(object sender, RoutedEventArgs e)
+        {
+            if (_updateInProgress)
+            {
+                StaticMethods.MainWindow.ViewModel.StatusText = "An update is already in progress.";
+                return;
+            }
+            try
+            {
+                StartUpdate();
+                var updateResult = await DumpReaderStarter.RunImageSync(true);
+                var message = updateResult.Type.ToString();
+                if (!string.IsNullOrWhiteSpace(updateResult.ErrorMessage)) message += $" - {updateResult.ErrorMessage}";
+                else message += $" - Success";
+                StaticMethods.MainWindow.ViewModel.StatusText = $"{message}";
+            }
+            finally
+            {
+                EndUpdate();
+            }
+        }
+
+        private void StartUpdate()
+        {
+            _updateInProgress = true;
+            UpdateLoggingBox.Visibility = Visibility.Visible;
+            UpdateLoggingBox.Items.Clear();
+            UpdateVndbButton.Content = $"{UpdateVndbText} (in progress)";
+            UpdateVndbButton.IsEnabled = false;
+            UpdateImagesButton.Content = $"{ImageSyncText} (in progress)";
+            UpdateImagesButton.IsEnabled = false;
+        }
+
+        private void EndUpdate()
+        {
+            _updateInProgress = false;
+            UpdateVndbButton.IsEnabled = true;
+            UpdateVndbButton.Content = UpdateVndbText;
+            UpdateImagesButton.Content = ImageSyncText;
+            UpdateImagesButton.IsEnabled = true;
+            UpdateLastUpdateLabels();
+        }
+
+        public void UpdateLastUpdateLabels()
+        {
+            LastDumpUpdateLabel.GetBindingExpression(ContentProperty).UpdateTarget();
+            LastImageSyncLabel.GetBindingExpression(ContentProperty).UpdateTarget();
         }
     }
 }

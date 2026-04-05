@@ -21,6 +21,7 @@ namespace Happy_Apps_Core.Database
         private bool isDisposed;
 
 		public string FilePath { get; }
+		public DateTime? LastDumpUpdate { get; private set; }
         public DACollection<int, ListedVN> VisualNovels { get; }
 		public DACollection<int, ListedProducer> Producers { get; }
 		public DACollection<(int, int), UserVN> UserVisualNovels { get; }
@@ -56,9 +57,10 @@ namespace Happy_Apps_Core.Database
 			VnSeiyuus = new DACollection<(int, int, int), VnSeiyuu>(Connection);
 			if (!File.Exists(dbFile)) Seed();
 			RunUpdates();
-			if (!loadAllTables) return;
+            LastDumpUpdate = GetLatestDumpUpdate();
+            if (!loadAllTables) return;
 			LoadAllTables();
-		}
+        }
 		
         private void RunUpdates()
 		{
@@ -602,7 +604,8 @@ select AliasID from StaffAliass join StaffItems on StaffAliass.StaffID = StaffIt
 				Value = updateDate.ToString(DateFormat, CultureInfo.InvariantCulture)
 			};
 			TableDetails.Upsert(tableDetail, true);
-		}
+			LastDumpUpdate = updateDate;
+        }
 
         public void Dispose()
         {

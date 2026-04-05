@@ -6,7 +6,7 @@
              xmlns:viewModel="clr-namespace:Happy_Reader.ViewModel"
              xmlns:view="clr-namespace:Happy_Reader.View"
              mc:Ignorable="d" 
-             d:DesignHeight="1750" d:DesignWidth="800"
+             d:DesignHeight="600" d:DesignWidth="800"
              d:DataContext="{d:DesignInstance viewModel:SettingsViewModel}"
 						 x:Name="Tab"
              Loaded="SettingsTab_OnLoaded">
@@ -56,6 +56,7 @@
 							<RowDefinition Height="Auto"/>
 							<RowDefinition Height="Auto"/>
 							<RowDefinition Height="Auto"/>
+							<RowDefinition Height="Auto"/>
 							<RowDefinition Height="*"/>
 						</Grid.RowDefinitions>
 						<view:LabeledTextBox Grid.Row="0" LabelWidth="150" Label="Secondary Title Language:" Text="{Binding SecondaryTitleLanguage}" ToolTip="Secondary language (2 letter form) to sort titles by release date in that language"/>
@@ -77,15 +78,40 @@
 							</Grid.ColumnDefinitions>
 							<Label Content="Image Sync" Width="120"/>
 							<StackPanel Grid.Column="1" Orientation="Horizontal">
-								<CheckBox Content="Characters" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncCharacters"/>
-								<CheckBox Content="Covers" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncCovers"/>
-								<CheckBox Content="Cover Thumbnails" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncCoverThumbnails"/>
-								<CheckBox Content="Screenshots" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncScreenshots"/>
-								<CheckBox Content="Screenshot Thumbnails" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncScreenshotThumbnails"/>
+								<CheckBox Content="Characters" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncCharacters"
+													ToolTip="Approximately 4GB."/>
+								<CheckBox Content="Covers" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncCovers"
+													ToolTip="Approximately 13GB."/>
+								<CheckBox Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncCoverThumbnails" 
+													ToolTip="Approximately 2GB. Note that not all covers have thumbnails.">
+									<TextBlock>
+										<Run Text="Cover Thumbnails"/>
+										<Run Text="(!)" FontWeight="Bold" Foreground="Red"/>
+									</TextBlock>
+								</CheckBox>
+								<CheckBox Content="Screenshots" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncScreenshots"
+													ToolTip="Approximately 36GB."/>
+								<CheckBox Content="Screenshot Thumbnails" Margin="5,0" VerticalContentAlignment="Center" Checked="ImageSyncChanged" Unchecked="ImageSyncChanged" x:Name="ImageSyncScreenshotThumbnails"													
+													ToolTip="Approximately 2GB."/>
 							</StackPanel>
 						</Grid>
-						<Button Grid.Row="6" x:Name="UpdateVndbButton" Content="Update VNDB Data" Click="UpdateVndbData"/>
-						<ListBox x:Name="UpdateLoggingBox" Visibility="Collapsed" Grid.Row="7" />
+						<Grid Grid.Row="6">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*"/>
+								<ColumnDefinition Width="Auto"/>
+							</Grid.ColumnDefinitions>
+							<Label Grid.Column="0" x:Name="LastDumpUpdateLabel" Content="{Binding LastDumpUpdateText}" Margin="0,0,5,0"/>
+							<Label Grid.Column="1" x:Name="LastImageSyncLabel" Content="{Binding LastImageSyncText}" Padding="5,0"/>
+						</Grid>
+						<Grid Grid.Row="7">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*"/>
+								<ColumnDefinition Width="Auto"/>
+							</Grid.ColumnDefinitions>
+							<Button Grid.Column="0" x:Name="UpdateVndbButton" Content="Update VNDB data and sync images" Click="UpdateVndbData" Margin="0,0,5,0"/>
+							<Button Grid.Column="1" x:Name="UpdateImagesButton" Content="Sync images only" Click="UpdateImagesOnly" Padding="5,0"/>
+						</Grid>
+						<ListBox x:Name="UpdateLoggingBox" Visibility="Collapsed" Grid.Row="8" />
 					</Grid>
 				</ScrollViewer>
 			</TabItem>
