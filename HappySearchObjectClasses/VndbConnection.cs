@@ -39,18 +39,25 @@ namespace Happy_Apps_Core
         /// <summary>
         /// Authenticate VNDB API, using API Token.
         /// </summary>
-        public string Login(string apiToken)
+        public async Task<string> Login(string apiToken)
         {
             _status = ApiStatus.Closed;
             _logIn = LogInStatus.No;
             _apiToken = apiToken;
-            var task = WrapQuery(async () =>
+            if (string.IsNullOrWhiteSpace(apiToken))
             {
-                var response = Query("/authinfo", null, WebRequestMethods.Http.Get, typeof(AuthInfo)).Result;
+                _authInfo = default;
+                CSettings.Username = "guest";
+                CSettings.UserID = 0;
+                return "No API token provided.";
+            }
+            return await WrapQuery(async () =>
+            {
+                var response = await Query("/authinfo", null, WebRequestMethods.Http.Get, typeof(AuthInfo));
                 _changeStatusAction?.Invoke(_status);
                 if (!response.success)
                 {
-                    return $"Failed to get Authentication Info with API Token {_apiToken}";
+                    return $"Failed to get Authentication Info with API Token '{_apiToken}'.";
                 }
                 _authInfo = (AuthInfo)response.returnObject;
                 CSettings.Username = _authInfo.UserName;
@@ -58,8 +65,6 @@ namespace Happy_Apps_Core
                 _logIn = LogInStatus.Yes;
                 return $"Authenticated as {_authInfo.UserName} ({_authInfo.Id})";
             }, true);
-            var result = task.GetAwaiter().GetResult();
-            return result;
         }
 
         /// <summary>

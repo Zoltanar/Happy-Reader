@@ -27,10 +27,11 @@ namespace Happy_Reader.View.Tabs
             ViewModel.TranslatorSettings.MaxOutputSize = (int)((Slider)e.Source).Value;
         }
 
-        private void LogInWithDetails(object sender, RoutedEventArgs e)
+        private async void LogInWithDetails(object sender, RoutedEventArgs e)
         {
-            var response = Conn.Login(CSettings.ApiToken);
+            var response = await Conn.Login(CSettings.ApiToken);
             LoginResponseBlock.Text = response;
+            StaticMethods.MainWindow.ViewModel.SetUser();
         }
 
         private void OnNsfwToggle(object sender, RoutedEventArgs e)
@@ -232,7 +233,7 @@ namespace Happy_Reader.View.Tabs
         {
             Dispatcher.Invoke(() =>
             {
-                foreach (var line in texts) UpdateLoggingBox.Items.Add(MultiLogger.TimeString + line);
+                foreach (var line in texts) UpdateLoggingBox.Items.Add(line);
             });
         }
     }

@@ -26,11 +26,8 @@ namespace Happy_Reader.ViewModel
             await Task.Run(() => StaticHelpers.LocalDatabase = new VisualNovelDatabase(StaticHelpers.DatabaseFile, true));
             OnPropertyChanged(nameof(ProducerList));
             MainViewModel.StatusText = "Opening VNDB Connection...";
-            await Task.Run(() =>
-            {
-                StaticHelpers.Conn = new VndbConnection(SetReplyText, ChangeConnectionStatus);
-                StaticHelpers.Conn.Login(CSettings.ApiToken);
-            });
+            StaticHelpers.Conn = new VndbConnection(SetReplyText, ChangeConnectionStatus);
+            await StaticHelpers.Conn.Login(CSettings.ApiToken);
             MainViewModel.SetUser();
             MainViewModel.StatusText = "Loading VN List...";
             if (FiltersViewModel.Filters.Any()) SelectedFilterIndex = 0;
