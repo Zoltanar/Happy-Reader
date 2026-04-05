@@ -105,7 +105,7 @@ namespace Happy_Reader.View.Tabs
                     SelectedValuePath = nameof(Tag)
                 };
                 cb.SelectedIndex = Math.Max(selectedIndex, 0);
-                cb.SelectionChanged += (_, e) => action(header, e.AddedItems[0]);
+                cb.SelectionChanged += (_, e) => action(header, ((FrameworkElement)e.AddedItems[0]).Tag);
                 control = cb;
             }
             else

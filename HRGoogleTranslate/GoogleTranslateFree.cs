@@ -25,7 +25,7 @@ namespace HRGoogleTranslate
 		private const string TranslateFreeUrl = @"https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=en&dt=t&q="; //todo make editable
 		private static HttpClient _freeClient = new();
 		public string Error { get; set; }
-		public string Version => "1.0";
+		public string Version => "2.0";
 		public string SourceName => "Google Translate Free";
 		public IReadOnlyDictionary<string, Type> Properties { get; } = new ReadOnlyDictionary<string, Type>(new Dictionary<string, Type>()
 		{

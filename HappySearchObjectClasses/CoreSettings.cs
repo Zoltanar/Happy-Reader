@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
 
 namespace Happy_Apps_Core
@@ -16,11 +17,14 @@ namespace Happy_Apps_Core
         private string _secondaryTitleLanguage = "en";
         private string _apiToken;
 
+        [NotMapped]
         public string LastDumpUpdateText => 
             StaticHelpers.LocalDatabase?.LastDumpUpdate  == null ||
             StaticHelpers.LocalDatabase.LastDumpUpdate == DateTime.MinValue 
             ? "Last VNDB update: Never" 
             : $"Last VNDB update: {StaticHelpers.LocalDatabase.LastDumpUpdate.Value.ToLocalTime():d}";
+
+        [NotMapped]
         public string LastImageSyncText => _imageSyncDate == DateTime.MinValue ? "Last image sync: Never" : $"Last image sync: {_imageSyncDate.ToLocalTime():d}";
 
         /// <summary>

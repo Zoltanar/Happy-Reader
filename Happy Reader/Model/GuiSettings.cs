@@ -55,7 +55,7 @@ namespace Happy_Reader
 		};
 		
         [JsonIgnore]
-		public CultureInfo[] Cultures { get; } = CultureInfo.GetCultures(CultureTypes.InstalledWin32Cultures);
+		public CultureInfo[] Cultures { get; } = CultureInfo.GetCultures(CultureTypes.AllCultures);
 
 		[JsonIgnore]
 		public static ComboBoxItem[] LaunchModes { get; } = StaticMethods.GetEnumValues(typeof(GameLaunchMode));

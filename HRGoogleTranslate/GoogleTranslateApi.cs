@@ -28,7 +28,7 @@ namespace HRGoogleTranslate
 
         private ApiSettings Settings { get; set; }
 
-		public string Version => "1.1";
+		public string Version => "2.0";
 		public string SourceName => "Google Translate API";
 		public string Error { get; set; }
 		public IReadOnlyDictionary<string, Type> Properties { get; } = new ReadOnlyDictionary<string, Type>(new Dictionary<string, Type>()
@@ -130,10 +130,10 @@ namespace HRGoogleTranslate
 						Error = ex.Message;
 					}
 					break;
-				case ModelPropertyKey when value is TranslationModel translationModel:
-					Settings.TranslationModel = translationModel;
-					break;
-				case BadRepetitionKey when value is bool preventBadRepetition:
+                case ModelPropertyKey when value is TranslationModel translationModel:
+                    Settings.TranslationModel = translationModel;
+                    break;
+                case BadRepetitionKey when value is bool preventBadRepetition:
 					Settings.PreventBadRepetition = preventBadRepetition;
 					break;
 				case QuotationKey when value is bool noExtraQuotes:
