@@ -414,5 +414,14 @@ namespace Happy_Apps_Core
             var connection = (SqliteConnection)sender;
             Logger.ToFile($"[{connection.DataSource}] Update: {database.utf8_to_string()} - {type} - {table.utf8_to_string()} - {rowid}");
         }
+
+        internal static void UnzipSingleFile(string zipFile, string targetFile, bool overwrite)
+        {
+			if(!overwrite && File.Exists(targetFile)) throw new InvalidOperationException($"File '{targetFile}' already exists.");
+            using var archive = ZipFile.Open(zipFile, ZipArchiveMode.Read);
+			if (archive.Entries.Count != 1) throw new InvalidOperationException($"Expected exactly one file insize archive '{zipFile}', found {archive.Entries.Count}");
+			archive.Entries.First().ExtractToFile(targetFile, overwrite);
+
+        }
     }
 }

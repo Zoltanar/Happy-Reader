@@ -72,6 +72,9 @@
     <None Update="Program Data\Default Files\proxies.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Happy-Apps.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HappySearchObjectClasses\Happy_Apps_Core.csproj" />
